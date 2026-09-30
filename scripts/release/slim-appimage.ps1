@@ -1,4 +1,4 @@
-<# Takes the libraries the host's Mesa also loads back out of the AppImage, and makes the GTK hook's X11 overridable. #>
+<# Takes the host Mesa's libraries out of the AppImage, makes the hook's X11 overridable and every file readable to all. #>
 
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
@@ -67,6 +67,9 @@ try {
     $text = $text.Remove($forced[0].Index, $forced[0].Length).Insert($forced[0].Index, "$backendLine`n$imLine")
     [System.IO.File]::WriteAllText($hook, $text, [System.Text.UTF8Encoding]::new($false))
 
+    # firejail and AppImageHub mount the image as root, so a file only its owner may run fails for everyone else.
+    chmod -R "u+rwX,go+rX,go-w" (Join-Path $work "squashfs-root")
+
     # The ELF runtime is everything before the squashfs, so the repacked file boots exactly as Tauri's did.
     $offset = [int](& $appimage.FullName --appimage-offset)
     $runtime = Join-Path $work "runtime"
@@ -100,7 +103,7 @@ try {
     Move-Item -Force $slim $appimage.FullName
     chmod +x $appimage.FullName
 
-    # Proves the repacked file opens, the libraries stayed out and the hook carries both lines once.
+    # Proves the repacked file opens, the libraries stayed out, the hook carries both lines once and no mode is closed.
     Remove-Item -Recurse -Force (Join-Path $work "squashfs-root")
     & $appimage.FullName --appimage-extract | Out-Null
     $left = @(foreach ($pattern in $drop) { Get-ChildItem -Path $lib -Recurse -Filter $pattern })
@@ -113,6 +116,10 @@ try {
         if ($count -ne 1) {
             throw "The repacked $hookName carries '$line' $count times, expected once"
         }
+    }
+    $closed = @(& find (Join-Path $work "squashfs-root") ! -type l "(" ! -perm -o=r -o -type d ! -perm -o=x -o -perm -u=x ! -perm -o=x ")")
+    if ($closed.Count -ne 0) {
+        throw "The repacked AppImage has files others cannot read or run: $($closed -join ', ')"
     }
 } finally {
     Pop-Location
@@ -137,4 +144,4 @@ if (Test-Path $sig) {
     }
 }
 
-Write-Output "slimmed $($appimage.Name): $(@($found).Count) library file(s) removed, GDK_BACKEND overridable$(if (Test-Path $sig) { ', re-signed' })"
+Write-Output "slimmed $($appimage.Name): $(@($found).Count) library file(s) removed, GDK_BACKEND overridable, permissions normalised$(if (Test-Path $sig) { ', re-signed' })"

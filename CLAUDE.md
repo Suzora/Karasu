@@ -767,14 +767,22 @@ under X11 (`gdk_wayland_display_get_wl_display: assertion … failed`, then
 SIGSEGV in `wl_proxy_get_version`), reproduced with 1.19.2.665 in a Fedora 44
 container. X11 stays the default because it is the configuration #15976
 verified; `GDK_BACKEND=wayland` is the user's opt-in and ran in the container,
-headless Weston only.
+headless Weston only. It also opens every mode before the repack (`chmod -R
+u+rwX,go+rX,go-w`) and throws if the repacked tree holds a file others cannot
+read or run: Tauri writes `AppRun.wrapped` as `0770`, which the FUSE runtime
+never shows because it mounts for the calling user, but `firejail --appimage`
+and AppImageHub's test mount the image as root, and the catalog's bot
+(AppImage/appimage.github.io#6557, 2026-09-29) failed v1.0.0 with
+`AppRun.wrapped: Permission denied`.
 
 `scripts/release/smoke-appimage.ps1` runs right after it in both workflows and
-blocks: it starts the AppImage under Xvfb in Fedora 44 and Ubuntu 26.04
-containers with `GTK_IM_MODULE=wayland`, and fails unless every bundled ELF
+blocks: it extracts the AppImage as root and starts it as an unprivileged user
+(the firejail shape; real firejail inside Docker sees a sandbox and skips its
+root mount, so it proves nothing there) under Xvfb in Fedora 44 and Ubuntu
+26.04 containers with `GTK_IM_MODULE=wayland`, and fails unless every bundled ELF
 resolves, the main process and `WebKitWebProcess` are alive after 25 s and the
 log is free of `EGL_BAD_PARAMETER`, `cannot open shared object`, `undefined
-symbol` and panics. Replayed on 2026-09-25 it failed 1.19.2.665 (the
+symbol`, `Permission denied` and panics. Replayed on 2026-09-25 it failed 1.19.2.665 (the
 segfault), and the same checks failed a tree with 664's `libwayland-client`
 put back (the EGL abort). It runs llvmpipe, so it cannot see a crash on a real GPU's
 DRI3/GBM path; a Linux graphics report still needs the reporter's

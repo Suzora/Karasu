@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 731d47b -->
+<!-- generated-through: ac38d7c -->
 
 ### Fixed
 
@@ -123,6 +123,7 @@ tag time is then optional rather than load-bearing.
 - Adding a title from its page keeps keyboard focus, a hover-opened status choice no longer opens on its own after another panel closes, and a status colour picked to match an old default survives a restart.
 - Settings describe the editor's instant save, the Detection pane and the density setting as they now behave.
 - Closing the status choice before an add lands keeps keyboard focus on the button, and a queued add no longer moves focus when the entry appears later.
+- the Linux AppImage starts under firejail --appimage and anywhere else it is mounted as root.
 
 ### Added
 
