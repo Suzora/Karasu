@@ -9,19 +9,19 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Kyusetzu/Karasu/actions/workflows/release.yml"><img src="https://github.com/Kyusetzu/Karasu/actions/workflows/release.yml/badge.svg" alt="Build" /></a>
+  <a href="https://github.com/Suzora/Karasu/actions/workflows/release.yml"><img src="https://github.com/Suzora/Karasu/actions/workflows/release.yml/badge.svg" alt="Build" /></a>
   <img src="https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/platform-Linux-FCC624?logo=linux&logoColor=black" alt="Linux" />
   <img src="https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white" alt="Android" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" /></a>
-  <img src="https://img.shields.io/github/v/release/Kyusetzu/Karasu?include_prereleases&label=release" alt="Release" />
+  <img src="https://img.shields.io/github/v/release/Suzora/Karasu?include_prereleases&label=release" alt="Release" />
   <a href="https://discord.gg/yeHNSGyM8F"><img src="https://img.shields.io/badge/Discord-Kyu's%20Cozy%20Corner-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
 
 <p align="center">
-  <a href="https://kyusetzu.github.io/Karasu/"><b>kyusetzu.github.io/Karasu</b></a>
+  <a href="https://suzora.github.io/Karasu/"><b>suzora.github.io/Karasu</b></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/Kyusetzu/Karasu/releases/latest">Download the latest release</a>
+  <a href="https://github.com/Suzora/Karasu/releases/latest">Download the latest release</a>
 </p>
 
 ---
@@ -59,7 +59,7 @@ Because a local app can do things anilist.co simply can't:
 ## Screenshots
 
 Captures at 2× on the desktop and straight off the phone — the same set the
-[website](https://kyusetzu.github.io/Karasu/) shows at full size. Most are from
+[website](https://suzora.github.io/Karasu/) shows at full size. Most are from
 1.10; the Now Playing capture predates the floating window of 1.17.
 
 <p align="center">
@@ -307,8 +307,8 @@ Captures at 2× on the desktop and straight off the phone — the same set the
 ## Installation
 
 Download from the
-[releases page](https://github.com/Kyusetzu/Karasu/releases) — or from the
-[website](https://kyusetzu.github.io/Karasu/#platforms), which carries the
+[releases page](https://github.com/Suzora/Karasu/releases) — or from the
+[website](https://suzora.github.io/Karasu/#platforms), which carries the
 same files with each platform's notes beside its button. Each release
 carries one build per platform, always the newest: the Windows installer
 (`Karasu_<version>_x64-setup.exe`), the Linux `.AppImage`, `.deb` and `.rpm`, and two Android
@@ -499,12 +499,12 @@ documents the conventions and guardrails these tools follow.
 
 ## Reporting a bug
 
-**[GitHub Issues](https://github.com/Kyusetzu/Karasu/issues) is the place** —
+**[GitHub Issues](https://github.com/Suzora/Karasu/issues) is the place** —
 that's where things get tracked, and it's the only channel where a report won't
 be lost. There are two forms: a
-[bug report](https://github.com/Kyusetzu/Karasu/issues/new?template=bug_report.yml)
+[bug report](https://github.com/Suzora/Karasu/issues/new?template=bug_report.yml)
 and a
-[feature request](https://github.com/Kyusetzu/Karasu/issues/new?template=feature_request.yml).
+[feature request](https://github.com/Suzora/Karasu/issues/new?template=feature_request.yml).
 
 Most of the bug form fills itself in. Open **About → Copy diagnostics** and
 paste into the first field: it carries the four-part version, your OS, whether
@@ -529,11 +529,11 @@ Security issues go to the email above, privately — see
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=Kyusetzu%2FKarasu&type=date&legend=bottom-right">
+<a href="https://www.star-history.com/?repos=Suzora%2FKarasu&type=date&legend=bottom-right">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Kyusetzu/Karasu&type=date&theme=dark&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Kyusetzu/Karasu&type=date&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Kyusetzu/Karasu&type=date&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Suzora/Karasu&type=date&theme=dark&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Suzora/Karasu&type=date&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Suzora/Karasu&type=date&legend=bottom-right&sealed_token=wD9hOwb3V9tV9aBn8pB5v3P3R9mx32eNah89z1faDXSk7uuC-bfGk_EFXRqA-U3IBWRDkycBdsjnERi9KzpRL1PxxwoJX52QqbLUogY_MzE3c9L-TPox0g__0o26pRTFPufcT2SREyGF0W3HUiHfbpJ4CuEiLJmvarc2y_esaWJMDZc7IS2skrZOppyA" />
  </picture>
 </a>
 

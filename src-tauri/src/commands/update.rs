@@ -8,7 +8,7 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 759;
+pub const COMMIT_NUMBER: u32 = 760;
 
 /// The full four-part display version; the semver core comes from the crate version.
 pub fn app_version_string() -> String {
@@ -85,16 +85,16 @@ pub fn set_update_check_auto(db: State<'_, Db>, enabled: bool) -> Result<(), Str
 /// Human-facing release page for `channel`, linked from the About card.
 fn update_channel_release_url(channel: &str) -> &'static str {
     match channel {
-        "stable" => "https://github.com/Kyusetzu/Karasu/releases/latest",
-        _ => "https://github.com/Kyusetzu/Karasu/releases/tag/latest",
+        "stable" => "https://github.com/Suzora/Karasu/releases/latest",
+        _ => "https://github.com/Suzora/Karasu/releases/tag/latest",
     }
 }
 
 /// The `latest.json` manifest the in-app updater downloads from, matching `channel`.
 fn update_channel_manifest_url(channel: &str) -> &'static str {
     match channel {
-        "stable" => "https://github.com/Kyusetzu/Karasu/releases/latest/download/latest.json",
-        _ => "https://github.com/Kyusetzu/Karasu/releases/download/latest/latest.json",
+        "stable" => "https://github.com/Suzora/Karasu/releases/latest/download/latest.json",
+        _ => "https://github.com/Suzora/Karasu/releases/download/latest/latest.json",
     }
 }
 

@@ -4,15 +4,15 @@ Categories:
   - Internet
 License: MIT
 AuthorName: Kyu
-SourceCode: https://github.com/Kyusetzu/Karasu
-IssueTracker: https://github.com/Kyusetzu/Karasu/issues
-Changelog: https://github.com/Kyusetzu/Karasu/blob/main/CHANGELOG.md
-WebSite: https://kyusetzu.github.io/Karasu/
+SourceCode: https://github.com/Suzora/Karasu
+IssueTracker: https://github.com/Suzora/Karasu/issues
+Changelog: https://github.com/Suzora/Karasu/blob/main/CHANGELOG.md
+WebSite: https://suzora.github.io/Karasu/
 
 AutoName: Karasu
 
 RepoType: git
-Repo: https://github.com/Kyusetzu/Karasu
+Repo: https://github.com/Suzora/Karasu
 
 Builds:
   - versionName: VERSION_TO_FILL

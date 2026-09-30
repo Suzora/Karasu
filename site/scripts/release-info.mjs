@@ -13,7 +13,7 @@ import path from "node:path";
 
 const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const OUT = path.resolve(here, "..", "src", "generated", "release.json");
-const API = "https://api.github.com/repos/Kyusetzu/Karasu/releases/latest";
+const API = "https://api.github.com/repos/Suzora/Karasu/releases/latest";
 
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 if (!token && !process.argv.includes("--anonymous")) {

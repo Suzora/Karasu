@@ -13,7 +13,7 @@ import { gzipSync } from "node:zlib";
 const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const CLIENT = path.resolve(here, "..", "dist", "client");
 const BASE = "/Karasu/";
-const SITE_URL = "https://kyusetzu.github.io/Karasu/";
+const SITE_URL = "https://suzora.github.io/Karasu/";
 // Sized for React 19.3, whose react-dom grew past what the old figure left room for; the app is on the same version.
 const JS_BUDGET_GZ = 110 * 1024;
 // Per format: AVIF is what every current browser downloads and carries the
