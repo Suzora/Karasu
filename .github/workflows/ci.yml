@@ -113,7 +113,7 @@ jobs:
 
       # The same spell-check `verify` runs where typos is installed; the runner has none, so the action supplies it.
       - name: typos
-        uses: crate-ci/typos@512fc24f32f44ab01972217aaaf3dc86ec234d53 # v1.50.2
+        uses: crate-ci/typos@00f422f3b19c57bc6338715ebfe3316d38768461 # v1.50.3
 
       - name: Verify (typecheck + frontend tests + Rust tests)
         run: npm run verify
