@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.30.6"
+version = "1.30.7"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "MIT"
@@ -139,7 +139,7 @@ tauri-plugin-sharekit = "0.4.0-rc.7"
 # graph already compiles (Cargo.lock) — jni 0.22 would be a *second* copy,
 # the rustls-skew class of mistake documented above.
 jni = "0.21"
-tao = "0.35"
+tao = "0.37"
 
 # --- Platform-specific -------------------------------------------------------
 # Windows: Credential Manager keyring + DPAPI (via the `windows` crate).
