@@ -1409,9 +1409,11 @@ async update the real code makes after an await warns instead.
   signed in), never logged one. tao 0.35 answers `WM_ENDSESSION` with
   `loop_destroyed()` and then keeps pumping messages with the runner already
   `Destroyed`, which tao 0.36 fixed by exiting inside the handler
-  (tauri-apps/tao#1157); tauri-runtime-wry 2.11 still pins 0.35, so
+  (tauri-apps/tao#1157); tauri-runtime-wry pinned 0.35 until 2.12, so
   `exit_now_if_unrequested` in `lib.rs` does the same from the app's `Exit`
-  hook. It reproduces on demand without a shutdown: `SendMessage(hwnd, 0x16,
+  hook. Since 2.12 (tao 0.37, from 2026-09-30) tao exits by itself, but only
+  after `loop_destroyed()` has delivered that `Exit`, so the hook still runs
+  first and adds `cleanup_before_exit`. It reproduces on demand without a shutdown: `SendMessage(hwnd, 0x16,
   1, 0x80000000)` to the process's `Tao Thread Event Target` window. And
   `app.exit(0)` inside a menu callback is fine — it is a proxy message the
   loop handles on its next turn, not a teardown in the callback.

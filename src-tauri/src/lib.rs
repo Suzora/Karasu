@@ -148,7 +148,7 @@ fn hide_window_in_dev(_app: &tauri::App, _tray_present: bool) {}
 /// Set by `RunEvent::ExitRequested`, read by `RunEvent::Exit`: the one way to tell a requested exit from an imposed one.
 static EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
 
-/// An `Exit` with no `ExitRequested` before it is the OS destroying the loop; leave before tao 0.35 pumps another message.
+/// An `Exit` with no `ExitRequested` before it is the OS destroying the loop; clean up and leave before another message.
 #[cfg(desktop)]
 fn exit_now_if_unrequested(app: &AppHandle) {
     if EXIT_REQUESTED.load(Ordering::SeqCst) {
