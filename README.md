@@ -379,9 +379,13 @@ with no UAC prompt and nothing written outside your own profile.
 > take the `.rpm` or `.deb`, or download the current AppImage by hand, since
 > the in-app updater cannot run in an app that does not start.
 >
-> The AppImage runs through XWayland by default. `GDK_BACKEND=wayland
-> ./Karasu_*.AppImage` opts into native Wayland, and `GDK_BACKEND=x11` is the way
-> back if a globally set `GDK_BACKEND=wayland,…` misbehaves.
+> Like the `.deb` and the `.rpm`, the AppImage runs natively on Wayland in a
+> Wayland session and on X11 everywhere else. `GDK_BACKEND=x11
+> ./Karasu_*.AppImage` runs it through XWayland instead, which is the first thing
+> to try if the window stays blank or crashes under Wayland. Two things behave
+> differently on Wayland by its design: the window comes back at its last size
+> but not its last position, and the summon shortcut only fires while an X11
+> window has focus.
 >
 > Android ships as two APKs — take `Karasu_<version>_arm64.apk`, and fall
 > back to `_universal` only if your device refuses it (releases carry it;

@@ -753,7 +753,7 @@ needs: `Could not create default EGL display: EGL_BAD_PARAMETER. Aborting...`
 and a black window (Fedora 44, 2026-09-23). 1.19.2.665 removed only that
 library and was checked on WSLg alone, which has no DRM render node, and a
 Fedora 44 user reported a segfault shortly after the window opened
-(2026-09-24). `scripts/release/slim-appimage.ps1` now removes fourteen
+(2026-09-24). `scripts/release/slim-appimage.ps1` now removes thirteen
 libraries after the build, repacks with a digest-pinned `appimagetool` over
 the runtime cut from Tauri's own file, and re-signs with the updater key,
 because the `.sig` covers the file's bytes. The rule behind the list, measured
@@ -770,23 +770,47 @@ lack it — removing it gave `libwayland-server.so.0: cannot open shared object
 file` on WSL) and `libxml2.so.2` (Mesa links it, but Arch and Ubuntu 26.04
 ship only `.so.16`). Every pattern must match or the script throws, so a
 linuxdeploy that stops bundling one fails the build instead of leaving a stale
-list; widen it only by re-running that measurement.
+list; widen it only by re-running that measurement. That guard is what caught
+Tauri CLI 2.12 (linuxdeploy `07333c6`, taken on 2026-09-30): it no longer
+bundles `libwayland-client` at all, so the list lost it and is thirteen.
 
-The same script patches the GTK hook's unconditional `export GDK_BACKEND=x11`
-to `${GDK_BACKEND:-x11}` and unsets a `GTK_IM_MODULE=wayland*` unless the
-backend is Wayland: the bundled `im-wayland.so` dereferences a null display
-under X11 (`gdk_wayland_display_get_wl_display: assertion … failed`, then
-SIGSEGV in `wl_proxy_get_version`), reproduced with 1.19.2.665 in a Fedora 44
-container. X11 stays the default because it is the configuration #15976
-verified; `GDK_BACKEND=wayland` is the user's opt-in and ran in the container,
-headless Weston only. It also opens every mode before the repack (`chmod -R
+**The display backend is GDK's own choice since CLI 2.12, decided on
+2026-09-30.** Tauri's GTK hook no longer exports `GDK_BACKEND=x11`, and the
+AppImage follows it: a Wayland session runs it natively, an X11 session on X11,
+exactly as the `.deb`, the `.rpm` and the Flatpak (`--socket=wayland`,
+`--socket=fallback-x11`) always did, and `GDK_BACKEND=x11` is the way back
+through XWayland. X11 had been forced only to dodge the bundled
+`libwayland-client` meeting the host's Mesa (tauri-apps/tauri#8541), and that
+library is gone at the root now. Native Wayland buys sharp fractional scaling
+and native input methods; it costs the window's position, which Wayland does
+not let a client set, so there `tauri-plugin-window-state` brings back size and
+maximised state only. The one part that speaks X11 regardless is the summon
+hotkey: `global-hotkey` 0.8 grabs keys over its own `x11rb` connection, and on a
+Wayland session XWayland only sees keys meant for X11 windows, so there it
+never was global; what changes is that pressing it inside Karasu's own window
+no longer hides it (derived from the protocol, not measured on a desktop). The
+GlobalShortcuts portal is the real fix and is not wired. No real GPU has run
+native Wayland yet, so a Wayland graphics report starts with `GDK_BACKEND=x11`
+as the comparison. The script throws if the hook forces a
+backend again, because that would be a decision to take again, not a line to
+patch.
+
+What the script still adds to the hook is one guard: it unsets a
+`GTK_IM_MODULE=wayland*` unless GDK is headed for Wayland (`GDK_BACKEND`, else
+`WAYLAND_DISPLAY`), because the bundled `im-wayland.so` dereferences a null
+display under X11 (`gdk_wayland_display_get_wl_display: assertion … failed`,
+then SIGSEGV in `wl_proxy_get_version`). Reproduced with 1.19.2.665 in a Fedora
+44 container, and again on 2026-09-30 with an unslimmed CLI 2.12 build: `rc=139`
+in the X11 pass on both smoke images, while the same build ran natively on
+Wayland. It also opens every mode before the repack (`chmod -R
 u+rwX,go+rX,go-w`) and throws if the repacked tree holds a file others cannot
 read or run: Tauri writes `AppRun.wrapped` as `0770`, which the FUSE runtime
 never shows because it mounts for the calling user, but `firejail --appimage`
 and AppImageHub's test mount the image as root, and the catalog's bot
 (AppImage/appimage.github.io#6557, 2026-09-29) failed v1.0.0 with
 `AppRun.wrapped: Permission denied`. The mode comes from Tauri's tool cache,
-where `~/.cache/tauri/AppRun-x86_64` sits as `0770`. After the repack only
+where `~/.cache/tauri/AppRun-x86_64` sits as `0770`; CLI 2.12's linuxdeploy
+already stores it as `755`, and the `chmod` stays as the guard. After the repack only
 *files* are graded, because the check reads an `--appimage-extract` and the
 runtime's extractor stopped keeping directory modes: type2-runtime `75849dc`
 (v1.0.0, the Nightly of 2026-09-26) extracts the stored `755`, while `8f39b89`,
@@ -797,23 +821,26 @@ which appimagetool fetched for a build on 2026-09-30, creates every directory
 blocks: it unpacks the AppImage's squashfs as root with `unsquashfs`, which
 keeps the stored modes that the runtime's own extractor drops for directories,
 and starts it as an unprivileged user (the firejail shape; real firejail inside
-Docker sees a sandbox and skips its root mount, so it proves nothing there)
-under Xvfb in Fedora 44 and Ubuntu 26.04 containers with
-`GTK_IM_MODULE=wayland`, and fails unless every bundled ELF resolves, the main
-process and `WebKitWebProcess` are alive after 25 s and the log is free of
+Docker sees a sandbox and skips its root mount, so it proves nothing there) in
+Fedora 44 and Ubuntu 26.04 containers, twice: on X11 under Xvfb, then natively
+on Wayland under headless Weston, both with `GTK_IM_MODULE=wayland`. It fails
+unless every bundled ELF resolves, the main process and `WebKitWebProcess` are
+alive after 25 s in both passes and every log is free of
 `EGL_BAD_PARAMETER`, `cannot open shared object`, `undefined symbol`,
 `Permission denied` and panics. Replayed on 2026-09-25 it failed 1.19.2.665 (the
 segfault), and the same checks failed a tree with 664's `libwayland-client`
 put back (the EGL abort). Replayed on 2026-09-30 it failed v1.0.0 and an
 unslimmed 1.30.6 on both images with the bot's own `AppRun.wrapped: Permission
-denied`, and passed the slimmed 1.30.6. It runs llvmpipe, so it cannot see a crash on a real GPU's
+denied`, and passed the slimmed 1.30.6. The Wayland pass sets no `DISPLAY`,
+and without a compositor it fails with `Failed to initialize GTK` (measured the
+same day), which is the proof it cannot fall back to X11. It runs llvmpipe, so it cannot see a crash on a real GPU's
 DRI3/GBM path; a Linux graphics report still needs the reporter's
 `coredumpctl info`. A red smoke test in `release.yml` publishes Windows alone
 (the Linux download is `continue-on-error`), and the Nightly's prune step then
 drops the old Linux files until the next green build. An image that cannot be
-pulled or installed into is a warning, not a failure. Drop all of it once
-Tauri ships `bundle.linux.appimage.excludeLibraries` (tauri-apps/tauri#15662)
-and stops forcing X11 (the draft tauri-apps/tauri#16062). The `.deb`, the
+pulled or installed into is a warning, not a failure. Tauri stopped forcing X11
+with CLI 2.12; drop the library list once it ships
+`bundle.linux.appimage.excludeLibraries` (tauri-apps/tauri#15662). The `.deb`, the
 `.rpm` and the Flatpak link against the host's libraries and never had the
 problem.
 
