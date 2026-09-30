@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 10973dd -->
+<!-- generated-through: 1880b7c -->
 
 ### Fixed
 
@@ -198,6 +198,7 @@ tag time is then optional rather than load-bearing.
 - On a phone, settings with a field or a menu stack the control under its description, and the Jellyfin card starts with the connection — sign-in or a "Connected to …" line — with every field labelled.
 - On a phone, a profile shows the whole name with Follow across the width, the forum's categories are one menu instead of rows of chips, and the formatting bar keeps to one row with a More menu for the rest.
 - Links in the app, the update check and the website now point at the project's new home, github.com/Suzora/Karasu and suzora.github.io/Karasu.
+- The Linux AppImage runs natively on Wayland in a Wayland session, like the .deb and the .rpm; GDK_BACKEND=x11 runs it through XWayland as before.
 
 ### Removed
 

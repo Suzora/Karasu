@@ -1,4 +1,4 @@
-<# Takes the host Mesa's libraries out of the AppImage, makes the hook's X11 overridable and every file readable to all. #>
+<# Takes the host Mesa's libraries out of the AppImage, guards GTK's Wayland IM module and opens every file's mode. #>
 
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
@@ -19,15 +19,14 @@ if (-not $appimage) {
 
 # Bundled, loaded by the host's Mesa or its X11/Wayland siblings, and present on every host CLAUDE.md names.
 $drop = @(
-    "libwayland-client.so.0*", "libwayland-cursor.so.0*", "libwayland-egl.so.1*", "libxkbcommon.so.0*",
-    "libxcb-randr.so.0*", "libxcb-render.so.0*", "libxcb-shm.so.0*", "libXau.so.6*", "libXdmcp.so.6*",
-    "libXext.so.6*", "libzstd.so.1*", "libelf.so.1*", "libffi.so.8*", "liblzma.so.5*"
+    "libwayland-cursor.so.0*", "libwayland-egl.so.1*", "libxkbcommon.so.0*", "libxcb-randr.so.0*",
+    "libxcb-render.so.0*", "libxcb-shm.so.0*", "libXau.so.6*", "libXdmcp.so.6*", "libXext.so.6*",
+    "libzstd.so.1*", "libelf.so.1*", "libffi.so.8*", "liblzma.so.5*"
 )
 
-# The im-wayland module bundled with GTK dereferences a null display when GDK runs on X11.
+# GTK's bundled im-wayland module dereferences a null display when GDK runs on X11 instead of Wayland.
 $hookName = "linuxdeploy-plugin-gtk.sh"
-$backendLine = 'export GDK_BACKEND="${GDK_BACKEND:-x11}"'
-$imLine = '[ "${GDK_BACKEND%%,*}" = wayland ] || case "$GTK_IM_MODULE" in wayland*) unset GTK_IM_MODULE;; esac'
+$imLine = 'case "${GDK_BACKEND:-${WAYLAND_DISPLAY:+wayland}}" in wayland*) ;; *) case "$GTK_IM_MODULE" in wayland*) unset GTK_IM_MODULE;; esac;; esac'
 
 # Pinned by digest; the tool is only a packer, the runtime comes from Tauri's own file below.
 $toolUrl = "https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
@@ -42,13 +41,11 @@ try {
 
     $lib = Join-Path $work "squashfs-root/usr/lib"
     # Every pattern must match, so a linuxdeploy that stops bundling one fails here instead of leaving a stale list.
-    $found = foreach ($pattern in $drop) {
-        $hits = @(Get-ChildItem -Path $lib -Recurse -Filter $pattern)
-        if ($hits.Count -eq 0) {
-            throw "$pattern is not in the AppImage; linuxdeploy changed, re-check the AppImage notes in CLAUDE.md"
-        }
-        $hits
+    $absent = @($drop | Where-Object { @(Get-ChildItem -Path $lib -Recurse -Filter $_).Count -eq 0 })
+    if ($absent.Count -ne 0) {
+        throw "$($absent -join ', ') not in the AppImage; linuxdeploy changed, re-check the AppImage notes in CLAUDE.md"
     }
+    $found = foreach ($pattern in $drop) { Get-ChildItem -Path $lib -Recurse -Filter $pattern }
     foreach ($f in $found) {
         Write-Host "removing $($f.Name)"
         Remove-Item -Force $f.FullName
@@ -59,12 +56,12 @@ try {
         throw "The AppImage carries no $hookName; the GTK plugin changed"
     }
     $text = [System.IO.File]::ReadAllText($hook)
-    $forced = [regex]::Matches($text, '(?m)^export GDK_BACKEND=x11\b[^\n]*$')
-    if ($forced.Count -ne 1) {
-        throw "$hookName forces GDK_BACKEND=x11 $($forced.Count) times, expected once; the GTK plugin changed"
+    # The backend is GDK's own choice now, as in the .deb, the .rpm and the Flatpak; a hook that forces one again is news.
+    $forced = [regex]::Matches($text, '(?m)^\s*export GDK_BACKEND=')
+    if ($forced.Count -ne 0) {
+        throw "$hookName forces GDK_BACKEND again; the GTK plugin changed, re-decide per the AppImage notes in CLAUDE.md"
     }
-    # Spliced rather than -replace, because ${...} is a substitution token in a .NET replacement string.
-    $text = $text.Remove($forced[0].Index, $forced[0].Length).Insert($forced[0].Index, "$backendLine`n$imLine")
+    $text = $text.TrimEnd() + "`n$imLine`n"
     [System.IO.File]::WriteAllText($hook, $text, [System.Text.UTF8Encoding]::new($false))
 
     # firejail and AppImageHub mount the image as root, so a file only its owner may run fails for everyone else.
@@ -103,7 +100,7 @@ try {
     Move-Item -Force $slim $appimage.FullName
     chmod +x $appimage.FullName
 
-    # Proves the repacked file opens, the libraries stayed out, the hook carries both lines once and no file is closed.
+    # Proves the repacked file opens, the libraries stayed out, the hook carries the guard once and no file is closed.
     Remove-Item -Recurse -Force (Join-Path $work "squashfs-root")
     & $appimage.FullName --appimage-extract | Out-Null
     $left = @(foreach ($pattern in $drop) { Get-ChildItem -Path $lib -Recurse -Filter $pattern })
@@ -111,11 +108,9 @@ try {
         throw "The repacked AppImage still carries: $($left.Name -join ', ')"
     }
     $repacked = [System.IO.File]::ReadAllText($hook)
-    foreach ($line in @($backendLine, $imLine)) {
-        $count = ([regex]::Matches($repacked, "(?m)^$([regex]::Escape($line))$")).Count
-        if ($count -ne 1) {
-            throw "The repacked $hookName carries '$line' $count times, expected once"
-        }
+    $count = ([regex]::Matches($repacked, "(?m)^$([regex]::Escape($imLine))$")).Count
+    if ($count -ne 1) {
+        throw "The repacked $hookName carries '$imLine' $count times, expected once"
     }
     # Newer runtimes extract every directory owner-only whatever the image stores, so only files are graded here.
     $closed = @(& find (Join-Path $work "squashfs-root") -type f "(" ! -perm -o=r -o -perm -u=x ! -perm -o=x ")")
@@ -145,4 +140,4 @@ if (Test-Path $sig) {
     }
 }
 
-Write-Output "slimmed $($appimage.Name): $(@($found).Count) library file(s) removed, GDK_BACKEND overridable, permissions normalised$(if (Test-Path $sig) { ', re-signed' })"
+Write-Output "slimmed $($appimage.Name): $(@($found).Count) library file(s) removed, IM module guarded, permissions normalised$(if (Test-Path $sig) { ', re-signed' })"
