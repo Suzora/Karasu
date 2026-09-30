@@ -103,7 +103,7 @@ try {
     Move-Item -Force $slim $appimage.FullName
     chmod +x $appimage.FullName
 
-    # Proves the repacked file opens, the libraries stayed out, the hook carries both lines once and no mode is closed.
+    # Proves the repacked file opens, the libraries stayed out, the hook carries both lines once and no file is closed.
     Remove-Item -Recurse -Force (Join-Path $work "squashfs-root")
     & $appimage.FullName --appimage-extract | Out-Null
     $left = @(foreach ($pattern in $drop) { Get-ChildItem -Path $lib -Recurse -Filter $pattern })
@@ -117,7 +117,8 @@ try {
             throw "The repacked $hookName carries '$line' $count times, expected once"
         }
     }
-    $closed = @(& find (Join-Path $work "squashfs-root") ! -type l "(" ! -perm -o=r -o -type d ! -perm -o=x -o -perm -u=x ! -perm -o=x ")")
+    # Newer runtimes extract every directory owner-only whatever the image stores, so only files are graded here.
+    $closed = @(& find (Join-Path $work "squashfs-root") -type f "(" ! -perm -o=r -o -perm -u=x ! -perm -o=x ")")
     if ($closed.Count -ne 0) {
         throw "The repacked AppImage has files others cannot read or run: $($closed -join ', ')"
     }

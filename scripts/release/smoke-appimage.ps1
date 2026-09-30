@@ -22,11 +22,11 @@ if (-not $appimage) {
     throw "No .AppImage found in $bundleDir"
 }
 
-# Extracted as root and run as a user, as firejail mounts it; exit 100 is the setup failing, not the AppImage.
+# Unpacked as root with its stored modes and run as a user, as firejail mounts it; exit 100 is the setup failing.
 $payload = @'
 set -u
 for i in 1 2 3; do sh -c "$INSTALL" > /tmp/install.log 2>&1 && break; [ "$i" = 3 ] && { tail -20 /tmp/install.log; exit 100; }; sleep 10; done
-cd /tmp && /appimage/"$APPIMAGE_NAME" --appimage-extract > /dev/null || exit 1
+cd /tmp && unsquashfs -n -d squashfs-root -o "$(/appimage/"$APPIMAGE_NAME" --appimage-offset)" /appimage/"$APPIMAGE_NAME" > /dev/null || exit 1
 missing=0
 for f in $(find squashfs-root/usr/bin squashfs-root/usr/lib -type f); do
   [ "$(head -c 4 "$f" | od -An -c | tr -d ' ')" = '177ELF' ] || continue
@@ -60,10 +60,10 @@ foreach ($image in $Images) {
     $install = if ($image -match "fedora") {
         "dnf -y -q --disablerepo=fedora-cisco-openh264 install --setopt=install_weak_deps=False " +
         "xorg-x11-server-Xvfb mesa-dri-drivers mesa-libEGL mesa-libGL libglvnd-gles gtk3 dbus-daemon procps-ng findutils " +
-        "shadow-utils util-linux"
+        "shadow-utils util-linux squashfs-tools"
     } else {
         "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq --no-install-recommends " +
-        "xvfb dbus libgtk-3-0t64 libegl1 libgl1 libgbm1 libegl-mesa0 libgl1-mesa-dri procps ca-certificates"
+        "xvfb dbus libgtk-3-0t64 libegl1 libgl1 libgbm1 libegl-mesa0 libgl1-mesa-dri procps ca-certificates squashfs-tools"
     }
     Write-Host "== $image"
     $dockerRun = @("run", "--rm") + $DockerArgs + @(
