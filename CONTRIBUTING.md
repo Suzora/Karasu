@@ -116,7 +116,7 @@ Rust, and a real `npx tauri android build` for anything touching
 
 ## The website
 
-`site/` is the public site (https://kyusetzu.github.io/Karasu/), an npm project
+`site/` is the public site (https://suzora.github.io/Karasu/), an npm project
 of its own. A change that touches only `site/` skips the loop above: no version
 bump, and the gate is `npm --prefix site run check`. CLAUDE.md's "The website"
 section has the rest — the generated tokens, the copied primitives, and why a

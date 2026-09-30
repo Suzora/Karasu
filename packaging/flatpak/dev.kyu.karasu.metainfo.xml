@@ -22,25 +22,25 @@
     </p>
   </description>
   <launchable type="desktop-id">dev.kyu.karasu.desktop</launchable>
-  <url type="homepage">https://kyusetzu.github.io/Karasu/</url>
-  <url type="bugtracker">https://github.com/Kyusetzu/Karasu/issues</url>
-  <url type="vcs-browser">https://github.com/Kyusetzu/Karasu</url>
+  <url type="homepage">https://suzora.github.io/Karasu/</url>
+  <url type="bugtracker">https://github.com/Suzora/Karasu/issues</url>
+  <url type="vcs-browser">https://github.com/Suzora/Karasu</url>
   <screenshots>
     <screenshot type="default">
       <caption>The overview: what is airing, what you are watching, what is next</caption>
-      <image>https://raw.githubusercontent.com/Kyusetzu/Karasu/main/assets/screenshots/overview.jpg</image>
+      <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/overview.jpg</image>
     </screenshot>
     <screenshot>
       <caption>The anime list with filters and columns</caption>
-      <image>https://raw.githubusercontent.com/Kyusetzu/Karasu/main/assets/screenshots/anime-list.jpg</image>
+      <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/anime-list.jpg</image>
     </screenshot>
     <screenshot>
       <caption>An episode detected in mpv, counting down to the update</caption>
-      <image>https://raw.githubusercontent.com/Kyusetzu/Karasu/main/assets/screenshots/now-playing.jpg</image>
+      <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/now-playing.jpg</image>
     </screenshot>
     <screenshot>
       <caption>Statistics by genre, format and year</caption>
-      <image>https://raw.githubusercontent.com/Kyusetzu/Karasu/main/assets/screenshots/statistics.jpg</image>
+      <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/statistics.jpg</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />
@@ -57,7 +57,7 @@
   </requires>
   <releases>
     <release version="RELEASE_TO_FILL" date="DATE_TO_FILL">
-      <url>https://github.com/Kyusetzu/Karasu/releases/tag/TAG_TO_FILL</url>
+      <url>https://github.com/Suzora/Karasu/releases/tag/TAG_TO_FILL</url>
     </release>
   </releases>
 </component>

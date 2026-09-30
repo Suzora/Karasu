@@ -11,6 +11,6 @@ contact_links:
     about: Join Kyu's Cozy Corner on Discord — for setup help and questions.
       Found an actual bug? Please open an issue instead, so it gets tracked.
   - name: Report a security vulnerability
-    url: https://github.com/Kyusetzu/Karasu/blob/main/SECURITY.md
+    url: https://github.com/Suzora/Karasu/blob/main/SECURITY.md
     about: Please report security issues privately by email rather than opening
       a public issue.

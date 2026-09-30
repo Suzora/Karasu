@@ -39,7 +39,7 @@ $packageVersion = (Get-Content $packageJson -Raw | ConvertFrom-Json).version
 $fullVersion = "$packageVersion+$commitNumber"
 
 # The tag the assets are published under, so a stable manifest never points into the rolling tag the prune step empties.
-$downloadUrl = "https://github.com/Kyusetzu/Karasu/releases/download/$Tag/$($installer.Name)"
+$downloadUrl = "https://github.com/Suzora/Karasu/releases/download/$Tag/$($installer.Name)"
 $pubDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 $platforms = [ordered]@{
@@ -60,7 +60,7 @@ if ($appimage) {
     if (Test-Path $appimageSig) {
         $platforms["linux-x86_64"] = [ordered]@{
             signature = (Get-Content $appimageSig -Raw).Trim()
-            url       = "https://github.com/Kyusetzu/Karasu/releases/download/$Tag/$($appimage.Name)"
+            url       = "https://github.com/Suzora/Karasu/releases/download/$Tag/$($appimage.Name)"
         }
     }
     else {
@@ -78,7 +78,7 @@ foreach ($leg in @(@{ key = "android-arm64"; suffix = "_arm64.apk" }, @{ key = "
     if ($apk) {
         # Empty `signature` on purpose: the desktop plugin needs the key on every platform or rejects the whole manifest.
         $platforms[$leg.key] = [ordered]@{
-            url       = "https://github.com/Kyusetzu/Karasu/releases/download/$Tag/$($apk.Name)"
+            url       = "https://github.com/Suzora/Karasu/releases/download/$Tag/$($apk.Name)"
             signature = ""
             sha256    = (Get-FileHash -Algorithm SHA256 -Path $apk.FullName).Hash.ToLower()
             size      = $apk.Length

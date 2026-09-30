@@ -577,6 +577,18 @@ the app would download and reinstall itself on a loop. The comparator supplies
 `commands/update.rs` treats `+` and `.` alike so both spellings compare equal.
 **Don't "tidy" that `+` back into a dot, and don't drop the comparator.**
 
+**The repository is `Suzora/Karasu`; it was `Kyusetzu/Karasu` until September
+2026, and every build before 1.30.8.760 still asks the old address for its
+updates** (`update_channel_manifest_url`, compiled in). They reach the new one
+only through GitHub's rename redirect — measured on 2026-09-30: both manifest
+URLs answer 301 to `Suzora`, then 200. That redirect holds only while no
+repository named `Karasu` exists under the `Kyusetzu` account, so **never
+create one there, and never fork `Suzora/Karasu` into that account** (a fork
+takes the name by default): every older install would stop finding updates,
+silently, and has no other way to learn the new address. GitHub Pages does not
+redirect at all — `kyusetzu.github.io/Karasu/` answered 404 the same day —
+which is why the site, the README and both store listings moved with the code.
+
 ## The request budget
 
 One ~30/min pool serves every screen, the scrobbler and the alert passes, so
@@ -1440,7 +1452,7 @@ async update the real code makes after an await warns instead.
 ## The website
 
 The public site lives in `site/` and deploys to
-https://kyusetzu.github.io/Karasu/ through `.github/workflows/pages.yml` — on
+https://suzora.github.io/Karasu/ through `.github/workflows/pages.yml` — on
 a push to `main` that touches `site/**` or `src/app/index.css`, on a published
 (non-prerelease) release, or by hand. It is its own npm project with its own
 lockfile and `node_modules`; nothing under `site/` is imported by the app, and

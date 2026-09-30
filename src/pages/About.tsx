@@ -42,7 +42,7 @@ import KarasuMark from "@/components/KarasuMark";
 import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 
-const REPO_URL = "https://github.com/Kyusetzu/Karasu";
+const REPO_URL = "https://github.com/Suzora/Karasu";
 const DISCORD_HANDLE = "Kyusetzu";
 const DISCORD_PROFILE = "https://discordapp.com/users/174216581222498304";
 const DISCORD_INVITE = "https://discord.gg/yeHNSGyM8F";
@@ -125,7 +125,7 @@ export default function About() {
               onClick={() => openUrl(REPO_URL)}
               className="text-accent-400 hover:underline"
             >
-              github.com/Kyusetzu/Karasu
+              github.com/Suzora/Karasu
             </button>
           </Row>
         </div>

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "The official Karasu website, served from GitHub Pages at kyusetzu.github.io/Karasu",
+  "description": "The official Karasu website, served from GitHub Pages at suzora.github.io/Karasu",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

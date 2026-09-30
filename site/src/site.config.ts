@@ -3,9 +3,9 @@
  * URL literal, so a moved repository or a renamed template is one edit here
  * and `verify-dist.mjs` can check the rendered page against this list.
  */
-export const SITE_URL = "https://kyusetzu.github.io/Karasu/";
+export const SITE_URL = "https://suzora.github.io/Karasu/";
 
-export const REPO = "https://github.com/Kyusetzu/Karasu";
+export const REPO = "https://github.com/Suzora/Karasu";
 
 export const LINKS = {
   repo: REPO,

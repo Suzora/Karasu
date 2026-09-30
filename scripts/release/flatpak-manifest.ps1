@@ -13,7 +13,7 @@ $src = Join-Path $repoRoot "packaging/flatpak"
 if (-not $OutDir) { $OutDir = Join-Path $repoRoot "packaging/flatpak/out" }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-$base = "https://github.com/Kyusetzu/Karasu/releases/download/$Tag"
+$base = "https://github.com/Suzora/Karasu/releases/download/$Tag"
 $sums = (Invoke-WebRequest -UseBasicParsing "$base/SHA256SUMS.txt").Content -split "`n"
 $debLine = $sums | Where-Object { $_ -match "_amd64\.deb$" } | Select-Object -First 1
 if (-not $debLine) {

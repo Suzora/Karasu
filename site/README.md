@@ -1,6 +1,6 @@
 # The Karasu website
 
-The public site at <https://kyusetzu.github.io/Karasu/>. An npm project of its
+The public site at <https://suzora.github.io/Karasu/>. An npm project of its
 own inside the app's repository; the rules that keep the two apart are in the
 root `CLAUDE.md` under "The website".
 

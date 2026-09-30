@@ -13,7 +13,7 @@ use tauri::{AppHandle, Manager};
 /// Built-in Discord application ID (public, not a secret); empty would make the feature require a custom ID.
 pub const BUILTIN_DISCORD_APP_ID: &str = "1527934275356332133";
 
-const REPO_URL: &str = "https://github.com/Kyusetzu/Karasu";
+const REPO_URL: &str = "https://github.com/Suzora/Karasu";
 
 pub struct Discord(pub Mutex<Option<DiscordIpcClient>>);
 

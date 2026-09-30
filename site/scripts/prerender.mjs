@@ -17,7 +17,7 @@ const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z
 const SITE = path.resolve(here, "..");
 const CLIENT = path.join(SITE, "dist", "client");
 const SERVER = path.join(SITE, "dist", "server");
-const SITE_URL = "https://kyusetzu.github.io/Karasu/";
+const SITE_URL = "https://suzora.github.io/Karasu/";
 
 const template = readFileSync(path.join(CLIENT, "index.html"), "utf8");
 const entry = readdirSync(SERVER).find((f) => /^entry-server\.(m?js)$/.test(f));

@@ -302,7 +302,7 @@ jobs:
         run: >
           ./scripts/release/generate-update-manifest.ps1
           -Tag $env:RELEASE_TAG
-          -Notes "$env:RELEASE_NAME -- see https://github.com/Kyusetzu/Karasu/releases/tag/$env:RELEASE_TAG"
+          -Notes "$env:RELEASE_NAME -- see https://github.com/Suzora/Karasu/releases/tag/$env:RELEASE_TAG"
 
       - name: Generate checksum
         shell: pwsh

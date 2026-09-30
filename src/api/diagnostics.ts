@@ -54,4 +54,4 @@ export async function copyDiagnostics(): Promise<boolean> {
 
 /** The bug form, pre-selected. Where a report is meant to go. */
 export const ISSUE_URL =
-  "https://github.com/Kyusetzu/Karasu/issues/new?template=bug_report.yml";
+  "https://github.com/Suzora/Karasu/issues/new?template=bug_report.yml";

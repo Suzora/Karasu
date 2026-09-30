@@ -451,7 +451,7 @@ function drawCard(
 
         ctx.fillStyle = INK_FAINT;
         face(500, u(1.05));
-        ctx.fillText("github.com/Kyusetzu/Karasu", divX + u(1), y + u(2.05));
+        ctx.fillText("github.com/Suzora/Karasu", divX + u(1), y + u(2.05));
       },
     });
 
