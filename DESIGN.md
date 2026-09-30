@@ -423,7 +423,7 @@ Considered and declined on 2026-09-25:
 - **cmdk.** The palette is already a correct combobox with our own fuzzy
   scorer.
 - **tw-animate-css.** A second motion vocabulary.
-- **GSAP.** Licence terms beside an MIT project, and an imperative timeline
+- **GSAP.** Licence terms beside an AGPL project, and an imperative timeline
   model.
 - **React Spring.** Nothing Motion lacks.
 

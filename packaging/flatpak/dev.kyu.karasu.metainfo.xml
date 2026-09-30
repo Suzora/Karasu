@@ -8,7 +8,7 @@
     <name>Kyu</name>
   </developer>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>MIT</project_license>
+  <project_license>AGPL-3.0-or-later</project_license>
   <description>
     <p>
       Karasu keeps your AniList list in step with what you actually watch and read. It notices the episode playing

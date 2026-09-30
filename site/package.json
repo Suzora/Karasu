@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "description": "The official Karasu website, served from GitHub Pages at suzora.github.io/Karasu",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
     "check": "tsc --noEmit && node scripts/sync-tokens.mjs --check",

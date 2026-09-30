@@ -1,10 +1,10 @@
 {
   "name": "karasu",
   "private": true,
-  "version": "1.30.9",
+  "version": "1.31.0",
   "type": "module",
   "author": "Kyu",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "engines": {
     "node": ">=22"
   },

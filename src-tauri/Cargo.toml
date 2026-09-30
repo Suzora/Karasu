@@ -1,9 +1,9 @@
 [package]
 name = "karasu"
-version = "1.30.9"
+version = "1.31.0"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
-license = "MIT"
+license = "AGPL-3.0-or-later"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -1,6 +1,6 @@
 # Third-party notices
 
-Karasu is MIT-licensed (see [LICENSE](LICENSE)). The installers, the AppImage
+Karasu is licensed under AGPL-3.0-or-later (see [LICENSE](LICENSE)). The installers, the AppImage
 and the Android APK carry third-party components whose licences travel with
 them, and this file is where they travel. It covers what a **shipped build** contains, not what
 a development checkout does.

@@ -20,7 +20,7 @@ export function OpenSource() {
       id="open-source"
       eyebrow="Open source"
       title="Built in the open."
-      lede="The whole of Karasu is on GitHub under the MIT licence — every commit, every decision, every measurement that shaped it. Developed with heavy AI assistance, and every change reviewed by a human maintainer before it lands."
+      lede="The whole of Karasu is on GitHub under the GNU AGPL-3.0 — every commit, every decision, every measurement that shaped it. Developed with heavy AI assistance, and every change reviewed by a human maintainer before it lands."
     >
       <Reveal className="mt-10 flex flex-wrap gap-3">
         <ButtonLink href={LINKS.repo} size="lg">

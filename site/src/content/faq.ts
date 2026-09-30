@@ -11,7 +11,7 @@ export const FAQ: Faq[] = [
   },
   {
     q: "Is it free?",
-    a: "Yes. Karasu is free of cost and released under the MIT licence. There is no paid tier and nothing to unlock.",
+    a: "Yes. Karasu is free of cost and released under the GNU AGPL-3.0, or any later version. There is no paid tier and nothing to unlock.",
   },
   {
     q: "Is it open source?",
