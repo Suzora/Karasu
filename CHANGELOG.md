@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 1880b7c -->
+<!-- generated-through: 5ee06df -->
 
 ### Fixed
 
@@ -199,6 +199,7 @@ tag time is then optional rather than load-bearing.
 - On a phone, a profile shows the whole name with Follow across the width, the forum's categories are one menu instead of rows of chips, and the formatting bar keeps to one row with a More menu for the rest.
 - Links in the app, the update check and the website now point at the project's new home, github.com/Suzora/Karasu and suzora.github.io/Karasu.
 - The Linux AppImage runs natively on Wayland in a Wayland session, like the .deb and the .rpm; GDK_BACKEND=x11 runs it through XWayland as before.
+- Karasu is now licensed under AGPL-3.0-or-later instead of MIT; releases up to 1.30.x stay MIT.
 
 ### Removed
 

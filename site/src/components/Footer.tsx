@@ -27,7 +27,7 @@ const COLUMNS = [
       { label: "AniList", href: LINKS.anilist },
       { label: "Security policy", href: LINKS.security },
       { label: "Contributing", href: LINKS.contributing },
-      { label: "MIT licence", href: LINKS.license },
+      { label: "AGPL-3.0 licence", href: LINKS.license },
     ],
   },
 ] as const;
@@ -68,7 +68,7 @@ export function Footer() {
           ))}
         </div>
         <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hair pt-6 text-xs text-ink-600">
-          <span>MIT licensed · © 2026 Kyu and Karasu contributors</span>
+          <span>AGPL-3.0 licensed · © 2026 Kyu and Karasu contributors</span>
           <span>
             Karasu is an independent project and is not affiliated with or endorsed by AniList. SN Pro is
             used under the SIL Open Font License 1.1.

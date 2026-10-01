@@ -6,7 +6,7 @@ import { Eyebrow } from "@/components/Section";
 
 const FACTS = [
   { icon: MonitorSmartphone, text: "Windows · Linux · Android" },
-  { icon: ScrollText, text: "MIT licensed" },
+  { icon: ScrollText, text: "AGPL-3.0 licensed" },
   { icon: UserRoundX, text: "No account needed to start" },
 ] as const;
 

@@ -3,7 +3,7 @@ import { Reveal } from "@/components/Section";
 import { staggerDelay } from "@/lib/motion";
 
 const FACTS = [
-  { icon: ScrollText, title: "Free", text: "MIT licensed, no paid tier." },
+  { icon: ScrollText, title: "Free", text: "AGPL-3.0 licensed, no paid tier." },
   { icon: BadgeCheck, title: "Open source", text: "Every commit is public." },
   { icon: KeyRound, title: "Built for AniList", text: "Implicit OAuth, no client secret." },
   { icon: EyeOff, title: "No telemetry", text: "No analytics, no backend, no account of ours." },

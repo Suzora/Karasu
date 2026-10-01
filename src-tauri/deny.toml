@@ -30,6 +30,11 @@ allow = [
 ]
 confidence-threshold = 0.8
 
+# Karasu itself; the allow list stays the dependency spread, so a copyleft dependency still stops here.
+[[licenses.exceptions]]
+crate = "karasu"
+allow = ["AGPL-3.0-or-later"]
+
 [bans]
 # Duplicates are the ecosystem's business; a second copy of a crate is noise here, not a defect.
 multiple-versions = "allow"

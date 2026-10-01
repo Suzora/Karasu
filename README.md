@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/platform-Linux-FCC624?logo=linux&logoColor=black" alt="Linux" />
   <img src="https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white" alt="Android" />
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License: AGPL-3.0" /></a>
   <img src="https://img.shields.io/github/v/release/Suzora/Karasu?include_prereleases&label=release" alt="Release" />
   <a href="https://discord.gg/yeHNSGyM8F"><img src="https://img.shields.io/badge/Discord-Kyu's%20Cozy%20Corner-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
@@ -543,7 +543,16 @@ Security issues go to the email above, privately — see
 
 ## License
 
-[MIT](LICENSE).
+Copyright (C) 2026 Kyu and Karasu contributors.
+
+Karasu is free software: you can redistribute it and/or modify it under the
+terms of the [GNU Affero General Public License](LICENSE) as published by the
+Free Software Foundation, either version 3 of the License, or (at your option)
+any later version. It is distributed in the hope that it will be useful, but
+without any warranty; see the licence for details.
+
+Releases up to and including 1.30.x were published under the MIT licence, and
+those releases stay MIT. Everything from 1.31.0 on is AGPL-3.0-or-later.
 
 Shipped builds embed two fonts whose licences travel with them — SN Pro under
 the SIL Open Font License 1.1 and Kosugi Maru under Apache-2.0 — along with the

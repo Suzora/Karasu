@@ -206,6 +206,13 @@ watching.
 
 Security issues do not go in the tracker. See [SECURITY.md](SECURITY.md).
 
+## Licence of contributions
+
+Karasu is licensed under AGPL-3.0-or-later, and a contribution is accepted
+under the same licence: what comes in goes out on the same terms. There is no
+CLA, so a contributed line can never be relicensed as closed source, not even
+by the maintainer.
+
 ## Conduct
 
 Be decent. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
