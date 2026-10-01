@@ -32,7 +32,7 @@
     "lighthouse": "^13.5.0",
     "opentype.js": "^2.0.0",
     "playwright-core": "^1.63.0",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "typescript": "~7.0.2",
     "vite": "^8.3.1"
