@@ -70,7 +70,8 @@ jobs:
           theirs=$(ls release-apk/*.apk | head -1)
           echo "rebuilt: $ours"
           echo "released: $theirs"
-          apksigcopier compare --unsigned "$ours" "$theirs" && echo "::notice::Reproducible: the rebuilt APK matches the release"
+          # The signed release comes first: compare copies its signature onto the unsigned rebuild and verifies the result.
+          apksigcopier compare --unsigned "$theirs" "$ours" && echo "::notice::Reproducible: the rebuilt APK matches the release"
 
       - name: Print the release signing key for the recipe
         if: always()

@@ -27,8 +27,9 @@ modules:
   - name: karasu
     buildsystem: simple
     build-commands:
-      - bsdtar -xf karasu.deb data.tar.gz
-      - bsdtar -xf data.tar.gz
+      # No owners from the archive: the builder runs as root in a sandbox that refuses to chown to the packager's uid.
+      - bsdtar --no-same-owner -xf karasu.deb data.tar.gz
+      - bsdtar --no-same-owner -xf data.tar.gz
       - install -Dm755 usr/bin/karasu /app/bin/karasu
       - install -Dm644 -t /app/lib/karasu usr/lib/karasu/THIRD-PARTY-NOTICES.md
       # The desktop file and the icons take the app id, which Flathub requires to match the manifest.
