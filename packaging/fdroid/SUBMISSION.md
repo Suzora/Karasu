@@ -33,7 +33,8 @@ over each other; a user who switches uninstalls first.
   `apksigcopier compare --unsigned`. Run against v1.32.0 *with* the F-Droid
   switch on 2026-10-03, 965 of 966 entries were identical, the zip order and
   metadata too, and only `libkarasu_lib.so`'s `.text` differed, by the
-  1,040 bytes the switch compiles out.
+  1,040 bytes the switch compiles out. Without the switch, the same day, the
+  rebuild verified under the release's signature.
 
 ## The one-time request
 

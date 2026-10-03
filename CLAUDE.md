@@ -1631,7 +1631,8 @@ rather than F-Droid's build: it rebuilds the arm64 APK from the tag as the
 release job does, with only the signing left out, and runs `apksigcopier
 compare --unsigned` with the signed release first (its `do_compare` copies
 that signature onto the second APK), keeping the rebuild as an artifact for a
-diff. Reproducibility rests on what the tree fixes: `rust-toolchain.toml`
+diff. Its first run in that shape, on v1.32.0 the same day, verified: the
+GitHub APK is the tag's source, byte for byte. Reproducibility rests on what the tree fixes: `rust-toolchain.toml`
 pins the exact version (and `src/lib/toolchain.test.ts` fails the gate when a
 workflow's `dtolnay/rust-toolchain` step or the recipe names another — CI
 passes the pin as `toolchain:` because the action does not read the file, and
