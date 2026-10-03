@@ -1,6 +1,6 @@
 name: Reproducible
 
-# By hand, for a tag: rebuilds the arm64 APK from that tag's source and checks it is the one the release carries.
+# After every Stable tag (release.yml dispatches it) or by hand: rebuilds the arm64 APK and checks it is the release's.
 on:
   workflow_dispatch:
     inputs:

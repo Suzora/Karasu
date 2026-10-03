@@ -1,6 +1,6 @@
 name: Flatpak
 
-# By hand, for a tag that carries a .deb: fills the manifest, validates the metainfo and builds the Flatpak once.
+# After every Stable tag (release.yml dispatches it) or by hand: fills, validates and builds the Flatpak once.
 on:
   workflow_dispatch:
     inputs:

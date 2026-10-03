@@ -416,6 +416,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
 
+      # Both read the release just published, so they run on every Stable tag instead of waiting for someone to remember.
+      - name: Check the Flatpak and the APK's reproducibility for a Stable release
+        if: ${{ needs.precheck.outputs.prerelease == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.precheck.outputs.tag }}
+        shell: pwsh
+        run: |
+          $failed = @()
+          # Each check needs a file the release may lack: a red Linux build ships no .deb, a missing keystore no APK.
+          if (Get-ChildItem -Path "linux-artifacts" -Include *.deb -Recurse -ErrorAction SilentlyContinue) {
+            gh workflow run flatpak.yml --repo $env:GITHUB_REPOSITORY --ref main -f "tag=$env:TAG"
+            if ($LASTEXITCODE -ne 0) { $failed += "flatpak" }
+          } else {
+            Write-Host "::warning::$env:TAG carries no .deb, so the Flatpak check was not started."
+          }
+          if (Get-ChildItem -Path "android-artifacts" -Filter *_arm64.apk -ErrorAction SilentlyContinue) {
+            gh workflow run reproducible.yml --repo $env:GITHUB_REPOSITORY --ref main -f "tag=$env:TAG"
+            if ($LASTEXITCODE -ne 0) { $failed += "reproducible" }
+          } else {
+            Write-Host "::warning::$env:TAG carries no arm64 APK, so the reproducibility check was not started."
+          }
+          if ($failed) { throw "Could not dispatch: $($failed -join ', ')" }
+
   # No signing secrets, no release asset: a debug-signed APK must never be published, so it stays a workflow artifact.
   android-build:
     runs-on: ubuntu-22.04

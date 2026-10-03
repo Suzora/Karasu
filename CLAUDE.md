@@ -1492,8 +1492,9 @@ starts no workflow, so `pages.yml`'s `release: published` trigger never fired
 for v1.32.0 (2026-10-03): the release went out and the page kept naming 1.0.0
 until a hand dispatch. The publish job's last step now runs `gh workflow run
 pages.yml` for a non-prerelease (dispatch is exempt from that rule; the job
-holds `actions: write` for it). The `release` trigger stays for a release
-someone publishes by hand.
+holds `actions: write` for it), and the step after it dispatches the Flatpak
+and Reproducible checks the same way (see "Packaging beyond the release
+page"). The `release` trigger stays for a release someone publishes by hand.
 
 - **Site-only commits do not bump the version and do not run the app loop.**
   The gate is `npm --prefix site run check` (typecheck plus the token
@@ -1651,8 +1652,13 @@ see: `SHA256SUMS.txt` arrives as octet-stream bytes with CRLF lines in pwsh 7
 (the manifest script decodes and splits on `\r?\n`), `bsdtar` in the
 flatpak-builder sandbox runs as root and cannot chown to the packager's uid
 (`--no-same-owner`), the `.deb` keeps the notices under the product name
-(`usr/lib/Karasu/`), and `apksigner` is not on the runner's `PATH`. Run both
-against every Stable tag, not only before a submission.
+(`usr/lib/Karasu/`), and `apksigner` is not on the runner's `PATH`. So
+`release.yml`'s publish job dispatches both, from `main` with the tag as input,
+for every Stable tag, beside the website: the Flatpak check only when the
+release carries a `.deb`, the reproducibility check only when it carries an
+arm64 APK, and a `::warning::` in the publish log for whichever it skipped. A
+red run reaches the maintainer as that workflow's own notification; the
+release itself is already out by then and is not held back by either.
 
 ## Links are checked weekly, not trusted
 
