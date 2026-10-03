@@ -64,8 +64,11 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0b5dfdc -->
+<!-- generated-through: d71187f -->
 
+### Fixed
+
+- On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square.
 ## 1.32.0 — 2026-10-03
 
 The first Stable release since 1.0.0, and everything the Nightly gained in the

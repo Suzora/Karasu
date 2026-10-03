@@ -1093,3 +1093,6 @@ html[data-reduce-motion] ::view-transition-new(*) {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

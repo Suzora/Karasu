@@ -865,9 +865,12 @@ function ExportRow({
   const phone = usePhoneShell();
   return (
     <div
+      // Only the x axis scrolls and draws no bar: a pill's touch hit area overflows the row vertically.
       className={cn(
         "flex items-center gap-2",
-        phone ? "flex-nowrap overflow-x-auto pb-1" : "flex-wrap",
+        phone
+          ? "flex-nowrap overflow-x-auto overflow-y-hidden pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          : "flex-wrap",
       )}
     >
       <span className="w-14 shrink-0 text-2xs uppercase tracking-eyebrow text-ink-600">
