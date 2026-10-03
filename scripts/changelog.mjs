@@ -11,11 +11,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { addEntries, findSection, MARKER, UNRELEASED } from "./changelog-section.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = path.join(ROOT, "CHANGELOG.md");
-const MARKER = /<!-- generated-through: ([0-9a-f]{7,40}) -->/;
-const UNRELEASED = "## Unreleased";
 
 /** Separators for `git log --format`, written as escapes: a raw control byte here breaks every later exact-match edit. */
 const FS = "\u0001";
@@ -102,27 +101,6 @@ function collect(since) {
   return out;
 }
 
-/** Inserts each entry at the end of its `### Group` in place; a re-render reflowed and reordered what was already there. */
-function insert(section, entries, through) {
-  let out = section.replace(MARKER, `<!-- generated-through: ${through} -->`);
-  for (const e of entries) {
-    const heading = `### ${e.group}`;
-    const at = out.indexOf(`${heading}\n`);
-    const line = `- ${e.text}`;
-    if (at === -1) {
-      // A group the section does not have yet goes at the end, which keeps this edit local.
-      out = `${out.trimEnd()}\n\n${heading}\n\n${line}\n`;
-      continue;
-    }
-    // The end of this group is the next `### ` heading, or the end.
-    const nextHeading = out.indexOf("\n### ", at + 1);
-    const cut = nextHeading === -1 ? out.length : nextHeading;
-    const body = out.slice(at, cut).trimEnd();
-    out = `${out.slice(0, at)}${body}\n${line}\n${out.slice(cut).replace(/^\n+/, "\n")}`;
-  }
-  return out;
-}
-
 const args = new Set(process.argv.slice(2));
 const file = readFileSync(FILE, "utf8");
 
@@ -146,14 +124,12 @@ if (args.has("--marker-head")) {
   process.exit(0);
 }
 
-const start = file.indexOf(`${UNRELEASED}\n`);
-if (start === -1) {
+const bounds = findSection(file);
+if (!bounds) {
   console.error(`changelog: no '${UNRELEASED}' heading in CHANGELOG.md`);
   process.exit(1);
 }
-const after = file.indexOf("\n## ", start + 1);
-const end = after === -1 ? file.length : after + 1;
-const section = file.slice(start, end);
+const section = file.slice(bounds.start, bounds.end);
 
 const since = section.match(MARKER)?.[1];
 if (!since) {
@@ -206,8 +182,7 @@ if (entries.length === 0) {
   process.exit(0);
 }
 
-const updated = file.slice(0, start) + insert(section, entries, head) + file.slice(end);
-writeFileSync(FILE, updated);
+writeFileSync(FILE, addEntries(file, entries, head));
 console.log(
   `changelog: added ${entries.length} entr${entries.length === 1 ? "y" : "ies"}, through ${head}`,
 );
