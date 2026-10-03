@@ -64,146 +64,128 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 5ee06df -->
+<!-- generated-through: 0b5dfdc -->
 
-### Fixed
+## 1.32.0 — 2026-10-03
 
-- Pinning an activity no longer signs you out; a refusal shows AniList's reason, and the pin control is only offered on accounts that can pin.
-- Spoilers that wrap several paragraphs, lists or images now hide as one block, and comment previews no longer reveal spoiler text.
-- Images in bios and forum posts that showed as a link now render — linked badges, <img> tags, URLs with parentheses, and hosts that mislabel the file — and each is fetched once.
-- Bios and posts render as anilist.co does where they did not — a favicon-style ICO image loads inline, every HTML entity a browser knows is decoded, a heading written as #Title without the space is a heading, ~~~centred~~~ text inside a heading keeps its spoiler, <hr> draws a rule, and a one-line centred row starting with a dash is no longer a bulleted list.
-- With Karasu on both the PC and the phone watching the same Jellyfin account, an episode reaches AniList once — the desktop goes first, the phone waits three minutes and checks, and every instance asks AniList for the current progress before it writes.
-- Find servers now reaches the Jellyfin server on a PC with a virtual network switch (Hyper-V, VirtualBox), which the first version missed.
-- New-episode and sequel checks keep working through an AniList outage that refuses anonymous requests, by signing them with your account while you are signed in.
-- A link with a target Karasu refuses (javascript:, data:, AniList's layout blob) now shows in the accent colour like on anilist.co, instead of as plain text.
-- A pinch on Android no longer zooms the whole screen; the interface size under Appearance is the one zoom.
-- The sidebar collapses to icons on a short window instead of pushing its lower entries out of view.
-- Restarting Karasu right after it spent its AniList budget no longer fires a burst of requests into the limit.
-- The twice-daily sequel check spreads its requests out instead of sending them in one burst.
-- The now-playing ring no longer restarts on a card mounted mid-session (1.10.3.620).
-- An AniList profile link that carries the user's id, as the Statistics header's does, opens the profile in-app instead of "No such user".
-- Reading notifications one by one now clears the bell's badge, and "Mark all read" is always available.
-- A pull-to-sync gesture could fail to arm when two touch events arrived in the same frame.
-- A pull-to-sync left mid-way by a navigation no longer leaves its hint on the next screen, and a long press no longer selects the action sheet's title.
-- A release name that carries the episode's title after its number now parses the number, and Jellyfin's episode name reaches the now-playing card.
-- The command palette's result groups are announced as groups, and its input has a name.
-- F5, Ctrl+F and Ctrl+P no longer reach the browser engine under the app on desktop; copying works the same on Linux as on Windows.
-- The Linux AppImage no longer opens a black window with EGL_BAD_PARAMETER on Fedora 44, Ubuntu 26.04 and other systems with Mesa 26.
-- The Linux AppImage no longer crashes shortly after opening on Fedora 44 and other systems with Mesa 26, and GDK_BACKEND=wayland now opts it into native Wayland.
-- Panning the franchise view on Android no longer triggers a sync, and the view opens centred on the title it was opened from.
-- A saved preset now remembers the custom list it was filtered to.
-- The franchise page no longer scrolls sideways on a phone, and its legend names every status.
-- Episode, chapter, volume and rewatch fields no longer keep a 0 you cannot delete, and an emptied field saves as 0.
-- Text in the phone's More sheet, the bell, the filter menus and the calendar uses its intended colour instead of inheriting the one above it.
-- The status editor and the list's panels stay inside a short window instead of running off its bottom.
-- high contrast marks the focused text field, and Escape in a dialog's search empties it before closing anything.
-- Collapsing or expanding the sidebar from the keyboard keeps the focus on the toggle, and the collapsed rail's names switch without overlapping.
-- The floating detection window is readable in the light theme again, and the shell's banners animate in and out.
-- Notification links need one back press, the notifications page keeps its loaded pages and unread marks when the titlebar bell opens over it, and its header fits a phone.
-- A keyboard focus ring is visible on grid covers again, the complete button no longer overflows narrow covers, and the list view's score header is no longer cut off in German.
-- Opening the notifications dropdown or sheet over the notifications page no longer reloads every page or clears its unread marks, and the pull-to-sync pill fades out where it stood.
-- Narrow grid covers keep the complete button when it fits and never clip a quick action, and the selection box no longer draws a second focus ring.
-- The score label over the chosen bar is readable in the light theme, and the tag field shows keyboard focus.
-- Covers in search and the season pages no longer clip a quick action when they are narrow.
-- In high contrast and Windows' contrast themes the chosen status and chip stand out by more than colour, and a tapped +1 no longer stays highlighted on a phone.
-- The overview no longer jumps while it loads, keeps airing soon full width on a quiet week, and shows the keyboard ring on its panel rows.
-- The overview's banner and the score badges on covers stay readable in the light theme and in high contrast.
-- The 18+ badge, the complete button and the reveal label on covers are readable in the light theme.
-- The search page no longer starts its second row of chips with a stray divider.
-- A second press on the calendar's next-week arrow no longer jumps back to this week, and the week grid no longer flickers near its width threshold.
-- Settings cards under "In Karasu" and "Kept on AniList" are now announced one level below their group, the phone's pane list names what the Android account and advanced panes really hold, and the chosen theme stays marked in Windows high contrast.
-- On a phone no settings control runs past its card any more, buttons keep their label on one line, and the log, media-session and manual-token sections fold open smoothly and tell a screen reader whether they are open.
-- The Jellyfin card no longer keeps an old error on screen after a later action succeeds, and on a narrow phone the "desktop only" label no longer covers a card's title.
-- A profile's tabs show that more lie past the edge and take the arrow keys, and on a phone the formatting More menu returns the focus where it came from and closes when the window widens.
-- Statistics shows every status in full beside the ring, the series-length labels are no longer cut off, and "1 episode" reads in the singular.
-- Character and staff pages show roles and genders in your language, and the local library's title matches the other pages.
-- On a narrow phone the statistics page no longer scrolls sideways, and the legend beside the ring moves beneath it rather than cutting its labels short.
-- The Android widgets' title shows Karasu's accent and their footer is readable against the widget.
-- The colour picker's hex field and the log's level column are monospace again, and the About wordmark has its wide spacing back.
-- Adding a title from its page keeps keyboard focus, a hover-opened status choice no longer opens on its own after another panel closes, and a status colour picked to match an old default survives a restart.
-- Settings describe the editor's instant save, the Detection pane and the density setting as they now behave.
-- Closing the status choice before an add lands keeps keyboard focus on the button, and a queued add no longer moves focus when the entry appears later.
-- The Linux AppImage starts under firejail --appimage and anywhere else it is mounted as root.
+The first Stable release since 1.0.0, and everything the Nightly gained in the
+four weeks between: a new way to act on any title (long press, right-click,
+pull to sync), a floating now-playing window, an Android app that updates
+itself and keeps Jellyfin tracking alive with the screen off, Jellyfin servers
+found by name, a cache that makes a restart cost almost no requests, `.deb`
+and `.rpm` packages beside the AppImage, a contrast setting and the second
+version of Karasu's look across the app and the website.
+
+Two things change around the app rather than in it. **Karasu is now licensed
+under AGPL-3.0-or-later**; releases up to 1.30.x stay under MIT. And the
+project has moved to **github.com/Suzora/Karasu** and
+**suzora.github.io/Karasu**. The old repository address forwards, so an
+installed 1.0.0 still finds this update; the old website address does not.
+
+**On Android, 1.0.0 cannot update itself**: install this APK once by hand
+(your data stays, the signing key is the same). From here on the app fetches
+its own updates.
 
 ### Added
 
-- A formatting toolbar in every place you write on AniList — activities, replies, threads, comments, reviews and your bio — with shortcuts for bold, italic, strikethrough and spoiler.
+- Long-press a title on a touch screen, or right-click it with a mouse, for everything that can be done with it; the right-click menu finds entries as you type and stays on screen at any edge.
+- Pull a screen down on the phone to sync; Android drops the separate sync row, and the list header no longer shows a reload button there.
+- Swiping up from the phone's bottom bar opens the command palette, which opens on what you used lately beside the main shortcuts.
+- The now-playing card is a small floating window over every screen, expanded or compact, with the cover, season and episode, the episode's name and the AniList details; its update, skip and fix-match buttons sit in its header, and on desktop it can be dragged anywhere and resized, and remembers both.
+- Android downloads a new version by itself over Wi-Fi and installs it from About, the bell, or once at start; the update channel can be chosen there too.
 - On Android, Jellyfin tracking can keep running with the screen off — a switch under Detection → Jellyfin starts a quiet permanent notification that stops Android from freezing the app, a button excludes Karasu from battery optimisation (which also keeps the notification check on schedule), and the tracking settings are no longer greyed out there.
 - Settings → Detection → Jellyfin can find the servers on your network by name, and signing in checks the address is a Jellyfin server before your password is sent.
 - Jellyfin settings take an optional external address for when the server is not reachable at the first one — Karasu switches over by itself, checks it is the same server before sending anything, and Test connection says which address answered.
-- An "Interface size" setting under Appearance zooms the whole window (75–200 %), for 4K displays and TVs across the room.
-- Ctrl+plus, Ctrl+minus and Ctrl+0 change the interface size, like in a browser, and the size sticks.
-- The calendar has three views (week grid, tiles, agenda) and never scrolls sideways; "My shows" keeps the episodes that already aired, dimmed; a Density setting under Appearance sizes the calendar, the local library and the digests.
-- The sync panel and the diagnostics report show AniList requests per source since the app started.
-- Detail, seasonal, franchise and similar pages are cached on disk with a per-page lifetime, so reopening one after a restart usually costs no request.
-- Android downloads a new version by itself over Wi-Fi and opens the installer from About or the bell.
-- Android shows the update's download and installs it from About, the bell, or once at start; the update channel is now reachable there too.
-- The window opens where and how large it was last closed.
-- On Android, a long press and an armed pull-to-sync give a short haptic tick, and a title can be shared to another app from its menu or its page.
+- The bell has a titlebar glance at the newest three, a notifications page with a filter for Karasu's own and AniList's, and a sheet of its own on the phone.
+- A formatting toolbar in every place you write on AniList — activities, replies, threads, comments, reviews and your bio — with shortcuts for bold, italic, strikethrough and spoiler.
+- An "Interface size" setting under Appearance zooms the whole window (75–200 %), for 4K displays and TVs across the room; Ctrl+plus, Ctrl+minus and Ctrl+0 change it like in a browser, and the size sticks.
+- A contrast setting under Appearance: System, Standard or High, where High lifts text, the accent and every border to at least 7:1 in both themes.
 - Appearance can follow the system's accent colour on Windows, GNOME/KDE and Android 12+, with your own colour kept for when you switch back.
-- Linux releases ship a .deb and an .rpm beside the AppImage; the AppImage remains the one that updates itself.
-- Setting a title to Completed now fills in the final episode or chapter (and the volume count for manga) wherever the status changes.
+- The calendar has three views (week grid, tiles, agenda) and never scrolls sideways; "My shows" keeps the episodes that already aired, dimmed; a Density setting under Appearance sizes the calendar, the local library and the digests.
 - A third, text-only list view beside the gallery and thumbnails, and all three views on the phone, laid out for its width.
 - On the phone, swipe left or right on the anime and manga lists to move between the status tabs.
-- A contrast setting under Appearance: System, Standard or High, where High lifts text, the accent and every border to at least 7:1 in both themes.
-- Give the bell a titlebar glance, a notifications page and a phone sheet of its own (1.26.0.715).
+- Setting a title to Completed fills in the final episode or chapter (and the volume count for manga) wherever the status changes.
 - Adding a title from its page uses your default status in one press, the chevron or a resting mouse offers the others, and a status colour too faint for the current theme is flagged in Appearance.
+- On Android, a long press and an armed pull-to-sync give a short haptic tick, and a title can be shared to another app from its menu or its page.
+- Linux releases ship a .deb and an .rpm beside the AppImage; the AppImage remains the one that updates itself.
+- The window opens where and how large it was last closed.
+- The sync panel and the diagnostics report show AniList requests per source since the app started.
+- Detail, seasonal, franchise and similar pages are cached on disk with a per-page lifetime, so reopening one after a restart usually costs no request.
 
 ### Changed
 
-- The Android battery hint says which vendor setting keeps tracking alive with the screen off (nubia/ZTE: "Runs in background" → "Allowed").
-- Your list is read from the local copy for fifteen minutes after a fetch and refreshed quietly in the background after that; "Sync now" still fetches at once.
-- Karasu now waits for the next episode's airing time instead of polling AniList every twenty minutes for new episodes.
-- The Wrapped page is built from the list Karasu already holds, and saving from a title's page no longer reloads it.
-- Exit cleanly when Windows ends the session; the quit panic was never the tray (1.10.4.621).
-- Every sync surface shares one lock, so a sync started elsewhere shows as running.
-- Pulling a screen down on the phone syncs, and Android drops the sync row (1.12.0.629).
-- Long-pressing a title on touch opens what can be done with it (1.13.0.631).
-- Swiping up from the bottom bar opens the command palette (1.14.0.632).
-- Right-clicking a title offers what can be done with it (1.15.0.633).
-- Detection floats over every screen, expanded or compact (1.16.0.634).
-- Four defects the adversarial pass found in the interaction work (1.16.2.636).
-- On the phone the list header no longer shows a reload button; pull the list down to sync.
-- The now-playing card is a small floating window with the cover, season and episode, the episode's name and the AniList details; on desktop it can be dragged anywhere and resized, and remembers both.
-- The now-playing window's update, skip and fix-match buttons sit in its header.
-- Banners on title pages, profiles and the season hero are shown whole instead of cropped, with a blurred fill around them, and the hero's text has a black outline.
-- The anime and manga list header is rebuilt: single-row status tabs in their status colours, and one toolbar with search, sort, filter and preset panels, removable filter chips, and a More menu on the phone.
-- Banners blend into their surroundings without hard edges, the title page's banner takes less room on the phone, and the Overview hero counts aired episodes for a running show.
-- Swipe the season hero instead of stepping it with arrows (1.22.2.675).
-- On the phone, the detail page puts every fact below the cover and lets you change the status from a button.
-- The detail page edits your entry from the status button, and the score bars show how everyone else scored the title.
-- A calmer, sharper look: neutral hairlines, tighter corners, headings and labels in the Karasu typeface, and sheets and dialogs that arrive on a soft spring.
+- A calmer, sharper look across the app and the website: neutral hairlines, tighter corners, headings and labels in the Karasu typeface, and sheets and dialogs that arrive on a soft spring.
+- Menus, sheets and panels share one row style with 44 px touch targets on the phone, every dialog shares one frame with its buttons in reach on short windows, and every search field, form field and choice looks and clears the same way.
+- Chips and counts share one look: outlined labels and one badge shape; the status button, the +1 buttons, main buttons and chosen chips carry their colour as a tint instead of a solid fill.
 - Every control shows the same focus ring when reached by keyboard, controls sink slightly while pressed, and small buttons are easier to tap on a touch screen.
-- Settings switches keep a readable thumb on pale accents and show their edge in high contrast.
-- Expandable sections open and close with a short height animation instead of jumping.
-- Chips and counts share one look across the app: outlined labels and one badge shape.
-- View switches slide to the chosen option and follow the arrow keys; statistics sections use the list's tab strip.
-- The right-click menu finds entries by typing, keeps its submenu open on the way to it, and stays on screen at any edge.
-- Bottom sheets on the phone can be swiped away and sit above the bottom bar.
-- Receipts can be flicked away, stay put while hovered or focused, and give an Undo seven seconds.
-- menus, sheets and panels share one row, with 44 px touch targets on the phone.
-- every dialog shares one frame; buttons stay in reach on short windows and the confirm fits a phone.
-- every search field looks and clears the same way.
-- form fields, choices and notes share one frame.
-- quick loads no longer flash a skeleton.
-- the collapsed sidebar names its icons in tooltips, and its avatar is round again.
-- Open the empty palette on what was used lately, beside the main shortcuts (1.25.22.712).
-- The status button and the +1 buttons carry their colour as a tint instead of a solid fill.
-- Main buttons and chosen chips carry the accent as a tint, and status choices show their own colour everywhere.
-- The overview shows your figures under the banner, one row of what you are watching and reading, and this week beside airing soon.
-- The overview's four figures take less height and stay centred on the phone.
-- The calendar steps weeks from a bar of its own and shows a quiet stretch of days as one line.
-- On a phone the calendar's week bar holds only the arrows and the range.
-- Settings has one Account pane for Karasu and AniList, groups Appearance into three cards with previews of each theme, and lists on a phone what each pane holds.
-- On a phone, settings with a field or a menu stack the control under its description, and the Jellyfin card starts with the connection — sign-in or a "Connected to …" line — with every field labelled.
+- View switches slide to the chosen option and follow the arrow keys; statistics sections use the list's tab strip; expandable sections open and close with a short animation instead of jumping, and quick loads no longer flash a skeleton.
+- Bottom sheets on the phone can be swiped away and sit above the bottom bar; receipts can be flicked away, stay put while hovered or focused, and give an Undo seven seconds.
+- The anime and manga list header is rebuilt: single-row status tabs in their status colours, and one toolbar with search, sort, filter and preset panels, removable filter chips, and a More menu on the phone.
+- The detail page edits your entry from the status button and shows how everyone else scored the title; on the phone it puts every fact below the cover.
+- The overview shows your figures under the banner, one row of what you are watching and reading, and this week beside airing soon; its four figures take less height and stay centred on the phone.
+- Banners on title pages, profiles and the season hero are shown whole with a blurred fill instead of cropped, blend into their surroundings, and take less room on the phone; the season hero is swiped instead of stepped with arrows, and it counts aired episodes for a running show.
+- The calendar steps weeks from a bar of its own and shows a quiet stretch of days as one line; on a phone that bar holds only the arrows and the range.
+- Settings has one Account pane for Karasu and AniList, groups Appearance into three cards with previews of each theme, and lists on a phone what each pane holds; on a phone, settings with a field or a menu stack the control under its description, and the Jellyfin card starts with the connection.
 - On a phone, a profile shows the whole name with Follow across the width, the forum's categories are one menu instead of rows of chips, and the formatting bar keeps to one row with a More menu for the rest.
-- Links in the app, the update check and the website now point at the project's new home, github.com/Suzora/Karasu and suzora.github.io/Karasu.
+- The collapsed sidebar names its icons in tooltips, and its avatar is round again.
+- Settings switches keep a readable thumb on pale accents and show their edge in high contrast.
+- Your list is read from the local copy for fifteen minutes after a fetch and refreshed quietly in the background after that; "Sync now" still fetches at once.
+- Karasu waits for the next episode's airing time instead of polling AniList every twenty minutes for new episodes.
+- The Wrapped page is built from the list Karasu already holds, and saving from a title's page no longer reloads it.
+- Every sync surface shares one lock, so a sync started elsewhere shows as running.
+- The Android battery hint says which vendor setting keeps tracking alive with the screen off (nubia/ZTE: "Runs in background" → "Allowed").
 - The Linux AppImage runs natively on Wayland in a Wayland session, like the .deb and the .rpm; GDK_BACKEND=x11 runs it through XWayland as before.
-- Karasu is now licensed under AGPL-3.0-or-later instead of MIT; releases up to 1.30.x stay MIT.
+
+### Fixed
+
+- With Karasu on both the PC and the phone watching the same Jellyfin account, an episode reaches AniList once — the desktop goes first, the phone waits three minutes and checks, and every instance asks AniList for the current progress before it writes.
+- Find servers reaches the Jellyfin server on a PC with a virtual network switch (Hyper-V, VirtualBox).
+- The Linux AppImage no longer opens a black window or crashes shortly after opening on Fedora 44, Ubuntu 26.04 and other systems with Mesa 26, and it starts under firejail --appimage and anywhere else it is mounted as root.
+- Karasu exits cleanly when Windows ends the session instead of logging a crash.
+- Pinning an activity no longer signs you out; a refusal shows AniList's reason, and the pin control is only offered on accounts that can pin.
+- Spoilers that wrap several paragraphs, lists or images hide as one block, and comment previews no longer reveal spoiler text.
+- Images in bios and forum posts that showed as a link now render — linked badges, <img> tags, URLs with parentheses, and hosts that mislabel the file — and each is fetched once.
+- Bios and posts render as anilist.co does where they did not — a favicon-style ICO image loads inline, every HTML entity a browser knows is decoded, a heading written as #Title without the space is a heading, ~~~centred~~~ text inside a heading keeps its spoiler, <hr> draws a rule, and a one-line centred row starting with a dash is no longer a bulleted list.
+- A link with a target Karasu refuses (javascript:, data:, AniList's layout blob) shows in the accent colour like on anilist.co, instead of as plain text.
+- New-episode and sequel checks keep working through an AniList outage that refuses anonymous requests, by signing them with your account while you are signed in.
+- Restarting Karasu right after it spent its AniList budget no longer fires a burst of requests into the limit, and the twice-daily sequel check spreads its requests out.
+- A release name that carries the episode's title after its number parses the number, and Jellyfin's episode name reaches the now-playing card.
+- The now-playing ring no longer restarts on a card mounted mid-session.
+- An AniList profile link that carries the user's id, as the Statistics header's does, opens the profile in-app instead of "No such user".
+- Reading notifications one by one clears the bell's badge, "Mark all read" is always available, notification links need one back press, and opening the bell over the notifications page no longer reloads it or clears its unread marks.
+- A pull-to-sync gesture arms when two touch events arrive in the same frame, one left mid-way by a navigation no longer leaves its hint on the next screen, and a long press no longer selects the action sheet's title.
+- A pinch on Android no longer zooms the whole screen; the interface size under Appearance is the one zoom.
+- F5, Ctrl+F and Ctrl+P no longer reach the browser engine under the app on desktop; copying works the same on Linux as on Windows.
+- The command palette's result groups are announced as groups, and its input has a name.
+- The sidebar collapses to icons on a short window instead of pushing its lower entries out of view, and collapsing it from the keyboard keeps the focus on the toggle.
+- Panning the franchise view on Android no longer triggers a sync, the view opens centred on the title it was opened from, it no longer scrolls sideways on a phone, and its legend names every status.
+- A saved preset remembers the custom list it was filtered to.
+- Episode, chapter, volume and rewatch fields no longer keep a 0 you cannot delete, and an emptied field saves as 0.
+- Text in the phone's More sheet, the bell, the filter menus and the calendar uses its intended colour instead of inheriting the one above it.
+- The status editor and the list's panels stay inside a short window instead of running off its bottom.
+- High contrast marks the focused text field, and Escape in a dialog's search empties it before closing anything.
+- The floating detection window is readable in the light theme again, and the shell's banners animate in and out.
+- Grid covers show the keyboard focus ring again, keep the complete button when it fits, never clip a quick action — in the lists, search and the season pages — and the selection box no longer draws a second focus ring; the list view's score header is no longer cut off in German.
+- The score label over the chosen bar, the overview's banner, the score badges, the 18+ badge, the complete button and the reveal label stay readable in the light theme and in high contrast, and the tag field shows keyboard focus.
+- In high contrast and Windows' contrast themes the chosen status and chip stand out by more than colour, and a tapped +1 no longer stays highlighted on a phone.
+- The overview no longer jumps while it loads, keeps airing soon full width on a quiet week, and shows the keyboard ring on its panel rows.
+- The search page no longer starts its second row of chips with a stray divider.
+- A second press on the calendar's next-week arrow no longer jumps back to this week, and the week grid no longer flickers near its width threshold.
+- Settings cards are announced one level below their group, the phone's pane list names what the Android account and advanced panes really hold, and the chosen theme stays marked in Windows high contrast.
+- On a phone no settings control runs past its card, buttons keep their label on one line, and the log, media-session and manual-token sections fold open smoothly and tell a screen reader whether they are open.
+- The Jellyfin card no longer keeps an old error on screen after a later action succeeds, and on a narrow phone the "desktop only" label no longer covers a card's title.
+- A profile's tabs show that more lie past the edge and take the arrow keys, and on a phone the formatting More menu returns the focus where it came from and closes when the window widens.
+- Statistics shows every status in full beside the ring, the series-length labels are no longer cut off, "1 episode" reads in the singular, and on a narrow phone the page no longer scrolls sideways.
+- Character and staff pages show roles and genders in your language, and the local library's title matches the other pages.
+- The Android widgets' title shows Karasu's accent and their footer is readable against the widget.
+- The colour picker's hex field and the log's level column are monospace again, and the About wordmark has its wide spacing back.
+- Adding a title from its page keeps keyboard focus, closing the status choice before an add lands keeps it on the button, a hover-opened status choice no longer opens on its own after another panel closes, and a status colour picked to match an old default survives a restart.
+- Settings describe the editor's instant save, the Detection pane and the density setting as they now behave.
 
 ### Removed
 
-- Remove the franchise graph's branch folding (1.26.9.724).
+- The franchise graph no longer folds its branches.
+
 ## 1.0.0 — 2026-09-05
 
 Karasu 1.0.0 is the first tagged release: a desktop and Android tracker built

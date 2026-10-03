@@ -19,10 +19,10 @@ needing a hosted backend.
 
 ---
 
-## After v1.0.0
+## After v1.32.0
 
-v1.0.0 was tagged on 2026-09-05. The backlog, each item with its recorded
-reason:
+v1.0.0 was tagged on 2026-09-05 and v1.32.0, the next Stable, on
+2026-10-03. The backlog, each item with its recorded reason:
 
 ### Carried over from the release audit
 
@@ -45,12 +45,3 @@ maintainer's. Each says which, so none of them reads as unstarted work.
   August 2026; sideload is the model, and since 1.11 the app fetches its
   own APK from the GitHub release — see "The Android updater" in
   CLAUDE.md).
-
-**Waiting on a tag:**
-
-- **A Stable release after 1.0.0.** Everything since 2026-09-05 — the
-  Android updater, the interaction model (pull-to-sync, long press,
-  navigation swipe, context menu), the floating detection window, Jellyfin
-  discovery and the external address, the query cache — is on `main` and in
-  the Nightly only. The website describes `main`; the Stable download it
-  links to is still 1.0.0 until the maintainer tags the next one.
