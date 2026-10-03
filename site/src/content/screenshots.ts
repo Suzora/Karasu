@@ -67,22 +67,26 @@ import s16_avif_2880 from "@/assets/screenshots/desktop/about-2880.avif";
 import s16_avif_1440 from "@/assets/screenshots/desktop/about-1440.avif";
 import s16_webp_1440 from "@/assets/screenshots/desktop/about-1440.webp";
 import s16_jpg_1440 from "@/assets/screenshots/desktop/about-1440.jpg";
-import s17_avif_1216 from "@/assets/screenshots/phone/phone-list-1216.avif";
-import s17_avif_608 from "@/assets/screenshots/phone/phone-list-608.avif";
-import s17_webp_608 from "@/assets/screenshots/phone/phone-list-608.webp";
-import s17_jpg_608 from "@/assets/screenshots/phone/phone-list-608.jpg";
-import s18_avif_1216 from "@/assets/screenshots/phone/phone-detail-1216.avif";
-import s18_avif_608 from "@/assets/screenshots/phone/phone-detail-608.avif";
-import s18_webp_608 from "@/assets/screenshots/phone/phone-detail-608.webp";
-import s18_jpg_608 from "@/assets/screenshots/phone/phone-detail-608.jpg";
-import s19_avif_1216 from "@/assets/screenshots/phone/phone-search-1216.avif";
-import s19_avif_608 from "@/assets/screenshots/phone/phone-search-608.avif";
-import s19_webp_608 from "@/assets/screenshots/phone/phone-search-608.webp";
-import s19_jpg_608 from "@/assets/screenshots/phone/phone-search-608.jpg";
-import s20_avif_1216 from "@/assets/screenshots/phone/phone-more-1216.avif";
-import s20_avif_608 from "@/assets/screenshots/phone/phone-more-608.avif";
-import s20_webp_608 from "@/assets/screenshots/phone/phone-more-608.webp";
-import s20_jpg_608 from "@/assets/screenshots/phone/phone-more-608.jpg";
+import s17_avif_1216 from "@/assets/screenshots/phone/phone-overview-1216.avif";
+import s17_avif_608 from "@/assets/screenshots/phone/phone-overview-608.avif";
+import s17_webp_608 from "@/assets/screenshots/phone/phone-overview-608.webp";
+import s17_jpg_608 from "@/assets/screenshots/phone/phone-overview-608.jpg";
+import s18_avif_1216 from "@/assets/screenshots/phone/phone-list-1216.avif";
+import s18_avif_608 from "@/assets/screenshots/phone/phone-list-608.avif";
+import s18_webp_608 from "@/assets/screenshots/phone/phone-list-608.webp";
+import s18_jpg_608 from "@/assets/screenshots/phone/phone-list-608.jpg";
+import s19_avif_1216 from "@/assets/screenshots/phone/phone-detail-1216.avif";
+import s19_avif_608 from "@/assets/screenshots/phone/phone-detail-608.avif";
+import s19_webp_608 from "@/assets/screenshots/phone/phone-detail-608.webp";
+import s19_jpg_608 from "@/assets/screenshots/phone/phone-detail-608.jpg";
+import s20_avif_1216 from "@/assets/screenshots/phone/phone-search-1216.avif";
+import s20_avif_608 from "@/assets/screenshots/phone/phone-search-608.avif";
+import s20_webp_608 from "@/assets/screenshots/phone/phone-search-608.webp";
+import s20_jpg_608 from "@/assets/screenshots/phone/phone-search-608.jpg";
+import s21_avif_1216 from "@/assets/screenshots/phone/phone-more-1216.avif";
+import s21_avif_608 from "@/assets/screenshots/phone/phone-more-608.avif";
+import s21_webp_608 from "@/assets/screenshots/phone/phone-more-608.webp";
+import s21_jpg_608 from "@/assets/screenshots/phone/phone-more-608.jpg";
 
 export interface Source {
   w: number;
@@ -110,8 +114,8 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The Overview shows this season's most popular title in a banner, four statistics tiles, this week's airing episode and the titles airing soon.",
-    caption: "Overview — the season, your numbers, what airs this week",
+    alt: "The Overview shows this season's most popular title in a banner, four statistics tiles, the titles to continue watching and the ones airing soon.",
+    caption: "Overview — the season, your numbers, what to watch next",
     avif: [{ w: 2880, src: s0_avif_2880 }, { w: 1440, src: s0_avif_1440 }],
     webp: [{ w: 1440, src: s0_webp_1440 }],
     jpg: [{ w: 1440, src: s0_jpg_1440 }],
@@ -132,7 +136,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The anime list as a cover grid, with status tabs, a search field, sort and format filters above it.",
+    alt: "The anime list as a cover grid, with status tabs, a search field, sort, filters and presets above it.",
     caption: "Anime list, grid view",
     avif: [{ w: 2880, src: s2_avif_2880 }, { w: 1440, src: s2_avif_1440 }],
     webp: [{ w: 1440, src: s2_webp_1440 }],
@@ -143,7 +147,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The anime list as rows: cover, title, status, score and episode count editable in place, dates and tags beside them.",
+    alt: "The anime list as rows: cover, title, status, score and episode count editable in place, rewatches and dates beside them.",
     caption: "Anime list, rows — status, score and progress edited in place",
     avif: [{ w: 2880, src: s3_avif_2880 }, { w: 1440, src: s3_avif_1440 }],
     webp: [{ w: 1440, src: s3_webp_1440 }],
@@ -176,7 +180,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The Statistics page's overview tab with charts drawn from the list.",
+    alt: "The Statistics page's overview tab: the list's totals, then its statuses, formats and episode lengths as bars and a ring.",
     caption: "Statistics — overview",
     avif: [{ w: 2880, src: s6_avif_2880 }, { w: 1440, src: s6_avif_1440 }],
     webp: [{ w: 1440, src: s6_webp_1440 }],
@@ -187,7 +191,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The Statistics page's genres and tags tab.",
+    alt: "The Statistics page's genres and tags tab: a radar of the six biggest genres, each genre's mean score against the overall one, and the tags as a treemap.",
     caption: "Statistics — genres and tags",
     avif: [{ w: 2880, src: s7_avif_2880 }, { w: 1440, src: s7_avif_1440 }],
     webp: [{ w: 1440, src: s7_webp_1440 }],
@@ -198,7 +202,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The year-in-review poster with its preset crops beside it.",
+    alt: "The year-in-review page: the shape, format and size choices above the 2026 poster with the year's numbers, top genres and top-rated titles.",
     caption: "Year in review",
     avif: [{ w: 2880, src: s8_avif_2880 }, { w: 1440, src: s8_avif_1440 }],
     webp: [{ w: 1440, src: s8_webp_1440 }],
@@ -231,7 +235,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The franchise graph of the Monogatari series, related titles connected by lines, with one title's card open at the side.",
+    alt: "The franchise graph of the Monogatari series, its related titles in columns connected by lines, with Bakemonogatari's card open at the side.",
     caption: "Franchise graph",
     avif: [{ w: 2880, src: s11_avif_2880 }, { w: 1440, src: s11_avif_1440 }],
     webp: [{ w: 1440, src: s11_webp_1440 }],
@@ -253,7 +257,7 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The command palette open over the Overview, listing screens and actions.",
+    alt: "The command palette open over the Overview, listing the titles on the list that match “mono”.",
     caption: "Command palette (Ctrl+K)",
     avif: [{ w: 2880, src: s13_avif_2880 }, { w: 1440, src: s13_avif_1440 }],
     webp: [{ w: 1440, src: s13_webp_1440 }],
@@ -286,11 +290,22 @@ export const SHOTS: Shot[] = [
     kind: "desktop",
     width: 2880,
     height: 1800,
-    alt: "The About page with the mark, the version and the update check.",
+    alt: "The About page with the mark, the update check and the diagnostics report.",
     caption: "About",
     avif: [{ w: 2880, src: s16_avif_2880 }, { w: 1440, src: s16_avif_1440 }],
     webp: [{ w: 1440, src: s16_webp_1440 }],
     jpg: [{ w: 1440, src: s16_jpg_1440 }],
+  },
+  {
+    id: "phone-overview",
+    kind: "phone",
+    width: 1216,
+    height: 2581,
+    alt: "The phone's Overview: this season's most popular title, four statistics tiles and the titles to continue watching, above the bottom bar.",
+    caption: "Android — overview",
+    avif: [{ w: 1216, src: s17_avif_1216 }, { w: 608, src: s17_avif_608 }],
+    webp: [{ w: 608, src: s17_webp_608 }],
+    jpg: [{ w: 608, src: s17_jpg_608 }],
   },
   {
     id: "phone-list",
@@ -298,32 +313,32 @@ export const SHOTS: Shot[] = [
     width: 1216,
     height: 2581,
     alt: "The anime list on the phone as a four-column cover grid with the status tabs above.",
-    caption: "Android —anime list",
-    avif: [{ w: 1216, src: s17_avif_1216 }, { w: 608, src: s17_avif_608 }],
-    webp: [{ w: 608, src: s17_webp_608 }],
-    jpg: [{ w: 608, src: s17_jpg_608 }],
+    caption: "Android — anime list",
+    avif: [{ w: 1216, src: s18_avif_1216 }, { w: 608, src: s18_avif_608 }],
+    webp: [{ w: 608, src: s18_webp_608 }],
+    jpg: [{ w: 608, src: s18_jpg_608 }],
   },
   {
     id: "phone-detail",
     kind: "phone",
     width: 1216,
     height: 2581,
-    alt: "A title's detail page on the phone with the entry editor.",
-    caption: "Android —a title, with the entry editor",
-    avif: [{ w: 1216, src: s18_avif_1216 }, { w: 608, src: s18_avif_608 }],
-    webp: [{ w: 608, src: s18_webp_608 }],
-    jpg: [{ w: 608, src: s18_jpg_608 }],
+    alt: "Katanagatari's detail page on the phone with the status sheet open: the status, the progress and the score over the community's own spread of scores.",
+    caption: "Android — a title, with its entry open",
+    avif: [{ w: 1216, src: s19_avif_1216 }, { w: 608, src: s19_avif_608 }],
+    webp: [{ w: 608, src: s19_webp_608 }],
+    jpg: [{ w: 608, src: s19_jpg_608 }],
   },
   {
     id: "phone-search",
     kind: "phone",
     width: 1216,
     height: 2581,
-    alt: "The search page on the phone.",
-    caption: "Android —search",
-    avif: [{ w: 1216, src: s19_avif_1216 }, { w: 608, src: s19_avif_608 }],
-    webp: [{ w: 608, src: s19_webp_608 }],
-    jpg: [{ w: 608, src: s19_jpg_608 }],
+    alt: "The search page on the phone with the results for “haikyu” as a cover grid.",
+    caption: "Android — search",
+    avif: [{ w: 1216, src: s20_avif_1216 }, { w: 608, src: s20_avif_608 }],
+    webp: [{ w: 608, src: s20_webp_608 }],
+    jpg: [{ w: 608, src: s20_jpg_608 }],
   },
   {
     id: "phone-more",
@@ -331,10 +346,10 @@ export const SHOTS: Shot[] = [
     width: 1216,
     height: 2581,
     alt: "The More sheet on the phone listing the remaining screens.",
-    caption: "Android —the More sheet",
-    avif: [{ w: 1216, src: s20_avif_1216 }, { w: 608, src: s20_avif_608 }],
-    webp: [{ w: 608, src: s20_webp_608 }],
-    jpg: [{ w: 608, src: s20_jpg_608 }],
+    caption: "Android — the More sheet",
+    avif: [{ w: 1216, src: s21_avif_1216 }, { w: 608, src: s21_avif_608 }],
+    webp: [{ w: 608, src: s21_webp_608 }],
+    jpg: [{ w: 608, src: s21_jpg_608 }],
   },
 ];
 

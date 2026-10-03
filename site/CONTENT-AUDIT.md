@@ -44,7 +44,7 @@ such in the code and showing no invented data).
 | 21 | Browsers: Chrome, Firefox, Edge, Brave, Opera, Vivaldi, Zen, LibreWolf, Waterfox, Helium | `profiles.rs` | confirmed |
 | 22 | Streaming sites: Crunchyroll, ADN, Netflix; manga sites: MangaDex, MANGA Plus, Comick, Bato.to, MangaFire, Asura Scans | `profiles.rs` | confirmed |
 | 23 | "Windows has all of these. Linux reads media sessions, mpv and Jellyfin, and no window titles; Android reads Jellyfin." | `detection/mod.rs` non-Windows `enumerate_windows` returns empty ("Wayland forbids…"); `mpv_ipc.rs` mobile stub; `src/pages/Settings.tsx` `ANDROID_DESKTOP_ONLY` | confirmed |
-| 24 | The Now Playing screenshot: "Katanagatari — Episode 3 … Progress will update in 31 min 49 s" | captured 2026-09-06 on the rig with a real mpv window (`--force-media-title`), no write made | confirmed (real capture) |
+| 24 | The Now Playing screenshot: "Katanagatari … E3 … Progress will update in 32 min 56 s" | captured 2026-10-03 on the rig (1.32.8.771) with a real mpv window (`--force-media-title`) and confirmation on; `karasu.log` shows the match and the session, and no write | confirmed (real capture) |
 
 ## Local library
 
@@ -140,8 +140,8 @@ description in row 80); the rest below were true but had no row.
 | 78 | FAQ "Signing in happens on anilist.co in your browser, which hands Karasu a token" | `src/hooks/useAniListLogin.ts` `openUrl`; the paste fallback in `commands/auth.rs` `anilist_connect` for a browser that cannot call back | confirmed |
 | 79 | The external links: Discord invite, the two issue templates, "Nightly builds" at `releases/tag/latest`, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE | `site/src/site.config.ts` against `README.md` (invite), `.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`, `commands/update.rs` and `release.yml` (the `latest` tag), the four files at the repository root; every link answered 200 on 2026-09-06 | confirmed |
 | 80 | The head: title, meta description ("notices what you play — and, on Windows, what you read"), Open Graph, JSON-LD `SoftwareApplication` (`UtilitiesApplication`, price 0, author Kyu, AGPL-3.0, `softwareVersion` from `release.json`) | `site/src/head.ts`, `site/src/site.config.ts`; rows 1–4, 8, 63; manga detection is window-title based and so Windows-only (`profiles.rs`), which is why the description names Windows | confirmed |
-| 81 | Screenshot captions and alt texts: "Command palette (Ctrl+K)", "Monday-first" calendar, the Seasonal switcher, "Everything" on the calendar | `src/components/shell/CommandPalette.tsx` (Ctrl+K), `src/lib/calendar.ts` (Monday first), `src/components/ui/season-picker.tsx`, the calendar's scope filter; `site/scripts/shots.config.mjs` is the source, `site/src/content/screenshots.ts` the generated copy | confirmed |
-| 82 | Gallery "a capture of the app as it ships"; Features "Each of these is in the current release" | desktop captures of 1.10.6.623 (2026-09-14; the calendar, palette and light-theme ones of 1.0.3.566) and phone captures of 1.0.3.566 (2026-09-06); every feature named is on `main` and in the Nightly, and in the next Stable tag | confirmed |
+| 81 | Screenshot captions and alt texts: "Command palette (Ctrl+K)", "Monday-first" calendar, the Seasonal switcher, "Everything" on the calendar, the year in review's shape, format and size choices, the phone's status sheet over the community's scores | `src/components/shell/CommandPalette.tsx` (Ctrl+K), `src/lib/calendar.ts` (Monday first), `src/components/ui/season-picker.tsx`, the calendar's scope filter, `src/pages/Wrapped.tsx`, `StatusMenu` and `CommunityScore` (`lib/scoreDistribution`); `site/scripts/shots.config.mjs` is the source, `site/src/content/screenshots.ts` the generated copy | confirmed |
+| 82 | Gallery "a capture of the app as it ships"; Features "Each of these is in the current release" | desktop captures of 1.32.8.771 and phone captures of the release APK 1.32.6.769, both 2026-10-03; every feature named is on `main` and in the Nightly, and in the next Stable tag | confirmed |
 | 83 | FAQ "Windows has every feature. Android has the list, statistics, notifications, widgets, the social pages and its own updater, but no local library and no tray" | `src/pages/Settings.tsx` hides the Library and Desktop panes on Android; `src-tauri/src/apk_update.rs`; `lib.rs` tray is desktop-only; rows 48, 60 | confirmed |
 | 84 | "Right-click a title for everything you can do to it; the palette and the phone's long press offer the same list" | `src/lib/actions.ts` resolves one action list; `src/components/shell/ActionHost.tsx` owns right-click and the 500 ms press and draws `ContextMenu.tsx` or `ActionSheet.tsx`; `CommandPalette.tsx` reads the same resolver (1.12–1.16) | confirmed |
 | 85 | Android: "Pull a list down to sync, hold a title for its actions, swipe up from the bar for the palette" | `src/hooks/usePullToSync.ts` + `src/lib/pullToSync.ts`; row 84; `src/components/shell/BottomBar.tsx` + `src/lib/navSwipe.ts`; measured on the maintainer's phone on 2026-09-19 (PR #27) | confirmed |
@@ -151,10 +151,9 @@ description in row 80); the rest below were true but had no row.
 ## Screenshots
 
 All twenty-two are captures on the maintainer's account: desktop from the
-isolated rig at 1440×900, rendered at 2× — fourteen of build 1.10.6.623
-(2026-09-14), the calendar, palette and light-theme ones of 1.0.3.566
-(2026-09-06); phone from the release APK of 1.0.3.566 over adb
-(2026-09-06). The local library shows a folder of empty files named like
-clean releases. The Now Playing capture is a real mpv window under
-`--force-media-title`. Nothing is composited or edited beyond resizing and
-encoding. Approved by the maintainer on 2026-09-06; the 1.10.6 set on 2026-09-19.
+isolated rig at 1440×900, rendered at 2×, of build 1.32.8.771; phone from the
+release APK of 1.32.6.769 over adb; both on 2026-10-03. The local library
+shows a folder of empty files named like clean releases. The Now Playing
+capture is a real mpv window under `--force-media-title`. Nothing is
+composited or edited beyond resizing and encoding. Approved by the maintainer
+on 2026-09-06; the 1.10.6 set on 2026-09-19; the 1.32 set on 2026-10-03.

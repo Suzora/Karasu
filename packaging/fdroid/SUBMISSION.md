@@ -25,8 +25,8 @@ over each other; a user who switches uninstalls first.
   unsigned release APK instead of falling back to debug signing, which F-Droid
   then signs).
 - `fastlane/metadata/android/{en-US,de-DE}` — the store listing: title, short
-  and full description, the icon and three phone screenshots, which F-Droid
-  reads from the repository at the tagged commit.
+  and full description in both, and the icon and three phone screenshots under
+  `en-US` only, which F-Droid reads from the repository at the tagged commit.
 - The `Reproducible` workflow (dispatch, input `tag`) is not F-Droid's check
   but the GitHub release's: it rebuilds the arm64 APK from the tag exactly as
   the release job does (signing aside), downloads the release's, and runs

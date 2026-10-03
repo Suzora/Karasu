@@ -58,9 +58,8 @@ Because a local app can do things anilist.co simply can't:
 
 ## Screenshots
 
-Captures at 2× on the desktop and straight off the phone — the same set the
-[website](https://suzora.github.io/Karasu/) shows at full size. Most are from
-1.10; the Now Playing capture predates the floating window of 1.17.
+Captures of 1.32 at 1440×900 on the desktop and straight off the phone — the
+same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 
 <p align="center">
   <img src="assets/screenshots/now-playing.jpg" alt="Now Playing — an episode detected in mpv, the update counting down" width="80%" /><br />
@@ -69,7 +68,7 @@ Captures at 2× on the desktop and straight off the phone — the same set the
 
 <table>
 <tr>
-<td width="50%"><img src="assets/screenshots/overview.jpg" alt="Dashboard overview" /><br /><sub>Overview — the season's headline title, your numbers, what airs this week and soon</sub></td>
+<td width="50%"><img src="assets/screenshots/overview.jpg" alt="Dashboard overview" /><br /><sub>Overview — the season's headline title, your numbers, what to watch next and what airs soon</sub></td>
 <td width="50%"><img src="assets/screenshots/local-library.jpg" alt="Local library" /><br /><sub>Local library — your files, matched to your list, next unwatched episode first</sub></td>
 </tr>
 <tr>
@@ -92,14 +91,14 @@ Captures at 2× on the desktop and straight off the phone — the same set the
 
 <p align="center">
   <img src="assets/screenshots/year-in-review.jpg" alt="Year in review card" width="80%" /><br />
-  <sub>Year in review — a shareable poster of your year, in five crops</sub>
+  <sub>Year in review — a shareable poster of your year or a season, in five shapes</sub>
 </p>
 
 <table>
 <tr>
 <td width="33%"><img src="assets/screenshots/android-overview.jpg" alt="Android — overview" /></td>
 <td width="33%"><img src="assets/screenshots/android-list.jpg" alt="Android — anime list" /></td>
-<td width="33%"><img src="assets/screenshots/android-detail.jpg" alt="Android — a title, with the entry editor" /></td>
+<td width="33%"><img src="assets/screenshots/android-detail.jpg" alt="Android — a title, with its entry open" /></td>
 </tr>
 <tr>
 <td colspan="3" align="center"><sub>Android — the same list, statistics and social pages, with a bottom bar instead of a tray</sub></td>
