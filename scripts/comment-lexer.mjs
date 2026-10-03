@@ -11,7 +11,7 @@ export function inScope(path) {
   if (p === "vite.config.ts" || p === "vitest.setup.ts" || p === "index.html") return true;
   if (p.startsWith("src/") && /\.(ts|tsx|css)$/.test(p)) return true;
   if (p.startsWith("src-tauri/src/") && p.endsWith(".rs")) return true;
-  if (p.startsWith("scripts/") && /\.(mjs|js|ts|tsx|ps1|sh|html)$/.test(p)) return true;
+  if (p.startsWith("scripts/") && /\.(mjs|js|ts|mts|tsx|ps1|sh|html)$/.test(p)) return true;
   if (p.startsWith("src-tauri/gen/android/") && /\.(kt|kts)$/.test(p)) return true;
   if (p.startsWith(".github/workflows/") && /\.ya?ml$/.test(p)) return true;
   return false;
@@ -25,6 +25,7 @@ export function langFor(path) {
     case "rs":
       return "rs";
     case "ts":
+    case "mts":
     case "tsx":
       return "ts";
     case "js":
