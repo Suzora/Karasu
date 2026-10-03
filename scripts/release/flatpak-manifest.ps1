@@ -14,7 +14,10 @@ if (-not $OutDir) { $OutDir = Join-Path $repoRoot "packaging/flatpak/out" }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 $base = "https://github.com/Suzora/Karasu/releases/download/$Tag"
-$sums = (Invoke-WebRequest -UseBasicParsing "$base/SHA256SUMS.txt").Content -split "`n"
+$raw = (Invoke-WebRequest -UseBasicParsing "$base/SHA256SUMS.txt").Content
+# GitHub serves the file as octet-stream, so pwsh 7 hands back bytes, and its lines end in CRLF.
+if ($raw -is [byte[]]) { $raw = [Text.Encoding]::UTF8.GetString($raw) }
+$sums = $raw -split "\r?\n"
 $debLine = $sums | Where-Object { $_ -match "_amd64\.deb$" } | Select-Object -First 1
 if (-not $debLine) {
     throw "Release $Tag lists no _amd64.deb in SHA256SUMS.txt; the packages joined the release with 1.18.1."

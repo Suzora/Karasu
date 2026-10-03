@@ -64,6 +64,8 @@ jobs:
       - name: Compare
         run: |
           python3 -m pip install --quiet apksigcopier
+          # apksigcopier shells out to apksigner, which the runner keeps under build-tools rather than on PATH.
+          export PATH="$ANDROID_HOME/build-tools/36.0.0:$PATH"
           ours=$(ls src-tauri/gen/android/app/build/outputs/apk/arm64/release/*.apk | head -1)
           theirs=$(ls release-apk/*.apk | head -1)
           echo "rebuilt: $ours"
