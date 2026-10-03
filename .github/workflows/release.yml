@@ -259,9 +259,10 @@ jobs:
   publish:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-    # The only job that writes: it creates the release and prunes its assets.
+    # The only job that writes: it creates the release, prunes its assets and dispatches the website.
     permissions:
       contents: write
+      actions: write
     # !cancelled() rather than always(): a cancelled run must not publish over, or prune, the newer run's assets.
     needs: [precheck, build-linux, android-build, build-windows]
     if: ${{ !cancelled() && needs.precheck.result == 'success' && needs.build-windows.result == 'success' }}
@@ -407,6 +408,13 @@ jobs:
             }
           }
           if ($failed) { throw "Could not delete: $($failed -join ', ')" }
+
+      # A release made with this token starts no `release` workflow, so pages.yml's trigger never fires; a dispatch does.
+      - name: Redeploy the website for a Stable release
+        if: ${{ needs.precheck.outputs.prerelease == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
 
   # No signing secrets, no release asset: a debug-signed APK must never be published, so it stays a workflow artifact.
   android-build:

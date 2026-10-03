@@ -1,6 +1,6 @@
 name: Website
 
-# Deploys site/ to GitHub Pages on a site push, a published release (the page follows the newest tag) or by hand.
+# Deploys site/ to GitHub Pages on a site push, a dispatch (release.yml sends one per Stable tag) or a hand-made release.
 on:
   push:
     branches: ["main"]

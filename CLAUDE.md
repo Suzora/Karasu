@@ -1480,11 +1480,20 @@ async update the real code makes after an await warns instead.
 
 The public site lives in `site/` and deploys to
 https://suzora.github.io/Karasu/ through `.github/workflows/pages.yml` — on
-a push to `main` that touches `site/**` or `src/app/index.css`, on a published
-(non-prerelease) release, or by hand. It is its own npm project with its own
+a push to `main` that touches `site/**` or `src/app/index.css`, on a dispatch,
+or on a release published by hand. It is its own npm project with its own
 lockfile and `node_modules`; nothing under `site/` is imported by the app, and
 the app's vitest projects cannot see it (`src/**` only). Layout, stack and the
 review checkpoints are in `site/README.md`.
+
+**A Stable tag reaches the site through a dispatch, not the release event.**
+`release.yml` publishes with `GITHUB_TOKEN`, and an event that token causes
+starts no workflow, so `pages.yml`'s `release: published` trigger never fired
+for v1.32.0 (2026-10-03): the release went out and the page kept naming 1.0.0
+until a hand dispatch. The publish job's last step now runs `gh workflow run
+pages.yml` for a non-prerelease (dispatch is exempt from that rule; the job
+holds `actions: write` for it). The `release` trigger stays for a release
+someone publishes by hand.
 
 - **Site-only commits do not bump the version and do not run the app loop.**
   The gate is `npm --prefix site run check` (typecheck plus the token
