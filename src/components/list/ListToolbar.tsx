@@ -645,7 +645,7 @@ function FilterChips({
       role="group"
       aria-label={t("list.activeFilters")}
       // Scrolls sideways on the phone rather than wrapping, and the tab swipe leaves a scrolling row alone.
-      className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex items-center gap-1.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {chips.map((chip) => {
         const name = chipName(chip, t);

@@ -268,9 +268,12 @@ export default function Search() {
           />
           {/* Chips scroll in one row on a phone, behind a divider; a desktop gives the browse chips a row of their own. */}
           <div
+            // Only the x axis scrolls and draws no bar: a pill's touch hit area overflows the row vertically.
             className={cn(
               "mt-2.5 flex items-center gap-1.5",
-              phone ? "flex-nowrap overflow-x-auto pb-1" : "flex-wrap",
+              phone
+                ? "flex-nowrap overflow-x-auto overflow-y-hidden pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                : "flex-wrap",
             )}
           >
             {(

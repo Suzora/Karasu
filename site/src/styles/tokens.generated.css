@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 0f3469fdddb2) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 031d0333b54d) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -953,6 +953,10 @@ html[data-reduce-motion] *::after {
 }
 
 *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-corner {
   background: transparent;
 }
 
