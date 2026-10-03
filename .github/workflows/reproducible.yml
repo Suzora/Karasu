@@ -1,6 +1,6 @@
 name: Reproducible
 
-# By hand, for a tag: rebuilds the arm64 APK the way F-Droid would and compares it with the one the release carries.
+# By hand, for a tag: rebuilds the arm64 APK from that tag's source and checks it is the one the release carries.
 on:
   workflow_dispatch:
     inputs:
@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
-      # The same three switches the fdroiddata recipe sets, so this job answers for that build and not a lookalike.
-      KARASU_NO_SELF_UPDATE: "1"
+      # The release's own build with the signing left out; KARASU_NO_SELF_UPDATE is F-Droid's alone and compiles code out.
       KARASU_UNSIGNED: "1"
       RUSTFLAGS: --remap-path-prefix=${{ github.workspace }}=/build --remap-path-prefix=/home/runner/.cargo=/cargo
     steps:
@@ -60,7 +59,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release download "${{ inputs.tag }}" --pattern "*_arm64.apk" --dir release-apk
 
-      # A rebuild that verifies under the release's own signature is the proof F-Droid can ship the developer-signed APK.
+      # A rebuild that verifies under the release's own signature is the proof the published APK is this source.
       - name: Compare
         run: |
           python3 -m pip install --quiet apksigcopier
@@ -72,11 +71,6 @@ jobs:
           echo "released: $theirs"
           # The signed release comes first: compare copies its signature onto the unsigned rebuild and verifies the result.
           apksigcopier compare --unsigned "$theirs" "$ours" && echo "::notice::Reproducible: the rebuilt APK matches the release"
-
-      - name: Print the release signing key for the recipe
-        if: always()
-        run: |
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs release-apk/*.apk | grep -i "SHA-256" || true
 
       # Kept, because a mismatch says only that the two differ; finding where takes the rebuild beside the release.
       - name: Keep the rebuilt APK

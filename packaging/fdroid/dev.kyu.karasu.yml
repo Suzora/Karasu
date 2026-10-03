@@ -31,7 +31,7 @@ Builds:
       - yes
     ndk: r27b
     prebuild:
-      # The updater is off, the APK unsigned (both build-time switches), the paths remapped as the release job does.
+      # The updater is compiled out and the APK left unsigned, so F-Droid signs its own build; the paths remapped as in CI.
       - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
       - export RUSTFLAGS="--remap-path-prefix=$(cd ../../.. && pwd)=/build --remap-path-prefix=$HOME/.cargo=/cargo"
       - export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
@@ -39,8 +39,6 @@ Builds:
       - . $HOME/.cargo/env
       - cd ../../.. && npx tauri android build --apk --target aarch64 --split-per-abi
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
-
-AllowedAPKSigningKeys: SIGNING_KEY_TO_FILL
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$

@@ -1614,23 +1614,44 @@ OAuth callback — and `SUBMISSION.md` there lists what the sandbox changes
 `can_install`). **F-Droid**: `packaging/fdroid/dev.kyu.karasu.yml`
 is the fdroiddata recipe, `scripts/release/fdroid-recipe.ps1 -Tag` fills its
 version, code and commit, `fastlane/metadata/android/{en-US,de-DE}` is the
-listing F-Droid reads at the tag, and the `Reproducible` workflow (dispatch,
-input `tag`) rebuilds the arm64 APK on a fresh runner and diffs it against the
-release with `apksigcopier compare --unsigned`. Reproducibility rests on
-four things the tree now fixes: `rust-toolchain.toml` pins the exact version
-(and `src/lib/toolchain.test.ts` fails the gate when a workflow's
-`dtolnay/rust-toolchain` step or the recipe names another — CI passes the
-pin as `toolchain:` because the action does not read the file, and rustup's
-auto-install would otherwise leave the Android targets on the wrong
-toolchain), the Android job remaps `RUSTFLAGS --remap-path-prefix` for the
-workspace and `~/.cargo` and pins `SOURCE_DATE_EPOCH` to the commit, and two
-build-time switches — `KARASU_NO_SELF_UPDATE` (`self_update_disabled` in
-`commands/update.rs`; F-Droid forbids self-updating apps, so the check and
-the install both stand down) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an
-unsigned release instead of falling back to debug signing). Bumping the
-Rust pin means the toolchain file, the five workflow steps and the recipe in
-one commit; the test says so. Nothing under `packaging/` is built by the
-release; it reads the release.
+listing F-Droid reads at the tag. The recipe sets two build-time switches:
+`KARASU_NO_SELF_UPDATE` (`self_update_disabled` in `commands/update.rs`;
+F-Droid forbids self-updating apps, so the check and the install both stand
+down) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an unsigned release
+instead of falling back to debug signing). **F-Droid signs its own build,
+decided by the maintainer on 2026-10-03**, so the recipe carries no
+`AllowedAPKSigningKeys` and the F-Droid and GitHub installs do not update over
+each other. The reason is the first switch: it is read with `option_env!`, so
+it compiles the updater out, and an F-Droid build can never be bit-identical
+to the GitHub APK that keeps it. Measured the same day against v1.32.0 with
+the switch on: 965 of 966 entries identical, zip order and metadata included,
+and only `libkarasu_lib.so`'s `.text` differed, by 1,040 bytes. So the
+`Reproducible` workflow (dispatch, input `tag`) checks the GitHub release
+rather than F-Droid's build: it rebuilds the arm64 APK from the tag as the
+release job does, with only the signing left out, and runs `apksigcopier
+compare --unsigned` with the signed release first (its `do_compare` copies
+that signature onto the second APK), keeping the rebuild as an artifact for a
+diff. Reproducibility rests on what the tree fixes: `rust-toolchain.toml`
+pins the exact version (and `src/lib/toolchain.test.ts` fails the gate when a
+workflow's `dtolnay/rust-toolchain` step or the recipe names another — CI
+passes the pin as `toolchain:` because the action does not read the file, and
+rustup's auto-install would otherwise leave the Android targets on the wrong
+toolchain), and the Android job remaps `RUSTFLAGS --remap-path-prefix` for
+the workspace and `~/.cargo`. The release job has never set
+`SOURCE_DATE_EPOCH`; the rebuild and the recipe do, and the measurement above
+shows no build time reaching the output. Bumping the Rust pin means the
+toolchain file, the five workflow steps and the recipe in one commit; the test
+says so. Nothing under `packaging/` is built by the release; it reads the
+release.
+
+**The two packaging workflows had never run against a real tag before
+v1.32.0**, and the first runs failed on four things no other check could
+see: `SHA256SUMS.txt` arrives as octet-stream bytes with CRLF lines in pwsh 7
+(the manifest script decodes and splits on `\r?\n`), `bsdtar` in the
+flatpak-builder sandbox runs as root and cannot chown to the packager's uid
+(`--no-same-owner`), the `.deb` keeps the notices under the product name
+(`usr/lib/Karasu/`), and `apksigner` is not on the runner's `PATH`. Run both
+against every Stable tag, not only before a submission.
 
 ## Links are checked weekly, not trusted
 

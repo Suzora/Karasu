@@ -1,8 +1,7 @@
-<# Fills the fdroiddata recipe from one tag: version name and code, the commit, and the release signing key if given. #>
+<# Fills the fdroiddata recipe from one tag: version name and code, and the commit; F-Droid signs the build itself. #>
 
 param(
     [Parameter(Mandatory = $true)][string]$Tag,
-    [string]$SigningKey = "",
     [string]$OutDir = ""
 )
 
@@ -25,7 +24,6 @@ $versionCode = 1000000 + $commitNumber
 
 $recipe = Get-Content (Join-Path $repoRoot "packaging/fdroid/dev.kyu.karasu.yml") -Raw
 $recipe = $recipe.Replace("VERSION_TO_FILL", $versionName).Replace("VERSIONCODE_TO_FILL", "$versionCode").Replace("TAG_TO_FILL", $Tag)
-if ($SigningKey) { $recipe = $recipe.Replace("SIGNING_KEY_TO_FILL", $SigningKey.ToLower()) }
 [IO.File]::WriteAllText((Join-Path $OutDir "dev.kyu.karasu.yml"), $recipe, [Text.UTF8Encoding]::new($false))
 
-Write-Output "fdroid-recipe: $Tag -> $versionName ($versionCode) in $OutDir$(if (-not $SigningKey) { '; signing key left to fill (apksigner verify --print-certs on a release APK)' })"
+Write-Output "fdroid-recipe: $Tag -> $versionName ($versionCode) in $OutDir"
