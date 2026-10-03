@@ -31,7 +31,8 @@ modules:
       - bsdtar --no-same-owner -xf karasu.deb data.tar.gz
       - bsdtar --no-same-owner -xf data.tar.gz
       - install -Dm755 usr/bin/karasu /app/bin/karasu
-      - install -Dm644 -t /app/lib/karasu usr/lib/karasu/THIRD-PARTY-NOTICES.md
+      # Tauri names this folder after the product, so it is capitalised where the binary is not.
+      - install -Dm644 -t /app/lib/Karasu usr/lib/Karasu/THIRD-PARTY-NOTICES.md
       # The desktop file and the icons take the app id, which Flathub requires to match the manifest.
       - install -Dm644 usr/share/applications/*.desktop /app/share/applications/dev.kyu.karasu.desktop
       - desktop-file-edit --set-key=Icon --set-value=dev.kyu.karasu --set-key=Exec --set-value=karasu /app/share/applications/dev.kyu.karasu.desktop
