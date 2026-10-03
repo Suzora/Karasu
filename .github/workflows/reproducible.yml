@@ -60,7 +60,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release download "${{ inputs.tag }}" --pattern "*_arm64.apk" --dir release-apk
 
-      # apksigcopier's compare strips both signatures and diffs what is left; identical means F-Droid can sign ours.
+      # A rebuild that verifies under the release's own signature is the proof F-Droid can ship the developer-signed APK.
       - name: Compare
         run: |
           python3 -m pip install --quiet apksigcopier
@@ -77,3 +77,13 @@ jobs:
         if: always()
         run: |
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs release-apk/*.apk | grep -i "SHA-256" || true
+
+      # Kept, because a mismatch says only that the two differ; finding where takes the rebuild beside the release.
+      - name: Keep the rebuilt APK
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: rebuilt-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/arm64/release/*.apk
+          if-no-files-found: warn
+          retention-days: 7
