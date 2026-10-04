@@ -2082,6 +2082,25 @@ them away without re-measuring.
   ("106.581"), which is why the label has its own formatter; the exact count
   stays in the column's `title`. The harness's fixture carries those counts,
   because its old three-digit ones are why no shot ever showed the overflow.
+- **The community cards pair up by their section's width, never the
+  window's.** `CommunitySection` is the query container and its grid takes two
+  columns at `@chart-pair` (48rem); `StatusBar`'s legend does the same at
+  `@legend-pair` (20rem). The viewport `sm:` this replaced paired them in any
+  window from 640 px, and at 768 px with the sidebar open each card got
+  240 px: measured with the screens harness on 2026-10-04, neighbouring counts
+  overlapped by 2.4 px (1.7 px apart at 850) and the legend cut every German
+  status to "Ab…", "Gep…". A card needs ~306 px for 4 px between its widest
+  counts, and the two-column legend ~356 px for "Abgeschlossen" beside
+  "889497" in Open Sans, the harness's stand-in for Segoe UI. 48rem keeps every
+  paired card at 376 px or more, the width the 2xl column already gave them,
+  and 20rem leaves 4 px of slack there. So the cards pair up from a 1040 px
+  window with the sidebar open and from 900 px with it collapsed. The one-column
+  legend also fixed phones under ~394 px, where "Abgeschlossen" was cut at 360
+  and 320, and the statistics page at 320. The 320 px phone's counts stay
+  2.8 px apart; the maintainer chose stacking over thinning them (DESIGN.md,
+  2026-10-04). `d64`–`d66` shoot the section at 768, 1000 and 1232. The fixture
+  carries the title's real status counts, because without them the score card
+  stood alone and no shot ever showed the legend.
 - **The cover grid is `repeat(var(--cover-cols), minmax(0, 1fr))`** — the
   covers-per-row field, one token written by the theme store, defaulting by
   platform at first run (10 desktop, 4 Android — UA-keyed, since the store

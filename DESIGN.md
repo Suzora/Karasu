@@ -727,3 +727,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   the content filter. With nothing to borrow it wears `cover-wash` in its
   cover's colour. The phone surfaced it: of the Fall 2026 top 50, 31 had no
   banner a week into the season, and 20 of those had a relative to borrow from.
+- **2026-10-04:** The detail page's two community cards pair up by the width
+  their section gets, not the window's (A of three mockups, over B, every other
+  count in a narrow chart, and C, the counts staggered over two lines). They
+  sit side by side only where each keeps every count and every legend label
+  whole. Narrower, the score chart takes the full width with the status card
+  beneath it, as on the phone. A status legend falls to one column wherever two
+  no longer fit, so no status name is cut. A narrow desktop window surfaced it:
+  at 768 px with the sidebar open the ten counts ran together and the legend
+  read "Ab…", "Gep…".

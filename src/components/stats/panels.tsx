@@ -95,18 +95,21 @@ export function StatusBar({
           />
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
-        {data.map((d, i) => (
-          <div key={d.label} className="flex items-center gap-2 text-xs">
-            <span
-              data-keep-colors
-              className="size-2 shrink-0 rounded-mark"
-              style={{ background: tone[i % tone.length] }}
-            />
-            <span className="min-w-0 flex-1 truncate text-ink-500">{d.label}</span>
-            <span className="shrink-0 tabular-nums text-ink-300">{d.count}</span>
-          </div>
-        ))}
+      {/* The legend measures itself: two columns only where each label fits beside its count, never a cut name. */}
+      <div className="@container mt-3">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 @legend-pair:grid-cols-2">
+          {data.map((d, i) => (
+            <div key={d.label} className="flex items-center gap-2 text-xs">
+              <span
+                data-keep-colors
+                className="size-2 shrink-0 rounded-mark"
+                style={{ background: tone[i % tone.length] }}
+              />
+              <span className="min-w-0 flex-1 truncate text-ink-500">{d.label}</span>
+              <span className="shrink-0 tabular-nums text-ink-300">{d.count}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </Card>
   );

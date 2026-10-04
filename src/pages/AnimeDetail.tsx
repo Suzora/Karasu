@@ -919,7 +919,7 @@ function CommunitySection({ data }: { data: MediaDetail }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       {rankings.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {rankings.map((r, i) => (
@@ -930,7 +930,8 @@ function CommunitySection({ data }: { data: MediaDetail }) {
         </div>
       )}
       {(scores.length > 0 || statuses.length > 0) && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        // By this section's width, not the window's: the cards pair up only where both keep every label whole.
+        <div className="grid grid-cols-1 gap-4 @chart-pair:grid-cols-2">
           {scores.length > 0 && (
             <ScoreColumns
               title={t("detail.communityScores")}

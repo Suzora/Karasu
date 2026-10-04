@@ -41,6 +41,10 @@
   --container-cover-actions: 7.5rem;
   /* The narrowest cover that still holds two of them; below it a cover keeps one. */
   --container-cover-pair: 4.75rem;
+  /* The narrowest section that holds two chart cards side by side with every count and legend label whole. */
+  --container-chart-pair: 48rem;
+  /* The narrowest legend that holds two columns of a label beside its count; narrower, it takes one. */
+  --container-legend-pair: 20rem;
   /* The Japanese sub-lockup beside a screen title, opened a little so its kana do not crowd. */
   --tracking-lockup: 0.04em;
   /* The titlebar's wordmark, spaced as a brand mark rather than a label. */

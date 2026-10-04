@@ -283,6 +283,8 @@ function unbanneredMedia() {
 
 /** A very popular title's real score counts, so the community chart is shot at its widest. */
 const COMMUNITY_SCORES = [3180, 995, 2174, 3769, 9666, 17994, 57157, 131420, 196515, 187770];
+/** The same title's real status counts, so the status card stands beside the chart as it does in the app. */
+const COMMUNITY_STATUSES = { CURRENT: 66178, PLANNING: 72593, COMPLETED: 889497, DROPPED: 16690, PAUSED: 16565 };
 
 function detail(id: number) {
   if (id === UNBANNERED.id) {
@@ -314,7 +316,10 @@ function detail(id: number) {
     endDate: null,
     trailer: null,
     rankings: [],
-    stats: { scoreDistribution: COMMUNITY_SCORES.map((amount, k) => ({ score: (k + 1) * 10, amount })), statusDistribution: null },
+    stats: {
+      scoreDistribution: COMMUNITY_SCORES.map((amount, k) => ({ score: (k + 1) * 10, amount })),
+      statusDistribution: Object.entries(COMMUNITY_STATUSES).map(([status, amount]) => ({ status, amount })),
+    },
     studios: { edges: [{ isMain: true, node: { id: 1, name: r.studio } }] },
     tags: [],
     externalLinks: [
