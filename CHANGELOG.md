@@ -64,11 +64,12 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 8fd57c0 -->
+<!-- generated-through: d3cf531 -->
 
 ### Fixed
 
 - On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square.
+- A detail page no longer scrolls sideways on a phone, and the community score chart writes counts from 10,000 up as "22k".
 
 ## 1.32.0 — 2026-10-03
 

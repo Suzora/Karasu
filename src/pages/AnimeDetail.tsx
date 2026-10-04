@@ -188,11 +188,14 @@ export default function AnimeDetail() {
             <BannerImage src={data.bannerImage} veiled={veiled} />
           ) : (
             coverSrc && (
-              <DecodedImage
-                src={coverSrc}
-                className="h-full w-full scale-110 object-cover blur-2xl"
-                loadedOpacity={0.4}
-              />
+              // Clipped in its own box, as `BannerImage` clips its backdrop: the scale would otherwise widen the page.
+              <div className="absolute inset-0 overflow-hidden">
+                <DecodedImage
+                  src={coverSrc}
+                  className="h-full w-full scale-110 object-cover blur-2xl"
+                  loadedOpacity={0.4}
+                />
+              </div>
             )
           )}
           {/* A short fade into the page, so the contained banner stays whole above it. */}
@@ -377,13 +380,13 @@ export default function AnimeDetail() {
         </div>
 
         {/* Prose left at a reading measure, metadata right taking the slack, since everything in it wraps and fills. */}
-        <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,48rem)_minmax(0,1fr)] 2xl:items-start">
+        <div className="mt-6 grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,48rem)_minmax(0,1fr)] 2xl:items-start">
           <div className="min-w-0 space-y-6">
             {data.description && (
               <Card>
                 <CardTitle>{t("detail.description")}</CardTitle>
                 {/* Elements, not dangerouslySetInnerHTML: lib/anilistHtml parses to nodes so no __html string ever exists. */}
-                <p className="mt-3 max-w-176 text-ui leading-[1.75] text-pretty text-ink-300">
+                <p className="mt-3 max-w-176 text-ui leading-[1.75] text-pretty wrap-anywhere text-ink-300">
                   <RichText nodes={parseAniListHtml(data.description)} />
                 </p>
               </Card>
@@ -565,7 +568,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
             <p className="text-2xs font-semibold uppercase tracking-eyebrow text-ink-600">
               {t("detail.castCharacters")}
             </p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {characters.map((c) => {
                 const va = c.voiceActors[0];
                 return (
@@ -609,7 +612,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
             <p className="text-2xs font-semibold uppercase tracking-eyebrow text-ink-600">
               {t("detail.castStaff")}
             </p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {staff.map((s, i) => (
                 <Link
                   key={`${s.node.id}-${i}`}
@@ -900,7 +903,7 @@ function TrendSection({ mediaId }: { mediaId: number }) {
 
 /** The community's numbers, all from the detail query, drawn with the statistics page's own components. */
 function CommunitySection({ data }: { data: MediaDetail }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scores = data.stats?.scoreDistribution ?? [];
   const statuses = [...(data.stats?.statusDistribution ?? [])].sort(
     (a, b) => b.amount - a.amount,
@@ -941,13 +944,14 @@ function CommunitySection({ data }: { data: MediaDetail }) {
         </div>
       )}
       {(scores.length > 0 || statuses.length > 0) && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {scores.length > 0 && (
             <ScoreColumns
               title={t("detail.communityScores")}
               hint={t("detail.communityScoresHint")}
               data={scores.map((d) => ({ score: d.score, count: d.amount }))}
               max={100}
+              locale={i18n.language}
             />
           )}
           {statuses.length > 0 && (
@@ -997,7 +1001,7 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-ink-600">{label}</dt>
-      <dd className="mt-0.5 text-sm text-ink-300">{value}</dd>
+      <dd className="mt-0.5 text-sm wrap-anywhere text-ink-300">{value}</dd>
     </div>
   );
 }

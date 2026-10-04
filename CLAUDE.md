@@ -268,8 +268,9 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      bundle-budget.mjs and bundle-budget.json (the gzipped
                      bundle against its budget, a push-gate phase),
                      screens.mjs with screens/ (the real app over a mocked
-                     backend in Chromium: shots, boards, clips and pixel
-                     hashes, see "Design language"),
+                     backend in Chromium: shots, boards, clips, pixel
+                     hashes and the sideways-overflow check, see "Design
+                     language"),
                      verify.mjs (the gate, see
                      "The commit loop"), toml-check.mjs (taplo over the
                      TOML files, one per stdin — see the same section),
@@ -1800,7 +1801,14 @@ screen in its `SCREENS` table (or the `--only` subset) per style and theme, and 
 screen may name a `mock` the fixtures branch on, `board` lays them
 out for the maintainer, `clip` records motion side by side, and `hash` takes
 still frames at a fixed clock with motion off. Two `hash` runs agree, so an
-unchanged hash is the proof that a mechanical refactor moved no pixel. The
+unchanged hash is the proof that a mechanical refactor moved no pixel.
+`overflow` opens each screen and exits 1 when `<main>` scrolls sideways, naming
+the elements whose removal frees the width (removal, because a reach past the
+edge alone can be paint), and every `shoot` records the same figure as
+`sideways` in its `report.json`. On Windows `CHROMIUM_PATH` points it at Edge
+(`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`), and a cold
+dev server spends the better part of a minute on the stylesheet before the
+first page settles. The
 banners and covers of three real titles are fetched from AniList into
 `scripts/screens/.cache/` on first use and never committed; the stand-in faces
 are Roboto for Android and Open Sans for Segoe UI, which Linux lacks. The
@@ -2041,6 +2049,19 @@ them away without re-measuring.
   handed the whole page a sideways scroll (`<main>`'s `overflow-y-auto`
   computes `overflow-x: auto`, so any too-wide element scrolls everything).
   The same lesson as `SectionHeader`'s h2.
+- **The detail page's grids are `grid-cols-1` below their breakpoint, a score
+  column is `min-w-0`, and its label goes through `compactCount`.** A grid
+  with no column template is one implicit `auto` track, which grows to its
+  widest item's min-content, and `min-w-0` on flex items does not lower a flex
+  row's min-content — so the community chart's ten raw counts pushed its card
+  past the column. Measured with `screens.mjs overflow` on 2026-10-04: Attack
+  on Titan's counts (3180 … 196515) scrolled `<main>` 25 px at 360 px and
+  65 px at 320, and a bannerless title's unclipped `scale-110` wash 20 px at
+  405 — the `@container` wrapper's containment does not stop it. Afterwards
+  0 of 104 screens. German `Intl` compact notation leaves thousands alone
+  ("106.581"), which is why the label has its own formatter; the exact count
+  stays in the column's `title`. The harness's fixture carries those counts,
+  because its old three-digit ones are why no shot ever showed the overflow.
 - **The cover grid is `repeat(var(--cover-cols), minmax(0, 1fr))`** — the
   covers-per-row field, one token written by the theme store, defaulting by
   platform at first run (10 desktop, 4 Android — UA-keyed, since the store

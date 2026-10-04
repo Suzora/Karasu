@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { TONES } from "@/components/stats/Charts";
+import { compactCount } from "@/lib/format";
 import { distributionColumns } from "@/lib/score";
 import { cn } from "@/lib/utils";
 /** Score distribution, one column per step to `max`; the axis is the scale's, never inferred from the data. */
@@ -9,12 +10,15 @@ export function ScoreColumns({
   hint,
   data,
   max,
+  locale,
 }: {
   title: string;
   hint: string;
   data: { score: number; count: number }[];
   /** The display scale's top, from `scoreScale(format).max`. */
   max: number;
+  /** The language a column's label and its exact count are written in. */
+  locale: string;
 }) {
   const columns = distributionColumns(data, max);
   if (columns.length === 0) return null;
@@ -30,10 +34,11 @@ export function ScoreColumns({
       <div className="mt-4 flex flex-1 items-stretch gap-1.75">
         {columns.map(({ step, count }) => {
           return (
-            <div key={step} className="flex flex-1 flex-col items-center gap-1">
+            // `min-w-0`, so the labels never set the row's width; a narrow card squeezes the columns instead.
+            <div key={step} title={count ? count.toLocaleString(locale) : undefined} className="flex min-w-0 flex-1 flex-col items-center gap-1">
               {/* Fixed height; an empty span is zero-height and would lift this column's bar off the shared baseline. */}
               <span className="h-3 text-2xs leading-3 tabular-nums text-ink-600">
-                {count || ""}
+                {count ? compactCount(count, locale) : ""}
               </span>
               {/* Out of flow on purpose; in flow the percentage height resolves against the box's `auto` and the bar vanishes. */}
               <div className="relative min-h-32 w-full flex-1">

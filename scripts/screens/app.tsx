@@ -241,11 +241,16 @@ function userStats() {
   return { User: { id: viewer.id, name: viewer.name, stats: { activityHistory }, statistics: { anime: block(false), manga: block(true) } } };
 }
 
+/** A very popular title's real score counts, so the community chart is shot at its widest. */
+const COMMUNITY_SCORES = [3180, 995, 2174, 3769, 9666, 17994, 57157, 131420, 196515, 187770];
+
 function detail(id: number) {
   const index = Math.max(0, REAL.findIndex((r) => r.id === id));
   const r = REAL[index];
   return {
     ...media(index, false),
+    // A title AniList has no banner for yet, as most of a new season is in its first weeks.
+    ...(mock === "no-banner" ? { bannerImage: null } : {}),
     description: "Rudeus and his companions set out once more; a new chapter in a long journey, and a family scattered across a continent.",
     meanScore: r.score,
     popularity: 120000,
@@ -258,7 +263,7 @@ function detail(id: number) {
     endDate: null,
     trailer: null,
     rankings: [],
-    stats: { scoreDistribution: [36, 27, 56, 100, 189, 294, 684, 926, 944, 522].map((amount, k) => ({ score: (k + 1) * 10, amount })), statusDistribution: null },
+    stats: { scoreDistribution: COMMUNITY_SCORES.map((amount, k) => ({ score: (k + 1) * 10, amount })), statusDistribution: null },
     studios: { edges: [{ isMain: true, node: { id: 1, name: r.studio } }] },
     tags: [],
     externalLinks: [
@@ -272,6 +277,23 @@ function detail(id: number) {
     staff: { edges: [] },
     recommendations: { nodes: [] },
   };
+}
+
+/** The cast fold's first page, with names long enough that a narrow row has to truncate them rather than widen the page. */
+function cast() {
+  const person = (id: number, full: string, i: number) => ({ id, name: { full }, image: { medium: cover(i) } });
+  const characters = [
+    ["Rudeus Greyrat", "Tomokazu Sugita"],
+    ["Eris Boreas Greyrat", "Ai Kakuma"],
+    ["Roxy Migurdia", "Konomi Kohara"],
+    ["Sylphiette", "Kana Yūki"],
+  ].map(([name, voice], i) => ({ role: i < 3 ? "MAIN" : "SUPPORTING", node: person(600 + i, name, i), voiceActors: [person(700 + i, voice, i + 4)] }));
+  const staff = [
+    ["Rifujin na Magonote", "Original Creator"],
+    ["Hiroki Hirano", "Director"],
+    ["Toshifumi Akai", "Character Design, Chief Animation Director"],
+  ].map(([name, role], i) => ({ role, node: person(800 + i, name, i + 2) }));
+  return { characters: { pageInfo: { hasNextPage: false }, edges: characters }, staff: { pageInfo: { hasNextPage: false }, edges: staff } };
 }
 
 /** A small franchise around the first title: two earlier seasons, a side story and the source, some on the list. */
@@ -307,6 +329,7 @@ function franchise() {
 /** Answers a passthrough query by the root field it asks for; anything else gets an empty but well-formed page. */
 function answerQuery(query: string, variables: Record<string, unknown> | null) {
   const q = query.replace(/\s+/g, " ");
+  if (/characters\s*\(\s*page/.test(q)) return { Media: cast() };
   if (/\bMedia\s*\(\s*id/.test(q)) return { Media: detail(Number(variables?.id ?? REAL[0].id)) };
   if (/airingSchedules/.test(q)) {
     const airing = REAL.map((r, i) => ({ id: 70 + i, episode: r.next, airingAt: now + 3600 * (5 + i * 20), timeUntilAiring: 3600 * (5 + i * 20), mediaId: r.id, media: media(i, false) }));
@@ -346,7 +369,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
   }
   if (/threads\s*\(/.test(q)) return pageOf({ threads: THREADS });
   if (/\bPage\b/.test(q)) {
-    const page = { media: Array.from({ length: 8 }, (_, i) => media(i, false)), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
+    const page = { media: Array.from({ length: 8 }, (_, i) => (mock === "no-banner" && i === 0 ? { ...media(i, false), bannerImage: null } : media(i, false))), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
     return { Page: { pageInfo: { hasNextPage: false, total: 8, currentPage: 1, lastPage: 1 }, ...page } };
   }
   if (/\bViewer\b/.test(q)) return { Viewer: { ...viewer, unreadNotificationCount: 3 } };

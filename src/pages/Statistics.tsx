@@ -672,6 +672,7 @@ function RatingsView({
           hint={t("stats.scoreDistHint")}
           data={scores.map((d: Distribution) => ({ score: d.score ?? 0, count: d.count }))}
           max={scoreMax}
+          locale={i18n.language}
         />
         {/* Pinned to the full scale, or two close means read as a landslide. */}
         <GradientBars

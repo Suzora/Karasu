@@ -6,6 +6,7 @@
 //   node scripts/screens.mjs clip [--styles ,a]           one webm per style, then all of them side by side
 //   node scripts/screens.mjs hash [--out scripts/screens/.out/before.json]   still frames at a fixed clock, one sha256 each
 //   node scripts/screens.mjs hash --compare scripts/screens/.out/before.json exit 1 when any screen's pixels changed
+//   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when a screen's <main> scrolls sideways, naming why
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -35,6 +36,12 @@ const toCard = (title) => (p) =>
     const heading = [...document.querySelectorAll("h2, h3")].find((h) => h.textContent?.trim() === t);
     (heading?.closest(".rounded-panel") ?? heading)?.scrollIntoView({ block: "start" });
   }, title);
+/** Opens the detail page's cast fold and scrolls it to the top, where its rows can be judged. */
+const openCast = async (p) => {
+  await p.getByRole("button", { name: "Besetzung & Staff" }).click();
+  await p.waitForTimeout(600);
+  await toCard("Besetzung & Staff")(p);
+};
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
 export const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
@@ -66,6 +73,11 @@ export const SCREENS = [
   },
   { id: "p1-liste", w: 405, h: 860, phone: true, route: "/list" },
   { id: "p2-detail", w: 405, h: 860, phone: true, route: "/media/178789" },
+  { id: "p43-detail-ohne-banner", w: 405, h: 1600, phone: true, route: "/media/178789", mock: "no-banner" },
+  { id: "p44-detail-schmal", w: 360, h: 1600, phone: true, route: "/media/178789" },
+  { id: "p45-uebersicht-ohne-banner", w: 405, h: 860, phone: true, route: "/", mock: "no-banner" },
+  { id: "p46-besetzung", w: 405, h: 1800, phone: true, route: "/media/178789", act: openCast },
+  { id: "p47-besetzung-schmal", w: 320, h: 1800, phone: true, route: "/media/178789", act: openCast },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },
@@ -295,7 +307,8 @@ async function open(browser, s, style, theme, { still = false, video } = {}) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   if (still) await page.clock.setFixedTime(CLOCK);
-  await page.goto(urlFor(s, style, theme, still), { waitUntil: "networkidle" });
+  // Generous: a cold dev server generates the whole stylesheet before the first page can settle.
+  await page.goto(urlFor(s, style, theme, still), { waitUntil: "networkidle", timeout: 180_000 });
   await page.addStyleTag({ content: fontCss(s.phone) });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 10000 }).catch(() => {});
@@ -324,8 +337,14 @@ async function shoot() {
         const { context, page, errors, unknown } = await open(browser, s, style, theme);
         const name = `${style || "heute"}-${theme}-${s.id}`;
         await page.screenshot({ path: path.join(out, `${name}.png`) });
-        report.push({ name, errors, unknown });
-        if (errors.length || unknown.length) console.log(`${name}: ${[...errors, ...unknown.map((u) => `unmocked ${u}`)].join("; ")}`);
+        // A page that scrolls sideways can look fine in a still, so every shot reports it; `overflow` says why.
+        const sideways = await page.evaluate(() => {
+          const main = document.querySelector("main");
+          return main ? main.scrollWidth - main.clientWidth : 0;
+        });
+        report.push({ name, errors, unknown, sideways });
+        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> scrolls ${sideways}px sideways`] : [])];
+        if (problems.length) console.log(`${name}: ${problems.join("; ")}`);
         await context.close();
       }
     }
@@ -357,6 +376,49 @@ async function hash() {
   const file = flag("--out", path.join(OUT, "hashes.json"));
   writeFileSync(file, JSON.stringify(hashes, null, 1));
   console.log(`screens: ${Object.keys(hashes).length} hash(es) in ${path.relative(ROOT, file)}`);
+}
+
+/** Each screen's sideways overflow: how far `<main>` scrolls past its width, and which elements push it there. */
+async function overflow() {
+  const browser = await launch();
+  const screens = selected();
+  let failed = 0;
+  for (const s of screens) {
+    const { context, page } = await open(browser, s, "", "dark", { still: true });
+    const found = await page.evaluate(() => {
+      const main = document.querySelector("main");
+      const by = () => main.scrollWidth - main.clientWidth;
+      const over = main ? by() : 0;
+      if (over <= 0) return null;
+      const edge = main.getBoundingClientRect().right;
+      // A box below `<main>` that clips its overflow cannot widen it, so only elements nothing clips are suspects.
+      const clipped = (el) => {
+        for (let up = el.parentElement; up && up !== main; up = up.parentElement) if (getComputedStyle(up).overflowX !== "visible") return true;
+        return false;
+      };
+      const past = [...main.querySelectorAll("*")].filter((el) => el.getBoundingClientRect().right > edge + 0.5 && !clipped(el));
+      const deepest = past.filter((el) => !past.some((o) => o !== el && el.contains(o))).slice(0, 8);
+      const name = (el) => [el.tagName.toLowerCase(), ...String(el.className?.baseVal ?? el.className ?? "").split(/\s+/).filter(Boolean).slice(0, 5)].join(".");
+      // Removing a suspect and measuring again is the proof; a reach past the edge alone can be paint the layout never counts.
+      const culprits = deepest.map((el) => {
+        const before = el.style.display;
+        el.style.setProperty("display", "none", "important");
+        const without = by();
+        el.style.display = before;
+        return { name: name(el), freed: over - Math.max(0, without) };
+      });
+      return { over, culprits };
+    });
+    await context.close();
+    if (!found) continue;
+    failed++;
+    const proven = found.culprits.filter((c) => c.freed > 0);
+    const shown = (proven.length ? proven : found.culprits).map((c) => (c.freed > 0 ? `${c.name} (${c.freed}px)` : c.name));
+    console.log(`${s.id}: <main> scrolls ${found.over}px sideways; ${proven.length ? "" : "suspects "}${shown.join("; ") || "nothing named"}`);
+  }
+  await browser.close();
+  console.log(`screens: ${failed} of ${screens.length} screen(s) overflow`);
+  process.exit(failed ? 1 : 0);
 }
 
 async function clip() {
@@ -424,7 +486,7 @@ async function board() {
   console.log(path.relative(ROOT, path.join(out, `${spec.name}.png`)));
 }
 
-const COMMANDS = { shoot, hash, clip, board };
+const COMMANDS = { shoot, hash, overflow, clip, board };
 if (!COMMANDS[command]) {
   console.error(`screens: unknown command "${command ?? ""}"; one of ${Object.keys(COMMANDS).join(", ")}`);
   process.exit(2);

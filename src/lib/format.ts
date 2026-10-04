@@ -120,3 +120,13 @@ export function countdown(secondsUntil: number, t: TFunction): string {
   if (hours > 0) return t("detail.countdownHm", { h: hours, m: minutes });
   return t("detail.countdownM", { m: minutes });
 }
+
+/** A count short enough to sit above a chart column: exact below ten thousand, then thousands, then millions. */
+export function compactCount(n: number, locale: string): string {
+  if (!(n >= 10_000)) return String(n);
+  if (n < 999_500) return `${Math.round(n / 1000)}k`;
+  // Whole tenths first, so no value lands on a binary half; past ten million a decimal would make it five characters.
+  const tenths = Math.round(n / 100_000);
+  const millions = tenths < 100 ? tenths / 10 : Math.round(n / 1_000_000);
+  return `${millions.toLocaleString(locale, { maximumFractionDigits: 1 })}M`;
+}

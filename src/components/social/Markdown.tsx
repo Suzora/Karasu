@@ -109,7 +109,7 @@ export function Markdown({
   if (!nodes.length) return null;
 
   return (
-    <div className={cn("space-y-2 text-sm leading-relaxed text-ink-300", className)}>
+    <div className={cn("space-y-2 text-sm leading-relaxed wrap-anywhere text-ink-300", className)}>
       <Blocks nodes={nodes} />
       {truncated && (
         <p className="text-xs text-ink-600">

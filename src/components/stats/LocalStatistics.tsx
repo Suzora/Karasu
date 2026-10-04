@@ -172,6 +172,7 @@ export default function LocalStatistics({
                 hint={t("stats.scoreDistHint")}
                 data={totals.scoreCounts}
                 max={scoreMax}
+                locale={i18n.language}
               />
             )}
             {totals.releaseYears.length > 1 && (

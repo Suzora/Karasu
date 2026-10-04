@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TFunction } from "i18next";
 import {
+  compactCount,
   countdown,
   formatLabel,
   fuzzyDate,
@@ -87,5 +88,48 @@ describe("countdown", () => {
   it("returns empty once the episode has aired", () => {
     expect(countdown(0, t)).toBe("");
     expect(countdown(-60, t)).toBe("");
+  });
+});
+
+describe("compactCount", () => {
+  it("keeps a count exact below ten thousand, as the chart always showed it", () => {
+    expect(compactCount(0, "de")).toBe("0");
+    expect(compactCount(995, "de")).toBe("995");
+    expect(compactCount(9_999, "de")).toBe("9999");
+  });
+
+  /** German compact notation leaves thousands alone ("106.581"), so this one has to shorten them itself. */
+  it("rounds to whole thousands from ten thousand up, in every language", () => {
+    expect(compactCount(10_000, "de")).toBe("10k");
+    expect(compactCount(21_874, "de")).toBe("22k");
+    expect(compactCount(106_581, "de")).toBe("107k");
+    expect(compactCount(196_515, "en")).toBe("197k");
+    expect(compactCount(999_499, "de")).toBe("999k");
+  });
+
+  it("moves to millions where the thousands would round to a thousand", () => {
+    expect(compactCount(999_500, "de")).toBe("1M");
+    expect(compactCount(1_000_000, "en")).toBe("1M");
+    expect(compactCount(1_234_567, "de")).toBe("1,2M");
+    expect(compactCount(1_250_000, "en")).toBe("1.3M");
+    expect(compactCount(9_940_000, "de")).toBe("9,9M");
+    expect(compactCount(9_950_000, "en")).toBe("10M");
+    expect(compactCount(12_345_678, "en")).toBe("12M");
+  });
+
+  it("rounds halves up at the thousands boundary", () => {
+    expect(compactCount(10_499, "en")).toBe("10k");
+    expect(compactCount(10_500, "en")).toBe("11k");
+  });
+
+  /** The label sits over a column a phone squeezes to a few digits' width. */
+  it("never needs more than four characters", () => {
+    for (const n of [9_999, 10_000, 99_999, 999_499, 999_500, 9_949_999, 99_499_999]) {
+      expect(compactCount(n, "de").length).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("passes a value that is not a count through rather than inventing one", () => {
+    expect(compactCount(Number.NaN, "en")).toBe("NaN");
   });
 });
