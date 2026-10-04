@@ -64,13 +64,14 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 6d6e172 -->
+<!-- generated-through: bc46f47 -->
 
 ### Fixed
 
 - On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square.
 - A detail page no longer scrolls sideways on a phone, and the community score chart writes counts from 10,000 up as "22k".
 - A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
+- A detail page no longer jumps when it finishes loading: its placeholder now has the page's banner height, and on a phone the page's layout too.
 
 ## 1.32.0 — 2026-10-03
 

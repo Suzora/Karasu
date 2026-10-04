@@ -66,7 +66,7 @@ import { DetailSkeleton, Shimmer } from "@/components/Skeleton";
 import { cn } from "@/lib/utils";
 import { characterRoleLabel } from "@/components/media/roleLabel";
 import { MediaBanner } from "@/components/media/MediaBanner";
-import { BANNER_RATIO } from "@/lib/bannerFit";
+import { detailFrame } from "@/components/media/detailFrame";
 import { bannerSource } from "@/lib/bannerSource";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -96,6 +96,7 @@ export default function AnimeDetail() {
   const profileMode = useAuth((s) => s.mode);
   const viewer = useAuth((s) => s.viewer);
   const phone = usePhoneShell();
+  const frame = detailFrame(phone);
   const [revealed, setRevealed] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
   const coverViewer = usePresence(coverOpen);
@@ -109,9 +110,9 @@ export default function AnimeDetail() {
   /** The local list's entry, since mediaListEntry is null in local mode; keeps ListEditor from seeding over a real entry. */
   const cachedEntry = useCachedEntry(0, data?.type, mediaId);
 
-  // A skeleton at the hero's real proportions rather than a line of text, so the page does not move twice.
+  // A skeleton in the page's own frame rather than a line of text, so nothing moves when the data arrives.
   if (isLoading) return <DetailSkeleton />;
-  // Offline gets its own answer: DETAIL_QUERY has no cache, so OfflineDetail serves what the list cache already holds.
+  // Offline, with no fresh answer in the query cache: OfflineDetail serves what the list cache already holds.
   if (error && isOffline(error))
     return <OfflineDetail mediaId={mediaId} onRetry={() => void refetch()} />;
   if (error)
@@ -184,8 +185,7 @@ export default function AnimeDetail() {
     <div>
       {/* The query container sits here, not on the page, since containment would pin the page's fixed overlays to it. */}
       <div className="@container">
-        {/* A standard banner plus a band for the back button above and the cover below, capped at the desktop height. */}
-        <div className="relative" style={{ height: `min(16rem, calc(100cqw / ${BANNER_RATIO} + 5.5rem))` }}>
+        <div className="relative" style={frame.header}>
           <MediaBanner source={banner} veiled={veiled} />
           {/* A short fade into the page, so the contained banner stays whole above it. */}
           <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface-950 to-transparent" />
@@ -194,11 +194,10 @@ export default function AnimeDetail() {
         </div>
       </div>
 
-      <div className="relative mx-auto max-w-4xl px-8 pb-10 2xl:max-w-none">
-        {/* Floated on the phone, so a title longer than the cover carries on beneath it; wider, it overlaps the banner. */}
-        <div className={cn("-mt-11 md:-mt-14", phone ? "flow-root" : "flex gap-6")}>
+      <div className={frame.column}>
+        <div className={frame.row}>
           {/* The incoming half of the cover-to-hero morph; unconditional because this page shows exactly one cover. */}
-          <div className={cn("relative h-57 w-38 shrink-0", phone && "float-left mb-2 mr-5")}>
+          <div className={frame.cover}>
             <img
               src={coverSrc}
               alt=""
@@ -237,7 +236,7 @@ export default function AnimeDetail() {
               onClose={() => setCoverOpen(false)}
             />
           )}
-          <div className={cn("pt-16", !phone && "min-w-0 flex-1")}>
+          <div className={frame.heading}>
             <h1 className="text-heading text-ink-100">
               {title}
             </h1>
@@ -253,8 +252,7 @@ export default function AnimeDetail() {
               )
             )}
             {phone ? (
-              // Below the cover whatever the title's length: a short title leaves air beside it, never a squeezed column.
-              <div className="clear-left space-y-2.5 pt-2.5">
+              <div className={frame.facts}>
                 <MetaLine data={data} studios={mainStudios.map((s) => s.name)} />
                 <GenreChips genres={data.genres} />
                 <NextEpisode data={data} bar />
@@ -368,8 +366,7 @@ export default function AnimeDetail() {
           </div>
         </div>
 
-        {/* Prose left at a reading measure, metadata right taking the slack, since everything in it wraps and fills. */}
-        <div className="mt-6 grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,48rem)_minmax(0,1fr)] 2xl:items-start">
+        <div className={frame.body}>
           <div className="min-w-0 space-y-6">
             {data.description && (
               <Card>

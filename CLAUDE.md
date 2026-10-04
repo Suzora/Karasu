@@ -693,9 +693,10 @@ version files agree), the **site**'s typecheck,
 (`scripts/bundle-budget.mjs`: a fresh `vite build`, then four gzipped figures —
 what the window waits for, the stylesheet, the largest lazy chunk, all the
 script — against `scripts/bundle-budget.json`, each set 3 % over the larger of
-the two build targets' measurement when it was last raised; on 2026-09-26 the
-Linux target read 400.4, 17.1, 27.3 and 537.7 KiB against budgets of 404, 18,
-29 and 544, and a raise names its reason in the commit) — then
+the two build targets' measurement when it was last raised; on 2026-10-04 the
+Linux target read 404.0, 17.6, 27.3 and 543.9 KiB against budgets of 417, 18,
+29 and 544, the first raised that day for the detail skeleton, and a raise
+names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
 with warnings denied, **cargo deny** (advisories, licences, bans, sources
@@ -1896,6 +1897,11 @@ shape, and the question that follows them.
   an 85 px banner in two thirds blur. The query container sits on a wrapper
   around the header, never on the page root: containment would make that root
   the containing block of every `fixed` overlay rendered inside it.
+  `components/media/detailFrame` holds that height and the rest of the
+  header's geometry for the page and `DetailSkeleton` alike: the skeleton had
+  kept the fixed 256 px and the desktop row, so on a 405 px phone the page
+  jumped 83 px when its data arrived (measured on 2026-10-04 with the screens
+  harness's `detail-pending` mock, which holds the query until released).
 - **A title without a banner borrows a relative's, and never shows a blurred
   poster.** AniList adds banners weeks into a season: on 2026-10-04, 31 of the
   Fall 2026 top 50 had none, and the blurred cover the header and the hero drew

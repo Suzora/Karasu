@@ -377,11 +377,19 @@ function franchise() {
   ];
 }
 
+/** Under `detail-pending` the detail answer waits for `window.__release()`, so the skeleton can be shot and then swapped. */
+let release = () => {};
+const held = new Promise<void>((resolve) => (release = resolve));
+(window as unknown as { __release: () => void }).__release = () => release();
+
 /** Answers a passthrough query by the root field it asks for; anything else gets an empty but well-formed page. */
 function answerQuery(query: string, variables: Record<string, unknown> | null) {
   const q = query.replace(/\s+/g, " ");
   if (/characters\s*\(\s*page/.test(q)) return { Media: cast() };
-  if (/\bMedia\s*\(\s*id/.test(q)) return { Media: detail(Number(variables?.id ?? REAL[0].id)) };
+  if (/\bMedia\s*\(\s*id/.test(q)) {
+    const answer = { Media: detail(Number(variables?.id ?? REAL[0].id)) };
+    return mock === "detail-pending" ? held.then(() => answer) : answer;
+  }
   if (/airingSchedules/.test(q)) {
     const airing = REAL.map((r, i) => ({ id: 70 + i, episode: r.next, airingAt: now + 3600 * (5 + i * 20), timeUntilAiring: 3600 * (5 + i * 20), mediaId: r.id, media: media(i, false) }));
     return { Page: { pageInfo: { hasNextPage: false, total: 3 }, airingSchedules: airing } };
