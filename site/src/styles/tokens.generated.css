@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 031d0333b54d) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 96820a8f5e50) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -620,6 +620,18 @@
 /* The light a raised panel catches along its top; it composes over a background colour and sets none. */
 @utility panel-wash {
   background-image: linear-gradient(180deg, var(--wash-top), transparent 45%);
+}
+
+/* A title with no banner to show: its cover's own colour as light from above, never a blur of the poster. */
+@utility cover-wash {
+  background-image:
+    radial-gradient(120% 130% at 30% -20%, color-mix(in srgb, var(--tint) 45%, transparent), transparent 70%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--tint) 14%, transparent), transparent);
+  @media (prefers-contrast: more) {
+    & {
+      background-image: none;
+    }
+  }
 }
 
 /* The gradient at the foot of every cover: art is arbitrary, so anything over it needs a deterministic backdrop. */

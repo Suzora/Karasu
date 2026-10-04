@@ -56,9 +56,9 @@ const banner = (i: number) => {
 const TITLES = ["Frieren: Beyond Journey's End", "The Apothecary Diaries", "Dungeon Meshi", "Oshi no Ko", "Kaiju No. 8", "Bocchi the Rock!", "Mob Psycho 100 III", "Vinland Saga Season 2", "Spy x Family", "Blue Lock", "Chainsaw Man", "Jujutsu Kaisen"];
 /** The three titles `screens.mjs` fetches art for, first in every list so the grid opens on real covers. */
 const REAL = [
-  { id: 178789, title: "Mushoku Tensei: Jobless Reincarnation Season 3", native: "無職転生Ⅲ ～異世界行ったら本気だす～", episodes: 14, next: 9, score: 85, studio: "Studio Bind", genres: ["Adventure", "Drama", "Fantasy"] },
-  { id: 135865, title: "Saga of Tanya the Evil Season 2", native: "幼女戦記Ⅱ", episodes: 12, next: 4, score: 80, studio: "NUT", genres: ["Action", "Fantasy"] },
-  { id: 103303, title: "Sparks of Tomorrow", native: "二十世紀電氣目録", episodes: 13, next: 6, score: 76, studio: "Kyoto Animation", genres: ["Adventure", "Comedy", "Romance"] },
+  { id: 178789, title: "Mushoku Tensei: Jobless Reincarnation Season 3", native: "無職転生Ⅲ ～異世界行ったら本気だす～", episodes: 14, next: 9, score: 85, studio: "Studio Bind", genres: ["Adventure", "Drama", "Fantasy"], color: "#28bbe4" },
+  { id: 135865, title: "Saga of Tanya the Evil Season 2", native: "幼女戦記Ⅱ", episodes: 12, next: 4, score: 80, studio: "NUT", genres: ["Action", "Fantasy"], color: "#e46b28" },
+  { id: 103303, title: "Sparks of Tomorrow", native: "二十世紀電氣目録", episodes: 13, next: 6, score: 76, studio: "Kyoto Animation", genres: ["Adventure", "Comedy", "Romance"], color: "#fec950" },
 ];
 const STATUSES = ["CURRENT", "REPEATING", "COMPLETED", "PAUSED", "DROPPED", "PLANNING"] as const;
 
@@ -70,7 +70,7 @@ function media(i: number, manga: boolean) {
     idMal: null,
     type: manga ? "MANGA" : "ANIME",
     title: real ? { romaji: real.title, english: real.title, native: real.native } : { romaji: TITLES[i % TITLES.length], english: null, native: null },
-    coverImage: { large: art ?? cover(i), extraLarge: art ?? cover(i), color: null },
+    coverImage: { large: art ?? cover(i), extraLarge: art ?? cover(i), color: real?.color ?? null },
     bannerImage: real ? (asset(real.id, "banner") ?? banner(i)) : null,
     episodes: manga ? null : (real?.episodes ?? [12, 24, 13, 11, 25, 12][i % 6]),
     chapters: manga ? [120, 57, 300, 98][i % 4] : null,
@@ -241,10 +241,61 @@ function userStats() {
   return { User: { id: viewer.id, name: viewer.name, stats: { activityHistory }, statistics: { anime: block(false), manga: block(true) } } };
 }
 
+/** Kusuriya 3 as AniList has it in its first weeks: no banner of its own, a prequel with one to lend. */
+const UNBANNERED = {
+  id: 195516,
+  title: "The Apothecary Diaries Season 3",
+  native: "薬屋のひとりごと 第3期",
+  color: "#e4a128",
+  prequel: { id: 176301, title: "The Apothecary Diaries Season 2", native: "薬屋のひとりごと 第2期" },
+};
+
+/** The new season as a list or hero title, with the relation a borrowed banner comes from. */
+function unbanneredMedia() {
+  const u = UNBANNERED;
+  const art = asset(u.id, "cover") ?? cover(9);
+  const prequel = {
+    id: u.prequel.id,
+    type: "ANIME",
+    title: { romaji: u.prequel.title, english: u.prequel.title, native: u.prequel.native },
+    coverImage: { large: asset(u.prequel.id, "cover") ?? cover(10) },
+    bannerImage: asset(u.prequel.id, "banner") ?? banner(10),
+    format: "TV",
+    isAdult: false,
+    genres: ["Drama", "Mystery"],
+  };
+  return {
+    ...media(0, false),
+    id: u.id,
+    title: { romaji: u.title, english: u.title, native: u.native },
+    coverImage: { large: art, extraLarge: art, color: u.color },
+    bannerImage: null,
+    episodes: 12,
+    format: "TV",
+    status: "RELEASING",
+    season: "FALL",
+    averageScore: 85,
+    genres: ["Drama", "Mystery"],
+    nextAiringEpisode: { episode: 2, airingAt: now + 3600 * 30, timeUntilAiring: 3600 * 30 },
+    relations: { edges: [{ relationType: "PREQUEL", node: prequel }] },
+  };
+}
+
 /** A very popular title's real score counts, so the community chart is shot at its widest. */
 const COMMUNITY_SCORES = [3180, 995, 2174, 3769, 9666, 17994, 57157, 131420, 196515, 187770];
 
 function detail(id: number) {
+  if (id === UNBANNERED.id) {
+    const base = detail(REAL[0].id);
+    const own = unbanneredMedia();
+    return {
+      ...base,
+      ...own,
+      description: "Maomao returns to the inner palace for another season of poisons, rumours and quiet deductions.",
+      studios: { edges: [{ isMain: true, node: { id: 2, name: "OLM" } }] },
+      mediaListEntry: null,
+    };
+  }
   const index = Math.max(0, REAL.findIndex((r) => r.id === id));
   const r = REAL[index];
   return {
@@ -369,7 +420,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
   }
   if (/threads\s*\(/.test(q)) return pageOf({ threads: THREADS });
   if (/\bPage\b/.test(q)) {
-    const page = { media: Array.from({ length: 8 }, (_, i) => (mock === "no-banner" && i === 0 ? { ...media(i, false), bannerImage: null } : media(i, false))), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
+    const page = { media: mock === "no-banner" ? [unbanneredMedia(), { ...media(0, false), bannerImage: null }, ...Array.from({ length: 6 }, (_, i) => media(i + 1, false))] : Array.from({ length: 8 }, (_, i) => media(i, false)), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
     return { Page: { pageInfo: { hasNextPage: false, total: 8, currentPage: 1, lastPage: 1 }, ...page } };
   }
   if (/\bViewer\b/.test(q)) return { Viewer: { ...viewer, unreadNotificationCount: 3 } };

@@ -189,7 +189,7 @@ query ($season: MediaSeason!, $year: Int!, $page: Int, $isAdult: Boolean, $score
   }
 }`;
 
-/** The hero's handful of titles with banner art; CLAUDE.md's wide-image rule is about pages of thirty, not this. */
+/** The hero's ten titles with their wide art, and their relatives' banners for one AniList has none for yet. */
 const SEASON_HERO_QUERY = `
 query ($season: MediaSeason!, $year: Int!, $isAdult: Boolean) {
   Page(page: 1, perPage: 10) {
@@ -198,7 +198,8 @@ query ($season: MediaSeason!, $year: Int!, $isAdult: Boolean) {
       type
       title { romaji english native }
       bannerImage
-      coverImage { extraLarge large }
+      coverImage { extraLarge large color }
+      relations { edges { relationType node { id bannerImage isAdult genres } } }
       format
       status
       episodes
@@ -210,13 +211,23 @@ query ($season: MediaSeason!, $year: Int!, $isAdult: Boolean) {
   }
 }`;
 
+/** A relative's share of a title's wide art: enough to lend its banner and to ask the content filter first. */
+export interface RelationArt {
+  id: number;
+  bannerImage: string | null;
+  isAdult: boolean | null;
+  genres: string[] | null;
+}
+
 /** What the Overview's hero draws. A deliberate subset of `Media`. */
 export interface HeroMedia {
   id: number;
   type: MediaType;
   title: MediaTitle;
   bannerImage: string | null;
-  coverImage: { extraLarge: string | null; large: string | null };
+  coverImage: { extraLarge: string | null; large: string | null; color: string | null };
+  /** Only for `bannerSource`: the banner a relative lends while the title has none of its own. */
+  relations: { edges: { relationType: string; node: RelationArt }[] } | null;
   format: string | null;
   status: string | null;
   episodes: number | null;
@@ -481,7 +492,7 @@ const DETAIL_QUERY = `
 query ($id: Int!, $scoreFormat: ScoreFormat) {
   Media(id: $id) {
     ${MEDIA_FIELDS}
-    coverImage { extraLarge }
+    coverImage { extraLarge color }
     bannerImage
     description
     duration
@@ -518,6 +529,7 @@ query ($id: Int!, $scoreFormat: ScoreFormat) {
           type
           title { romaji english native }
           coverImage { large }
+          bannerImage
           format
           isAdult
           genres
@@ -543,6 +555,8 @@ export interface ExternalLink {
 }
 
 export interface MediaDetail extends MediaWithListStatus {
+  /** `color` is AniList's dominant cover colour, the wash a title without any banner gets. */
+  coverImage: { large: string | null; extraLarge?: string | null; color: string | null };
   description: string | null;
   duration: number | null;
   meanScore: number | null;
@@ -582,6 +596,7 @@ export interface MediaDetail extends MediaWithListStatus {
         type: "ANIME" | "MANGA";
         title: Media["title"];
         coverImage: { large: string | null };
+        bannerImage: string | null;
         format: string | null;
         isAdult: boolean;
         genres: string[];

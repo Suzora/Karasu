@@ -126,6 +126,7 @@ The default accent is `#4b3fc7`.
 | `well-edge` | the accent stripe down an inset well's left edge |
 | `avatar-wash` | a picture-less avatar that still reads as an object |
 | `cover-scrim` | the deterministic backdrop at the foot of arbitrary cover art |
+| `cover-wash` | a title's wide frame when no banner can stand in: its cover's colour (`--tint`) as light from above; none in high contrast |
 | `ink-halo` | a black ring round light text on artwork |
 
 **The canonical raised panel** is `Card`: `panel-wash panel-top rounded-panel
@@ -356,6 +357,7 @@ no row here, add the primitive first.
 | one lens of two or three | `Segmented`, a radio group with one tab stop whose thumb slides to the choice |
 | a page's sections, or the list's statuses | `StatusTabs`, one row that scrolls rather than wraps |
 | a panel | `Card`: `raised` by default (the wash and the catch-light), `flat` for a bordered row or block, `sunken` for a well inside either; `interactive` borders it on hover, and a card that must be a link, a form or an article spells `cardClass`. `CardTitle` heads a raised one |
+| a title's wide art (the detail header, the Overview's hero) | `MediaBanner` over `lib/bannerSource`: its own banner, else a relative's, shown whole by `BannerImage`, else `cover-wash` |
 | a titled page section | a `<section>` headed by `SectionHeader`; it has no chrome of its own |
 | an Overview section heading | `SectionHeader` |
 | a text field | `Input`; a count is `NumberInput`; several lines are `Textarea`, and a post is `MarkdownTextarea` |
@@ -716,3 +718,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   darker, now at least 3.1 : 1 on every page and panel. A saved palette that
   still holds a retired default follows the move; a colour the user chose
   stays.
+- **2026-10-04:** A title without an AniList banner no longer shows a blurred
+  copy of its cover (A of three mockups, over B, a colour wash alone, and C, no
+  wide frame at all). It borrows the nearest relative's banner — prequel first,
+  then parent, sequel, side story and spin-off, then compilation, summary,
+  contains and alternative, then source and adaptation, never a character or
+  other relation — shown whole like its own, under its own veil and never past
+  the content filter. With nothing to borrow it wears `cover-wash` in its
+  cover's colour. The phone surfaced it: of the Fall 2026 top 50, 31 had no
+  banner a week into the season, and 20 of those had a relative to borrow from.

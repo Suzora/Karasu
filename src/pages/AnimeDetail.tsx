@@ -65,9 +65,9 @@ import BackButton from "@/components/shell/BackButton";
 import { DetailSkeleton, Shimmer } from "@/components/Skeleton";
 import { cn } from "@/lib/utils";
 import { characterRoleLabel } from "@/components/media/roleLabel";
-import { DecodedImage } from "@/components/media/DecodedImage";
-import { BannerImage } from "@/components/media/BannerImage";
+import { MediaBanner } from "@/components/media/MediaBanner";
 import { BANNER_RATIO } from "@/lib/bannerFit";
+import { bannerSource } from "@/lib/bannerSource";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -161,6 +161,8 @@ export default function AnimeDetail() {
 
   /** The banner and the cover share revealed with the filter gate, so one "Show anyway" press answers for both images. */
   const veiled = shouldBlur(data, level, blurAdult) && !revealed;
+  // A title without a banner of its own borrows a relative's, under the same veil, or else wears its cover's colour.
+  const banner = bannerSource(data, level);
 
   const studioEdges = data.studios?.edges ?? [];
   const mainStudios = studioEdges.filter((e) => e.isMain).map((e) => e.node);
@@ -184,20 +186,7 @@ export default function AnimeDetail() {
       <div className="@container">
         {/* A standard banner plus a band for the back button above and the cover below, capped at the desktop height. */}
         <div className="relative" style={{ height: `min(16rem, calc(100cqw / ${BANNER_RATIO} + 5.5rem))` }}>
-          {data.bannerImage ? (
-            <BannerImage src={data.bannerImage} veiled={veiled} />
-          ) : (
-            coverSrc && (
-              // Clipped in its own box, as `BannerImage` clips its backdrop: the scale would otherwise widen the page.
-              <div className="absolute inset-0 overflow-hidden">
-                <DecodedImage
-                  src={coverSrc}
-                  className="h-full w-full scale-110 object-cover blur-2xl"
-                  loadedOpacity={0.4}
-                />
-              </div>
-            )
-          )}
+          <MediaBanner source={banner} veiled={veiled} />
           {/* A short fade into the page, so the contained banner stays whole above it. */}
           <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface-950 to-transparent" />
           {/* Anchored to the banner, not the centred column, or it drifts inward with the gutter on a wide display. */}

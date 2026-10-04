@@ -1809,7 +1809,8 @@ edge alone can be paint), and every `shoot` records the same figure as
 (`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`), and a cold
 dev server spends the better part of a minute on the stylesheet before the
 first page settles. The
-banners and covers of three real titles are fetched from AniList into
+banners and covers of a handful of real titles (`ART`, one of them a new season
+without a banner, and its prequel) are fetched from AniList into
 `scripts/screens/.cache/` on first use and never committed; the stand-in faces
 are Roboto for Android and Open Sans for Segoe UI, which Linux lacks. The
 project skill `.claude/skills/karasu-mockups` holds the procedure the
@@ -1895,6 +1896,19 @@ shape, and the question that follows them.
   an 85 px banner in two thirds blur. The query container sits on a wrapper
   around the header, never on the page root: containment would make that root
   the containing block of every `fixed` overlay rendered inside it.
+- **A title without a banner borrows a relative's, and never shows a blurred
+  poster.** AniList adds banners weeks into a season: on 2026-10-04, 31 of the
+  Fall 2026 top 50 had none, and the blurred cover the header and the hero drew
+  for them was the "banners are just blurry" report from the phone. So
+  `lib/bannerSource` picks the title's own banner, else the nearest relative's
+  (the order and the never-lenders are its `LENDERS` list; 20 of the 31 had
+  one), else a `cover-wash` in AniList's `coverImage.color`, and `MediaBanner`
+  draws the choice in both places. Content rules stay in `lib/contentFilter`:
+  `canLendArt` refuses a hidden relative and explicit art for a title that is
+  not, and a borrowed banner takes the title's own veil. It costs no request:
+  `DETAIL_QUERY` already carried the relations and now asks each for its
+  banner, and `SEASON_HERO_QUERY` carries its ten titles' relations, which took
+  its answer from 6,850 to 12,838 bytes on a six-hour cache.
 - **The phone's detail header floats the cover.** The title and the native title flow beside it and
   carry on beneath it when they are longer; every fact — the meta line, genres, the next episode, the
   action row with the status button — sits below the cover whatever the title's length. Chosen by the
@@ -2084,7 +2098,8 @@ them away without re-measuring.
   assertions that the *old* widths still do not fit, so a green suite cannot mean
   the measurement drifted.
 - **The list and grid queries must not ask for `coverImage.extraLarge` or
-  `bannerImage`** — nothing renders them there. They belong to `DETAIL_QUERY`.
+  `bannerImage`** — nothing renders them there. They belong to `DETAIL_QUERY`,
+  and to the Overview hero's ten titles, which draw them and their relatives'.
   **`synonyms` must stay**: local mode re-serves the stored media object and
   `MediaList` spreads it.
 - **`RecommendedSection` sorts `seedIds` before using them as a query key.**

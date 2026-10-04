@@ -80,3 +80,13 @@ export function shouldBlur(
   // A blocked title is never rendered, but a render site that forgot `isBlocked` should still blur.
   return !isBlocked(media, level) || level !== "off";
 }
+
+/** Whether `from`'s artwork may stand in for `to`'s: never a hidden title's, and never explicit art on a title that is not. */
+export function canLendArt(
+  from: Filterable | null | undefined,
+  to: Filterable,
+  level: ContentFilterLevel,
+): boolean {
+  if (!from || isBlocked(from, level)) return false;
+  return !from.isAdult || !!to.isAdult;
+}

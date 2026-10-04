@@ -5,8 +5,8 @@ import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
 import { currentSeason, seasonHero, type HeroMedia } from "@/api/queries";
 import { displayTitle } from "@/api/types";
-import { DecodedImage } from "@/components/media/DecodedImage";
-import { BannerImage } from "@/components/media/BannerImage";
+import { MediaBanner } from "@/components/media/MediaBanner";
+import { bannerSource, type BannerSource } from "@/lib/bannerSource";
 import { Shimmer } from "@/components/Skeleton";
 import { adultQueryArg, isBlocked, shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -116,6 +116,7 @@ export default function SeasonHero() {
               <Slide
                 key={m.id}
                 media={m}
+                source={bannerSource(m, level)}
                 active={i === at}
                 veiled={shouldBlur(m, level, blurAdult)}
               />
@@ -193,19 +194,19 @@ function EpisodeLine({ media }: { media: HeroMedia }) {
   }
 }
 
-/** One title's artwork: the banner whole over a blur of itself, or the cover as a dimmed wash when there is none. */
+/** One title's artwork: a banner shown whole, its own or a relative's, else its cover's colour; never a blurred poster. */
 function Slide({
   media,
+  source,
   active,
   veiled,
 }: {
   media: HeroMedia;
+  source: BannerSource;
   active: boolean;
   /** Computed by the carousel, which already holds both store values. */
   veiled: boolean;
 }) {
-  const banner = media.bannerImage;
-  const fallback = media.coverImage.extraLarge ?? media.coverImage.large;
   return (
     <Link
       to={`/media/${media.id}`}
@@ -216,19 +217,8 @@ function Slide({
         active ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
-      {banner ? (
-        // Top-anchored: on a phone the banner is a strip, and the title below it then sits on the fill, not the picture.
-        <BannerImage src={banner} veiled={veiled} anchor="top" />
-      ) : (
-        fallback && (
-          // A poster is not a banner, so it stays a blurred wash rather than a contained portrait beside the text.
-          <DecodedImage
-            src={fallback}
-            className="h-full w-full scale-110 object-cover blur-lg"
-            loadedOpacity={0.55}
-          />
-        )
-      )}
+      {/* Top-anchored: on a phone the banner is a strip, and the title below it then sits on the fill, not the picture. */}
+      <MediaBanner source={source} veiled={veiled} anchor="top" />
     </Link>
   );
 }

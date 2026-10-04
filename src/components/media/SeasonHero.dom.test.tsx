@@ -23,7 +23,8 @@ const media = (id: number, romaji: string, over: Partial<HeroMedia> = {}): HeroM
   type: "ANIME",
   title: { romaji, english: null, native: null },
   bannerImage: `https://s4.anilist.co/banner/${id}.jpg`,
-  coverImage: { extraLarge: null, large: null },
+  coverImage: { extraLarge: null, large: null, color: null },
+  relations: null,
   format: "TV",
   status: "FINISHED",
   episodes: 12,
@@ -277,6 +278,37 @@ describe("SeasonHero banner", () => {
     const { container } = renderWithProviders(<SeasonHero />);
     await screen.findByRole("link", { name: "Veiled" });
     const images = [...container.querySelectorAll("img")].filter((i) => i.src.endsWith("/banner/1.jpg"));
+    expect(images).toHaveLength(1);
+    expect(images[0].classList.contains("object-contain")).toBe(false);
+  });
+
+  /** A new season AniList has no banner for yet: the prequel's stands in, drawn exactly like an own one. */
+  it("borrows a relative's banner while the title has none", async () => {
+    const prequel = { id: 2, bannerImage: "https://s4.anilist.co/banner/2.jpg", isAdult: false, genres: [] };
+    hero.mockResolvedValue([media(1, "Kusuriya", { bannerImage: null, relations: { edges: [{ relationType: "PREQUEL", node: prequel }] } })]);
+    const { container } = renderWithProviders(<SeasonHero />);
+    await screen.findByRole("link", { name: "Kusuriya" });
+    const images = [...container.querySelectorAll("img")].filter((i) => i.src.endsWith("/banner/2.jpg"));
+    expect(images.some((i) => i.classList.contains("object-contain"))).toBe(true);
+  });
+
+  it("washes a title with no banner to borrow in its cover's colour, never a blurred poster", async () => {
+    const coverImage = { extraLarge: "https://s4.anilist.co/cover/1.jpg", large: null, color: "#E4A128" };
+    hero.mockResolvedValue([media(1, "Alone", { bannerImage: null, coverImage })]);
+    const { container } = renderWithProviders(<SeasonHero />);
+    await screen.findByRole("link", { name: "Alone" });
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector<HTMLElement>(".cover-wash")?.style.getPropertyValue("--tint")).toBe("#e4a128");
+  });
+
+  /** The veil covers the art whoever owns it, so a borrowed banner cannot slip past it. */
+  it("veils a borrowed banner on an explicit title", async () => {
+    useContentFilter.setState({ level: "off", ready: true, error: null, blurAdult: true });
+    const prequel = { id: 2, bannerImage: "https://s4.anilist.co/banner/2.jpg", isAdult: true, genres: [] };
+    hero.mockResolvedValue([media(1, "Veiled", { isAdult: true, bannerImage: null, relations: { edges: [{ relationType: "PREQUEL", node: prequel }] } })]);
+    const { container } = renderWithProviders(<SeasonHero />);
+    await screen.findByRole("link", { name: "Veiled" });
+    const images = [...container.querySelectorAll("img")].filter((i) => i.src.endsWith("/banner/2.jpg"));
     expect(images).toHaveLength(1);
     expect(images[0].classList.contains("object-contain")).toBe(false);
   });

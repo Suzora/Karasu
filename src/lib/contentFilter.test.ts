@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   adultQueryArg,
   blockReason,
+  canLendArt,
   isBlocked,
   isBlockedGenre,
   toLevel,
@@ -141,5 +142,31 @@ describe("shouldBlur", () => {
   it("respects the setting at every level, not just off", () => {
     expect(shouldBlur(adult, "moderate", false)).toBe(false);
     expect(shouldBlur(adult, "strict", false)).toBe(false);
+  });
+});
+
+describe("canLendArt", () => {
+  /** A relative's banner stands in for a title's missing one; the filter must hold for the art as it does for the title. */
+  it("lends between two ordinary titles at every level", () => {
+    expect(canLendArt(plain, plain, "strict")).toBe(true);
+    expect(canLendArt(ecchi, plain, "moderate")).toBe(true);
+  });
+
+  it("never lends a hidden title's art", () => {
+    expect(canLendArt(hentai, hentai, "moderate")).toBe(false);
+    expect(canLendArt(ecchi, plain, "strict")).toBe(false);
+  });
+
+  it("never puts explicit art on a title that is not explicit, even with the filter off", () => {
+    expect(canLendArt(hentai, plain, "off")).toBe(false);
+  });
+
+  it("lets explicit art stand in for an explicit title once the filter shows those", () => {
+    expect(canLendArt(hentai, hentai, "off")).toBe(true);
+  });
+
+  it("survives a missing relative", () => {
+    expect(canLendArt(null, plain, "off")).toBe(false);
+    expect(canLendArt(undefined, plain, "off")).toBe(false);
   });
 });

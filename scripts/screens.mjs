@@ -42,6 +42,8 @@ const openCast = async (p) => {
   await p.waitForTimeout(600);
   await toCard("Besetzung & Staff")(p);
 };
+/** Steps the Overview's hero to its second title, which under `no-banner` has neither a banner nor a relative to lend one. */
+const secondSlide = (p) => p.getByRole("button", { name: "Mushoku Tensei: Jobless Reincarnation Season 3", exact: true }).first().click();
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
 export const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
@@ -78,6 +80,12 @@ export const SCREENS = [
   { id: "p45-uebersicht-ohne-banner", w: 405, h: 860, phone: true, route: "/", mock: "no-banner" },
   { id: "p46-besetzung", w: 405, h: 1800, phone: true, route: "/media/178789", act: openCast },
   { id: "p47-besetzung-schmal", w: 320, h: 1800, phone: true, route: "/media/178789", act: openCast },
+  { id: "p48-detail-reihe", w: 405, h: 860, phone: true, route: "/media/195516" },
+  { id: "p49-uebersicht-farbe", w: 405, h: 860, phone: true, route: "/", mock: "no-banner", act: secondSlide },
+  { id: "d59-detail-reihe", w: 1232, h: 800, route: "/media/195516" },
+  { id: "d60-detail-ohne-banner", w: 1232, h: 800, route: "/media/178789", mock: "no-banner" },
+  { id: "d61-uebersicht-ohne-banner", w: 1232, h: 800, route: "/", mock: "no-banner" },
+  { id: "d62-uebersicht-farbe", w: 1232, h: 800, route: "/", mock: "no-banner", act: secondSlide },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },
@@ -235,18 +243,19 @@ async function longPress(page, target) {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 }
 
-/** The three titles the mock opens on, whose real banner and cover are cached on first use; they are never committed. */
-const ART = [178789, 135865, 103303];
+/** The titles the mock draws with real art, cached on first use and never committed; an id added here is fetched next run. */
+const ART = [178789, 135865, 103303, 195516, 176301];
 const FONTS = ["roboto", "open-sans"];
 
 async function ensureAssets() {
   mkdirSync(path.join(CACHE, "fonts"), { recursive: true });
   const manifest = path.join(CACHE, "assets.json");
-  if (!existsSync(manifest)) {
-    const query = `{ Page(perPage: 10) { media(id_in: [${ART.join(",")}], type: ANIME) { id bannerImage coverImage { extraLarge } } } }`;
+  const entries = existsSync(manifest) ? JSON.parse(readFileSync(manifest, "utf8")) : {};
+  const missing = ART.filter((id) => !entries[id]);
+  if (missing.length) {
+    const query = `{ Page(perPage: 10) { media(id_in: [${missing.join(",")}], type: ANIME) { id bannerImage coverImage { extraLarge } } } }`;
     const res = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
     const media = (await res.json()).data?.Page?.media ?? [];
-    const entries = {};
     for (const m of media) {
       entries[m.id] = {};
       for (const [kind, url] of [["banner", m.bannerImage], ["cover", m.coverImage?.extraLarge]]) {
