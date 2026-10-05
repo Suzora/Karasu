@@ -11,6 +11,12 @@ export function isNotFound(error: unknown): boolean {
   return normalized === NOT_FOUND.toLowerCase() || normalized.endsWith("not found");
 }
 
+/** The token-rejected code from `client.rs`; matched exactly, since an entry's notes can contain any text. */
+export const TOKEN_REJECTED = "anilist.tokenRejected";
+
+export const isTokenRejected = (e: unknown): boolean =>
+  (e instanceof Error ? e.message : String(e)).trim() === TOKEN_REJECTED;
+
 /** The stable code `client.rs` returns for a rate-limited request. */
 export const RATE_LIMITED = "anilist.rateLimited";
 

@@ -1,4 +1,8 @@
 import { displayTitle, type MediaTitle } from "@/api/types";
+import { listActivityVerb, parseProgress, type ActivityVerb, type ProgressRange } from "@/lib/activity";
+import { renderPlain } from "@/lib/anilistMarkdown";
+import { isBlocked, type ContentFilterLevel } from "@/lib/contentFilter";
+import type { TitleLanguage } from "@/lib/titleLanguage";
 
 /** AniList's notification union flattened for the bell; ActivityMessageNotification is private mail and stays excluded. */
 
@@ -70,7 +74,36 @@ export interface RawSiteNotification {
   thread?: { id?: number | null; title?: string | null } | null;
   staff?: { id?: number | null; name?: { full?: string | null } | null } | null;
   character?: { id?: number | null; name?: { full?: string | null } | null } | null;
+  /** An activity notification's activity; private mail has no fragment, so it arrives as a bare typename. */
+  activity?: {
+    __typename?: string;
+    id?: number | null;
+    status?: string | null;
+    progress?: string | null;
+    text?: string | null;
+    user?: { id?: number | null; name?: string | null } | null;
+    media?: (RawSiteNotification["media"] & { coverImage?: { medium?: string | null } | null }) | null;
+  } | null;
+  /** A forum notification's comment, its text only. */
+  comment?: { id?: number | null; comment?: string | null } | null;
 }
+
+/** What an activity or forum row is about; for a reply AniList sends the activity replied to, never the reply. */
+export type NotifSubject =
+  | {
+      kind: "list";
+      ownerId: number | null;
+      ownerName: string | null;
+      verb: ActivityVerb | null;
+      progress: ProgressRange | null;
+      /** Spelled at fetch; `visibleSubject` re-spells it from `media.title` in the language chosen since. */
+      title: string;
+      media: { id: number | null; title: MediaTitle; isAdult: boolean | null; genres: string[] | null };
+      /** AniList's smallest cover; the bell veils it by the blur setting, and the filter hides the whole subject. */
+      cover: string | null;
+    }
+  | { kind: "text"; ownerId: number | null; ownerName: string | null; text: string }
+  | { kind: "comment"; text: string };
 
 export interface SiteNotifRow {
   id: number;
@@ -94,6 +127,78 @@ export interface SiteNotifRow {
   activityId: number | null;
   /** The subject's content-filter fields, carried for the bell's `isBlocked` rather than decided here. */
   media: { isAdult?: boolean | null; genres?: string[] | null } | null;
+  /** The activity or comment the row is about, or null where there is none to name. */
+  subject: NotifSubject | null;
+}
+
+const ACTIVITY_KINDS: ReadonlySet<SiteNotifKind> = new Set([
+  "ACTIVITY_MENTION",
+  "ACTIVITY_REPLY",
+  "ACTIVITY_REPLY_SUBSCRIBED",
+  "ACTIVITY_LIKE",
+  "ACTIVITY_REPLY_LIKE",
+]);
+
+const COMMENT_KINDS: ReadonlySet<SiteNotifKind> = new Set([
+  "THREAD_COMMENT_MENTION",
+  "THREAD_COMMENT_REPLY",
+  "THREAD_SUBSCRIBED",
+  "THREAD_COMMENT_LIKE",
+]);
+
+/** Text worth quoting: a post of nothing but images or embeds leaves no words, and no line beats empty quotes. */
+const quotable = (text: string | null | undefined): string | null => {
+  const trimmed = text?.trim();
+  return trimmed && renderPlain(trimmed) ? trimmed : null;
+};
+
+/** The subject by its own typename only, so private mail, a deleted post or an unforeseen shape names nothing. */
+function subjectOf(raw: RawSiteNotification, kind: SiteNotifKind): NotifSubject | null {
+  if (COMMENT_KINDS.has(kind)) {
+    const text = quotable(raw.comment?.comment);
+    return text ? { kind: "comment", text } : null;
+  }
+  if (!ACTIVITY_KINDS.has(kind)) return null;
+  const activity = raw.activity;
+  const owner = { ownerId: activity?.user?.id ?? null, ownerName: activity?.user?.name ?? null };
+  if (activity?.__typename === "ListActivity") {
+    const t = activity.media?.title;
+    if (!t) return null;
+    const title: MediaTitle = { english: t.english ?? null, romaji: t.romaji ?? null, native: t.native ?? null };
+    return {
+      kind: "list",
+      ...owner,
+      verb: listActivityVerb(activity.status),
+      progress: parseProgress(activity.progress),
+      title: displayTitle(title),
+      media: {
+        id: activity.media?.id ?? null,
+        title,
+        isAdult: activity.media?.isAdult ?? null,
+        genres: activity.media?.genres ?? null,
+      },
+      cover: activity.media?.coverImage?.medium ?? null,
+    };
+  }
+  if (activity?.__typename === "TextActivity") {
+    const text = quotable(activity.text);
+    return text ? { kind: "text", ...owner, text } : null;
+  }
+  return null;
+}
+
+/** The subject as the bell may show it: a filtered title hides this line, never the row; the viewer is not named. */
+export function visibleSubject(
+  subject: NotifSubject | null,
+  level: ContentFilterLevel,
+  viewerId: number | null,
+  lang: TitleLanguage,
+): NotifSubject | null {
+  if (!subject || subject.kind === "comment") return subject;
+  const ownerName = viewerId != null && subject.ownerId === viewerId ? null : subject.ownerName;
+  if (subject.kind === "text") return { ...subject, ownerName };
+  if (isBlocked(subject.media, level)) return null;
+  return { ...subject, ownerName, title: displayTitle(subject.media.title, lang) };
 }
 
 /** One notification, or null for anything the bell does not render. */
@@ -162,5 +267,6 @@ export function normalizeSiteNotification(raw: RawSiteNotification | null): Site
       ? { isAdult: raw.media.isAdult ?? null, genres: raw.media.genres ?? null }
       : null,
     activityId: raw.activityId ?? null,
+    subject: subjectOf(raw, kind),
   };
 }

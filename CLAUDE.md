@@ -1994,6 +1994,25 @@ shape, and the question that follows them.
   `/notifications` — and today/earlier (`sectionByDay`) is presentation too.
   A row that navigates goes through the surface's `leave`, so an overlay's
   back entry has unwound before the destination's is pushed.
+  An activity or forum row also names its subject in a quote block under the
+  verb (`SubjectLine`): a list activity as a caption in the title language
+  with AniList's smallest cover, a post or a comment as a quote through
+  `renderPlain`, its spoilers named and never shown. A reply notification
+  carries the activity replied to and never the reply, which is why a liked
+  reply reads "liked your reply to" over the parent. `NOTIF_ACTIVITY` has no
+  `MessageActivity` fragment, so a reply on private mail arrives as a bare
+  `__typename` and `subjectOf` names nothing — the exclusion's fourth guard.
+  The subject's title lives only in `subject.media`, never in `row.media`,
+  so the row filter, the lead line and the airing group key do not move; a
+  filtered title takes the subject away and never the row, whose unread dot
+  is positional, and the viewer's own name is never written in front of the
+  viewer's own activity. When AniList refuses the detailed answer for any
+  reason but the token, the budget or the connection — a subject that
+  errors is the case it guards — `siteNotifications` asks once more with
+  `SITE_NOTIFICATIONS_PLAIN_QUERY` under its own source, `siteNotifsPlain`,
+  so "Requests by source" says how often; that fallback is the query's one
+  retry, and only a lost connection gets another. Neither source is ever
+  added to `CACHEABLE`.
 - **A thread can land on one comment.** `/thread/:id?comment=<id>` rides the
   same uncapped `ThreadComment(id:)` tree route as the newest-jump — one
   request at any thread size, including comments past the 5,000-entry paging

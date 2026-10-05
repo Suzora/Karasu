@@ -108,6 +108,11 @@ export const SCREENS = [
   { id: "d68-liste-romaji", w: 1232, h: 800, route: "/list", mock: "titles-romaji" },
   { id: "d69-detail-original", w: 1232, h: 800, route: "/media/178789", mock: "titles-native" },
   { id: "d70-erkennung-original", w: 1232, h: 800, route: "/list", mock: "titles-native", playing: true },
+  { id: "d71-glocke-original", w: 1232, h: 800, route: "/list", mock: "titles-native", act: (p) => p.getByRole("button", { name: "Benachrichtigungen" }).first().click() },
+  { id: "d72-benachrichtigungen-filter", w: 1232, h: 1500, route: "/notifications", mock: "filter-moderate" },
+  { id: "d73-benachrichtigungen-aufgeklappt", w: 1232, h: 800, route: "/notifications", act: (p) => p.getByRole("button", { name: /gefällt 2 deiner Aktivitäten/ }).first().click() },
+  { id: "d74-benachrichtigungen-verschleiert", w: 1232, h: 1500, route: "/notifications", mock: "blur-adult" },
+  { id: "p54-benachrichtigungen-aufgeklappt", w: 405, h: 860, phone: true, route: "/notifications", act: (p) => p.getByRole("button", { name: /gefällt 2 deiner Aktivitäten/ }).first().click() },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },
@@ -504,7 +509,7 @@ async function board() {
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const img = (c) => `<figure><img src="${pathToFileURL(path.join(OUT, "shots", `${c.img}.png`)).href}" style="width:${c.width ?? spec.cellWidth}px">${c.caption ? `<figcaption>${esc(c.caption)}</figcaption>` : ""}</figure>`;
   const rows = spec.rows.map((r) => `<tr><td class="row">${esc(r.label)}</td>${r.cells.map((c) => `<td>${img(c)}</td>`).join("")}</tr>`);
-  const html = `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#e9ebef;font-family:"DejaVu Sans",sans-serif;color:#111;padding:28px}h1{font-size:26px;margin:0 0 6px}p{margin:0 0 18px;font-size:15px;color:#444;max-width:1400px;line-height:1.45}table{border-collapse:separate;border-spacing:16px 0}th{font-size:20px;text-align:left;padding:0 0 8px}td{vertical-align:top;padding:0 0 18px}td.row{font-size:15px;font-weight:bold;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:0 6px 18px 0;color:#333}figure{margin:0}img{display:block;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25)}figcaption{font-size:13px;color:#333;margin-top:6px}.notes{margin-top:8px;font-size:14px;color:#333;line-height:1.5}</style>
+  const html = `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#e9ebef;font-family:"DejaVu Sans",sans-serif;color:#111;padding:28px;width:max-content}h1{font-size:26px;margin:0 0 6px}p{margin:0 0 18px;font-size:15px;color:#444;max-width:1400px;line-height:1.45}table{border-collapse:separate;border-spacing:16px 0}th{font-size:20px;text-align:left;padding:0 0 8px}td{vertical-align:top;padding:0 0 18px}td.row{font-size:15px;font-weight:bold;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:0 6px 18px 0;color:#333}figure{margin:0}img{display:block;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.25)}figcaption{font-size:13px;color:#333;margin-top:6px}.notes{margin-top:8px;font-size:14px;color:#333;line-height:1.5}</style>
 <h1>${esc(spec.title)}</h1><p>${esc(spec.subtitle)}</p><table><tr><th></th>${spec.columns.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>${rows.join("")}</table>${spec.notes ? `<div class="notes">${spec.notes.map((n) => `<div>${n}</div>`).join("")}</div>` : ""}`;
   const file = path.join(out, `${spec.name}.html`);
   writeFileSync(file, html);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildGroups, sectionByDay, unify, type NotifGroup, type UnifiedNotif } from "./notifGroups";
+import { buildGroups, groupSubjects, sectionByDay, unify, type NotifGroup, type UnifiedNotif } from "./notifGroups";
 import type { AppNotification } from "@/api/anilist";
-import type { SiteNotifRow } from "./siteNotifications";
+import type { NotifSubject, SiteNotifRow } from "./siteNotifications";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -29,6 +29,7 @@ const site = (over: Partial<SiteNotifRow> = {}): SiteNotifRow => ({
   mediaId: null,
   activityId: 100,
   media: null,
+  subject: null,
   ...over,
 });
 
@@ -161,6 +162,42 @@ describe("buildGroups", () => {
     const g2 = likeItem(3, 4 * HOUR);
     const groups = buildGroups([g1, l, g2]);
     expect(groups.map((g) => g.atMs)).toEqual([6 * HOUR, 5 * HOUR]);
+  });
+});
+
+describe("groupSubjects", () => {
+  const said = (text: string): NotifSubject => ({ kind: "text", ownerId: null, ownerName: null, text });
+  const liked = (id: number, ms: number, activityId: number, subject: NotifSubject | null) =>
+    at(unify([], [site({ id, activityId, subject })], 0)[0], ms);
+
+  it("names each liked activity once, newest first, at most three, and counts the rest as the verb does", () => {
+    const items = [
+      liked(1, 10 * HOUR, 100, said("a")),
+      liked(2, 9 * HOUR, 101, said("b")),
+      liked(3, 8 * HOUR, 100, said("a")),
+      liked(4, 7 * HOUR, 102, said("c")),
+      liked(5, 6 * HOUR, 103, said("d")),
+    ];
+    const [group] = buildGroups(items);
+    expect(group.label).toMatchObject({ kind: "likes", n: 4 });
+    expect(groupSubjects(group)).toEqual({ subjects: [said("a"), said("b"), said("c")], more: 1 });
+  });
+
+  /** A subject the filter hid still happened, so it counts among the rest rather than vanishing from the sum. */
+  it("counts a subject that is not shown among the rest", () => {
+    const [group] = buildGroups([liked(1, 2 * HOUR, 100, null), liked(2, 1 * HOUR, 101, said("b"))]);
+    expect(groupSubjects(group)).toEqual({ subjects: [said("b")], more: 1 });
+  });
+
+  it("names nothing for a row standing alone or for an airing group", () => {
+    const [lone] = buildGroups([liked(1, HOUR, 100, said("a"))]);
+    expect(groupSubjects(lone)).toEqual({ subjects: [], more: 0 });
+    const [airing] = buildGroups([
+      at(unify([local({ id: 1 })], [], 0)[0], 2 * HOUR),
+      at(unify([local({ id: 2 })], [], 0)[0], 1 * HOUR),
+    ]);
+    expect(airing.label?.kind).toBe("airing");
+    expect(groupSubjects(airing)).toEqual({ subjects: [], more: 0 });
   });
 });
 

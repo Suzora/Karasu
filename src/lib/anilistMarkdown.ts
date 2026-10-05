@@ -880,5 +880,7 @@ export function renderPlain(src: string, max = 200, spoiler = "[…]"): string {
 
   block(nodes);
   const flat = parts.join("").replace(/\s+/g, " ").trim();
-  return flat.length > max ? `${flat.slice(0, max - 1).trimEnd()}…` : flat;
+  // By code point, so the cut never splits an emoji into half a character.
+  const points = Array.from(flat);
+  return points.length > max ? `${points.slice(0, max - 1).join("").trimEnd()}…` : flat;
 }

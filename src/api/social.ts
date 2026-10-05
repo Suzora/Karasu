@@ -1,4 +1,5 @@
 import { gql, TTL } from "./anilist";
+import { isOffline, isRateLimited, isTokenRejected } from "@/lib/apiError";
 import type { Media, MediaType } from "./types";
 import {
   normalizeSiteNotification,
@@ -1119,30 +1120,34 @@ export async function userList(
 
 // --- Site notifications ----------------------------------------------------
 
-/** The bell's site view; ActivityMessageNotification stays out of type_in, the fragments and the normalizer. */
-export const SITE_NOTIFICATIONS_QUERY = `
-query ($page: Int, $reset: Boolean) {
-  Page(page: $page, perPage: 15) {
-    ${PAGE_INFO}
-    notifications(resetNotificationCount: $reset, type_in: [
+/** The kinds the bell shows; ACTIVITY_MESSAGE stays out here, in the fragments and in the normalizer. */
+const SITE_NOTIF_TYPES = `
       AIRING, FOLLOWING, ACTIVITY_MENTION, ACTIVITY_REPLY, ACTIVITY_REPLY_SUBSCRIBED,
       ACTIVITY_LIKE, ACTIVITY_REPLY_LIKE, THREAD_COMMENT_MENTION, THREAD_COMMENT_REPLY,
       THREAD_SUBSCRIBED, THREAD_COMMENT_LIKE, THREAD_LIKE, RELATED_MEDIA_ADDITION,
       MEDIA_DATA_CHANGE, MEDIA_MERGE, MEDIA_DELETION, MEDIA_SUBMISSION_UPDATE,
-      STAFF_SUBMISSION_UPDATE, CHARACTER_SUBMISSION_UPDATE
-    ]) {
-      __typename
+      STAFF_SUBMISSION_UPDATE, CHARACTER_SUBMISSION_UPDATE`;
+
+/** What every activity notification carries, its subject aside. */
+const ACTIVITY_NOTIF = `id createdAt activityId user { id name }`;
+
+/** What every forum comment notification carries, its comment aside. */
+const COMMENT_NOTIF = `id createdAt commentId user { id name } thread { id title }`;
+
+/** An activity notification's subject; no MessageActivity fragment, so private mail arrives as a bare `__typename`. */
+const NOTIF_ACTIVITY = `activity {
+        __typename
+        ... on ListActivity { id status progress user { id name } media { id title { romaji english native } isAdult genres coverImage { medium } } }
+        ... on TextActivity { id text user { id name } }
+      }`;
+
+/** A forum notification's comment, its text only; `childComments` is a raw tree many times the size. */
+const NOTIF_COMMENT = `comment { id comment }`;
+
+/** The kinds whose fields do not change with the subject. */
+const SITE_NOTIF_OTHERS = `
       ... on AiringNotification { id createdAt episode media { id title { romaji english native } isAdult genres } }
       ... on FollowingNotification { id createdAt user { id name } }
-      ... on ActivityMentionNotification { id createdAt activityId user { id name } }
-      ... on ActivityReplyNotification { id createdAt activityId user { id name } }
-      ... on ActivityReplySubscribedNotification { id createdAt activityId user { id name } }
-      ... on ActivityLikeNotification { id createdAt activityId user { id name } }
-      ... on ActivityReplyLikeNotification { id createdAt activityId user { id name } }
-      ... on ThreadCommentMentionNotification { id createdAt commentId user { id name } thread { id title } }
-      ... on ThreadCommentReplyNotification { id createdAt commentId user { id name } thread { id title } }
-      ... on ThreadCommentSubscribedNotification { id createdAt commentId user { id name } thread { id title } }
-      ... on ThreadCommentLikeNotification { id createdAt commentId user { id name } thread { id title } }
       ... on ThreadLikeNotification { id createdAt user { id name } thread { id title } }
       ... on RelatedMediaAdditionNotification { id createdAt media { id title { romaji english native } isAdult genres } }
       ... on MediaDataChangeNotification { id createdAt reason media { id title { romaji english native } isAdult genres } }
@@ -1150,7 +1155,48 @@ query ($page: Int, $reset: Boolean) {
       ... on MediaDeletionNotification { id createdAt reason deletedMediaTitle }
       ... on MediaSubmissionUpdateNotification { id createdAt status submittedTitle media { id title { romaji english native } isAdult genres } }
       ... on StaffSubmissionUpdateNotification { id createdAt status staff { id name { full } } }
-      ... on CharacterSubmissionUpdateNotification { id createdAt status character { id name { full } } }
+      ... on CharacterSubmissionUpdateNotification { id createdAt status character { id name { full } } }`;
+
+/** The bell's site view, with what each activity or forum row is about; the plain query is its fallback. */
+export const SITE_NOTIFICATIONS_QUERY = `
+query ($page: Int, $reset: Boolean) {
+  Page(page: $page, perPage: 15) {
+    ${PAGE_INFO}
+    notifications(resetNotificationCount: $reset, type_in: [${SITE_NOTIF_TYPES}
+    ]) {
+      __typename
+      ${SITE_NOTIF_OTHERS}
+      ... on ActivityMentionNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ActivityReplyNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ActivityReplySubscribedNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ActivityLikeNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ActivityReplyLikeNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ThreadCommentMentionNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
+      ... on ThreadCommentReplyNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
+      ... on ThreadCommentSubscribedNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
+      ... on ThreadCommentLikeNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
+    }
+  }
+}`;
+
+/** The same rows without their subjects, for when one deleted activity or comment fails the detailed answer. */
+export const SITE_NOTIFICATIONS_PLAIN_QUERY = `
+query ($page: Int, $reset: Boolean) {
+  Page(page: $page, perPage: 15) {
+    ${PAGE_INFO}
+    notifications(resetNotificationCount: $reset, type_in: [${SITE_NOTIF_TYPES}
+    ]) {
+      __typename
+      ${SITE_NOTIF_OTHERS}
+      ... on ActivityMentionNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplyNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplySubscribedNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityLikeNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplyLikeNotification { ${ACTIVITY_NOTIF} }
+      ... on ThreadCommentMentionNotification { ${COMMENT_NOTIF} }
+      ... on ThreadCommentReplyNotification { ${COMMENT_NOTIF} }
+      ... on ThreadCommentSubscribedNotification { ${COMMENT_NOTIF} }
+      ... on ThreadCommentLikeNotification { ${COMMENT_NOTIF} }
     }
   }
 }`;
@@ -1160,11 +1206,25 @@ export interface SiteNotifPage {
   rows: SiteNotifRow[];
 }
 
+/** Whether a failed detailed answer is worth the plain one: not when the token, the budget or the connection failed. */
+export function wantsPlain(error: unknown): boolean {
+  return !isTokenRejected(error) && !isRateLimited(error) && !isOffline(error);
+}
+
+type SiteNotifAnswer = {
+  Page: { pageInfo: PageInfo; notifications: (RawSiteNotification | null)[] | null };
+};
+
 /** `reset` is AniList's own mark-seen and belongs on the first page only; later pages are history, not news. */
 export async function siteNotifications(page: number, reset: boolean): Promise<SiteNotifPage> {
-  const data = await gql<{
-    Page: { pageInfo: PageInfo; notifications: (RawSiteNotification | null)[] | null };
-  }>(SITE_NOTIFICATIONS_QUERY, { page, reset }, { source: "siteNotifs" });
+  let data: SiteNotifAnswer;
+  try {
+    data = await gql<SiteNotifAnswer>(SITE_NOTIFICATIONS_QUERY, { page, reset }, { source: "siteNotifs" });
+  } catch (e) {
+    if (!wantsPlain(e)) throw e;
+    // Its own source, so "Requests by source" shows how often a subject sank the detailed answer.
+    data = await gql<SiteNotifAnswer>(SITE_NOTIFICATIONS_PLAIN_QUERY, { page, reset }, { source: "siteNotifsPlain" });
+  }
   return {
     pageInfo: data.Page.pageInfo,
     rows: (data.Page.notifications ?? [])

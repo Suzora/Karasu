@@ -16,7 +16,8 @@ import {
 } from "@/api/anilist";
 import { siteNotifications, type SiteNotifPage } from "@/api/social";
 import { buildGroups, unify, type NotifGroup, type NotifSource } from "@/lib/notifGroups";
-import type { SiteNotifRow } from "@/lib/siteNotifications";
+import { visibleSubject, type SiteNotifRow } from "@/lib/siteNotifications";
+import { isOffline } from "@/lib/apiError";
 import { isBlocked } from "@/lib/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -95,6 +96,8 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
     getNextPageParam: (last, all) => (last.pageInfo.hasNextPage ? all.length + 1 : undefined),
     enabled: isTauri && active && anilist,
     staleTime: othersActive ? Infinity : 60_000,
+    // The plain fallback inside `siteNotifications` is this query's one retry; only a lost connection gets another.
+    retry: (failures, error) => failures < 1 && isOffline(error),
   });
 
   // Trim retained pages once the last surface goes, so a reopen fetches one page; keep `updatedAt` or the trim postpones it.
@@ -158,8 +161,12 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
       (site.data?.pages ?? [])
         .flatMap((p) => p.rows)
         .filter((r) => !isBlocked(r.media, level))
-        .map((r) => (r.mediaTitle ? { ...r, title: displayTitle(r.mediaTitle, titleLanguage) } : r)),
-    [site.data, level, titleLanguage],
+        .map((r) => ({
+          ...r,
+          title: r.mediaTitle ? displayTitle(r.mediaTitle, titleLanguage) : r.title,
+          subject: visibleSubject(r.subject, level, viewerId, titleLanguage),
+        })),
+    [site.data, level, titleLanguage, viewerId],
   );
 
   // One stream, grouped in presentation only: recomputed over the loaded set, so a group may grow as older pages land.

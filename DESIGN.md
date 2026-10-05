@@ -750,3 +750,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   Jellyfin never shows. The row's hint names no phone maker: vendor rules
   change by firmware, so it links dontkillmyapp.com, which keeps them per
   phone.
+- **2026-10-05:** A bell row about an activity or a forum comment says which
+  one, as a quote block under its verb (C of three mockups, over A, a second
+  line, and B, the subject run on from the verb): a hairline rule on the
+  left, the words in `ink-300` and two lines at most, and a list activity's
+  cover beside them at 24 px. A group names its subjects on one line, their
+  covers in front. Explicit art is veiled by the blur setting and never
+  revealed there, since the whole row is the press; a title the filter hides
+  takes the block with it and leaves the row. The maintainer surfaced it:
+  a row reading "Mikan liked your activity" did not say which one.

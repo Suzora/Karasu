@@ -323,6 +323,13 @@ describe("renderPlain", () => {
     expect(out.endsWith("…")).toBe(true);
   });
 
+  it("cuts between characters, never inside an emoji", () => {
+    const out = renderPlain(`${"a".repeat(198)}\u{1F600}\u{1F600}\u{1F600}`, 200);
+    expect(out).toBe(`${"a".repeat(198)}\u{1F600}…`);
+    // A lone surrogate is what a cut by UTF-16 unit leaves behind.
+    expect(out).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/u);
+  });
+
   it("never puts a spoiler's text in a preview", () => {
     // A preview is exactly where a spoiler leaks: the profile's comment list shows the first lines of every comment.
     expect(renderPlain(`~!secret!~ did it`)).toBe("[…] did it");

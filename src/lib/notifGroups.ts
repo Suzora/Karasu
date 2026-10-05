@@ -1,5 +1,5 @@
 import type { AppNotification } from "@/api/anilist";
-import type { SiteNotifRow } from "./siteNotifications";
+import type { NotifSubject, SiteNotifRow } from "./siteNotifications";
 
 /** One bell stream with its bursts grouped; presentation only, nothing persists, and a group may grow on "Load more". */
 
@@ -146,6 +146,22 @@ export function buildGroups(items: UnifiedNotif[]): NotifGroup[] {
     unread: b.items.some((n) => n.unread),
     label: labelFor(b.items),
   }));
+}
+
+/** A group's newest distinct subjects, and how many more its verb counts, so a hidden or deleted one still adds up. */
+export function groupSubjects(group: NotifGroup, max = 3): { subjects: NotifSubject[]; more: number } {
+  if (!group.label || group.label.kind === "airing") return { subjects: [], more: 0 };
+  const seen = new Set<number>();
+  const subjects: NotifSubject[] = [];
+  for (const n of group.items) {
+    if (n.activityId != null) {
+      if (seen.has(n.activityId)) continue;
+      seen.add(n.activityId);
+    }
+    const subject = n.site?.subject;
+    if (subject && subjects.length < max) subjects.push(subject);
+  }
+  return { subjects, more: Math.max(0, group.label.n - subjects.length) };
 }
 
 /** The groups split at the viewer's local midnight, order kept; a section with nothing in it is left out. */

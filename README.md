@@ -243,7 +243,10 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
   as **one merged stream**, and bursts collapse: one person liking five
   posts is one row, and so are consecutive airings of the same series
 - A notification row opens the thing it is about — an activity notification
-  lands on the activity itself, the actor's name on their profile
+  lands on the activity itself, the actor's name on their profile — and
+  **says which one**: the list entry with its cover, the post or the forum
+  comment, spoilers named rather than shown and nothing past your content
+  filter
 
 **Integrations &amp; flexibility**
 - **Local library** — your folder scanned and matched to your list, each title

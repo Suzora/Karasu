@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes, useLocation } from "react-router";
 import type { AppNotification } from "@/api/anilist";
 import type { SiteNotifPage } from "@/api/social";
-import type { SiteNotifRow } from "@/lib/siteNotifications";
+import type { NotifSubject, SiteNotifRow } from "@/lib/siteNotifications";
+import { useContentFilter } from "@/stores/contentFilter";
 import { renderWithProviders, signIn, signOut, useLocalProfile } from "@/test/render";
 import { checkA11y } from "@/test/a11y";
 
@@ -66,6 +67,7 @@ const follow = (id: number, name: string): SiteNotifRow => ({
   mediaId: null,
   activityId: null,
   media: null,
+  subject: null,
 });
 
 /** A like on one of the viewer's activities: the row opens the activity, and the actor's name is its own link. */
@@ -82,6 +84,22 @@ const like = (id: number, name: string, userId: number, activityId: number, agoS
   mediaId: null,
   activityId,
   media: null,
+  subject: null,
+});
+
+const FRIEREN = { english: "Frieren", romaji: "Sousou no Frieren", native: "葬送のフリーレン" };
+
+/** A list activity as the subject of a row, the viewer's own unless an owner is named. */
+const listed = (ownerId: number, ownerName: string, over: Partial<Extract<NotifSubject, { kind: "list" }>> = {}): NotifSubject => ({
+  kind: "list",
+  ownerId,
+  ownerName,
+  verb: "watchedEpisode",
+  progress: { from: 1, to: 3 },
+  title: "Frieren",
+  media: { id: 42, title: FRIEREN, isAdult: false, genres: [] },
+  cover: "https://example.test/frieren.jpg",
+  ...over,
 });
 
 /** Moves the clock past the feed's staleTime, so only a guard, and not freshness, can keep a surface from refetching. */
@@ -99,6 +117,7 @@ afterEach(() => {
   data.site = [];
   data.more = [];
   data.count = 0;
+  useContentFilter.setState({ level: "strict", blurAdult: true, ready: false, error: null });
   vi.mocked(siteNotifications).mockClear();
   vi.restoreAllMocks();
   signOut();
@@ -316,6 +335,81 @@ describe("notifications", () => {
     row.focus();
     await user.keyboard("{Enter}");
     expect(screen.getByTestId("where")).toHaveTextContent("/activity/5003");
+  });
+
+  /** The subject sits inside the row's press, so the row's name carries it and the block holds no control of its own. */
+  it("names what each activity and comment row is about, as far as the content filter and the blur allow", async () => {
+    const user = userEvent.setup({ delay: null });
+    const viewer = signIn();
+    useContentFilter.setState({ level: "off", blurAdult: true, ready: true, error: null });
+    const explicit = "https://example.test/explicit.jpg";
+    data.site = [
+      { ...like(901, "Mikan", 11, 5001, 600), subject: listed(viewer.id, viewer.name) },
+      {
+        ...like(906, "Hoshi", 12, 5002, 1200),
+        kind: "ACTIVITY_REPLY_SUBSCRIBED",
+        subject: listed(11, "Mikan", { progress: { from: 7 } }),
+      },
+      {
+        ...like(907, "Tsubame", 13, 5003, 1800),
+        kind: "ACTIVITY_REPLY",
+        subject: { kind: "text", ownerId: viewer.id, ownerName: viewer.name, text: "Done at last. ~!It ends well!~" },
+      },
+      {
+        ...like(908, "Aki", 14, 5004, 2400),
+        subject: listed(viewer.id, viewer.name, {
+          verb: "completed",
+          progress: null,
+          title: "Night Moth",
+          media: { id: 77, title: { english: "Night Moth", romaji: null, native: null }, isAdult: true, genres: [] },
+          cover: explicit,
+        }),
+      },
+      { ...like(910, "Ren", 15, 5005, 3000), subject: listed(viewer.id, viewer.name) },
+      {
+        ...like(911, "Ren", 15, 5006, 3600),
+        subject: { kind: "text", ownerId: viewer.id, ownerName: viewer.name, text: "A **long** day." },
+      },
+      {
+        ...follow(905, "Weekly chapter talk"),
+        kind: "THREAD_COMMENT_REPLY",
+        actorName: "Sora",
+        target: "/thread/99?comment=555",
+        userId: 16,
+        subject: { kind: "comment", text: "Agreed, and img(https://example.test/a.png) the art too." },
+      },
+    ];
+    const { baseElement } = renderWithProviders(
+      <>
+        <Notifications />
+        <Where />
+      </>,
+    );
+
+    // The viewer's own activity as a caption, someone else's with its owner in front, each with its cover.
+    const own = await screen.findByRole("button", { name: /^Mikan notif\.siteActivityLike notif\.capWatchedEpisode.*Frieren/ });
+    expect(screen.getByRole("button", { name: /^Hoshi notif\.siteActivityReplySubscribed Mikan social\.sentWatchedEpisode/ })).toBeInTheDocument();
+    expect(baseElement.querySelectorAll('img[src="https://example.test/frieren.jpg"]').length).toBeGreaterThan(0);
+    // A spoiler is named, never shown; a forum comment is quoted without its image.
+    expect(screen.getByText(/^notif\.quoted:.*Done at last\. \[social\.mdSpoiler\]/)).toBeInTheDocument();
+    expect(screen.queryByText(/It ends well/)).toBeNull();
+    expect(screen.getByText(/^notif\.quoted:.*Agreed, and the art too\./)).toBeInTheDocument();
+    // A group names its subjects on one line.
+    expect(screen.getByRole("button", { name: /^Ren notif\.groupLikes.*Frieren · notif\.quoted:.*A long day\./ })).toBeInTheDocument();
+    // Explicit art arrives veiled while the blur is on, and the press stays the row's.
+    expect(baseElement.querySelector(`img[src="${explicit}"]`)).toHaveClass("blur-xs");
+    expect(baseElement.querySelector('img[src="https://example.test/frieren.jpg"]')).not.toHaveClass("blur-xs");
+    expect(await checkA11y(baseElement)).toHaveNoViolations();
+
+    // A filtered title takes its subject away and leaves the row.
+    act(() => useContentFilter.setState({ level: "moderate" }));
+    await waitFor(() => expect(baseElement.querySelector(`img[src="${explicit}"]`)).toBeNull());
+    expect(screen.getByRole("button", { name: /^Aki notif\.siteActivityLike/ })).toBeInTheDocument();
+    expect(screen.queryByText("Night Moth")).toBeNull();
+
+    own.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByTestId("where")).toHaveTextContent("/activity/5001");
   });
 
   it("offers no AniList paging while the filter shows only Karasu's own", async () => {

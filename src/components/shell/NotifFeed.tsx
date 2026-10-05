@@ -19,10 +19,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MenuGroupLabel } from "@/components/ui/menu-row";
 import type { Leave, Notifications } from "@/hooks/useNotifications";
-import { sectionByDay, type GroupLabel, type NotifGroup, type UnifiedNotif } from "@/lib/notifGroups";
+import {
+  groupSubjects,
+  sectionByDay,
+  type GroupLabel,
+  type NotifGroup,
+  type UnifiedNotif,
+} from "@/lib/notifGroups";
 import { relTime } from "@/lib/relTime";
 import type { SiteNotifKind, SiteNotifRow } from "@/lib/siteNotifications";
+import { isNativeLine } from "@/lib/titleLanguage";
 import { cn } from "@/lib/utils";
+import { SubjectLine, SubjectsLine } from "./SubjectLine";
 
 const KIND_ICON: Record<string, typeof BellIcon> = {
   airing: CalendarClock,
@@ -100,7 +108,8 @@ function siteVerb(row: SiteNotifRow, t: (k: string, o?: Record<string, unknown>)
     case "ACTIVITY_LIKE":
       return t("notif.siteActivityLike");
     case "ACTIVITY_REPLY_LIKE":
-      return t("notif.siteActivityReplyLike");
+      // The subject is the activity the reply was on, so the verb says so rather than suggest the reply is quoted.
+      return row.subject ? t("notif.siteActivityReplyLikeTo") : t("notif.siteActivityReplyLike");
     case "THREAD_COMMENT_MENTION":
       return t("notif.siteThreadMention", { name });
     case "THREAD_COMMENT_REPLY":
@@ -270,13 +279,21 @@ export function NotifFeed({
             {profile ? (
               profileLink(profile, row.title, `${id}-lead`)
             ) : (
-              <span className="truncate text-ui font-medium text-ink-100">{row.title}</span>
+              <span
+                className={cn(
+                  "truncate text-ui font-medium text-ink-100",
+                  isNativeLine(row.mediaTitle, row.title) && "font-brand-jp",
+                )}
+              >
+                {row.title}
+              </span>
             )}
             {unread && <Badge />}
           </span>
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {siteVerb(row, t)}
           </span>
+          {row.subject && <SubjectLine subject={row.subject} id={`${id}-subject`} hidden={spoken} />}
           {row.detail && (
             <span id={`${id}-detail`} aria-hidden={spoken} className="mt-0.5 block truncate text-2xs text-ink-600">
               {row.detail}
@@ -290,7 +307,13 @@ export function NotifFeed({
     );
     // A button cannot hold a link, so a row with the actor's name puts the two side by side instead.
     if (profile) {
-      const lines = [`${id}-lead`, `${id}-verb`, row.detail ? `${id}-detail` : null, `${id}-time`];
+      const lines = [
+        `${id}-lead`,
+        `${id}-verb`,
+        row.subject ? `${id}-subject` : null,
+        row.detail ? `${id}-detail` : null,
+        `${id}-time`,
+      ];
       return (
         <LinkedRow unread={unread} labelledBy={lines.filter(Boolean).join(" ")} onPress={() => n.openSite(row, leave)}>
           {body}
@@ -328,6 +351,7 @@ export function NotifFeed({
           ? "bg-surface-800 text-ink-500"
           : "bg-danger/14 text-danger";
     const expanded = label.kind === "airing" ? undefined : open;
+    const { subjects, more } = groupSubjects(g);
     const content = (
       <>
         <span className={cn(tileClass, tint)}>
@@ -346,6 +370,7 @@ export function NotifFeed({
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {groupVerb(label, t)}
           </span>
+          <SubjectsLine subjects={subjects} more={more} id={`${id}-subject`} hidden={spoken} />
           <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-2xs text-ink-600">
             {rowTime(g.atMs)}
           </span>
@@ -365,7 +390,9 @@ export function NotifFeed({
         {actor ? (
           <LinkedRow
             unread={g.unread}
-            labelledBy={`${id}-lead ${id}-verb ${id}-time`}
+            labelledBy={[`${id}-lead`, `${id}-verb`, subjects.length > 0 ? `${id}-subject` : null, `${id}-time`]
+              .filter(Boolean)
+              .join(" ")}
             expanded={expanded}
             onPress={() => n.openGroup(g, leave)}
           >

@@ -11,6 +11,7 @@ import type {
   Viewer,
 } from "./types";
 import { commands, unwrap } from "@/api/tauri";
+import { isTokenRejected } from "@/lib/apiError";
 
 export const isTauri = "__TAURI_INTERNALS__" in window;
 
@@ -38,11 +39,8 @@ export const logout = () => commands.anilistLogout();
 
 // --- GraphQL --------------------------------------------------------------
 
-/** The token-rejected code from `client.rs`; matched exactly, since an entry's notes can contain any text. */
-export const TOKEN_REJECTED = "anilist.tokenRejected";
-
-export const isTokenRejected = (e: unknown): boolean =>
-  (e instanceof Error ? e.message : String(e)).trim() === TOKEN_REJECTED;
+// Kept with the other error codes in a pure module, so a node test can classify without loading this one.
+export { isTokenRejected } from "@/lib/apiError";
 
 /** Told on a rejected token so the auth store raises one banner; registered, not imported, to avoid a cycle. */
 let onTokenRejected: () => void = () => {};

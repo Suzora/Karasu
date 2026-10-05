@@ -4,13 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink, Heart, MessageSquare, Pin } from "lucide-react";
-import {
-  formatProgress,
-  PROGRESS_VERBS,
-  splitSentence,
-  type ActivityVerb,
-  type FeedItem,
-} from "@/lib/activity";
+import { formatProgress, PROGRESS_VERBS, splitSentence, type FeedItem } from "@/lib/activity";
 import { displayTitle } from "@/api/types";
 import { isTauri } from "@/api/anilist";
 import { activityReplies, type LikeableType } from "@/api/social";
@@ -21,6 +15,7 @@ import { Shimmer } from "@/components/Skeleton";
 import { cardClass } from "@/components/ui/card";
 import { Markdown } from "./Markdown";
 import { MarkdownTextarea } from "./MarkdownTextarea";
+import { sentenceFor } from "./activitySentence";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import { validatePost } from "@/lib/composer";
 import { canTogglePin } from "@/lib/donator";
@@ -28,34 +23,6 @@ import { useSocialActions } from "@/hooks/useSocialActions";
 import { useActivityPost } from "@/hooks/useActivityPost";
 import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/utils";
-
-/** A verb's sentence, translated whole; keep the literal switch, `i18nKeys.test.ts` sees only literal `t("…")`. */
-function sentenceFor(
-  verb: ActivityVerb,
-  t: (k: string, o?: { n?: string }) => string,
-  n?: string,
-): string {
-  switch (verb) {
-    case "watchedEpisode":
-      return t("social.sentWatchedEpisode", { n });
-    case "rewatchedEpisode":
-      return t("social.sentRewatchedEpisode", { n });
-    case "readChapter":
-      return t("social.sentReadChapter", { n });
-    case "rereadChapter":
-      return t("social.sentRereadChapter", { n });
-    case "completed":
-      return t("social.sentCompleted");
-    case "plansToWatch":
-      return t("social.sentPlansToWatch");
-    case "plansToRead":
-      return t("social.sentPlansToRead");
-    case "dropped":
-      return t("social.sentDropped");
-    case "paused":
-      return t("social.sentPaused");
-  }
-}
 
 /** The list-activity sentence, translated whole, with the title link in its slot. */
 function ListSentence({ item }: { item: Extract<FeedItem, { kind: "list" }> }) {

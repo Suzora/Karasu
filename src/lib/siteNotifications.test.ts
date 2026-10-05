@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   normalizeSiteNotification,
+  visibleSubject,
+  type NotifSubject,
   type RawSiteNotification,
 } from "./siteNotifications";
 
@@ -34,6 +36,7 @@ describe("normalizeSiteNotification", () => {
       activityId: null,
       // Carried so the bell can apply the content filter: an aired-episode line names a title as a cover shows one.
       media: { isAdult: false, genres: ["Adventure"] },
+      subject: null,
     });
   });
 
@@ -195,5 +198,155 @@ describe("normalizeSiteNotification", () => {
       thread: { id: 5, title: "A thread" },
     });
     expect(row?.media).toBeNull();
+  });
+});
+
+const FRIEREN = {
+  id: 42,
+  title: { romaji: "Sousou no Frieren", english: "Frieren", native: "葬送のフリーレン" },
+  isAdult: false,
+  genres: ["Adventure"],
+};
+
+/** A like on an activity, the subject being whatever `activity` arrived as. */
+const liked = (activity: RawSiteNotification["activity"]): RawSiteNotification => ({
+  __typename: "ActivityLikeNotification",
+  id: 20,
+  createdAt: 5,
+  activityId: 300,
+  user: { id: 7, name: "Mikan" },
+  activity,
+});
+
+const listActivity = (status: string, progress: string | null, owner = { id: 1, name: "Kyusetzu" }) => ({
+  __typename: "ListActivity",
+  id: 300,
+  status,
+  progress,
+  user: owner,
+  media: FRIEREN,
+});
+
+describe("a notification's subject", () => {
+  it("names a list activity by its verb, its progress and its title", () => {
+    expect(normalizeSiteNotification(liked(listActivity("watched episode", "7")))?.subject).toEqual({
+      kind: "list",
+      ownerId: 1,
+      ownerName: "Kyusetzu",
+      verb: "watchedEpisode",
+      progress: { from: 7 },
+      title: "Frieren",
+      media: {
+        id: 42,
+        title: { english: "Frieren", romaji: "Sousou no Frieren", native: "葬送のフリーレン" },
+        isAdult: false,
+        genres: ["Adventure"],
+      },
+      cover: null,
+    });
+  });
+
+  it("carries the smallest cover with a list subject, and none where AniList sent none", () => {
+    const cover = "https://s4.anilist.co/file/anilistcdn/media/anime/cover/small/bx42.jpg";
+    const withCover = { ...listActivity("completed", null), media: { ...FRIEREN, coverImage: { medium: cover } } };
+    expect(normalizeSiteNotification(liked(withCover))?.subject).toMatchObject({ kind: "list", cover });
+    expect(normalizeSiteNotification(liked(listActivity("completed", null)))?.subject).toMatchObject({ cover: null });
+  });
+
+  /** An image or a video becomes a chip, which a quote leaves out, so a post of nothing else would quote nothing. */
+  it("names nothing for a post that is only images or videos", () => {
+    const text = "img220(https://i.imgur.com/a.png)\nyoutube(https://youtu.be/x)";
+    const post = { __typename: "TextActivity", id: 302, text, user: { id: 5, name: "Hoshi" } };
+    expect(normalizeSiteNotification(liked(post))?.subject).toBeNull();
+  });
+
+  /** AniList writes these in English only; an unknown one becomes no verb, and the line then shows the title alone. */
+  it("keeps a status it does not know as no verb rather than AniList's own words", () => {
+    const subject = normalizeSiteNotification(liked(listActivity("binged", null)))?.subject;
+    expect(subject).toMatchObject({ kind: "list", verb: null, progress: null, title: "Frieren" });
+  });
+
+  it("quotes a text activity and a forum comment, trimmed, and names nothing for an empty one", () => {
+    const text = { __typename: "TextActivity", id: 301, text: "  Finally done. ~!It ends well!~ ", user: { id: 5, name: "Hoshi" } };
+    expect(normalizeSiteNotification(liked(text))?.subject).toEqual({
+      kind: "text",
+      ownerId: 5,
+      ownerName: "Hoshi",
+      text: "Finally done. ~!It ends well!~",
+    });
+    expect(normalizeSiteNotification(liked({ ...text, text: "   " }))?.subject).toBeNull();
+    const comment = (body: string | null): RawSiteNotification => ({
+      __typename: "ThreadCommentReplyNotification",
+      id: 21,
+      createdAt: 5,
+      commentId: 555,
+      user: { id: 7, name: "someone" },
+      thread: { id: 99, title: "Weekly chapter talk" },
+      comment: { id: 555, comment: body },
+    });
+    expect(normalizeSiteNotification(comment(" Agreed. "))?.subject).toEqual({ kind: "comment", text: "Agreed." });
+    expect(normalizeSiteNotification(comment(null))?.subject).toBeNull();
+  });
+
+  /** A reply on private mail sends a MessageActivity; it has no fragment, and even text that reached us names nothing. */
+  it("names nothing for private mail, even when text arrives with it", () => {
+    const row = normalizeSiteNotification(liked({ __typename: "MessageActivity", id: 9, text: "secret", user: { id: 3, name: "x" } }));
+    expect(row?.subject).toBeNull();
+    expect(row?.target).toBe("/activity/300");
+  });
+
+  it("leaves the row exactly as it was when the activity is gone", () => {
+    const gone = normalizeSiteNotification(liked(null));
+    expect(gone).toEqual(normalizeSiteNotification({ ...liked(null), activity: undefined }));
+    expect(gone?.subject).toBeNull();
+  });
+
+  /** The row filter, the lead line and the airing group key read the row's own media, which the subject must not become. */
+  it("never moves the lead line, the target or the row's filter fields onto the subject's title", () => {
+    const row = normalizeSiteNotification(liked(listActivity("completed", null)));
+    expect(row).toMatchObject({ title: "Mikan", mediaTitle: null, mediaId: null, media: null, target: "/activity/300" });
+  });
+
+  it("gives a thread like no subject, since it carries no comment of its own", () => {
+    const row = normalizeSiteNotification({
+      __typename: "ThreadLikeNotification",
+      id: 22,
+      createdAt: 5,
+      user: { id: 2, name: "Bob" },
+      thread: { id: 5, title: "A thread" },
+      comment: { id: 1, comment: "not ours to show" },
+    });
+    expect(row?.subject).toBeNull();
+  });
+});
+
+describe("visibleSubject", () => {
+  const list = normalizeSiteNotification(liked(listActivity("completed", null, { id: 5, name: "Hoshi" })))!
+    .subject as Extract<NotifSubject, { kind: "list" }>;
+  const withMedia = (over: Partial<typeof list.media>) => ({ ...list, media: { ...list.media, ...over } });
+
+  it("hides the subject of a title the filter hides, at the filter's own levels", () => {
+    expect(visibleSubject(withMedia({ isAdult: true }), "moderate", 1, "english")).toBeNull();
+    expect(visibleSubject(withMedia({ isAdult: true }), "off", 1, "english")).not.toBeNull();
+    expect(visibleSubject(withMedia({ genres: ["Ecchi"] }), "strict", 1, "english")).toBeNull();
+    expect(visibleSubject(withMedia({ genres: ["Ecchi"] }), "moderate", 1, "english")).not.toBeNull();
+  });
+
+  it("drops the owner's name when the activity is the viewer's own", () => {
+    expect(visibleSubject(list, "off", 5, "english")).toMatchObject({ ownerName: null });
+    expect(visibleSubject(list, "off", 1, "english")).toMatchObject({ ownerName: "Hoshi" });
+    const text: NotifSubject = { kind: "text", ownerId: 5, ownerName: "Hoshi", text: "hi" };
+    expect(visibleSubject(text, "strict", 5, "english")).toEqual({ ...text, ownerName: null });
+  });
+
+  it("spells the title in the language chosen since the row was fetched", () => {
+    expect(visibleSubject(list, "off", 1, "native")).toMatchObject({ title: "葬送のフリーレン" });
+    expect(visibleSubject(list, "off", 1, "romaji")).toMatchObject({ title: "Sousou no Frieren" });
+  });
+
+  it("passes a comment and an absent subject through", () => {
+    const comment: NotifSubject = { kind: "comment", text: "Agreed." };
+    expect(visibleSubject(comment, "strict", 1, "english")).toBe(comment);
+    expect(visibleSubject(null, "strict", 1, "english")).toBeNull();
   });
 });

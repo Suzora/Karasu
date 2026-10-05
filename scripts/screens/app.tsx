@@ -399,17 +399,32 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     const airing = REAL.map((r, i) => ({ id: 70 + i, episode: r.next, airingAt: now + 3600 * (5 + i * 20), timeUntilAiring: 3600 * (5 + i * 20), mediaId: r.id, media: media(i, false) }));
     return { Page: { pageInfo: { hasNextPage: false, total: 3 }, airingSchedules: airing } };
   }
-  // The bell's AniList half: a run of likes that groups, a follow, an episode from yesterday and an older thread reply.
+  // The bell's AniList half: grouped likes, replies with their subjects, a follow, an episode and a thread reply.
   if (/resetNotificationCount/.test(q)) {
     const user = (id: number, name: string) => ({ id, name });
+    const me = user(1, "Kyusetzu");
+    const about = (i: number) => {
+      const m = media(i, false);
+      return { id: m.id, title: m.title, isAdult: false, genres: m.genres, coverImage: { medium: m.coverImage.large } };
+    };
+    const listed = (id: number, owner: typeof me, status: string, progress: string | null, m: ReturnType<typeof about>) =>
+      ({ __typename: "ListActivity", id, status, progress, user: owner, media: m });
+    const posted = (id: number, owner: typeof me, text: string) => ({ __typename: "TextActivity", id, text, user: owner });
     const notifications = [
-      { __typename: "ActivityLikeNotification", id: 901, createdAt: now - 600, activityId: 5001, user: user(11, "Mikan") },
-      { __typename: "ActivityLikeNotification", id: 902, createdAt: now - 1500, activityId: 5002, user: user(11, "Mikan") },
-      // A lone activity row, whose actor's name is a link beside the row's own press.
-      { __typename: "ActivityReplyNotification", id: 906, createdAt: now - 3000, activityId: 5004, user: user(12, "Hoshi") },
+      // Two likes from one person, on an own list entry and an own post, which group under one row.
+      { __typename: "ActivityLikeNotification", id: 901, createdAt: now - 600, activityId: 5101, user: user(11, "Mikan"), activity: listed(5101, me, "watched episode", "1 - 3", about(1)) },
+      { __typename: "ActivityLikeNotification", id: 902, createdAt: now - 1500, activityId: 5102, user: user(11, "Mikan"), activity: posted(5102, me, "Endlich Zeit für **Sparks of Tomorrow** gefunden. Kyoto Animation in Bestform!") },
+      // A lone activity row on someone else's activity, whose actor's name is a link beside the row's own press.
+      { __typename: "ActivityReplySubscribedNotification", id: 906, createdAt: now - 3000, activityId: 5001, user: user(12, "Hoshi"), activity: listed(5001, user(11, "Mikan"), "watched episode", "7", about(0)) },
+      // A reply on an own post, whose spoiler the bell must name and never show.
+      { __typename: "ActivityReplyNotification", id: 907, createdAt: now - 4200, activityId: 5103, user: user(13, "TsubameNoYume"), activity: posted(5103, me, "Finale gesehen, und ~!der Schluss!~ kam völlig unerwartet.") },
+      // A like on a reply, whose subject is the activity the reply was on.
+      { __typename: "ActivityReplyLikeNotification", id: 909, createdAt: now - 5400, activityId: 5002, user: user(12, "Hoshi"), activity: posted(5002, user(11, "Mikan"), "Folge 7 war __unfassbar__ schön, und wer schaut diese Saison mit? ~!Das Ende!~ hat mich erwischt.") },
       { __typename: "FollowingNotification", id: 903, createdAt: now - 7200, user: user(12, "Hoshi") },
+      // An explicit title, whose line the content filter hides while the row stays.
+      { __typename: "ActivityLikeNotification", id: 908, createdAt: now - 9000, activityId: 5104, user: user(13, "TsubameNoYume"), activity: listed(5104, me, "completed", null, { id: 3001, title: { romaji: "Tsukiyo no Kagerou", english: null, native: "月夜の陽炎" }, isAdult: true, genres: ["Drama"], coverImage: { medium: cover(9) } }) },
       { __typename: "AiringNotification", id: 904, createdAt: now - 100_000, episode: REAL[1].next - 1, media: { id: REAL[1].id, title: { romaji: REAL[1].title, english: REAL[1].title, native: null }, isAdult: false, genres: [] } },
-      { __typename: "ThreadCommentReplyNotification", id: 905, createdAt: now - 260_000, commentId: 1, user: user(13, "Tsubame"), thread: { id: 44, title: "Frühjahr 2026: eure Favoriten" } },
+      { __typename: "ThreadCommentReplyNotification", id: 905, createdAt: now - 260_000, commentId: 1, user: user(13, "Tsubame"), thread: { id: 44, title: "Frühjahr 2026: eure Favoriten" }, comment: { id: 1, comment: "Frieren, ganz klar. ~!Folge 28!~ hat mich fertiggemacht, und die Musik erst." } },
     ];
     return { Page: { pageInfo: { hasNextPage: true, total: 5, currentPage: 1, lastPage: 2 }, notifications } };
   }
@@ -561,8 +576,10 @@ mockIPC((cmd, args) => {
         traffic: { sources: [{ source: "list", total: 2 }, { source: "airing", total: 1 }], throttled: 0 },
       };
     case "get_update_check_auto":
-    case "get_blur_adult":
       return false;
+    // Explicit art arrives blurred only where a screen asks, so the other shots keep the covers they always had.
+    case "get_blur_adult":
+      return mock === "blur-adult";
     case "local_all_entries":
       return [];
     // The rest of Settings, filled in so each pane draws its populated state rather than its empty one.
@@ -643,7 +660,7 @@ mockIPC((cmd, args) => {
     case "get_portable_status":
       return { portable: false, dir: "C:\\Users\\kyu\\AppData\\Roaming\\dev.kyu.karasu", other: null };
     case "get_content_filter":
-      return "off";
+      return mock === "filter-moderate" ? "moderate" : "off";
     case "save_list_entry":
     case "local_save_entry":
       return { queued: false, entry: null };

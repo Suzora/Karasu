@@ -261,6 +261,29 @@ describe("the sentence templates themselves", () => {
     }
   });
 
+  const CAP_KEYS = [
+    "capWatchedEpisode",
+    "capRewatchedEpisode",
+    "capReadChapter",
+    "capRereadChapter",
+    "capCompleted",
+    "capPlansToWatch",
+    "capPlansToRead",
+    "capDropped",
+    "capPaused",
+  ] as const;
+
+  // The bell's captions are the same sentences with nobody in front of them, so they keep the same shape.
+  it("every caption carries one title token, and the four progress captions the {{n}} slot", () => {
+    for (const lang of [en, de]) {
+      for (const key of CAP_KEYS) {
+        const value = lang.notif[key];
+        expect(value.split("%t%").length, `${key}: ${value}`).toBe(2);
+        expect(value.includes("{{n}}"), `${key}: ${value}`).toBe(!!PROGRESS_KEYS[`sent${key.slice(3)}`]);
+      }
+    }
+  });
+
   it("PROGRESS_VERBS matches the keys that take a number", () => {
     // The set gates the fallback in ListSentence; drift from the templates renders an empty slot.
     expect([...PROGRESS_VERBS].sort()).toEqual([
