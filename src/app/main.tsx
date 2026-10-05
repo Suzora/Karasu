@@ -9,6 +9,7 @@ import { isTauri, isTokenRejected, setIdentityChangedHandler, systemAccent } fro
 import { isNotFound, isRateLimited } from "@/lib/apiError";
 import { setSystemAccentProvider, useTheme } from "@/stores/theme";
 import { useTitleLanguage } from "@/stores/titleLanguage";
+import i18n from "i18next";
 import { initLanguage } from "@/i18n";
 // The @font-face rules are hand-written in index.css; the @fontsource stylesheets are deliberately not imported.
 import "./index.css";
@@ -52,25 +53,33 @@ window.addEventListener("unhandledrejection", (e) => {
   reportError(e.reason);
 });
 
-// Awaited so a German start does not paint English first; English resolves in a microtask, so that path is unaffected.
-await initLanguage();
+// Rendered once the language is in, so German does not paint English first; no top-level await, which costs chunking.
+void initLanguage()
+  .catch((e) => {
+    // A German bundle that failed to load falls back to English whole, rather than English words with German dates.
+    reportError(e);
+    return i18n.changeLanguage("en");
+  })
+  .finally(render);
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <HashRouter>
-        {/* The last resort, for a throw in the shell itself; the boundary in App wraps only the routed pane. */}
-        <ErrorBoundary standalone>
-          <MotionProvider>
-            <App />
-          </MotionProvider>
-        </ErrorBoundary>
-      </HashRouter>
-      {QueryDevtools && (
-        <React.Suspense fallback={null}>
-          <QueryDevtools buttonPosition="bottom-left" />
-        </React.Suspense>
-      )}
-    </QueryClientProvider>
-  </React.StrictMode>,
-);
+function render() {
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          {/* The last resort, for a throw in the shell itself; the boundary in App wraps only the routed pane. */}
+          <ErrorBoundary standalone>
+            <MotionProvider>
+              <App />
+            </MotionProvider>
+          </ErrorBoundary>
+        </HashRouter>
+        {QueryDevtools && (
+          <React.Suspense fallback={null}>
+            <QueryDevtools buttonPosition="bottom-left" />
+          </React.Suspense>
+        )}
+      </QueryClientProvider>
+    </React.StrictMode>,
+  );
+}

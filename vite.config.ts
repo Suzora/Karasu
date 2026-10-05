@@ -31,7 +31,7 @@ export default defineConfig(async ({ command, mode }) => ({
   },
 
   build: {
-    // Linux's webkit2gtk lags behind Windows's evergreen WebView2; Safari 15 is the oldest with top-level await.
+    // Linux's webkit2gtk lags behind Windows's evergreen WebView2, so that build targets an older engine.
     // @ts-expect-error process is a nodejs global
     target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari15",
   },

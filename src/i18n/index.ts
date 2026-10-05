@@ -49,7 +49,7 @@ export async function setLanguageSetting(setting: LanguageSetting) {
   await i18n.changeLanguage(lng);
 }
 
-/** Awaited by the entry before the first render, so a German start does not paint English for a frame and swap. */
+/** Resolved before the entry's first render, so a German start does not paint English for a frame and swap. */
 export async function initLanguage(): Promise<void> {
   await ensureBundle(resolveLanguage(getLanguageSetting()));
 }
