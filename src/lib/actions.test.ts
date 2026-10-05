@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ACTION_LABEL_KEY,
   STATUSES,
+  airsAgain,
   canAdvance,
   canIncrementFacts,
   canIncrementVolumes,
@@ -114,5 +115,17 @@ describe("scrobble phases", () => {
     expect(canScrobbleCancel("cancelled", true)).toBe(false);
     expect(canScrobbleCancel("blocked", true)).toBe(false);
     expect(canScrobbleCancel("updated", true)).toBe(false);
+  });
+});
+
+describe("airsAgain", () => {
+  it("reads a releasing, paused or upcoming show as airing, and a finished one only with an episode scheduled", () => {
+    expect(airsAgain("RELEASING", false)).toBe(true);
+    expect(airsAgain("HIATUS", false)).toBe(true);
+    expect(airsAgain("NOT_YET_RELEASED", false)).toBe(true);
+    expect(airsAgain("FINISHED", false)).toBe(false);
+    expect(airsAgain("CANCELLED", false)).toBe(false);
+    expect(airsAgain(null, false)).toBe(false);
+    expect(airsAgain("FINISHED", true)).toBe(true);
   });
 });

@@ -169,6 +169,9 @@ export default function CommandPalette() {
         share: false,
         hasSelection: false,
         canSync: syncAvailable,
+        // The palette resolves the page target only, which never offers a mute.
+        airingMutes: null,
+        airingNotify: false,
       },
     )
       .filter((a) => a.group === "command")

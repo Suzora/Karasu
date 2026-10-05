@@ -10,6 +10,7 @@ import { isAndroid, usePlatform } from "@/stores/platform";
 import { useNowPlaying } from "@/stores/nowPlaying";
 import { useLibrary } from "@/stores/library";
 import { useContentFilter } from "@/stores/contentFilter";
+import { useAiringMutes } from "@/stores/airingMutes";
 import { usePrimedLists } from "@/hooks/usePrimedLists";
 import {
   isTauri,
@@ -76,6 +77,7 @@ export default function App() {
   const initNowPlaying = useNowPlaying((s) => s.init);
   const refreshLibrary = useLibrary((s) => s.refresh);
   const initContentFilter = useContentFilter((s) => s.init);
+  const initAiringMutes = useAiringMutes((s) => s.init);
   // A primitive, so the selector is referentially stable across renders.
   const viewerId = useAuth((s) => s.viewer?.id);
   // Route changes become one continuous transition; under reduced motion it stands down and `<main key>` cuts as before.
@@ -86,7 +88,8 @@ export default function App() {
     initNowPlaying();
     refreshLibrary();
     initContentFilter();
-  }, [init, initNowPlaying, refreshLibrary, initContentFilter]);
+    initAiringMutes();
+  }, [init, initNowPlaying, refreshLibrary, initContentFilter, initAiringMutes]);
 
   // Deep links route through `internalRoute`; `getCurrent` supplies the launch link `onOpenUrl` never emits.
   const navigateRef = useRef(navigate);

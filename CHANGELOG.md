@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0e7e71f -->
+<!-- generated-through: 36d36c7 -->
 
 ### Fixed
 
@@ -82,6 +82,7 @@ tag time is then optional rather than load-bearing.
 
 - Settings → Appearance has a title language — English, Romaji or the original — for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included; the link from the AniList account settings now lands on it.
 - Notifications about an activity or a forum comment now say which one: the list entry with its cover, the post or the comment, with spoilers hidden and nothing past your content filter.
+- Mute new-episode notifications for a single show from its context menu; Settings lists the muted shows.
 
 ### Changed
 

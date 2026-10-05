@@ -17,6 +17,8 @@ export type ActionId =
   | "setStatus"
   | "setScore"
   | "removeFromList"
+  | "muteAiring"
+  | "unmuteAiring"
   | "scrobbleNow"
   | "scrobbleCancel"
   | "fixMatch"
@@ -56,6 +58,8 @@ export const ACTION_LABEL_KEY: Record<ActionId, string> = {
   setStatus: "actions.changeStatus",
   setScore: "actions.changeScore",
   removeFromList: "actions.remove",
+  muteAiring: "actions.muteAiring",
+  unmuteAiring: "actions.unmuteAiring",
   scrobbleNow: "actions.scrobbleNow",
   scrobbleCancel: "actions.scrobbleCancel",
   fixMatch: "actions.fixMatch",
@@ -92,6 +96,8 @@ export interface EntryFacts {
   /** `maxProgress(media)`; null when the run length is unknown or unbounded, where +1 is always allowed. */
   max: number | null;
   maxVolumes: number | null;
+  /** Whether another episode is still coming (`airsAgain`), the only case a new-episode mute can matter. */
+  airs: boolean;
 }
 
 export type ActionTarget =
@@ -129,6 +135,10 @@ export interface ActionContext {
   hasSelection: boolean;
   /** `useManualSync().available` — local mode has nothing to sync and signed out has nobody to sync for. */
   canSync: boolean;
+  /** The titles muted for new-episode notifications, or null where no airing watcher runs (browser, local, signed out). */
+  airingMutes: ReadonlySet<number> | null;
+  /** The new-episode switch; with it off a mute is inert, so only an unmute is offered. */
+  airingNotify: boolean;
 }
 
 export const STATUSES: readonly MediaListStatus[] = [
@@ -165,6 +175,16 @@ export function canScrobbleNow(phase: ScrobblePhase, forceable: boolean): boolea
 /** Skipping only means something while a write is still coming; a cancelled or blocked session has nothing to skip. */
 export function canScrobbleCancel(phase: ScrobblePhase, forceable: boolean): boolean {
   return canScrobbleNow(phase, forceable) && phase !== "cancelled" && phase !== "blocked";
+}
+
+/** Whether a title will air another episode: still releasing, on hiatus, not out yet, or with one scheduled. */
+export function airsAgain(mediaStatus: string | null, hasNextEpisode: boolean): boolean {
+  return (
+    hasNextEpisode ||
+    mediaStatus === "RELEASING" ||
+    mediaStatus === "NOT_YET_RELEASED" ||
+    mediaStatus === "HIATUS"
+  );
 }
 
 /** The one increment rule, so the row button, the menu and the sheet cannot answer it differently. */
@@ -225,6 +245,12 @@ function entryActions(
         items: scores.map((score) => act("setScore", "edit", { arg: { kind: "score", score } })),
       }),
     );
+  }
+  // Muting is only offered where the watcher would speak; unmuting wherever a mute exists, so none is stranded.
+  if (ctx.airingMutes && target.mediaType === "ANIME") {
+    const watching = target.entry.status === "CURRENT" || target.entry.status === "REPEATING";
+    if (ctx.airingMutes.has(target.mediaId)) out.push(act("unmuteAiring", "edit"));
+    else if (ctx.airingNotify && watching && target.entry.airs) out.push(act("muteAiring", "edit"));
   }
   out.push(act("removeFromList", "edit", { danger: true }));
   return out;

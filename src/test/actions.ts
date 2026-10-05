@@ -9,6 +9,7 @@ export const FACTS: EntryFacts = {
   score: 8,
   max: 12,
   maxVolumes: 5,
+  airs: true,
 };
 
 export const CTX: ActionContext = {
@@ -19,6 +20,8 @@ export const CTX: ActionContext = {
   share: false,
   hasSelection: false,
   canSync: false,
+  airingMutes: null,
+  airingNotify: true,
 };
 
 export const ctx = (over: Partial<ActionContext> = {}): ActionContext => ({ ...CTX, ...over });

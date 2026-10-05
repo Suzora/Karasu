@@ -428,6 +428,8 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::set_title_language,
             commands::get_airing_notify,
             commands::set_airing_notify,
+            commands::list_airing_mutes,
+            commands::set_airing_mute,
             commands::get_notif_schedule,
             commands::set_notif_schedule,
             commands::get_stale_settings,

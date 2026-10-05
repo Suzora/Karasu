@@ -1,6 +1,8 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Bell,
+  BellOff,
   Check,
   CheckCheck,
   Command,
@@ -36,6 +38,8 @@ export const ACTION_ICON: Record<ActionId, LucideIcon> = {
   setStatus: Tag,
   setScore: Star,
   removeFromList: Trash2,
+  muteAiring: BellOff,
+  unmuteAiring: Bell,
   scrobbleNow: Check,
   scrobbleCancel: X,
   fixMatch: SearchCheck,

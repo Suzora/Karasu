@@ -3,6 +3,7 @@
 use crate::anilist::client::AniList;
 use crate::db::Db;
 use serde_json::{json, Value};
+use std::collections::HashSet;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
@@ -33,6 +34,27 @@ query ($ids: [Int], $from: Int, $to: Int) {
 /// Woken by a list refresh, so a show added a minute ago is scheduled without waiting out the current sleep.
 static REPLAN: tokio::sync::Notify = tokio::sync::Notify::const_new();
 
+/// One kv row per muted title, valued with the title it was muted under, so Settings can list it with no request.
+pub(crate) const MUTE_PREFIX: &str = "airing_mute:";
+
+/// The titles the user muted, as `(media id, stored title)` in kv key order.
+pub(crate) fn mutes(db: &Db) -> Vec<(i64, String)> {
+    db.kv_prefixed(MUTE_PREFIX)
+        .into_iter()
+        .filter_map(|(key, title)| Some((key.strip_prefix(MUTE_PREFIX)?.parse().ok()?, title)))
+        .collect()
+}
+
+pub(crate) fn muted_ids(db: &Db) -> HashSet<i64> {
+    mutes(db).into_iter().map(|(id, _)| id).collect()
+}
+
+/// A mute applies only while new-episode notifications are on, since Settings lists the mutes under that switch.
+pub(crate) fn is_muted(db: &Db, media_id: i64) -> bool {
+    db.kv_get("airing_notify").as_deref() != Some("0")
+        && db.kv_get(&format!("{MUTE_PREFIX}{media_id}")).is_some()
+}
+
 pub fn replan() {
     REPLAN.notify_one();
 }
@@ -52,7 +74,7 @@ fn plan_next_wake(entries: &[(&str, Option<i64>)], last_check: i64, now: i64) ->
     }
 }
 
-/// The watched entries' next airing times, as `plan_next_wake` takes them.
+/// The watched entries' next airing times, as `plan_next_wake` takes them; a muted one still wakes, to pass its checkpoint.
 fn schedule_from_cache(db: &Db, viewer: Option<&Value>) -> Vec<(String, Option<i64>)> {
     let Some(user_id) = viewer.and_then(|v| v.get("id").and_then(|i| i.as_i64())) else {
         return Vec::new();
@@ -225,6 +247,7 @@ async fn check(app: &AppHandle) {
     let mut reached = last;
 
     let lang = crate::titles::title_language(&db);
+    let muted = muted_ids(&db);
     for sched in page {
         let episode = sched.get("episode").and_then(|v| v.as_i64()).unwrap_or(0);
         let media_id = sched.pointer("/media/id").and_then(|v| v.as_i64()).unwrap_or(0);
@@ -234,11 +257,8 @@ async fn check(app: &AppHandle) {
         if db.kv_get(&key).is_some() {
             continue; // already notified
         }
-        // A filtered title must not surface as a desktop toast either.
-        if let Some(media) = sched.get("media") {
-            if crate::commands::media_blocked(media, &level) {
-                continue;
-            }
+        if !should_toast(sched.get("media"), media_id, &muted, &level) {
+            continue;
         }
         let title = crate::titles::pick_json(lang, sched.pointer("/media/title"))
             .unwrap_or_else(|| "Anime".to_string());
@@ -269,9 +289,67 @@ async fn check(app: &AppHandle) {
     let _ = db.kv_set("airing_last_check", &checkpoint.to_string());
 }
 
+/// Whether an aired episode is worth a toast: a filtered title never is, and neither is one the user muted.
+fn should_toast(
+    media: Option<&Value>,
+    media_id: i64,
+    muted: &HashSet<i64>,
+    level: &str,
+) -> bool {
+    !muted.contains(&media_id) && !media.is_some_and(|m| crate::commands::media_blocked(m, level))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A muted title gets no toast, and the filter still applies to every other one.
+    #[test]
+    fn a_muted_title_gets_no_toast() {
+        let level = "off";
+        let media = json!({ "id": 42, "isAdult": false, "genres": [] });
+        assert!(should_toast(Some(&media), 42, &HashSet::new(), level));
+        assert!(!should_toast(Some(&media), 42, &HashSet::from([42]), level));
+        assert!(should_toast(Some(&media), 42, &HashSet::from([7]), level));
+    }
+
+    /// The mutes round-trip through kv, and a stray key under the prefix is skipped rather than read as id 0.
+    #[test]
+    fn mutes_round_trip_through_kv() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("airing_mute:42", "Frieren").unwrap();
+        db.kv_set("airing_mute:oops", "Broken").unwrap();
+        assert_eq!(mutes(&db), [(42, "Frieren".to_string())]);
+        assert!(is_muted(&db, 42));
+        assert!(!is_muted(&db, 7));
+    }
+
+    /// A muted title still wakes the watcher, so its episode passes the checkpoint and an unmute has nothing to replay.
+    #[test]
+    fn a_muted_title_still_wakes_the_watcher() {
+        let db = crate::db::tests::mem_db();
+        let viewer = json!({ "id": 1 });
+        let list = json!([{ "entries": [
+            { "status": "CURRENT", "media": { "id": 42, "nextAiringEpisode": { "airingAt": 5000 } } },
+            { "status": "CURRENT", "media": { "id": 7, "nextAiringEpisode": { "airingAt": 9000 } } },
+        ] }]);
+        db.cache_list(1, "ANIME", &list.to_string()).unwrap();
+        db.kv_set("airing_mute:42", "Frieren").unwrap();
+        assert_eq!(
+            schedule_from_cache(&db, Some(&viewer)),
+            [("CURRENT".to_string(), Some(5000)), ("CURRENT".to_string(), Some(9000))],
+        );
+    }
+
+    /// With new-episode notifications off a mute is inert, as its list in Settings is hidden with the switch.
+    #[test]
+    fn a_mute_is_inert_while_the_switch_is_off() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("airing_mute:42", "Frieren").unwrap();
+        assert!(is_muted(&db, 42));
+        db.kv_set("airing_notify", "0").unwrap();
+        assert!(!is_muted(&db, 42));
+    }
 
     /// Nothing to wait for sleeps the net, so an idle night costs no request at all.
     #[test]

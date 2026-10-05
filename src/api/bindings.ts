@@ -104,6 +104,10 @@ export const commands = {
 	/**  Whether new-episode desktop notifications are enabled (default on). */
 	getAiringNotify: () => __TAURI_INVOKE<boolean>("get_airing_notify"),
 	setAiringNotify: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_airing_notify", { enabled })),
+	/**  The muted titles, sorted by the stored title; Settings re-sorts by the spelling it shows. */
+	listAiringMutes: () => __TAURI_INVOKE<AiringMute[]>("list_airing_mutes"),
+	/**  Mutes or unmutes one title's new-episode notifications, then re-times the watcher's sleep. */
+	setAiringMute: (mediaId: number, title: string, muted: boolean) => typedError<null, string>(__TAURI_INVOKE("set_airing_mute", { mediaId, title, muted })),
 	/**  The background-notification interval in minutes, 0 meaning off; one kv key both platforms read. */
 	getNotifSchedule: () => __TAURI_INVOKE<number>("get_notif_schedule"),
 	setNotifSchedule: (minutes: number) => typedError<null, string>(__TAURI_INVOKE("set_notif_schedule", { minutes })),
@@ -250,6 +254,12 @@ export const commands = {
 };
 
 /* Types */
+/**  A title whose new episodes Karasu stays quiet about, with the title it was muted under. */
+export type AiringMute = {
+	mediaId: number,
+	title: string,
+};
+
 /**  What About and the bell show; `available` is false on every platform but an Android release build. */
 export type ApkUpdateState = {
 	available: boolean,

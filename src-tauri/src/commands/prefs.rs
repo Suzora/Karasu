@@ -87,6 +87,50 @@ pub fn set_airing_notify(db: State<'_, Db>, enabled: bool) -> Result<(), String>
     db.kv_set("airing_notify", if enabled { "1" } else { "0" })
 }
 
+/// A title whose new episodes Karasu stays quiet about, with the title it was muted under.
+#[derive(serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct AiringMute {
+    #[specta(type = crate::commands::Num)]
+    media_id: i64,
+    title: String,
+}
+
+/// The muted titles, sorted by the stored title; Settings re-sorts by the spelling it shows.
+#[tauri::command]
+#[specta::specta]
+pub fn list_airing_mutes(db: State<'_, Db>) -> Vec<AiringMute> {
+    let mut out: Vec<AiringMute> = crate::alerts::airing::mutes(&db)
+        .into_iter()
+        .map(|(media_id, title)| AiringMute { media_id, title })
+        .collect();
+    out.sort_by_key(|m| m.title.to_lowercase());
+    out
+}
+
+/// Mutes or unmutes one title's new-episode notifications, then re-times the watcher's sleep.
+#[tauri::command]
+#[specta::specta]
+pub fn set_airing_mute(
+    db: State<'_, Db>,
+    media_id: crate::commands::Num,
+    title: String,
+    muted: bool,
+) -> Result<(), String> {
+    let media_id = media_id.0;
+    if media_id <= 0 {
+        return Err(format!("not a media id: {media_id}"));
+    }
+    let key = format!("{}{media_id}", crate::alerts::airing::MUTE_PREFIX);
+    if muted {
+        db.kv_set(&key, title.trim())?;
+    } else {
+        db.kv_remove(&key)?;
+    }
+    crate::alerts::airing::replan();
+    Ok(())
+}
+
 #[derive(serde::Serialize, specta::Type)]
 pub struct StaleSettings {
     enabled: bool,

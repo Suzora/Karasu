@@ -109,7 +109,7 @@ src/
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          102 of the 126 frontend-facing commands, by subject:
+  commands/          106 of the 130 frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
                      update. The other 24 are the library scanner's 15 in
                      `library.rs` and the Android updater's 9 in
@@ -1954,8 +1954,9 @@ shape, and the question that follows them.
   which re-spells `matched_title` and never touches the running session). The
   matcher keeps its romaji-first `titles`; `Candidate.display` is the shown
   one. Strings stored before a change keep their spelling, as bell rows keep
-  their language: notification rows, and the label of a detection correction
-  whose entry is off the list. Never write `title.english ?? title.romaji` by
+  their language: notification rows, the label of a detection correction
+  whose entry is off the list, and the title a new-episode mute was made
+  under once its entry has left the list. Never write `title.english ?? title.romaji` by
   hand again — that is how the detection path came to show romaji while every
   other screen showed English, and how the AniList pane's note came to promise
   a setting nobody had built (#50).
@@ -2027,7 +2028,13 @@ shape, and the question that follows them.
   a status Karasu can word. A title the filter hides is never named, nor an
   explicit one while the blur is on, since a notification cannot blur; a row
   led by such a title falls back to the count, as does an AIRING row the
-  airing watcher already toasted (its `aired:` key). The desktop pass and
+  airing watcher already toasted (its `aired:` key) or one about a title the
+  user muted. A mute is an `airing_mute:<id>` kv row holding the title, a
+  device setting that survives an account change and inert while the
+  new-episode switch is off (Settings lists the mutes under that switch).
+  `alerts/airing.rs` skips a muted title without writing its `aired:` key but
+  still wakes for it and still asks about it, so the checkpoint passes its
+  episode and an unmute has no aired window to replay. The desktop pass and
   Android's job both end in `announcement`, so the two cannot word it
   differently, and the job reads its raw answer through `job_verdict`. A
   refused detailed answer earns one plain retry under the source `sitePlain`

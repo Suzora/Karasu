@@ -113,6 +113,8 @@ export const SCREENS = [
   { id: "d73-benachrichtigungen-aufgeklappt", w: 1232, h: 800, route: "/notifications", act: (p) => p.getByRole("button", { name: /gefällt 2 deiner Aktivitäten/ }).first().click() },
   { id: "d74-benachrichtigungen-verschleiert", w: 1232, h: 1500, route: "/notifications", mock: "blur-adult" },
   { id: "p54-benachrichtigungen-aufgeklappt", w: 405, h: 860, phone: true, route: "/notifications", act: (p) => p.getByRole("button", { name: /gefällt 2 deiner Aktivitäten/ }).first().click() },
+  { id: "d75-stumm", w: 1232, h: 1300, route: "/settings?pane=detection&setting=airingNotify", act: landOn("airingNotify") },
+  { id: "p55-stumm", w: 405, h: 1400, phone: true, route: "/settings?pane=detection&setting=airingNotify", act: landOn("airingNotify") },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },

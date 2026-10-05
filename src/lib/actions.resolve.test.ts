@@ -168,3 +168,35 @@ describe("resolveActions, shape", () => {
     expect(resolveActions(entry(), CTX)).toEqual(resolveActions(entry(), CTX));
   });
 });
+
+describe("resolveActions, airing mute", () => {
+  const watcher = (muted: number[] = []) => ctx({ airingMutes: new Set(muted) });
+
+  it("offers a mute for an anime being watched, just before the removal", () => {
+    const got = ids(entry(), watcher());
+    expect(got).toContain("muteAiring");
+    expect(got.indexOf("muteAiring")).toBe(got.indexOf("removeFromList") - 1);
+    expect(ids(entry({ status: "REPEATING" }), watcher())).toContain("muteAiring");
+  });
+
+  it("offers no mute where the watcher would never speak", () => {
+    expect(ids(entry(), CTX)).not.toContain("muteAiring");
+    expect(ids(entry({}, "MANGA"), watcher())).not.toContain("muteAiring");
+    expect(ids(entry({ status: "PLANNING" }), watcher())).not.toContain("muteAiring");
+    expect(ids(entry({ status: "COMPLETED" }), watcher())).not.toContain("muteAiring");
+    expect(ids(entry(), ctx({ airingMutes: new Set(), signedIn: false }))).not.toContain("muteAiring");
+  });
+
+  it("offers no mute for a show that will not air again, nor while the new-episode switch is off", () => {
+    expect(ids(entry({ airs: false }), watcher())).not.toContain("muteAiring");
+    expect(ids(entry(), ctx({ airingMutes: new Set(), airingNotify: false }))).not.toContain("muteAiring");
+    expect(ids(entry(), ctx({ airingMutes: new Set([1]), airingNotify: false }))).toContain("unmuteAiring");
+    expect(ids(entry({ airs: false }), watcher([1]))).toContain("unmuteAiring");
+  });
+
+  it("offers the unmute instead for a muted title, whatever its status, so no mute is stranded", () => {
+    expect(ids(entry(), watcher([1]))).toContain("unmuteAiring");
+    expect(ids(entry(), watcher([1]))).not.toContain("muteAiring");
+    expect(ids(entry({ status: "COMPLETED" }), watcher([1]))).toContain("unmuteAiring");
+  });
+});

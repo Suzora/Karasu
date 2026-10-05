@@ -10,7 +10,8 @@ import { loadDefaultAddStatus } from "@/lib/defaultAddStatus";
 import { copyText } from "@/lib/clipboard";
 import { mediaUrl } from "@/lib/anilistUrl";
 import type { Action, ActionTarget } from "@/lib/actions";
-import type { MediaListEntry, MediaType } from "@/api/types";
+import { displayTitle, type MediaListEntry, type MediaType } from "@/api/types";
+import { useAiringMutes } from "@/stores/airingMutes";
 
 /** An action the runner cannot finish alone; the host renders the dialog, so nothing here has to hold overlay state. */
 export type ActionOverlay = "edit" | "confirmRemove" | "matchPicker";
@@ -109,6 +110,14 @@ export function useActionRunner(): (input: ActionRunInput) => ActionEffect {
           return done;
         case "removeFromList":
           return entry ? { kind: "overlay", overlay: "confirmRemove" } : done;
+        case "muteAiring":
+        case "unmuteAiring":
+          if (target.kind === "entry") {
+            // The title is stored beside the mute, so Settings can name it after the entry has left the list.
+            const title = entry ? displayTitle(entry.media.title) : String(target.mediaId);
+            void useAiringMutes.getState().setMuted(target.mediaId, title, action.id === "muteAiring");
+          }
+          return done;
         case "scrobbleNow":
           void scrobbleNow().catch(() => {});
           return done;

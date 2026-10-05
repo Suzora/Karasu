@@ -233,6 +233,8 @@ export const de: typeof en = {
     scrobbleCancel: "Diesen nicht aktualisieren",
     fixMatch: "Richtigen Titel wählen",
     clearOverride: "Korrektur verwerfen",
+    muteAiring: "Neue Folgen stummschalten",
+    unmuteAiring: "Neue Folgen wieder melden",
   },
   notFound: {
     title: "Hier ist nichts",
@@ -1613,6 +1615,10 @@ export const de: typeof en = {
       "Desktop-Benachrichtigung, wenn eine neue Folge einer laufenden Serie erscheint — das Einzige, was die Website nicht kann, während Karasu im Tray liegt.",
     airingNotifyAniList:
       "AniList erzeugt für dieses Konto eine eigene Benachrichtigung. Karasu zeigt daher nur die Desktop-Benachrichtigung und überlässt die Zeile in der Glocke dem AniList-Tab, wo sie den Eintrag öffnet.",
+    airingMutes: "Stummgeschaltete Titel",
+    airingMutesHint:
+      "Zu neuen Folgen dieser Titel meldet sich Karasu nicht. AniLists eigene Benachrichtigung kommt trotzdem, wenn sie im Konto an ist, denn AniList hat keinen Schalter pro Titel.",
+    airingUnmute: "Stummschaltung für {{title}} aufheben",
     sequelNotify: "Fortsetzungs-Ankündigungen",
     sequelNotifyHint:
       "Benachrichtige mich, wenn eine Fortsetzung oder Nebengeschichte zu etwas auf meiner Liste angekündigt wird.",

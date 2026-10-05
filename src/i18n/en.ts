@@ -231,6 +231,8 @@ export const en = {
     scrobbleCancel: "Don't update this one",
     fixMatch: "Pick the right title",
     clearOverride: "Forget this correction",
+    muteAiring: "Mute new episodes",
+    unmuteAiring: "Unmute new episodes",
   },
   notFound: {
     title: "Nothing lives here",
@@ -1602,6 +1604,10 @@ export const en = {
       "Desktop notification when a new episode of a show you are watching airs — the one thing the website cannot do while Karasu sits in the tray.",
     airingNotifyAniList:
       "AniList raises its own notification for this account, so Karasu shows the desktop notification and leaves the bell row to the AniList tab, where it opens the entry.",
+    airingMutes: "Muted titles",
+    airingMutesHint:
+      "Karasu stays quiet about new episodes of these. AniList's own notification still arrives if your account has it on, because AniList has no switch per title.",
+    airingUnmute: "Unmute {{title}}",
     sequelNotify: "Sequel announcements",
     sequelNotifyHint:
       "Notify me when a sequel or side story is announced for something on my list.",

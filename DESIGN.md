@@ -759,3 +759,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   revealed there, since the whole row is the press; a title the filter hides
   takes the block with it and leaves the row. The maintainer surfaced it:
   a row reading "Mikan liked your activity" did not say which one.
+- **2026-10-05:** The titles muted for new-episode notifications are listed
+  under the switch they belong to, indented behind a hairline rule, and leave
+  with it when it is off (B of three mockups, over A, a card of their own
+  after the tracking card, and C, removable chips). Each row is a link to the
+  title and a cross; muting itself lives in the context menu and the long-press
+  sheet of a title being watched, since that is where the noise is noticed.

@@ -232,7 +232,8 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 
 **Notifications**
 - New-episode desktop toasts, opt-in **sequel-announcement** alerts and
-  **on-hold reminders**
+  **on-hold reminders**; a show you watch but don't want pinged about can be
+  **muted** from its context menu, and Settings lists the muted ones
 - An opt-in **background check for your AniList notifications** — off by
   default, with 15/30/60-minute presets or your own interval. On desktop it
   runs while Karasu sits in the tray; on Android it runs even with the app

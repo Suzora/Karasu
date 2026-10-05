@@ -3,13 +3,16 @@ import { cleanup, act, fireEvent, screen } from "@testing-library/react";
 import ActionHost from "./ActionHost";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
 import { useNowPlaying } from "@/stores/nowPlaying";
+import { useAiringMutes } from "@/stores/airingMutes";
 import { entry, listResult, media } from "@/test/fixtures";
 import type { ListResult } from "@/api/types";
 
 const saveListEntry = vi.hoisted(() => vi.fn(() => Promise.resolve({ queued: false })));
+const setAiringMute = vi.hoisted(() => vi.fn(() => Promise.resolve(null)));
 vi.mock("@/api/anilist", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/api/anilist")>()),
   saveListEntry,
+  setAiringMute,
   isTauri: true,
 }));
 
@@ -106,6 +109,20 @@ describe("ActionHost long press", () => {
         expect.objectContaining({ mediaId: 1, progress: 4 }),
       ),
     );
+  });
+
+  it("mutes a watched title's new episodes under the title the row shows", async () => {
+    const qc = mount();
+    const airing = entry({ progress: 3, media: media({ status: "RELEASING", title: { romaji: "Cowboy Bebop", english: null, native: null } }) });
+    qc.setQueryData(["mediaList", "ANIME", 6421433], listResult([airing]));
+    press(card());
+    hold();
+    vi.useRealTimers();
+    fireEvent.pointerUp(window);
+    fireEvent.click(screen.getByRole("button", { name: "actions.muteAiring" }));
+    await vi.waitFor(() => expect(setAiringMute).toHaveBeenCalledWith(1, "Cowboy Bebop", true));
+    expect(useAiringMutes.getState().ids.has(1)).toBe(true);
+    act(() => useAiringMutes.setState({ mutes: [], ids: new Set() }));
   });
 
   /** A status change says nothing about episodes, so the finale comes from the cached media. */

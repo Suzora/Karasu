@@ -202,6 +202,15 @@ pub(crate) fn airing_toasted(db: &Db, newest: &Value) -> bool {
     db.kv_get(&format!("aired:{media}:{episode}")).is_some()
 }
 
+/// Whether the newest row is an episode of a title the user muted, so the summary counts it rather than naming it.
+pub(crate) fn airing_muted(db: &Db, newest: &Value) -> bool {
+    newest.get("__typename").and_then(Value::as_str) == Some("AiringNotification")
+        && newest
+            .pointer("/media/id")
+            .and_then(Value::as_i64)
+            .is_some_and(|id| crate::alerts::airing::is_muted(db, id))
+}
+
 /// AniList's status words as a verb, the closed set `lib/activity`'s `VERBS` also maps; anything else names no caption.
 fn caption_verb(status: &str) -> Option<CaptionVerb> {
     Some(match status.trim().to_ascii_lowercase().as_str() {
@@ -392,7 +401,7 @@ pub(crate) fn announcement(db: &Db, data: &Value) -> Option<(String, String)> {
     }
 
     let lang = crate::i18n::lang(db);
-    let sentence = if airing_toasted(db, newest) {
+    let sentence = if airing_toasted(db, newest) || airing_muted(db, newest) {
         None
     } else {
         describe(
@@ -625,6 +634,24 @@ mod tests {
         assert_eq!(announcement(&db, &answer(airing, 2)).unwrap().1, "2 unread notifications are waiting.");
         let plain = json!({ "__typename": "AiringNotification", "id": 21 });
         assert_eq!(announcement(&db, &answer(plain, 1)).unwrap().1, "1 unread notification is waiting.");
+    }
+
+    /// A muted title is never named, not even as the only unread row; the count still says something arrived.
+    #[test]
+    fn a_muted_episode_is_counted_instead() {
+        let db = mem();
+        db.kv_set(SEEN_KEY, "1").unwrap();
+        db.kv_set("content_filter", "off").unwrap();
+        db.kv_set("airing_mute:42", "Frieren").unwrap();
+        let airing = json!({ "__typename": "AiringNotification", "id": 30, "episode": 5, "media": frieren(false) });
+        assert_eq!(announcement(&db, &answer(airing, 1)).unwrap().1, "1 unread notification is waiting.");
+        db.kv_set("airing_notify", "0").unwrap();
+        let off = json!({ "__typename": "AiringNotification", "id": 31, "episode": 6, "media": frieren(false) });
+        assert!(announcement(&db, &answer(off, 1)).unwrap().1.contains("Frieren"), "inert with the switch off");
+        db.kv_delete("airing_notify");
+        db.kv_delete("airing_mute:42");
+        let next = json!({ "__typename": "AiringNotification", "id": 32, "episode": 7, "media": frieren(false) });
+        assert!(announcement(&db, &answer(next, 1)).unwrap().1.contains("Frieren"));
     }
 
     #[test]

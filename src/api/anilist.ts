@@ -342,6 +342,11 @@ export const getAiringNotify = () => commands.getAiringNotify();
 export const setAiringNotify = (enabled: boolean) =>
   unwrap(commands.setAiringNotify(enabled));
 
+export type { AiringMute } from "./bindings";
+export const listAiringMutes = () => commands.listAiringMutes();
+export const setAiringMute = (mediaId: number, title: string, muted: boolean) =>
+  unwrap(commands.setAiringMute(mediaId, title, muted));
+
 export interface StaleSettings {
   enabled: boolean;
   months: number;

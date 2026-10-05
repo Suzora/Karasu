@@ -9,11 +9,12 @@ import EntryEditModal, { type EntrySaveInput } from "@/components/media/EntryEdi
 import { findCachedMedia } from "@/hooks/useCachedMedia";
 import { useActionRunner, type ActionOverlay } from "@/hooks/useActionRunner";
 import { useListMutations } from "@/hooks/useListMutations";
-import { resolveActions, type Action, type ActionTarget, type EntryFacts } from "@/lib/actions";
+import { airsAgain, resolveActions, type Action, type ActionTarget, type EntryFacts } from "@/lib/actions";
 import { useAuth, useScoreFormat } from "@/stores/auth";
 import { useManualSync } from "@/hooks/useManualSync";
 import { useNowPlaying } from "@/stores/nowPlaying";
 import { isTauri } from "@/api/anilist";
+import { useAiringMutes } from "@/stores/airingMutes";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { tick } from "@/lib/haptics";
 import { collectTags } from "@/lib/tags";
@@ -49,6 +50,7 @@ const factsOf = (entry: MediaListEntry): EntryFacts => ({
   score: entry.score,
   max: maxProgress(entry.media),
   maxVolumes: entry.media.volumes ?? null,
+  airs: airsAgain(entry.media.status, entry.media.nextAiringEpisode != null),
 });
 
 /** Whether any list cache could answer at all; without one, "not on your list" would be a guess rather than a fact. */
@@ -112,6 +114,9 @@ export default function ActionHost() {
         share: isTauri && isAndroid(usePlatform.getState().info),
         hasSelection: selection.length > 0,
         canSync: ctx.canSync,
+        // Read at open time: the menu is rebuilt per gesture, so a mute made a moment ago is already in the store.
+        airingMutes: isTauri && ctx.mode === "anilist" ? useAiringMutes.getState().ids : null,
+        airingNotify: useAiringMutes.getState().notify,
       });
       setOpen({
         target,

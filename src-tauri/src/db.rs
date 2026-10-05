@@ -531,6 +531,14 @@ impl Db {
         let _ = conn.execute("DELETE FROM kv WHERE key = ?1", [key]);
     }
 
+    /// `kv_delete` for a caller that must report a failed delete, as a setting the user turns off must.
+    pub fn kv_remove(&self, key: &str) -> Result<(), String> {
+        let conn = self.0.guard();
+        conn.execute("DELETE FROM kv WHERE key = ?1", [key])
+            .map(|_| ())
+            .map_err(|e| format!("Save failed: {e}"))
+    }
+
     /// Drops `prefix`-keyed rows stamped older than `cutoff`; `substr` rather than `LIKE` because `_` is a LIKE wildcard.
     pub fn kv_prune_older(&self, prefix: &str, cutoff: i64) -> usize {
         let conn = self.0.guard();
@@ -551,6 +559,19 @@ impl Db {
             rusqlite::params![prefix],
         )
         .unwrap_or(0)
+    }
+
+    /// Every row under a prefix, key and value, in key order; `substr` rather than `LIKE` because `_` is a LIKE wildcard.
+    pub fn kv_prefixed(&self, prefix: &str) -> Vec<(String, String)> {
+        let conn = self.0.guard();
+        let Ok(mut stmt) = conn.prepare(
+            "SELECT key, value FROM kv WHERE substr(key, 1, length(?1)) = ?1 ORDER BY key",
+        ) else {
+            return Vec::new();
+        };
+        stmt.query_map([prefix], |r| Ok((r.get(0)?, r.get(1)?)))
+            .map(|rows| rows.flatten().collect())
+            .unwrap_or_default()
     }
 
     // --- List cache ---------------------------------------------------------
@@ -1753,6 +1774,20 @@ pub(crate) mod tests {
 
         assert_eq!(db.kv_prune_older("sequel_seen:", 5000), 1);
         assert_eq!(db.kv_get("sequelXseen:1").as_deref(), Some("1"));
+    }
+
+    /// Reading a prefix is a prefix match too, never a LIKE.
+    #[test]
+    fn reading_a_prefix_does_not_match_it_as_a_wildcard() {
+        let db = mem_db();
+        db.kv_set("airing_mute:2", "B").unwrap();
+        db.kv_set("airing_mute:1", "A").unwrap();
+        db.kv_set("airingXmute:3", "C").unwrap();
+
+        assert_eq!(
+            db.kv_prefixed("airing_mute:"),
+            [("airing_mute:1".to_string(), "A".to_string()), ("airing_mute:2".to_string(), "B".to_string())],
+        );
     }
 
     /// The table was insert-only; nothing can read past the newest 100.

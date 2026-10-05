@@ -607,6 +607,12 @@ mockIPC((cmd, args) => {
       };
     case "get_jellyfin_background":
       return { enabled: android, supported: android, batteryExempt: android ? false : null };
+    case "list_airing_mutes":
+      return [
+        { mediaId: REAL[1].id, title: REAL[1].title },
+        { mediaId: REAL[2].id, title: REAL[2].title },
+        { mediaId: 4242, title: "Kimi ni Todoke: From Me to You Season 3" },
+      ];
     case "list_detection_overrides":
       return [{ title: "Sousou no Frieren", season: 2, mediaType: "ANIME", mediaId: REAL[0].id, displayTitle: REAL[0].title, episodeOffset: 0 }];
     case "get_mpv_ipc":
