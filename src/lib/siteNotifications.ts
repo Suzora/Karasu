@@ -1,4 +1,4 @@
-import { displayTitle } from "@/api/types";
+import { displayTitle, type MediaTitle } from "@/api/types";
 
 /** AniList's notification union flattened for the bell; ActivityMessageNotification is private mail and stays excluded. */
 
@@ -79,6 +79,8 @@ export interface SiteNotifRow {
   createdAt: number;
   /** The row's lead line: a user, a title, a thread — whoever the news is about. */
   title: string;
+  /** The media's whole title when it is the lead line, so the bell can re-spell it in the current title language. */
+  mediaTitle?: MediaTitle | null;
   /** The actor, for verbs where the lead line is something else (thread rows). */
   actorName: string | null;
   episode: number | null;
@@ -100,13 +102,14 @@ export function normalizeSiteNotification(raw: RawSiteNotification | null): Site
   if (!raw || kind === undefined || raw.id == null) return null;
 
   const userName = raw.user?.name ?? null;
-  const mediaTitle = raw.media?.title
-    ? displayTitle({
+  const mediaTitles: MediaTitle | null = raw.media?.title
+    ? {
         english: raw.media.title.english ?? null,
         romaji: raw.media.title.romaji ?? null,
         native: raw.media.title.native ?? null,
-      })
+      }
     : null;
+  const mediaTitle = mediaTitles ? displayTitle(mediaTitles) : null;
   const threadTitle = raw.thread?.title ?? null;
   const personName = raw.staff?.name?.full ?? raw.character?.name?.full ?? null;
   const merged = Array.isArray(raw.deletedMediaTitles)
@@ -148,6 +151,7 @@ export function normalizeSiteNotification(raw: RawSiteNotification | null): Site
     kind,
     createdAt: raw.createdAt ?? 0,
     title,
+    mediaTitle: threadTitle === null ? mediaTitles : null,
     actorName: userName,
     episode: raw.episode ?? null,
     detail: merged.length > 0 ? merged.join(", ") : (raw.reason ?? raw.status ?? null),

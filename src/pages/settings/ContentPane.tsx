@@ -3,7 +3,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
 import { CONTENT_FILTER_LEVELS } from "@/lib/contentFilter";
-import { Toggle } from "./shared";
+import { landingClass, Toggle } from "./shared";
 /** A three-stop slider rather than a toggle: hiding adult and hiding suggestive are different asks. */
 export function ContentSection() {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export function ContentSection() {
     <Card>
       <CardTitle>{t("settings.content")}</CardTitle>
       {ready && (
-        <div className="mt-4 space-y-3">
+        <div data-setting="contentFilter" className={cn("mt-4 space-y-3", landingClass)}>
           <input
             type="range"
             min={0}

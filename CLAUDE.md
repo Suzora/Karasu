@@ -96,7 +96,7 @@ src/
                      useGridRoving, useSyncStatus, useManualSync,
                      usePullToSync, useActionRunner, useCachedMedia,
                      useDetectionMedia, useDetectionDrag, useElementSize,
-                     usePointerSwipe, useTabSwipe)
+                     usePointerSwipe, useTabSwipe, useSettingLanding)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
                      key parity across the two files
   lib/               pure logic + its *.test.ts — the place testable code goes
@@ -223,6 +223,9 @@ src-tauri/src/
                      when the file will not open
   i18n.rs            the strings Rust composes (notifications, the bell rows,
                      the tray menu) in the language the user chose
+  titles.rs          which spelling of a title Rust composes with: the title
+                     language the frontend mirrors into kv `title_language`,
+                     and the one picker every composed text goes through
   keystore.rs        Android-Keystore sealing for the two mobile token files —
                      the Rust side of TokenCipher.kt
   sync.rs            lock-taking that survives a poisoned mutex, so a
@@ -693,10 +696,11 @@ version files agree), the **site**'s typecheck,
 (`scripts/bundle-budget.mjs`: a fresh `vite build`, then four gzipped figures —
 what the window waits for, the stylesheet, the largest lazy chunk, all the
 script — against `scripts/bundle-budget.json`, each set 3 % over the larger of
-the two build targets' measurement when it was last raised; on 2026-10-04 the
-Linux target read 404.0, 17.6, 27.3 and 543.9 KiB against budgets of 417, 18,
-29 and 544, the first raised that day for the detail skeleton, and a raise
-names its reason in the commit) — then
+the two build targets' measurement when it was last raised; on 2026-10-05 the
+Linux target read 405.1, 17.7, 27.3 and 545.9 KiB against budgets of 417, 18,
+29 and 563, the first raised on 2026-10-04 for the detail skeleton and the last
+on 2026-10-05 for the title language, and a raise names its reason in the
+commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
 with warnings denied, **cargo deny** (advisories, licences, bans, sources
@@ -1930,6 +1934,38 @@ shape, and the question that follows them.
   `saveListEntry` with the media object, because a new local entry is refused without it; a save's echo
   reaches the page only through `lib/listEcho`, since the local echo names no status. Count fields
   everywhere are `ui/number-input`: an emptied field reports 0 and a stored 0 shows as the placeholder.
+- **A title is spelt in the user's title language, and two functions spell
+  it.** `displayTitle` (`api/types`, over `lib/titleLanguage`'s `pickTitle`)
+  reads the active choice — English, Romaji or Native, set in Appearance and
+  kept per device under `karasu-title-language` — and `titles::pick` /
+  `pick_json` in Rust read the copy `stores/titleLanguage` mirrors into kv
+  `title_language`, so notifications, bell rows, the tray, the widgets,
+  Discord and the now-playing card spell a title the way the lists do. Each
+  choice falls back in its own order (Native → romaji → English), the line
+  under a title is `secondLine` (the native one unless it is shown, else the
+  romaji), and whichever line is native takes `font-brand-jp`. The setting
+  changes only on `/settings` and every route remounts after it, so a render
+  that calls `displayTitle` needs nothing more; what can stay on screen across
+  a change subscribes to `useTitleLanguage` (the bell's `useNotifications`,
+  the palette, the setting's own example), and detection follows Rust's
+  re-emitted `now-playing` (`set_title_language` → `retitle_now_playing`,
+  which re-spells `matched_title` and never touches the running session). The
+  matcher keeps its romaji-first `titles`; `Candidate.display` is the shown
+  one. Strings stored before a change keep their spelling, as bell rows keep
+  their language: notification rows, and the label of a detection correction
+  whose entry is off the list. Never write `title.english ?? title.romaji` by
+  hand again — that is how the detection path came to show romaji while every
+  other screen showed English, and how the AniList pane's note came to promise
+  a setting nobody had built (#50).
+- **A settings deep link lands on the row, not just the pane.**
+  `?setting=<id>` beside `?pane=` makes `useSettingLanding` wait for the
+  `data-setting` element (`Row`'s and `Toggle`'s `setting` prop, or a wrapper
+  with `landingClass`), centre it, focus its control and outline it until the
+  first press; the parameter is then cleared with `replace` through
+  `afterBackSettles`. `LOCAL_OVERRIDES` names a pane (typed `PaneId`) and a
+  setting for each AniList note, and `overrideLinks.dom.test.tsx` renders the
+  real Settings page for each one and fails when a note points at a row its
+  pane does not render.
 - **Local text matching goes through `lib/fuzzy`.** Exact > substring >
   word-prefix > trigram containment, scored per title — per-title docs are
   what make a query structurally unable to match across two adjacent names

@@ -17,6 +17,7 @@ mod playback;
 mod i18n;
 mod portable;
 mod sync;
+mod titles;
 
 use tauri::{AppHandle, Manager, Wry};
 // Used only from the desktop half of this file, so they gate with it, or Android warns of an unused import.
@@ -424,6 +425,7 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::get_autostart,
             commands::set_autostart,
             commands::set_ui_language,
+            commands::set_title_language,
             commands::get_airing_notify,
             commands::set_airing_notify,
             commands::get_notif_schedule,

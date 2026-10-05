@@ -267,7 +267,7 @@ function LibraryView({ userId }: { userId: number }) {
   // What the picker is open on, a row or an unplaced group; one state, so two cannot be open at once.
   const [editing, setEditing] = useState<{
     key: TitleKey;
-    current?: string;
+    currentId?: number;
     hasOverride: boolean;
   } | null>(null);
 
@@ -523,7 +523,7 @@ function LibraryView({ userId }: { userId: number }) {
             leaving={leaving}
             parsedTitle={target.key.title}
             season={target.key.season}
-            current={target.current}
+            currentId={target.currentId}
             error={correctError ?? undefined}
             onPick={applyMatch}
             onClear={target.hasOverride ? dropMatch : undefined}
@@ -841,7 +841,7 @@ function Unplaced({
 
 
 /** What opening the picker on a row needs to know. */
-type Correction = { key: TitleKey; current?: string; hasOverride: boolean };
+type Correction = { key: TitleKey; currentId?: number; hasOverride: boolean };
 
 /** One captioned block of rows, in a single bordered container. */
 function Group({
@@ -1021,7 +1021,7 @@ function LibraryRow({
             onClick={() =>
               onCorrect({
                 key: source,
-                current: title,
+                currentId: media.id,
                 hasOverride: source.manual ?? false,
               })
             }

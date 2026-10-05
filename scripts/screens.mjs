@@ -36,6 +36,16 @@ const toCard = (title) => (p) =>
     const heading = [...document.querySelectorAll("h2, h3")].find((h) => h.textContent?.trim() === t);
     (heading?.closest(".rounded-panel") ?? heading)?.scrollIntoView({ block: "start" });
   }, title);
+/** Centres a setting the way a deep link lands on it, for the screens that start from one. */
+const landOn = (setting, card) => async (p) => {
+  await p.waitForTimeout(400);
+  const found = await p.evaluate((s) => {
+    const el = document.querySelector(`[data-setting="${s}"]`);
+    el?.scrollIntoView({ block: "center" });
+    return el !== null;
+  }, setting);
+  if (!found && card) await toCard(card)(p);
+};
 /** Opens the detail page's cast fold and scrolls it to the top, where its rows can be judged. */
 const openCast = async (p) => {
   await p.getByRole("button", { name: "Besetzung & Staff" }).click();
@@ -83,6 +93,8 @@ export const SCREENS = [
   { id: "p48-detail-reihe", w: 405, h: 860, phone: true, route: "/media/195516" },
   { id: "p49-uebersicht-farbe", w: 405, h: 860, phone: true, route: "/", mock: "no-banner", act: secondSlide },
   { id: "p50-detail-laedt", w: 405, h: 860, phone: true, route: "/media/178789", mock: "detail-pending" },
+  { id: "p51-titelsprache", w: 405, h: 860, phone: true, route: "/settings?pane=appearance&setting=titleLanguage", act: landOn("titleLanguage", "Sprache & Bewegung") },
+  { id: "p52-liste-original", w: 405, h: 860, phone: true, route: "/list", mock: "titles-native" },
   { id: "d59-detail-reihe", w: 1232, h: 800, route: "/media/195516" },
   { id: "d60-detail-ohne-banner", w: 1232, h: 800, route: "/media/178789", mock: "no-banner" },
   { id: "d61-uebersicht-ohne-banner", w: 1232, h: 800, route: "/", mock: "no-banner" },
@@ -91,6 +103,10 @@ export const SCREENS = [
   { id: "d64-detail-schmal", w: 768, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
   { id: "d65-detail-mittel", w: 1000, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
   { id: "d66-detail-breit", w: 1232, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
+  { id: "d67-titelsprache", w: 1232, h: 800, route: "/settings?pane=appearance&setting=titleLanguage", act: landOn("titleLanguage", "Sprache & Bewegung") },
+  { id: "d68-liste-romaji", w: 1232, h: 800, route: "/list", mock: "titles-romaji" },
+  { id: "d69-detail-original", w: 1232, h: 800, route: "/media/178789", mock: "titles-native" },
+  { id: "d70-erkennung-original", w: 1232, h: 800, route: "/list", mock: "titles-native", playing: true },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },

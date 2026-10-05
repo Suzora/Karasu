@@ -1,5 +1,5 @@
 /** The parts of the now-playing card's identity lines; keys and numbers, so the component owns every sentence. */
-import type { Media, MediaTitle, MediaType } from "@/api/types";
+import type { Media, MediaType } from "@/api/types";
 
 export type EpisodeLabel =
   | { kind: "seasonEpisode"; season: number; episode: number }
@@ -16,12 +16,6 @@ export function episodeLabel(p: {
   if (p.mediaType === "MANGA") return { kind: "chapter", chapter: p.episode };
   if (p.season !== null) return { kind: "seasonEpisode", season: p.season, episode: p.episode };
   return { kind: "episode", episode: p.episode };
-}
-
-/** The native title under the shown one, unless it is the shown one, as `TitleLockup` decides for a card. */
-export function nativeLine(title: MediaTitle | null | undefined, shown: string): string | null {
-  const native = title?.native?.trim();
-  return native && native !== shown ? native : null;
 }
 
 export interface MetaParts {

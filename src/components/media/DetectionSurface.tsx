@@ -20,7 +20,8 @@ import type { Media } from "@/api/types";
 import { useContentFilter } from "@/stores/contentFilter";
 import { shouldBlur } from "@/lib/contentFilter";
 import { formatLabel } from "@/lib/format";
-import { episodeLabel, joinMeta, metaParts, nativeLine } from "@/lib/detectionIdentity";
+import { episodeLabel, joinMeta, metaParts } from "@/lib/detectionIdentity";
+import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { cn } from "@/lib/utils";
 import { countdownFraction, ringOffset, splitRemaining } from "@/lib/countdown";
 import { canScrobbleCancel, canScrobbleNow } from "@/lib/actions";
@@ -136,7 +137,8 @@ export default function DetectionSurface({
         : label.kind === "episode"
           ? t("nowPlaying.episodeShort", { n: label.episode })
           : t("nowPlaying.chapterShort", { n: label.chapter });
-  const native = nativeLine(media?.title, title);
+  const second = secondLine(media?.title, title);
+  const titleJp = isNativeLine(media?.title, title);
   const meta = metaParts(media, playing.mediaType);
   const metaText = meta
     ? joinMeta([
@@ -157,9 +159,11 @@ export default function DetectionSurface({
   const veiled = media ? shouldBlur(media, level, blurAdult) : false;
 
   const titleNode = playing.mediaId ? (
-    <Link to={`/media/${playing.mediaId}`} className="hover:underline">
+    <Link to={`/media/${playing.mediaId}`} className={cn("hover:underline", titleJp && "font-brand-jp")}>
       {title}
     </Link>
+  ) : titleJp ? (
+    <span className="font-brand-jp">{title}</span>
   ) : (
     title
   );
@@ -208,7 +212,9 @@ export default function DetectionSurface({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-ink-100">{titleNode}</p>
-          {native && <p className="truncate font-brand-jp text-2xs text-ink-600">{native}</p>}
+          {second && (
+            <p className={cn("truncate text-2xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
+          )}
           {(labelText || playing.episodeTitle) && (
             <p className="truncate text-xs text-ink-300">
               {labelText && <span className="font-medium tabular-nums text-ink-100">{labelText}</span>}
@@ -449,7 +455,7 @@ export function ScrobbleActions({ playing }: { playing: NowPlaying }) {
             leaving={leaving}
             parsedTitle={np.parsedTitle}
             season={np.season ?? -1}
-            current={np.matchedTitle ?? undefined}
+            currentId={np.mediaId ?? undefined}
             error={error}
             mediaType={np.mediaType}
             // Only when a season is the open question: sequels for an ordinary wrong match are noise and cost a request.

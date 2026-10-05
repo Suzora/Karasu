@@ -1,7 +1,8 @@
 import { displayTitle, type MediaTitle } from "@/api/types";
+import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { cn } from "@/lib/utils";
 
-/** A title and its native form stacked; the native line is dropped when it is the display title itself. */
+/** A title and its other spelling stacked; whichever line is the native one takes the Japanese face. */
 export function TitleLockup({
   title,
   clamp = 1,
@@ -10,7 +11,7 @@ export function TitleLockup({
   className,
 }: {
   title: MediaTitle;
-  /** Lines the Latin title may occupy before it is clipped. */
+  /** Lines the main title may occupy before it is clipped. */
   clamp?: 1 | 2;
   /** `muted` steps back a shade for captions under cover art, where the artwork already carries the identity. */
   tone?: "primary" | "muted";
@@ -18,24 +19,27 @@ export function TitleLockup({
   dense?: boolean;
   className?: string;
 }) {
-  const latin = displayTitle(title);
-  const native = title.native && title.native !== latin ? title.native : null;
+  const main = displayTitle(title);
+  const second = secondLine(title, main);
 
   return (
     <div className={cn("min-w-0", className)}>
       <p
         className={cn(
           dense ? "dense-text-lg font-medium" : "text-ui font-medium",
+          isNativeLine(title, main) && "font-brand-jp",
           tone === "muted"
             ? "text-ink-300 group-hover:text-ink-100"
             : "text-ink-100",
           clamp === 2 ? "line-clamp-2" : "truncate",
         )}
       >
-        {latin}
+        {main}
       </p>
-      {native && (
-        <p className={cn("truncate font-brand-jp text-ink-600", dense ? "dense-text" : "text-2xs")}>{native}</p>
+      {second && (
+        <p className={cn("truncate text-ink-600", second.native && "font-brand-jp", dense ? "dense-text" : "text-2xs")}>
+          {second.text}
+        </p>
       )}
     </div>
   );

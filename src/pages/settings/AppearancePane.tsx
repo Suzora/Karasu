@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { Palette, TriangleAlert } from "lucide-react";
 import * as api from "@/api/anilist";
 import { UI_ZOOM_STEPS } from "@/lib/uiZoom";
@@ -24,11 +25,20 @@ import {
   SUPPORTED_LANGUAGES,
   type LanguageSetting,
 } from "@/i18n";
-import { ColorPicker, Row, Toggle } from "./shared";
+import { ColorPicker, landingClass, Row, Toggle } from "./shared";
 import { Select } from "@/components/ui/select";
 import { Segmented } from "@/components/ui/segmented";
 import { STATUS_COLOR_ORDER, STATUS_CONTRAST_MIN, isDefaultPalette, weakestContrast } from "@/lib/statusColors";
-import type { MediaListStatus } from "@/api/types";
+import { displayTitle, type ListResult, type MediaListStatus } from "@/api/types";
+import { useTitleLanguage } from "@/stores/titleLanguage";
+import {
+  TITLE_LANGUAGES,
+  exampleTitle,
+  isNativeLine,
+  parseTitleLanguage,
+  secondLine,
+  type TitleLanguage,
+} from "@/lib/titleLanguage";
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 
 const shownTheme = () => `${document.documentElement.dataset.theme ?? ""} ${document.documentElement.dataset.contrast ?? ""}`;
@@ -331,6 +341,8 @@ export function AppearanceSection() {
           </Select>
         </Row>
 
+        <TitleLanguageRow />
+
         <Toggle
           checked={reduceMotion}
           onChange={setReduceMotion}
@@ -340,6 +352,55 @@ export function AppearanceSection() {
         </div>
       </Card>
     </>
+  );
+}
+
+/** Literal keys for the select, so `i18nKeys.test.ts` sees every one. */
+function titleLanguageLabel(lang: TitleLanguage, t: (k: string) => string): string {
+  switch (lang) {
+    case "english": return t("settings.titleLanguageEnglish");
+    case "romaji": return t("settings.titleLanguageRomaji");
+    case "native": return t("settings.titleLanguageNative");
+  }
+}
+
+/** The title-language choice with one real title beneath it, spelt the way every list will spell it. */
+function TitleLanguageRow() {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const language = useTitleLanguage((s) => s.language);
+  const setLanguage = useTitleLanguage((s) => s.setLanguage);
+  // Picked once per visit from whatever list is cached, so the example does not jump while the choice changes.
+  const [example] = useState(() =>
+    exampleTitle(
+      qc
+        .getQueriesData<ListResult>({ queryKey: ["mediaList"] })
+        .flatMap(([, data]) => data?.lists.flatMap((g) => g.entries.map((e) => e.media.title)) ?? []),
+    ),
+  );
+  const main = displayTitle(example, language);
+  const second = secondLine(example, main);
+
+  return (
+    <div data-setting="titleLanguage" className={cn("space-y-2 pb-1", landingClass)}>
+      <Row label={t("settings.titleLanguage")} hint={t("settings.titleLanguageHint")}>
+        <Select value={language} onChange={(e) => setLanguage(parseTitleLanguage(e.target.value))}>
+          {TITLE_LANGUAGES.map((l) => (
+            <option key={l} value={l}>
+              {titleLanguageLabel(l, t)}
+            </option>
+          ))}
+        </Select>
+      </Row>
+      <div className="rounded-inner border border-hair bg-surface-950 px-3 py-2">
+        <p className={cn("truncate text-ui font-medium text-ink-100", isNativeLine(example, main) && "font-brand-jp")}>
+          {main}
+        </p>
+        {second && (
+          <p className={cn("truncate text-2xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
+        )}
+      </div>
+    </div>
   );
 }
 

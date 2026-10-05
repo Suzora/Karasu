@@ -93,7 +93,7 @@ function rowOrderLabel(v: (typeof ROW_ORDERS)[number], t: (k: string) => string)
   }
 }
 
-/** The note for a setting Karasu overrides, with a link to what wins instead. */
+/** The note for a setting Karasu overrides, with a link that lands on what wins instead. */
 function OverrideNote({ field }: { field: OverriddenField }) {
   const { t } = useTranslation();
   const o = LOCAL_OVERRIDES[field];
@@ -105,17 +105,13 @@ function OverrideNote({ field }: { field: OverriddenField }) {
         : field === "displayAdultContent"
           ? t("settings.alOverrideAdult")
           : t("settings.alOverrideAiring")}
-      {o.pane && (
-        <>
-          {" "}
-          <Link
-            to={`/settings?pane=${o.pane}`}
-            className="text-accent-400 underline hover:no-underline"
-          >
-            {t("settings.alOverrideWhere")}
-          </Link>
-        </>
-      )}
+      {" "}
+      <Link
+        to={`/settings?pane=${o.pane}&setting=${o.setting}`}
+        className="text-accent-400 underline hover:no-underline"
+      >
+        {t("settings.alOverrideWhere")}
+      </Link>
     </ExternalNote>
   );
 }

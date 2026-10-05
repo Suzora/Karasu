@@ -64,6 +64,16 @@ pub fn set_ui_language(app: tauri::AppHandle, db: State<'_, Db>, language: Strin
     Ok(())
 }
 
+/// Mirrors the title language into kv, because Rust spells titles in notifications, the tray, widgets and Discord.
+#[tauri::command]
+#[specta::specta]
+pub fn set_title_language(app: tauri::AppHandle, db: State<'_, Db>, language: String) -> Result<(), String> {
+    db.kv_set(crate::titles::TITLE_LANGUAGE_KEY, &language)?;
+    crate::widgets::refresh(&app);
+    crate::playback::scrobbler::retitle_now_playing(&app);
+    Ok(())
+}
+
 /// Whether new-episode desktop notifications are enabled (default on).
 #[tauri::command]
 #[specta::specta]

@@ -19,7 +19,7 @@ const noop = () => {};
 const CASES: [string, () => React.ReactElement][] = [
   ["ConfirmDialog", () => <ConfirmDialog title="Delete" names={["A", "B"]} extra={3} note="n" confirmLabel="Delete" onConfirm={noop} onCancel={noop} />],
   ["CoverViewer", () => <CoverViewer src="https://img.example/a.jpg" alt="Cowboy Bebop" onClose={noop} />],
-  ["MatchPicker", () => <MatchPicker parsedTitle="Cowboy Bebop" season={1} current="Cowboy Bebop" detectedEpisode={5} onPick={noop} onClear={noop} onCancel={noop} />],
+  ["MatchPicker", () => <MatchPicker parsedTitle="Cowboy Bebop" season={1} currentId={1} detectedEpisode={5} onPick={noop} onClear={noop} onCancel={noop} />],
   ["PresetModal", () => <PresetModal presets={[{ name: "Airing", tab: "CURRENT", filter: "", sort: "" }]} onSave={noop} onDelete={noop} onClose={noop} />],
   ["RandomPickModal", () => <RandomPickModal pool={[entry()]} onClose={noop} />],
   ["NewThreadModal", () => <NewThreadModal onClose={noop} />],

@@ -30,6 +30,7 @@ import { Loader } from "@/components/ui/loader";
 import { IconButton } from "@/components/ui/icon-button";
 import { cardClass } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { statusColorVar } from "@/lib/statusColors";
 import { loadLegendOpen, saveLegendOpen } from "@/lib/franchiseLegend";
 
@@ -460,8 +461,8 @@ function Rail({
     );
   }
 
-  const latin = displayTitle(node.title);
-  const native = node.title.native !== latin ? node.title.native : null;
+  const main = displayTitle(node.title);
+  const second = secondLine(node.title, main);
 
   return (
     // Keyed on the node so the pane re-runs `settle` when the selection moves; below `xl` it sits under the canvas.
@@ -483,8 +484,10 @@ function Rail({
             {t(`relation.${relation}`, { defaultValue: relation })}
           </p>
         )}
-        <p className="mt-0.5 text-sm font-semibold leading-snug text-ink-100">{latin}</p>
-        {native && <p className="font-brand-jp text-xs text-ink-600">{native}</p>}
+        <p className={cn("mt-0.5 text-sm font-semibold leading-snug text-ink-100", isNativeLine(node.title, main) && "font-brand-jp")}>
+          {main}
+        </p>
+        {second && <p className={cn("text-xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>}
 
         <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-300">
           <span

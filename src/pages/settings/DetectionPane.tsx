@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { DisclosurePanel } from "@/components/ui/disclosure";
 import { cn } from "@/lib/utils";
+import { displayTitle } from "@/api/types";
+import { findCachedMedia } from "@/hooks/useCachedMedia";
 import * as api from "@/api/anilist";
 import {
   clearDetectionOverride,
@@ -171,6 +174,7 @@ export function ScrobbleSection() {
               onChange={updateAiring}
               label={t("settings.airingNotify")}
               hint={t("settings.airingNotifyHint")}
+              setting="airingNotify"
             />
             {/* Same cached viewer the watcher reads, so a stale blob is visibly wrong here rather than silently wrong. */}
             {airing && anilistCoversAiring(viewer) && (
@@ -323,6 +327,7 @@ export function MediaSessionSection() {
 /** The now-playing card's corrections, reviewable and revocable here; absent until there is one. */
 export function DetectionCorrectionsSection() {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const [rows, setRows] = useState<DetectionOverride[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -333,6 +338,12 @@ export function DetectionCorrectionsSection() {
   useEffect(load, []);
 
   if (!rows || rows.length === 0) return null;
+
+  // The label was stored at pick time; an entry the list cache holds is re-spelt in the current title language.
+  const labelOf = (row: DetectionOverride) => {
+    const cached = findCachedMedia(qc, row.mediaId);
+    return cached ? displayTitle(cached.entry.media.title) : row.displayTitle;
+  };
 
   const remove = async (row: DetectionOverride) => {
     setError(null);
@@ -364,7 +375,7 @@ export function DetectionCorrectionsSection() {
                 to={`/media/${row.mediaId}`}
                 className="block truncate text-xs text-ink-100 hover:text-accent-400"
               >
-                {row.displayTitle}
+                {labelOf(row)}
               </Link>
               <span className="mt-0.5 block truncate text-2xs text-ink-600">
                 {t("settings.correctionsFrom", { title: row.title })}

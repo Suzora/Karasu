@@ -99,6 +99,8 @@ export const commands = {
 	setAutostart: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_autostart", { enabled })),
 	/**  Mirrors the interface language into kv, because Rust composes notifications, bell rows and the tray menu. */
 	setUiLanguage: (language: string) => typedError<null, string>(__TAURI_INVOKE("set_ui_language", { language })),
+	/**  Mirrors the title language into kv, because Rust spells titles in notifications, the tray, widgets and Discord. */
+	setTitleLanguage: (language: string) => typedError<null, string>(__TAURI_INVOKE("set_title_language", { language })),
 	/**  Whether new-episode desktop notifications are enabled (default on). */
 	getAiringNotify: () => __TAURI_INVOKE<boolean>("get_airing_notify"),
 	setAiringNotify: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_airing_notify", { enabled })),

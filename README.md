@@ -273,6 +273,10 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
   by itself, so nothing drops off the bottom
 - **Density** — compact, comfortable or spacious for the screens that crowd:
   the calendar and the local library. Everything else keeps its size
+- **Title language** — English, Romaji or the original, per device, for every
+  title Karasu shows: lists, detail pages, notifications, the tray, the
+  Android widgets and the Discord status. A title without that version falls
+  back to the next one
 - A **content filter** for adult and suggestive titles, with a disclosure
   line wherever it hides something — explicit (18+) and suggestive (Ecchi)
   counted separately, linking straight to the setting

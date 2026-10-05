@@ -277,6 +277,7 @@ pub fn candidates_from_cache(db: &Db, media_type: &str) -> Vec<matcher::Candidat
         return Vec::new();
     };
 
+    let lang = crate::titles::title_language(db);
     let mut seen = std::collections::HashSet::new();
     let mut out = Vec::new();
     for group in lists.as_array().into_iter().flatten() {
@@ -322,6 +323,7 @@ pub fn candidates_from_cache(db: &Db, media_type: &str) -> Vec<matcher::Candidat
             let total_key = if media_type == "MANGA" { "chapters" } else { "episodes" };
             out.push(matcher::Candidate {
                 media_id,
+                display: crate::titles::pick_json(lang, media.get("title")),
                 titles,
                 episodes: media
                     .get(total_key)
@@ -393,7 +395,7 @@ fn resolve_match(
 ) -> Resolved {
     match candidates.iter().find(|c| c.media_id == media_id) {
         Some(c) => Resolved {
-            title: Some(c.titles[0].clone()),
+            title: c.display.clone().or_else(|| c.titles.first().cloned()),
             progress: Some(c.progress),
             total: c.episodes,
             duration_min: c.duration_min,
@@ -855,6 +857,44 @@ async fn perform_update(
         json!({ "mediaId": media_id, "episode": episode }),
     );
     Ok(Outcome::Landed)
+}
+
+/// Re-spells what is playing in the current title language; the match and the running session stay as they are.
+pub fn retitle_now_playing(app: &AppHandle) {
+    let db = app.state::<Db>();
+    let (media_type, media_id) = {
+        let state = app.state::<PlaybackState>();
+        let guard = state.0.guard();
+        let Some(np) = guard.as_ref() else { return };
+        let Some(id) = np.media_id else { return };
+        (np.media_type.clone(), id)
+    };
+    // An off-list correction keeps the label it was saved with; only a cached entry knows its other spellings.
+    let Some(title) = respelled(candidates_from_cache(&db, &media_type), media_id) else {
+        return;
+    };
+    let patched = {
+        let state = app.state::<PlaybackState>();
+        let mut guard = state.0.guard();
+        match guard.as_mut() {
+            Some(np) if np.media_id == Some(media_id) => np.matched_title = Some(title),
+            _ => return,
+        }
+        guard.clone()
+    };
+    let _ = app.emit("now-playing", &patched);
+    crate::discord::sync(app, patched.as_ref());
+    crate::tray_set_now_playing(
+        app,
+        patched
+            .as_ref()
+            .map(|n| n.matched_title.as_deref().unwrap_or(&n.parsed_title)),
+    );
+}
+
+/// The display title the cached list gives `media_id`, in the language the candidates were built with.
+fn respelled(candidates: Vec<matcher::Candidate>, media_id: i64) -> Option<String> {
+    candidates.into_iter().find(|c| c.media_id == media_id).and_then(|c| c.display)
 }
 
 /// Re-resolves what is playing against the corrections table now, patching `NowPlaying` and re-emitting it.
@@ -1334,8 +1374,9 @@ async fn drive_session(app: &AppHandle) {
 mod tests {
     use super::{
         applies_to, armed_now, auto_arm, block_reason, cached_user_id, candidates_from_cache,
-        defer_for_peer, detection_override, grace_spent, position_due, season_key,
-        service_transition, shift_episode, threshold, would_regress, BlockReason, NowPlaying,
+        defer_for_peer, detection_override, grace_spent, position_due, resolve_match, respelled,
+        season_key, service_transition, shift_episode, threshold, would_regress, BlockReason, Db,
+        NowPlaying,
         Phase, Session, YieldTarget, DEFAULT_THRESHOLD, EMPTY_TICK_GRACE, GAP_GRACE,
         HIDDEN_POLL_INTERVAL, MANGA_THRESHOLD, POLL_INTERVAL, SERVICE_RETRY, YIELD_GRACE,
     };
@@ -1774,5 +1815,29 @@ mod tests {
         assert_eq!(c.status, "CURRENT");
         assert_eq!(c.cover_url.as_deref(), Some("https://img.example/bebop.jpg"));
         assert!(candidates_from_cache(&db, "MANGA").is_empty(), "the other type has no cache");
+    }
+
+    /// The shown title follows the mirrored title language, while the matcher keeps its own romaji-first list.
+    #[test]
+    fn the_matched_title_follows_the_title_language() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id": 6421433, "name": "Kyusetzu"}"#).unwrap();
+        let lists = serde_json::json!([{ "isCustomList": false, "entries": [
+            { "mediaId": 154587, "progress": 3, "status": "CURRENT", "media": { "title": {
+                "romaji": "Sousou no Frieren", "english": "Frieren: Beyond Journey's End", "native": "葬送のフリーレン" } } }
+        ] }]);
+        db.cache_list(6421433, "ANIME", &lists.to_string()).unwrap();
+        let shown = |db: &Db| resolve_match(&candidates_from_cache(db, "ANIME"), 154587, None).title;
+
+        assert_eq!(shown(&db).as_deref(), Some("Frieren: Beyond Journey's End"), "English is the default");
+        db.kv_set(crate::titles::TITLE_LANGUAGE_KEY, "romaji").unwrap();
+        assert_eq!(shown(&db).as_deref(), Some("Sousou no Frieren"));
+        db.kv_set(crate::titles::TITLE_LANGUAGE_KEY, "native").unwrap();
+        assert_eq!(shown(&db).as_deref(), Some("葬送のフリーレン"));
+        assert_eq!(respelled(candidates_from_cache(&db, "ANIME"), 154587).as_deref(), Some("葬送のフリーレン"));
+        assert_eq!(respelled(candidates_from_cache(&db, "ANIME"), 1), None, "an entry off the list keeps its label");
+
+        let c = &candidates_from_cache(&db, "ANIME")[0];
+        assert_eq!(c.titles, vec!["Sousou no Frieren", "Frieren: Beyond Journey's End", "葬送のフリーレン"]);
     }
 }

@@ -8,6 +8,7 @@ import { reportError } from "@/api/diagnostics";
 import { isTauri, isTokenRejected, setIdentityChangedHandler, systemAccent } from "@/api/anilist";
 import { isNotFound, isRateLimited } from "@/lib/apiError";
 import { setSystemAccentProvider, useTheme } from "@/stores/theme";
+import { useTitleLanguage } from "@/stores/titleLanguage";
 import { initLanguage } from "@/i18n";
 // The @font-face rules are hand-written in index.css; the @fontsource stylesheets are deliberately not imported.
 import "./index.css";
@@ -16,6 +17,7 @@ import { MotionProvider } from "./motion";
 // Apply the saved theme before the first paint to avoid a flash; the OS accent arrives a beat later, if chosen.
 if (isTauri) setSystemAccentProvider(systemAccent);
 useTheme.getState().init();
+useTitleLanguage.getState().init();
 
 // Dev builds only: the query cache on screen, bottom-left so it stays clear of the detection window's corner.
 const QueryDevtools = import.meta.env.DEV

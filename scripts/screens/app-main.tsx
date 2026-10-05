@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "@/app/App";
 import { MotionProvider } from "@/app/motion";
 import { useTheme } from "@/stores/theme";
+import { useTitleLanguage } from "@/stores/titleLanguage";
 import { useToast } from "@/stores/toast";
 import { initLanguage, setLanguageSetting } from "@/i18n";
 
@@ -12,6 +13,7 @@ const lang = new URLSearchParams(location.search).get("lang") ?? "de";
 (window as unknown as { __toast: typeof useToast }).__toast = useToast;
 
 useTheme.getState().init();
+useTitleLanguage.getState().init();
 
 await initLanguage();
 await setLanguageSetting(lang === "en" ? "en" : "de");

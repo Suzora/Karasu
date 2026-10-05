@@ -175,19 +175,6 @@ fn watching_ids(db: &Db, viewer: Option<&Value>) -> Vec<i64> {
     ids
 }
 
-fn pick_title(title: Option<&Value>) -> String {
-    let get = |k: &str| {
-        title
-            .and_then(|t| t.get(k))
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-    };
-    get("english")
-        .or_else(|| get("romaji"))
-        .or_else(|| get("native"))
-        .unwrap_or_else(|| "Anime".to_string())
-}
 
 async fn check(app: &AppHandle) {
     let db = app.state::<Db>();
@@ -237,6 +224,7 @@ async fn check(app: &AppHandle) {
     // How far this run got: `sort: TIME` is ascending, so a full page is the oldest and the newest are missing.
     let mut reached = last;
 
+    let lang = crate::titles::title_language(&db);
     for sched in page {
         let episode = sched.get("episode").and_then(|v| v.as_i64()).unwrap_or(0);
         let media_id = sched.pointer("/media/id").and_then(|v| v.as_i64()).unwrap_or(0);
@@ -252,7 +240,8 @@ async fn check(app: &AppHandle) {
                 continue;
             }
         }
-        let title = pick_title(sched.pointer("/media/title"));
+        let title = crate::titles::pick_json(lang, sched.pointer("/media/title"))
+            .unwrap_or_else(|| "Anime".to_string());
         let head = crate::i18n::Msg::AiringTitle;
         let body = crate::i18n::Msg::AiringBody { title: &title, episode };
         if anilist_has_it {

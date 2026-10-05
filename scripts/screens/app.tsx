@@ -56,9 +56,9 @@ const banner = (i: number) => {
 const TITLES = ["Frieren: Beyond Journey's End", "The Apothecary Diaries", "Dungeon Meshi", "Oshi no Ko", "Kaiju No. 8", "Bocchi the Rock!", "Mob Psycho 100 III", "Vinland Saga Season 2", "Spy x Family", "Blue Lock", "Chainsaw Man", "Jujutsu Kaisen"];
 /** The three titles `screens.mjs` fetches art for, first in every list so the grid opens on real covers. */
 const REAL = [
-  { id: 178789, title: "Mushoku Tensei: Jobless Reincarnation Season 3", native: "無職転生Ⅲ ～異世界行ったら本気だす～", episodes: 14, next: 9, score: 85, studio: "Studio Bind", genres: ["Adventure", "Drama", "Fantasy"], color: "#28bbe4" },
-  { id: 135865, title: "Saga of Tanya the Evil Season 2", native: "幼女戦記Ⅱ", episodes: 12, next: 4, score: 80, studio: "NUT", genres: ["Action", "Fantasy"], color: "#e46b28" },
-  { id: 103303, title: "Sparks of Tomorrow", native: "二十世紀電氣目録", episodes: 13, next: 6, score: 76, studio: "Kyoto Animation", genres: ["Adventure", "Comedy", "Romance"], color: "#fec950" },
+  { id: 178789, title: "Mushoku Tensei: Jobless Reincarnation Season 3", romaji: "Mushoku Tensei III: Isekai Ittara Honki Dasu", native: "無職転生Ⅲ ～異世界行ったら本気だす～", episodes: 14, next: 9, score: 85, studio: "Studio Bind", genres: ["Adventure", "Drama", "Fantasy"], color: "#28bbe4" },
+  { id: 135865, title: "Saga of Tanya the Evil Season 2", romaji: "Youjo Senki II", native: "幼女戦記Ⅱ", episodes: 12, next: 4, score: 80, studio: "NUT", genres: ["Action", "Fantasy"], color: "#e46b28" },
+  { id: 103303, title: "Sparks of Tomorrow", romaji: "Nijuu Seiki Denki Mokuroku", native: "二十世紀電氣目録", episodes: 13, next: 6, score: 76, studio: "Kyoto Animation", genres: ["Adventure", "Comedy", "Romance"], color: "#fec950" },
 ];
 const STATUSES = ["CURRENT", "REPEATING", "COMPLETED", "PAUSED", "DROPPED", "PLANNING"] as const;
 
@@ -69,7 +69,7 @@ function media(i: number, manga: boolean) {
     id: real?.id ?? (manga ? 2000 : 1000) + i,
     idMal: null,
     type: manga ? "MANGA" : "ANIME",
-    title: real ? { romaji: real.title, english: real.title, native: real.native } : { romaji: TITLES[i % TITLES.length], english: null, native: null },
+    title: real ? { romaji: real.romaji, english: real.title, native: real.native } : { romaji: TITLES[i % TITLES.length], english: null, native: null },
     coverImage: { large: art ?? cover(i), extraLarge: art ?? cover(i), color: real?.color ?? null },
     bannerImage: real ? (asset(real.id, "banner") ?? banner(i)) : null,
     episodes: manga ? null : (real?.episodes ?? [12, 24, 13, 11, 25, 12][i % 6]),
@@ -662,6 +662,8 @@ localStorage.setItem("karasu-reduce-motion", params.get("still") === "1" ? "true
 localStorage.setItem("karasu-cover-cols", android ? "4" : "8");
 // A status colour picked too dark to tell from the panel, for the settings' contrast warning.
 if (mock === "status-low") localStorage.setItem("karasu-status-colors", JSON.stringify({ PAUSED: "#3b3f4a" }));
+// A title language other than the default English, for the screens that show how titles are spelt.
+if (mock === "titles-romaji" || mock === "titles-native") localStorage.setItem("karasu-title-language", mock.slice(7));
 location.hash = route;
 
 await import("@/app/index.css");

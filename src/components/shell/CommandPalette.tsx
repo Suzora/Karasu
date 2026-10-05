@@ -6,6 +6,8 @@ import { Search } from "lucide-react";
 import { displayTitle, type ListResult, type MediaType } from "@/api/types";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
+import { useTitleLanguage } from "@/stores/titleLanguage";
+import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { isBlocked } from "@/lib/contentFilter";
 import { searchTitles } from "@/lib/search";
 import {
@@ -39,7 +41,10 @@ interface Item {
   path: string;
   run?: () => void;
   cover?: string | null;
-  native?: string | null;
+  /** The label is a native title, so it takes the Japanese face. */
+  labelNative?: boolean;
+  /** The title's other spelling, under the label. */
+  second?: { text: string; native: boolean } | null;
 }
 
 interface Group {
@@ -78,6 +83,7 @@ export default function CommandPalette() {
   const runAction = useActionRunner();
   const { available: syncAvailable } = useManualSync();
   const level = useContentFilter((s) => s.level);
+  const titleLanguage = useTitleLanguage((s) => s.language);
   const android = isAndroid(usePlatform((s) => s.info));
   const [open, setOpen] = useState(false);
   const presence = usePresence(open);
@@ -131,14 +137,16 @@ export default function CommandPalette() {
           if (isBlocked(e.media, level)) continue;
           seen.add(e.mediaId);
           const ti = e.media.title;
+          const label = displayTitle(ti, titleLanguage);
           out.push({
             item: {
               id: `m-${e.mediaId}`,
-              label: displayTitle(ti),
+              label,
               sub: type === "ANIME" ? t("nav.list") : t("nav.manga"),
               path: `/media/${e.media.id}`,
               cover: e.media.coverImage.large,
-              native: ti.native && ti.native !== displayTitle(ti) ? ti.native : null,
+              labelNative: isNativeLine(ti, label),
+              second: secondLine(ti, label),
             },
             doc: prepareDoc(searchTitles(e.media)),
           });
@@ -146,7 +154,7 @@ export default function CommandPalette() {
       }
     }
     return out;
-  }, [open, viewer, qc, t, level]);
+  }, [open, viewer, qc, t, level, titleLanguage]);
 
   // The verbs come from `lib/actions`, so the palette is a third presentation rather than a third list of commands.
   const commands = useMemo<Item[]>(() => {
@@ -338,10 +346,10 @@ export default function CommandPalette() {
                               }
                               trailing={item.sub && <MenuRowNote>{item.sub}</MenuRowNote>}
                             >
-                              <span className="block truncate">{item.label}</span>
-                              {item.native && (
-                                <span className="block truncate font-brand-jp text-2xs text-ink-600">
-                                  {item.native}
+                              <span className={cn("block truncate", item.labelNative && "font-brand-jp")}>{item.label}</span>
+                              {item.second && (
+                                <span className={cn("block truncate text-2xs text-ink-600", item.second.native && "font-brand-jp")}>
+                                  {item.second.text}
                                 </span>
                               )}
                             </MenuRowBody>

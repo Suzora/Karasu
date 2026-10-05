@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { episodeLabel, joinMeta, metaParts, nativeLine } from "@/lib/detectionIdentity";
+import { episodeLabel, joinMeta, metaParts } from "@/lib/detectionIdentity";
 
 describe("episodeLabel", () => {
   it("names the season only when the source carried one", () => {
@@ -24,20 +24,6 @@ describe("episodeLabel", () => {
 
   it("has nothing to say without a number", () => {
     expect(episodeLabel({ mediaType: "ANIME", season: 2, episode: null })).toBeNull();
-  });
-});
-
-describe("nativeLine", () => {
-  const title = { romaji: "Sousou no Frieren", english: "Frieren", native: "葬送のフリーレン" };
-
-  it("shows the native title under a different shown one", () => {
-    expect(nativeLine(title, "Frieren")).toBe("葬送のフリーレン");
-  });
-
-  it("does not repeat the shown title, and copes with no title at all", () => {
-    expect(nativeLine(title, "葬送のフリーレン")).toBeNull();
-    expect(nativeLine({ ...title, native: "  " }, "Frieren")).toBeNull();
-    expect(nativeLine(null, "Frieren")).toBeNull();
   });
 });
 

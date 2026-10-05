@@ -1190,6 +1190,7 @@ mod tests {
             cover_url: None,
             progress: 12,
             status: "CURRENT".into(),
+            display: None,
         }]
     }
 
@@ -1292,6 +1293,7 @@ mod tests {
             cover_url: None,
             progress: 0,
             status: "CURRENT".into(),
+            display: None,
         }]
     }
 

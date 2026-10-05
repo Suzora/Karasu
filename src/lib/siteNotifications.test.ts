@@ -23,6 +23,8 @@ describe("normalizeSiteNotification", () => {
       kind: "AIRING",
       createdAt: 1700000000,
       title: "Frieren",
+      // Kept whole so the bell can re-spell the lead line when the title language changes.
+      mediaTitle: { romaji: "Sousou no Frieren", english: "Frieren", native: null },
       actorName: null,
       episode: 12,
       detail: null,
