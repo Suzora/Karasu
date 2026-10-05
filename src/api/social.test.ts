@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const gql = vi.hoisted(() => vi.fn());
 vi.mock("./anilist", () => ({ gql, TTL: { minute: 60, hour: 3600, day: 86_400, week: 604_800 } }));
 
-import { SITE_NOTIFICATIONS_PLAIN_QUERY, SITE_NOTIFICATIONS_QUERY, siteNotifications, wantsPlain } from "./social";
+import { SITE_NOTIFICATIONS_PLAIN_QUERY, SITE_NOTIFICATIONS_QUERY, USER_LIST_QUERY, siteNotifications, userList, wantsPlain } from "./social";
 import { RATE_LIMITED, TOKEN_REJECTED } from "@/lib/apiError";
 
 const empty = { Page: { pageInfo: { total: 0, currentPage: 1, hasNextPage: false }, notifications: [] } };
@@ -55,5 +55,13 @@ describe("siteNotifications", () => {
       expect(wantsPlain(new Error(message))).toBe(false);
     }
     expect(wantsPlain(new Error("AniList answered 500"))).toBe(true);
+  });
+});
+
+describe("userList", () => {
+  it("names its spender and asks for no cache, since another user's list never rests on disk", async () => {
+    gql.mockResolvedValueOnce({ MediaListCollection: { lists: [] } });
+    await userList(11, "ANIME");
+    expect(gql.mock.calls[0]).toEqual([USER_LIST_QUERY, { userId: 11, type: "ANIME" }, { source: "userList" }]);
   });
 });

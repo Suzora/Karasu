@@ -1114,7 +1114,7 @@ export async function userList(
 ): Promise<ForeignListGroup[]> {
   const data = await gql<{
     MediaListCollection: { lists: ForeignListGroup[] | null } | null;
-  }>(USER_LIST_QUERY, { userId, type });
+  }>(USER_LIST_QUERY, { userId, type }, { source: "userList" });
   return data.MediaListCollection?.lists ?? [];
 }
 
