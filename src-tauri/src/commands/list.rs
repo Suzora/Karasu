@@ -458,6 +458,8 @@ pub(crate) fn cache_entry_echo(db: &Db, echo: &Value) {
         "private",
         "startedAt",
         "completedAt",
+        "customLists",
+        "hiddenFromStatusLists",
     ] {
         if let Some(v) = echo.get(field) {
             if !v.is_null() {
@@ -1042,6 +1044,27 @@ pub async fn flush_queue(
 #[cfg(test)]
 mod tests {
     use super::{bulk_chunks, list_plan, queue_key, queue_parts, ListPlan, BULK_CHUNK, LIST_FRESH_SECS};
+
+    /// A membership edit reaches the cached entry, so a list served inside its window shows the boxes as saved.
+    #[test]
+    fn a_saved_membership_reaches_the_cached_entry() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id":1}"#).unwrap();
+        let list = serde_json::json!([{ "name": "Watching", "entries": [
+            { "id": 10, "mediaId": 100, "status": "CURRENT", "hiddenFromStatusLists": false,
+              "customLists": { "Rewatch": false, "Favs": false } }
+        ] }]);
+        db.cache_list(1, "ANIME", &list.to_string()).unwrap();
+        let echo = serde_json::json!({ "mediaId": 100, "media": { "type": "ANIME" }, "status": "CURRENT",
+            "hiddenFromStatusLists": true, "customLists": { "Rewatch": true, "Favs": false } });
+
+        super::cache_entry_echo(&db, &echo);
+
+        let cached: serde_json::Value = serde_json::from_str(&db.cached_list(1, "ANIME").unwrap()).unwrap();
+        let entry = &cached[0]["entries"][0];
+        assert_eq!(entry["customLists"], serde_json::json!({ "Rewatch": true, "Favs": false }));
+        assert_eq!(entry["hiddenFromStatusLists"], serde_json::json!(true));
+    }
 
     /// The window in one place: fresh serves for nothing, stale serves and refreshes behind, forced or empty fetches.
     #[test]

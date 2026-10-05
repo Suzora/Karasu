@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 644f568 -->
+<!-- generated-through: 146fe62 -->
 
 ### Fixed
 
@@ -76,6 +76,7 @@ tag time is then optional rather than load-bearing.
 - On Android the background-notification settings offer the battery exemption themselves instead of linking to a Jellyfin row that only exists with a server connected.
 - In the notifications, a row about someone's activity and that person's name are now two separate controls, so a screen reader can reach both.
 - The "how much you agree" line on another user's Lists tab no longer disappears on the phone after a while.
+- A custom-list membership you just saved no longer snaps back when the list screen is reopened soon after.
 
 ### Added
 
