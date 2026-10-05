@@ -68,6 +68,22 @@ const follow = (id: number, name: string): SiteNotifRow => ({
   media: null,
 });
 
+/** A like on one of the viewer's activities: the row opens the activity, and the actor's name is its own link. */
+const like = (id: number, name: string, userId: number, activityId: number, agoSec: number): SiteNotifRow => ({
+  id,
+  kind: "ACTIVITY_LIKE",
+  createdAt: Math.floor(Date.now() / 1000) - agoSec,
+  title: name,
+  actorName: name,
+  episode: null,
+  detail: null,
+  target: `/activity/${activityId}`,
+  userId,
+  mediaId: null,
+  activityId,
+  media: null,
+});
+
 /** Moves the clock past the feed's staleTime, so only a guard, and not freshness, can keep a surface from refetching. */
 function aMinuteLater(): void {
   const real = Date.now;
@@ -268,6 +284,38 @@ describe("notifications", () => {
     await screen.findByRole("dialog", { name: "notif.title" });
     expect(pageRow()).toHaveClass("bg-surface-850/60");
     expect(vi.mocked(siteNotifications)).toHaveBeenCalledTimes(1);
+  });
+
+  /** The row and the name are two controls side by side; a link inside a button is invisible to some screen readers. */
+  it("keeps an activity row and an actor group pressable without hiding the actor's link inside them", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    data.site = [like(901, "Mikan", 11, 5001, 600), like(902, "Mikan", 11, 5002, 1500), like(903, "Hoshi", 12, 5003, 3000)];
+    const { baseElement } = renderWithProviders(
+      <>
+        <Notifications />
+        <Where />
+      </>,
+    );
+    const row = await screen.findByRole("button", { name: /^Hoshi notif\.siteActivityLike/ });
+    const group = screen.getByRole("button", { name: /^Mikan notif\.groupLikes/ });
+    expect(await checkA11y(baseElement)).toHaveNoViolations();
+
+    expect(group).toHaveAttribute("aria-expanded", "false");
+    await user.click(group);
+    expect(group).toHaveAttribute("aria-expanded", "true");
+    expect(await checkA11y(baseElement)).toHaveNoViolations();
+
+    // The row first, then its name, in tab order.
+    row.focus();
+    await user.tab();
+    expect(screen.getByRole("link", { name: "Hoshi" })).toHaveFocus();
+
+    await user.click(screen.getByRole("link", { name: "Hoshi" }));
+    expect(screen.getByTestId("where")).toHaveTextContent("/user/Hoshi");
+    row.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByTestId("where")).toHaveTextContent("/activity/5003");
   });
 
   it("offers no AniList paging while the filter shows only Karasu's own", async () => {

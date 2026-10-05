@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
@@ -150,19 +150,34 @@ const rowClass = (unread: boolean) =>
 
 const tileClass = "mt-0.5 grid size-6 shrink-0 place-items-center rounded-inner";
 
-/** A press on the row, spelled for a container that holds a link and so cannot be a real button. */
-function pressable(run: () => void) {
-  return {
-    role: "button",
-    tabIndex: 0,
-    onClick: run,
-    onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        run();
-      }
-    },
-  } as const;
+/** A row that presses as a whole yet holds the actor's link: an empty button stretched over it, the link raised above. */
+function LinkedRow({
+  unread,
+  labelledBy,
+  expanded,
+  onPress,
+  children,
+}: {
+  unread: boolean;
+  /** The ids of the lines the row reads as, since the button itself is empty. */
+  labelledBy: string;
+  expanded?: boolean;
+  onPress: () => void;
+  children: ReactNode;
+}) {
+  return (
+    // `isolate`, so the two layers stack inside the row and never over a header the list scrolls under.
+    <div className={cn(rowClass(unread), "relative isolate")}>
+      <button
+        type="button"
+        aria-labelledby={labelledBy}
+        aria-expanded={expanded}
+        onClick={onPress}
+        className="absolute inset-0 z-5 cursor-pointer focus-inset"
+      />
+      {children}
+    </div>
+  );
 }
 
 /** The bell's rows, shared by the dropdown, the phone's sheet and the page; `leave` is how the surface steps aside. */
@@ -190,13 +205,16 @@ export function NotifFeed({
   const { pathname } = useLocation();
   const rowTime = (atMs: number) => relTime(atMs, i18n.language, t("notif.now"));
   const groups = limit === undefined ? n.groups : n.groups.slice(0, limit);
+  // Per feed, so the same row in the glance and on the page beneath it never shares an id.
+  const uid = useId();
 
   // The actor's own page, for rows whose press goes to the activity; the name is then the profile's only door.
   const profileOf = (row: SiteNotifRow): string | null =>
     row.activityId != null && row.actorName ? `/user/${encodeURIComponent(row.actorName)}` : null;
 
-  const profileLink = (to: string, text: string) => (
+  const profileLink = (to: string, text: string, id: string) => (
     <Link
+      id={id}
       to={to}
       // Navigates itself, so the view-transition hook leaves it alone rather than pushing the profile a second time.
       data-own-navigation
@@ -208,7 +226,8 @@ export function NotifFeed({
           if (to !== pathname) navigate(to);
         });
       }}
-      className="truncate text-ui font-medium text-ink-100 hover:underline"
+      // Above the row's stretched button, so the name stays its own press.
+      className="relative z-10 truncate text-ui font-medium text-ink-100 hover:underline"
     >
       {text}
     </Link>
@@ -238,6 +257,9 @@ export function NotifFeed({
   const renderSite = (row: SiteNotifRow, unread: boolean) => {
     const Icon = SITE_ICON[row.kind];
     const profile = profileOf(row);
+    const id = `${uid}-s${row.id}`;
+    // Lines the stretched button already speaks are hidden from a reader, so the row is not read twice.
+    const spoken = profile ? true : undefined;
     const body = (
       <>
         <span className={cn(tileClass, SITE_TINT[row.kind])}>
@@ -246,24 +268,33 @@ export function NotifFeed({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             {profile ? (
-              profileLink(profile, row.title)
+              profileLink(profile, row.title, `${id}-lead`)
             ) : (
               <span className="truncate text-ui font-medium text-ink-100">{row.title}</span>
             )}
             {unread && <Badge />}
           </span>
-          <span className="mt-0.5 block text-xs text-ink-500">{siteVerb(row, t)}</span>
-          {row.detail && <span className="mt-0.5 block truncate text-2xs text-ink-600">{row.detail}</span>}
-          <span className="mt-0.5 block text-2xs text-ink-600">{rowTime(row.createdAt * 1000)}</span>
+          <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
+            {siteVerb(row, t)}
+          </span>
+          {row.detail && (
+            <span id={`${id}-detail`} aria-hidden={spoken} className="mt-0.5 block truncate text-2xs text-ink-600">
+              {row.detail}
+            </span>
+          )}
+          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-2xs text-ink-600">
+            {rowTime(row.createdAt * 1000)}
+          </span>
         </span>
       </>
     );
-    // Nested link, so the container is a div-button: a real <button> cannot legally hold a link.
+    // A button cannot hold a link, so a row with the actor's name puts the two side by side instead.
     if (profile) {
+      const lines = [`${id}-lead`, `${id}-verb`, row.detail ? `${id}-detail` : null, `${id}-time`];
       return (
-        <div {...pressable(() => n.openSite(row, leave))} className={cn(rowClass(unread), "cursor-pointer")}>
+        <LinkedRow unread={unread} labelledBy={lines.filter(Boolean).join(" ")} onPress={() => n.openSite(row, leave)}>
           {body}
-        </div>
+        </LinkedRow>
       );
     }
     return (
@@ -285,8 +316,10 @@ export function NotifFeed({
     const label = g.label!;
     const open = n.expanded.has(g.key);
     const lead = label.kind === "airing" ? label.title : label.name;
-    // An actor group's press unfolds it, so the name carries the profile, making the container a div-button.
+    // An actor group's press unfolds it, so the name carries the profile, beside the row's press rather than inside.
     const actor = label.kind !== "airing" ? g.items[0]?.site?.actorName : null;
+    const id = `${uid}-g${g.key}`;
+    const spoken = actor ? true : undefined;
     const Icon = label.kind === "airing" ? CalendarClock : label.kind === "replies" ? MessageCircle : Heart;
     const tint =
       label.kind === "airing"
@@ -294,38 +327,60 @@ export function NotifFeed({
         : label.kind === "replies"
           ? "bg-surface-800 text-ink-500"
           : "bg-danger/14 text-danger";
+    const expanded = label.kind === "airing" ? undefined : open;
+    const content = (
+      <>
+        <span className={cn(tileClass, tint)}>
+          <Icon className="size-3.5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            {actor ? (
+              profileLink(`/user/${encodeURIComponent(actor)}`, lead, `${id}-lead`)
+            ) : (
+              <span className="truncate text-ui font-medium text-ink-100">{lead}</span>
+            )}
+            <Badge tone="neutral" count={label.n} />
+            {g.unread && <Badge />}
+          </span>
+          <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
+            {groupVerb(label, t)}
+          </span>
+          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-2xs text-ink-600">
+            {rowTime(g.atMs)}
+          </span>
+        </span>
+        {label.kind === "airing" ? (
+          <ChevronRight aria-hidden className="mt-1 size-3.5 shrink-0 text-ink-600" />
+        ) : (
+          <ChevronDown
+            aria-hidden
+            className={cn("mt-1 size-3.5 shrink-0 text-ink-600 transition-transform", open && "rotate-180")}
+          />
+        )}
+      </>
+    );
     return (
       <li key={g.key}>
-        <div
-          {...pressable(() => n.openGroup(g, leave))}
-          aria-expanded={label.kind === "airing" ? undefined : open}
-          className={cn(rowClass(g.unread), "cursor-pointer")}
-        >
-          <span className={cn(tileClass, tint)}>
-            <Icon className="size-3.5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-2">
-              {actor ? (
-                profileLink(`/user/${encodeURIComponent(actor)}`, lead)
-              ) : (
-                <span className="truncate text-ui font-medium text-ink-100">{lead}</span>
-              )}
-              <Badge tone="neutral" count={label.n} />
-              {g.unread && <Badge />}
-            </span>
-            <span className="mt-0.5 block text-xs text-ink-500">{groupVerb(label, t)}</span>
-            <span className="mt-0.5 block text-2xs text-ink-600">{rowTime(g.atMs)}</span>
-          </span>
-          {label.kind === "airing" ? (
-            <ChevronRight aria-hidden className="mt-1 size-3.5 shrink-0 text-ink-600" />
-          ) : (
-            <ChevronDown
-              aria-hidden
-              className={cn("mt-1 size-3.5 shrink-0 text-ink-600 transition-transform", open && "rotate-180")}
-            />
-          )}
-        </div>
+        {actor ? (
+          <LinkedRow
+            unread={g.unread}
+            labelledBy={`${id}-lead ${id}-verb ${id}-time`}
+            expanded={expanded}
+            onPress={() => n.openGroup(g, leave)}
+          >
+            {content}
+          </LinkedRow>
+        ) : (
+          <button
+            type="button"
+            onClick={() => n.openGroup(g, leave)}
+            aria-expanded={expanded}
+            className={rowClass(g.unread)}
+          >
+            {content}
+          </button>
+        )}
         {open && (
           <ul className="ml-5.5 border-l border-hair pl-2">
             {g.items.map((m) => (

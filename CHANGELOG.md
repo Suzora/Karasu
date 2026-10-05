@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 5d25230 -->
+<!-- generated-through: adfee7e -->
 
 ### Fixed
 
@@ -74,6 +74,7 @@ tag time is then optional rather than load-bearing.
 - A detail page no longer jumps when it finishes loading: its placeholder now has the page's banner height, and on a phone the page's layout too.
 - In a narrow window the detail page's community chart no longer runs its counts together, and its status legend no longer cuts names short.
 - On Android the background-notification settings offer the battery exemption themselves instead of linking to a Jellyfin row that only exists with a server connected.
+- In the notifications, a row about someone's activity and that person's name are now two separate controls, so a screen reader can reach both.
 
 ### Added
 

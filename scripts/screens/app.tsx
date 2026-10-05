@@ -405,6 +405,8 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     const notifications = [
       { __typename: "ActivityLikeNotification", id: 901, createdAt: now - 600, activityId: 5001, user: user(11, "Mikan") },
       { __typename: "ActivityLikeNotification", id: 902, createdAt: now - 1500, activityId: 5002, user: user(11, "Mikan") },
+      // A lone activity row, whose actor's name is a link beside the row's own press.
+      { __typename: "ActivityReplyNotification", id: 906, createdAt: now - 3000, activityId: 5004, user: user(12, "Hoshi") },
       { __typename: "FollowingNotification", id: 903, createdAt: now - 7200, user: user(12, "Hoshi") },
       { __typename: "AiringNotification", id: 904, createdAt: now - 100_000, episode: REAL[1].next - 1, media: { id: REAL[1].id, title: { romaji: REAL[1].title, english: REAL[1].title, native: null }, isAdult: false, genres: [] } },
       { __typename: "ThreadCommentReplyNotification", id: 905, createdAt: now - 260_000, commentId: 1, user: user(13, "Tsubame"), thread: { id: 44, title: "Frühjahr 2026: eure Favoriten" } },
