@@ -29,11 +29,12 @@ $published = (gh release view $Tag --json publishedAt --jq .publishedAt)
 if ($LASTEXITCODE -ne 0) { throw "gh could not read release $Tag" }
 $date = ([DateTime]$published).ToString("yyyy-MM-dd")
 
-$manifest = Get-Content (Join-Path $src "dev.kyu.karasu.yml") -Raw
+# UTF-8 said outright: Windows PowerShell reads a file without a BOM in the ANSI codepage, which breaks every dash.
+$manifest = Get-Content (Join-Path $src "dev.kyu.karasu.yml") -Raw -Encoding UTF8
 $manifest = $manifest.Replace("URL_TO_FILL", "$base/$name").Replace("SHA256_TO_FILL", $sha)
 [IO.File]::WriteAllText((Join-Path $OutDir "dev.kyu.karasu.yml"), $manifest, [Text.UTF8Encoding]::new($false))
 
-$meta = Get-Content (Join-Path $src "dev.kyu.karasu.metainfo.xml") -Raw
+$meta = Get-Content (Join-Path $src "dev.kyu.karasu.metainfo.xml") -Raw -Encoding UTF8
 $meta = $meta.Replace("RELEASE_TO_FILL", $version).Replace("DATE_TO_FILL", $date).Replace("TAG_TO_FILL", $Tag)
 [IO.File]::WriteAllText((Join-Path $OutDir "dev.kyu.karasu.metainfo.xml"), $meta, [Text.UTF8Encoding]::new($false))
 

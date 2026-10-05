@@ -9,13 +9,31 @@ validates the metainfo with `appstreamcli --pedantic` and builds the bundle on
 a GNOME 50 builder — run it once against the tag before opening the request,
 and again after every change to either file.
 
+## Before the request: two changes the files here do not have yet
+
+Both are in ROADMAP.md under "Before the stores", and the submission waits
+for them; it goes in with the next Stable (decided on 2026-10-05).
+
+- **Flathub builds from source.** The manifest here repackages the release
+  `.deb`, which Flathub accepts only for software that cannot be built,
+  so it becomes a from-source manifest: the cargo and npm dependencies
+  vendored as sources by flatpak-builder-tools, built offline in the GNOME 50
+  SDK, and checked with `flatpak-builder-lint` before the pull request.
+- **The id becomes `io.github.Suzora.Karasu`.** A Flathub id must name a
+  domain the developer controls, and the project's home is its GitHub
+  organisation; `dev.kyu.karasu` names a domain nobody here owns. The rename
+  covers the files here, `flatpak-manifest.ps1` and the `Flatpak` workflow.
+  Karasu's own identifier stays `dev.kyu.karasu` (the data folder and the
+  single-instance name); whether that name may be owned on the session bus
+  from inside the sandbox is checked before the rename lands.
+
 ## The one-time request
 
 1. Fork <https://github.com/flathub/flathub>, branch from `new-pr`, add the two
    filled files from `packaging/flatpak/out/` at the repository root.
 2. Open the pull request against `new-pr`. The template asks for the app id
-   (`dev.kyu.karasu`), that the app is not already on Flathub, and that the
-   submitter is the developer — which is the case.
+   (`io.github.Suzora.Karasu`, once renamed), that the app is not already on
+   Flathub, and that the submitter is the developer — which is the case.
 3. Review answers what the manifest cannot: the reviewers may ask for the
    `--talk-name` lines to be justified. The reasons are in the manifest's
    comments (tray = StatusNotifier, MPRIS = the media-session pass, secrets =

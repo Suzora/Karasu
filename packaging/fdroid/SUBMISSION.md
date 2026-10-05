@@ -42,8 +42,31 @@ over each other; a user who switches uninstalls first.
 2. Fork <https://gitlab.com/fdroid/fdroiddata>, add the filled file as
    `metadata/dev.kyu.karasu.yml`, open a merge request. Their CI runs
    `fdroid build` on it; expect a round of questions about the `sudo:` steps
-   (Node and Rust are not in the base image) and the anti-feature list — the
-   app talks to AniList and a user's Jellyfin only, both `NonFreeNet`-free.
+   (Node and Rust are not in the base image) and the anti-feature list.
+
+## What the recipe still has to answer
+
+Found while preparing the submission; each is in ROADMAP.md under "Before the
+stores", and the request goes in with the next Stable (decided on
+2026-10-05).
+
+- **The version code is computed.** It is `1000000 + COMMIT_NUMBER`, a
+  constant in `src-tauri/src/commands/update.rs`, not a literal in a Gradle
+  file, so `AutoUpdateMode: Version` cannot read it on its own. The recipe
+  needs `UpdateCheckData` pointing at that constant and a `VercodeOperation`
+  adding the million, or F-Droid's bot cannot follow a new tag.
+- **`npm ci` installs prebuilt native binaries** — the Tauri CLI and the
+  bundler's native parts ship one per platform. F-Droid's scanner refuses
+  prebuilt binaries in the source tree it builds from, so each needs
+  building from source, a scan exception with its reason, or a different
+  way to run the step.
+- **Node.** The build server's Debian packages an older Node than the
+  `engines.node >=22` the tree asks for; the recipe has to install a current
+  one itself rather than take `nodejs` from apt.
+- **Anti-features: expect `NonFreeNet`.** Karasu depends on AniList, a
+  proprietary network service, which is what that label marks; the label
+  says so on the listing and does not block inclusion. Jellyfin is free
+  software and adds nothing.
 
 ## What to know before the first build
 

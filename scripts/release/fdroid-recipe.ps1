@@ -22,7 +22,8 @@ $core = ($Tag -replace "^v", "")
 $versionName = "$core.$commitNumber"
 $versionCode = 1000000 + $commitNumber
 
-$recipe = Get-Content (Join-Path $repoRoot "packaging/fdroid/dev.kyu.karasu.yml") -Raw
+# UTF-8 said outright: Windows PowerShell reads a file without a BOM in the ANSI codepage, which breaks every dash.
+$recipe = Get-Content (Join-Path $repoRoot "packaging/fdroid/dev.kyu.karasu.yml") -Raw -Encoding UTF8
 $recipe = $recipe.Replace("VERSION_TO_FILL", $versionName).Replace("VERSIONCODE_TO_FILL", "$versionCode").Replace("TAG_TO_FILL", $Tag)
 [IO.File]::WriteAllText((Join-Path $OutDir "dev.kyu.karasu.yml"), $recipe, [Text.UTF8Encoding]::new($false))
 
