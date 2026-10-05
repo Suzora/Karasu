@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { userList, type ForeignListEntry, type UserProfile } from "@/api/social";
-import { isTauri } from "@/api/anilist";
+import { fetchMediaList, isTauri } from "@/api/anilist";
 import {
   STATUS_ORDER,
   displayTitle,
-  type ListResult,
   type MediaListStatus,
   type MediaType,
 } from "@/api/types";
@@ -26,7 +25,6 @@ import { statusColorVar } from "@/lib/statusColors";
 /** Another user's list, read-only through `CoverCell` rather than `GridCard`, with scores in the owner's format. */
 export function UserLists({ user }: { user: UserProfile }) {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const viewer = useAuth((s) => s.viewer);
   const viewerFormat = useScoreFormat();
   const level = useContentFilter((s) => s.level);
@@ -43,6 +41,15 @@ export function UserLists({ user }: { user: UserProfile }) {
   });
 
   const theirFormat = asScoreFormat(user.mediaListOptions?.scoreFormat);
+
+  // Subscribed rather than read once: the phone mounts no other observer, so a one-off read outlived the cache entry.
+  const comparing = viewer != null && viewer.id !== user.id;
+  const { data: mineData } = useQuery({
+    queryKey: ["mediaList", type, viewer?.id],
+    queryFn: () => fetchMediaList(viewer!.id, type),
+    enabled: isTauri && comparing,
+    staleTime: Infinity,
+  });
 
   // De-duped by media id: a custom list echoes entries the status lists already carry.
   const entries = useMemo(() => {
@@ -67,9 +74,7 @@ export function UserLists({ user }: { user: UserProfile }) {
   }, [entries]);
 
   const match = useMemo(() => {
-    if (!viewer || viewer.id === user.id) return null;
-    const mineData = qc.getQueryData<ListResult>(["mediaList", type, viewer.id]);
-    if (!mineData) return null;
+    if (!comparing || !mineData) return null;
     const mine = mineData.lists
       .filter((g) => !g.isCustomList)
       .flatMap((g) => g.entries)
@@ -79,7 +84,7 @@ export function UserLists({ user }: { user: UserProfile }) {
       raw: toRaw(theirFormat, e.score),
     }));
     return affinity(mine, theirs);
-  }, [qc, viewer, user.id, type, entries, viewerFormat, theirFormat]);
+  }, [comparing, mineData, entries, viewerFormat, theirFormat]);
 
   const titleOf = useMemo(
     () => new Map(entries.map((e) => [e.mediaId, displayTitle(e.media.title)])),

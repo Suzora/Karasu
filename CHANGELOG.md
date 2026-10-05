@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 58ec878 -->
+<!-- generated-through: 644f568 -->
 
 ### Fixed
 
@@ -75,6 +75,7 @@ tag time is then optional rather than load-bearing.
 - In a narrow window the detail page's community chart no longer runs its counts together, and its status legend no longer cuts names short.
 - On Android the background-notification settings offer the battery exemption themselves instead of linking to a Jellyfin row that only exists with a server connected.
 - In the notifications, a row about someone's activity and that person's name are now two separate controls, so a screen reader can reach both.
+- The "how much you agree" line on another user's Lists tab no longer disappears on the phone after a while.
 
 ### Added
 
