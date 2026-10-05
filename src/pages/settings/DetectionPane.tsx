@@ -16,14 +16,12 @@ import * as api from "@/api/anilist";
 import {
   clearDetectionOverride,
   discoverJellyfinServers,
-  getJellyfinBackground,
   getJellyfinSettings,
   getScrobbleSettings,
   getMediaDetection,
   jellyfinSignIn,
   jellyfinSignOut,
   listDetectionOverrides,
-  requestBatteryExemption,
   setJellyfinBackground,
   setJellyfinSettings,
   setScrobbleSettings,
@@ -32,7 +30,6 @@ import {
   testJellyfin,
   type DetectionOverride,
   type DiscoveredServer,
-  type JellyfinBackground,
   type JellyfinSession,
   type JellyfinSettings,
   type JellyfinTest,
@@ -42,6 +39,7 @@ import {
 import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { useAuth } from "@/stores/auth";
 import { ExternalNote, Row, Toggle } from "./shared";
+import { BatteryRow, useBackgroundState } from "./BatteryRow";
 import { anilistCoversAiring } from "@/lib/airingCoverage";
 import { backendErrorText } from "@/lib/backendError";
 import { commands, unwrap } from "@/api/tauri";
@@ -780,21 +778,8 @@ export function JellyfinSection() {
 /** Android only: the tracking service and battery exemption, both opt-in, offered only when the backend says so. */
 function JellyfinBackgroundRows() {
   const { t } = useTranslation();
-  const [state, setState] = useState<JellyfinBackground | null>(null);
+  const [state, setState] = useBackgroundState();
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!api.isTauri) return;
-    const load = () => {
-      getJellyfinBackground()
-        .then(setState)
-        .catch(() => {});
-    };
-    load();
-    // The exemption dialog answers nothing; the state is re-read when the window comes back from it.
-    window.addEventListener("focus", load);
-    return () => window.removeEventListener("focus", load);
-  }, []);
 
   if (!state?.supported) return null;
 
@@ -808,15 +793,6 @@ function JellyfinBackgroundRows() {
     });
   };
 
-  const ask = async () => {
-    setError(null);
-    try {
-      await requestBatteryExemption();
-    } catch (e) {
-      setError(t("settings.jellyfinBatteryFailed", { message: String(e) }));
-    }
-  };
-
   return (
     <div className="mt-3 space-y-3 border-t border-hair pt-3">
       <Toggle
@@ -825,16 +801,8 @@ function JellyfinBackgroundRows() {
         label={t("settings.jellyfinBackground")}
         hint={t("settings.jellyfinBackgroundHint")}
       />
-      <Row label={t("settings.jellyfinBattery")} hint={t("settings.jellyfinBatteryHint")}>
-        {state.batteryExempt ? (
-          <span className="shrink-0 text-sm text-success">{t("settings.jellyfinBatteryAllowed")}</span>
-        ) : (
-          <Button variant="secondary" size="sm" className="shrink-0" onClick={ask}>
-            {t("settings.jellyfinBatteryAllow")}
-          </Button>
-        )}
-      </Row>
       {error && <p className="text-sm text-danger">{error}</p>}
+      <BatteryRow exempt={state.batteryExempt} />
     </div>
   );
 }

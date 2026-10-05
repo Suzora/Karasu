@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: e4c174b -->
+<!-- generated-through: 5d25230 -->
 
 ### Fixed
 
@@ -73,6 +73,7 @@ tag time is then optional rather than load-bearing.
 - A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
 - A detail page no longer jumps when it finishes loading: its placeholder now has the page's banner height, and on a phone the page's layout too.
 - In a narrow window the detail page's community chart no longer runs its counts together, and its status legend no longer cuts names short.
+- On Android the background-notification settings offer the battery exemption themselves instead of linking to a Jellyfin row that only exists with a server connected.
 
 ### Added
 

@@ -1567,12 +1567,13 @@ export const de: typeof en = {
     jellyfinBackground: "Im Hintergrund weiter erfassen",
     jellyfinBackgroundHint:
       "Zeigt eine stille, dauerhafte Benachrichtigung, solange Karasu offen ist. Sie hält Android davon ab, die App bei ausgeschaltetem Bildschirm einzufrieren; ohne sie pausiert die Erfassung wenige Minuten, nachdem du die App verlässt.",
-    jellyfinBattery: "Akku-Optimierung",
-    jellyfinBatteryHint:
-      "Android kann die App trotzdem pausieren und die Benachrichtigungsprüfung verzögern, solange Karasu hier nicht ausgenommen ist. Manche Handys haben noch eine eigene Regel: Auf nubia und ZTE (REDMAGIC OS) in den System-App-Einstellungen von Karasu „Läuft im Hintergrund“ auf „Zugelassen“ stellen, sonst friert das Handy die App etwa eine Minute nach dem Sperren ein, Benachrichtigung hin oder her.",
-    jellyfinBatteryAllow: "Karasu ausnehmen",
-    jellyfinBatteryAllowed: "Ausgenommen",
-    jellyfinBatteryFailed: "Akku-Einstellungen konnten nicht geöffnet werden ({{message}})",
+    battery: "Akku-Optimierung",
+    batteryHint:
+      "Android kann Karasu im Hintergrund pausieren, die Erfassung wie die Benachrichtigungsprüfung, solange es hier nicht ausgenommen ist.",
+    batteryVendors: "Manche Hersteller haben zusätzlich eigene Regeln. Die Schritte je Handy:",
+    batteryAllow: "Karasu ausnehmen",
+    batteryAllowed: "Ausgenommen",
+    batteryFailed: "Akku-Einstellungen konnten nicht geöffnet werden ({{message}})",
     jellyfinFind: "Server suchen",
     jellyfinFinding: "Suche…",
     jellyfinFindHint:
@@ -1588,8 +1589,6 @@ export const de: typeof en = {
     jellyfinExternalVerified: "Geprüft, derselbe Server.",
     jellyfinExternalUnverified: "Von hier noch nicht erreichbar — wird geprüft, sobald sie gebraucht wird.",
     jellyfinViaExternal: "Antwort über die externe Adresse ({{url}}).",
-    notifScheduleAndroidHint:
-      "Wenn Android diese Prüfungen verzögert, nimm Karasu unter Erkennung → Jellyfin von der Akku-Optimierung aus.",
     jfErrBadUrl: "Das ist keine nutzbare Serveradresse — sie muss mit http:// oder https:// beginnen.",
     jfErrNotJellyfin: "Diese Adresse antwortet, aber nicht wie ein Jellyfin-Server.",
     jfErrExternalOtherServer:

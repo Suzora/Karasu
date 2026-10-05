@@ -1556,12 +1556,13 @@ export const en = {
     jellyfinBackground: "Keep tracking in the background",
     jellyfinBackgroundHint:
       "Shows a quiet, permanent notification while Karasu is open. It is what stops Android from freezing the app when the screen is off; without it, tracking pauses a few minutes after you leave.",
-    jellyfinBattery: "Battery optimisation",
-    jellyfinBatteryHint:
-      "Android may still pause the app and delay the notification check unless Karasu is excluded here. Some phones have a rule of their own on top: on nubia and ZTE (REDMAGIC OS), set “Runs in background” to “Allowed” in Karasu's system app settings, or the phone freezes the app about a minute after the screen locks, notification and all.",
-    jellyfinBatteryAllow: "Exclude Karasu",
-    jellyfinBatteryAllowed: "Excluded",
-    jellyfinBatteryFailed: "Could not open the battery settings ({{message}})",
+    battery: "Battery optimisation",
+    batteryHint:
+      "Android may pause Karasu in the background, tracking and the notification check alike, unless it is excluded here.",
+    batteryVendors: "Some manufacturers add rules of their own on top. The steps for each phone:",
+    batteryAllow: "Exclude Karasu",
+    batteryAllowed: "Excluded",
+    batteryFailed: "Could not open the battery settings ({{message}})",
     jellyfinFind: "Find servers",
     jellyfinFinding: "Searching…",
     jellyfinFindHint:
@@ -1577,8 +1578,6 @@ export const en = {
     jellyfinExternalVerified: "Verified as the same server.",
     jellyfinExternalUnverified: "Not reachable from here yet — checked when it is needed.",
     jellyfinViaExternal: "Answered via the external address ({{url}}).",
-    notifScheduleAndroidHint:
-      "If Android delays these checks, exclude Karasu from battery optimisation under Detection → Jellyfin.",
     jfErrBadUrl: "That is not a usable server address — it needs to start with http:// or https://.",
     jfErrNotJellyfin: "That address answers, but not like a Jellyfin server.",
     jfErrExternalOtherServer:

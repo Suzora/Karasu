@@ -95,6 +95,7 @@ export const SCREENS = [
   { id: "p50-detail-laedt", w: 405, h: 860, phone: true, route: "/media/178789", mock: "detail-pending" },
   { id: "p51-titelsprache", w: 405, h: 860, phone: true, route: "/settings?pane=appearance&setting=titleLanguage", act: landOn("titleLanguage", "Sprache & Bewegung") },
   { id: "p52-liste-original", w: 405, h: 860, phone: true, route: "/list", mock: "titles-native" },
+  { id: "p53-hintergrund", w: 405, h: 860, phone: true, route: "/settings?pane=account", act: toCard("Benachrichtigungen im Hintergrund") },
   { id: "d59-detail-reihe", w: 1232, h: 800, route: "/media/195516" },
   { id: "d60-detail-ohne-banner", w: 1232, h: 800, route: "/media/178789", mock: "no-banner" },
   { id: "d61-uebersicht-ohne-banner", w: 1232, h: 800, route: "/", mock: "no-banner" },
