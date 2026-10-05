@@ -40,12 +40,31 @@ import DetectionPopup from "@/components/shell/DetectionPopup";
 import SignInMerge from "@/components/overlays/SignInMerge";
 import Dashboard from "@/pages/Dashboard";
 import MediaList from "@/pages/MediaList";
-import Search from "@/pages/Search";
-import Seasonal from "@/pages/Seasonal";
-import AnimeDetail from "@/pages/AnimeDetail";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { commands } from "@/api/tauri";
+import { lazyRoute, whenIdle } from "./lazyRoute";
 
-// Pages reached deliberately are split out of the entry chunk; the launch and navigation hot path above stays eager.
+// The launch screens stay eager; the pages one click away load on idle and render directly once in, for the morph.
+const AnimeDetail = lazyRoute(() => import("@/pages/AnimeDetail"), <DetailSkeleton />);
+const Search = lazyRoute(() => import("@/pages/Search"));
+const Seasonal = lazyRoute(() => import("@/pages/Seasonal"));
+
+/** Whether a route's page can render in the same frame, which a View Transition's snapshot needs; else it starts loading. */
+function routeReady(to: string): boolean {
+  const path = to.split(/[?#]/)[0];
+  const route = /^\/(media|anime)\//.test(path)
+    ? AnimeDetail
+    : path === "/search"
+      ? Search
+      : path === "/seasonal"
+        ? Seasonal
+        : null;
+  if (!route || route.isLoaded()) return true;
+  void route.preload().catch(() => {});
+  return false;
+}
+
+// Pages reached deliberately are split out of the entry chunk and load when visited.
 const Statistics = lazy(() => import("@/pages/Statistics"));
 const Calendar = lazy(() => import("@/pages/Calendar"));
 const Franchise = lazy(() => import("@/pages/Franchise"));
@@ -81,7 +100,13 @@ export default function App() {
   // A primitive, so the selector is referentially stable across renders.
   const viewerId = useAuth((s) => s.viewer?.id);
   // Route changes become one continuous transition; under reduced motion it stands down and `<main key>` cuts as before.
-  useViewTransitions();
+  useViewTransitions(routeReady);
+
+  useEffect(() => {
+    whenIdle(() => {
+      for (const route of [AnimeDetail, Search, Seasonal]) void route.preload().catch(() => {});
+    });
+  }, []);
 
   useEffect(() => {
     init();

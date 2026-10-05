@@ -11,7 +11,7 @@ const HERO_NAME = "karasu-hero";
 const COMMIT_WAIT_MS = 1500;
 
 /** Wraps in-app navigation in a View Transition by intercepting clicks; the new snapshot waits for the route's commit. */
-export function useViewTransitions() {
+export function useViewTransitions(routeReady: (to: string) => boolean = () => true) {
   const navigate = useNavigate();
   const { key: routeKey } = useLocation();
   // The router commits inside `startTransition`, which `flushSync` cannot hurry, so the callback waits for this instead.
@@ -42,6 +42,8 @@ export function useViewTransitions() {
 
       // With motion off this must not intercept at all, so check the setting before taking the click over.
       if (prefersReducedMotion()) return;
+      // A page whose chunk is not in yet would snapshot an empty pane, so that first visit navigates plainly.
+      if (!routeReady(to)) return;
 
       e.preventDefault();
 
@@ -69,5 +71,5 @@ export function useViewTransitions() {
     // Keep the capture phase; in bubble phase `<Link>` has already navigated and this listener bails every time.
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [navigate]);
+  }, [navigate, routeReady]);
 }
