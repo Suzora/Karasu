@@ -736,3 +736,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   no longer fit, so no status name is cut. A narrow desktop window surfaced it:
   at 768 px with the sidebar open the ten counts ran together and the legend
   read "Ab…", "Gep…".
+- **2026-10-05:** Karasu's own title language sits in Appearance under
+  "Language & motion", as a Select beneath the interface language (A of three
+  mockups) with the example from C under it: one title from the list, spelt
+  the way the lists will spell it, the native line in Kosugi Maru. A link
+  from the AniList pane's note lands on the row centred and outlined in the
+  accent at 40 % on a 5 % wash until the first press, the same vocabulary as
+  a comment a thread link lands on.

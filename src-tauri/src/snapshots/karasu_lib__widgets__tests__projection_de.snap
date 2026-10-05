@@ -1,6 +1,6 @@
 ---
 source: src/widgets.rs
-expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::De, now)"
+expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::De,\nTitleLanguage::English, now)"
 ---
 {
   "airing": [

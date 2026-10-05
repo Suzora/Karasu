@@ -87,19 +87,6 @@ fn is_alertable(rel: &str, status: &str, node_id: i64, on_list: &HashSet<i64>) -
         && !on_list.contains(&node_id)
 }
 
-fn pick_title(title: Option<&Value>) -> String {
-    let get = |k: &str| {
-        title
-            .and_then(|t| t.get(k))
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-    };
-    get("english")
-        .or_else(|| get("romaji"))
-        .or_else(|| get("native"))
-        .unwrap_or_else(|| "A related title".to_string())
-}
 
 /// The chunk indices one run covers; pure so the rotation is testable without a list or a network.
 fn window(start: usize, len: usize, max: usize) -> Vec<usize> {
@@ -122,6 +109,7 @@ async fn check(app: &AppHandle) {
     // Seed silently until the cursor has been all the way round both lists, or a long-known sequel reads as new.
     let seeding = db.kv_get("sequel_seeded").is_none();
     let level = crate::commands::read_content_filter(&db);
+    let lang = crate::titles::title_language(&db);
 
     for media_type in ["ANIME", "MANGA"] {
         // Everything on the list (any status) counts as "already have it".
@@ -202,7 +190,8 @@ async fn check(app: &AppHandle) {
                     if seeding {
                         continue; // seed silently on the first run
                     }
-                    let title = pick_title(edge.pointer("/node/title"));
+                    let title = crate::titles::pick_json(lang, edge.pointer("/node/title"))
+                        .unwrap_or_else(|| "A related title".to_string());
                     crate::alerts::notify::notify(
                         app,
                         "sequel",

@@ -78,6 +78,7 @@ import { GenreChips, MetaLine, NextEpisode, TimeLeft } from "@/components/media/
 import { StatusMenu } from "@/components/media/StatusMenu";
 import { IconButton } from "@/components/ui/icon-button";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { RichText } from "@/components/RichText";
 import { ScoreColumns, StatusBar } from "@/components/stats/panels";
 
@@ -145,6 +146,7 @@ export default function AnimeDetail() {
   }
 
   const title = displayTitle(data.title);
+  const subtitle = secondLine(data.title, title);
 
   // The list entry for the badge under the title; mediaListEntry rides DETAIL_QUERY, so it costs no request.
   const entry = data.mediaListEntry ?? cachedEntry;
@@ -237,20 +239,16 @@ export default function AnimeDetail() {
             />
           )}
           <div className={frame.heading}>
-            <h1 className="text-heading text-ink-100">
+            <h1 className={cn("text-heading text-ink-100", isNativeLine(data.title, title) && "font-brand-jp")}>
               {title}
             </h1>
             {/* Native first, romaji only as a fallback: the Japanese face is part of the app's identity. */}
-            {data.title.native && data.title.native !== title ? (
-              <p className="font-brand-jp text-base text-ink-500">
-                {data.title.native}
-              </p>
-            ) : (
-              data.title.romaji &&
-              data.title.romaji !== title && (
-                <p className="text-sm text-ink-500">{data.title.romaji}</p>
-              )
-            )}
+            {subtitle &&
+              (subtitle.native ? (
+                <p className="font-brand-jp text-base text-ink-500">{subtitle.text}</p>
+              ) : (
+                <p className="text-sm text-ink-500">{subtitle.text}</p>
+              ))}
             {phone ? (
               <div className={frame.facts}>
                 <MetaLine data={data} studios={mainStudios.map((s) => s.name)} />

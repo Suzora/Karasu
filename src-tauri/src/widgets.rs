@@ -3,6 +3,7 @@
 use serde_json::{json, Value};
 
 use crate::i18n::Lang;
+use crate::titles::TitleLanguage;
 
 /// Rows per list — a widget shows a handful, and the file stays small.
 const MAX_ROWS: usize = 8;
@@ -41,20 +42,9 @@ fn day_names(lang: Lang) -> Value {
     }
 }
 
-/// English → romaji → native, the airing watcher's own preference order.
-fn title_of(media: &Value) -> String {
-    let title = media.get("title");
-    let get = |k: &str| {
-        title
-            .and_then(|t| t.get(k))
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-    };
-    get("english")
-        .or_else(|| get("romaji"))
-        .or_else(|| get("native"))
-        .unwrap_or_else(|| "—".to_string())
+/// The entry's title in the user's title language, as every other composed text spells it.
+fn title_of(media: &Value, titles: TitleLanguage) -> String {
+    crate::titles::pick_json(titles, media.get("title")).unwrap_or_else(|| "—".to_string())
 }
 
 /// Every visible CURRENT/REPEATING entry, content-filtered, with custom lists skipped as duplicates.
@@ -93,7 +83,7 @@ fn watching_rows<'a>(
 }
 
 /// The continue-list projection: newest activity first.
-fn continue_rows(entries: &[&Value], total_key: &str) -> Value {
+fn continue_rows(entries: &[&Value], total_key: &str, titles: TitleLanguage) -> Value {
     let mut rows: Vec<&&Value> = entries.iter().collect();
     rows.sort_by_key(|e| -(e["updatedAt"].as_i64().unwrap_or(0)));
     Value::Array(
@@ -101,7 +91,7 @@ fn continue_rows(entries: &[&Value], total_key: &str) -> Value {
             .take(MAX_ROWS)
             .map(|e| {
                 json!({
-                    "title": title_of(&e["media"]),
+                    "title": title_of(&e["media"], titles),
                     "progress": e["progress"].as_i64().unwrap_or(0),
                     "total": e["media"][total_key].as_i64(),
                 })
@@ -111,7 +101,7 @@ fn continue_rows(entries: &[&Value], total_key: &str) -> Value {
 }
 
 /// Next episodes inside the coming week, soonest first.
-fn airing_rows(entries: &[&Value], now_ms: i64) -> Value {
+fn airing_rows(entries: &[&Value], now_ms: i64, titles: TitleLanguage) -> Value {
     let mut rows: Vec<(i64, i64, String)> = entries
         .iter()
         .filter_map(|e| {
@@ -120,7 +110,7 @@ fn airing_rows(entries: &[&Value], now_ms: i64) -> Value {
             if at_ms < now_ms - 60 * 60 * 1000 || at_ms > now_ms + WEEK_MS {
                 return None;
             }
-            Some((at_ms, next["episode"].as_i64().unwrap_or(0), title_of(&e["media"])))
+            Some((at_ms, next["episode"].as_i64().unwrap_or(0), title_of(&e["media"], titles)))
         })
         .collect();
     rows.sort();
@@ -142,6 +132,7 @@ pub fn project(
     level: &str,
     hide_adult: bool,
     lang: Lang,
+    titles: TitleLanguage,
     now_ms: i64,
 ) -> Value {
     let empty = Value::Array(Vec::new());
@@ -152,9 +143,9 @@ pub fn project(
         "generatedAtMs": now_ms,
         "labels": labels(lang),
         "days": day_names(lang),
-        "airing": airing_rows(&anime, now_ms),
-        "continueWatching": continue_rows(&anime, "episodes"),
-        "continueReading": continue_rows(&manga, "chapters"),
+        "airing": airing_rows(&anime, now_ms, titles),
+        "continueWatching": continue_rows(&anime, "episodes", titles),
+        "continueReading": continue_rows(&manga, "chapters", titles),
     })
 }
 
@@ -193,6 +184,7 @@ fn write_projection(app: &tauri::AppHandle) {
         &level,
         hide_adult,
         lang,
+        crate::titles::title_language(&db),
         crate::alerts::notify::now_ms(),
     );
 
@@ -291,7 +283,7 @@ mod tests {
             entry("COMPLETED", 12, 500, "Done"),
             entry("REPEATING", 5, 300, "Again"),
         ]));
-        let doc = project(Some(&p), None, "off", false, Lang::En, 0);
+        let doc = project(Some(&p), None, "off", false, Lang::En, TitleLanguage::English, 0);
         let rows = doc["continueWatching"].as_array().unwrap();
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[0]["title"], "Again");
@@ -305,13 +297,13 @@ mod tests {
         let p = payload(json!([adult, entry("CURRENT", 1, 50, "Shown")]));
 
         // Filter level catches it…
-        let doc = project(Some(&p), None, "moderate", false, Lang::En, 0);
+        let doc = project(Some(&p), None, "moderate", false, Lang::En, TitleLanguage::English, 0);
         let rows = doc["continueWatching"].as_array().unwrap();
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0]["title"], "Shown");
 
         // …and with the filter off, blur-adult still hides rather than blurs.
-        let doc = project(Some(&p), None, "off", true, Lang::En, 0);
+        let doc = project(Some(&p), None, "off", true, Lang::En, TitleLanguage::English, 0);
         assert_eq!(doc["continueWatching"].as_array().unwrap().len(), 1);
     }
 
@@ -329,7 +321,7 @@ mod tests {
             with_airing("NextMonth", now / 1000 + 3600 * 24 * 20),
             entry("CURRENT", 1, 0, "NoSchedule"),
         ]));
-        let doc = project(Some(&p), None, "off", false, Lang::En, now);
+        let doc = project(Some(&p), None, "off", false, Lang::En, TitleLanguage::English, now);
         let rows = doc["airing"].as_array().unwrap();
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[0]["title"], "Soon");
@@ -349,9 +341,22 @@ mod tests {
             "off",
             false,
             Lang::En,
+            TitleLanguage::English,
             0,
         );
         assert_eq!(doc["continueWatching"].as_array().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn rows_follow_the_title_language() {
+        let mut e = entry("CURRENT", 1, 0, "Sousou no Frieren");
+        e["media"]["title"]["english"] = json!("Frieren: Beyond Journey's End");
+        e["media"]["title"]["native"] = json!("葬送のフリーレン");
+        let p = payload(json!([e]));
+        let title = |titles| project(Some(&p), None, "off", false, Lang::En, titles, 0)["continueWatching"][0]["title"].clone();
+        assert_eq!(title(TitleLanguage::English), "Frieren: Beyond Journey's End");
+        assert_eq!(title(TitleLanguage::Romaji), "Sousou no Frieren");
+        assert_eq!(title(TitleLanguage::Native), "葬送のフリーレン");
     }
 
     /// Widgets.kt reads this file with no schema of its own, so the shape is pinned here as a snapshot, both locales.
@@ -362,7 +367,7 @@ mod tests {
         airing["media"]["nextAiringEpisode"] = json!({ "episode": 5, "airingAt": now / 1000 + 3600 });
         let anime = payload(json!([airing, entry("REPEATING", 9, 100, "Again")]));
         let manga = payload(json!([entry("CURRENT", 31, 150, "Pages")]));
-        insta::assert_json_snapshot!("projection_en", project(Some(&anime), Some(&manga), "off", false, Lang::En, now));
-        insta::assert_json_snapshot!("projection_de", project(Some(&anime), Some(&manga), "off", false, Lang::De, now));
+        insta::assert_json_snapshot!("projection_en", project(Some(&anime), Some(&manga), "off", false, Lang::En, TitleLanguage::English, now));
+        insta::assert_json_snapshot!("projection_de", project(Some(&anime), Some(&manga), "off", false, Lang::De, TitleLanguage::English, now));
     }
 }

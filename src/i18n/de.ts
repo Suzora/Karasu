@@ -1343,7 +1343,7 @@ export const de: typeof en = {
     alOverrideAdult:
       "Karasu filtert Adult-Inhalte mit seiner eigenen Einstellung, und zwar der strengeren von beiden.",
     alOverrideAiring:
-      "Diese Einstellung liest Karasu. Solange sie und Karasus eigene Folgen-Benachrichtigungen beide an sind, erreicht dich eine neue Folge als Desktop-Benachrichtigung, und die Zeile in der Glocke kommt von AniList — die Zeile, die den Eintrag öffnet. Ist eine von beiden aus, schreibt Karasu die Zeile selbst.",
+      "Diese Einstellung liest Karasu. Solange sie und Karasus eigene „Benachrichtigung bei neuer Folge“ beide an sind, erreicht dich eine neue Folge als Desktop-Benachrichtigung, und die Zeile in der Glocke kommt von AniList — die Zeile, die den Eintrag öffnet. Ist eine von beiden aus, schreibt Karasu die Zeile selbst.",
     alOverrideWhere: "Karasus Einstellung →",
     alListOptions: "Listenanzeige",
     rescale: "Bewertungen umskalieren",
@@ -1762,5 +1762,11 @@ export const de: typeof en = {
     apkMeteredHint: "Aus wartet Karasu auf WLAN. Ein Nightly-Build hat etwa 23 MB.",
     language: "Sprache",
     languageHint: "„System“ folgt der Anzeigesprache deines Systems.",
+    titleLanguage: "Titelsprache",
+    titleLanguageHint:
+      "Wie Karasu Titel schreibt: in Listen, auf Detailseiten, in Benachrichtigungen, Widgets und im Discord-Status. Fehlt einem Titel diese Fassung, nimmt Karasu die nächste.",
+    titleLanguageEnglish: "Englisch",
+    titleLanguageRomaji: "Romaji",
+    titleLanguageNative: "Original",
   },
 };

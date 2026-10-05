@@ -19,7 +19,7 @@ export default function MatchPicker({
   leaving = false,
   parsedTitle,
   season,
-  current,
+  currentId,
   error,
   mediaType = "ANIME",
   suggestSequelsOf,
@@ -32,8 +32,8 @@ export default function MatchPicker({
   leaving?: boolean;
   parsedTitle: string;
   season: number;
-  /** The title this is currently pointed at, if it is pointed anywhere. */
-  current?: string;
+  /** The entry this is currently pointed at, if it is pointed anywhere; an id, since a title's spelling can differ. */
+  currentId?: number;
   /** Why the last pick was rejected. The dialog stays open when one fails. */
   error?: string;
   /** What to search. The library scanner is anime-only; detection is not. */
@@ -171,7 +171,7 @@ export default function MatchPicker({
                 <li key={`sequel-${media.id}`}>
                   <ResultRow
                     media={media}
-                    isCurrent={displayTitle(media.title) === current}
+                    isCurrent={media.id === currentId}
                     onPick={() =>
                       onPick(media.id, displayTitle(media.title), realEpisode)
                     }
@@ -196,7 +196,7 @@ export default function MatchPicker({
               <li key={media.id}>
                 <ResultRow
                   media={media}
-                  isCurrent={displayTitle(media.title) === current}
+                  isCurrent={media.id === currentId}
                   onPick={() =>
                     onPick(media.id, displayTitle(media.title), realEpisode)
                   }

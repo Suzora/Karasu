@@ -1,4 +1,5 @@
 /** AniList account settings; the list-options inputs replace custom lists wholesale, so they are never sent. */
+import type { PaneId } from "@/lib/settingsPanes";
 
 /** Every `NotificationType` AniList has, in the order its own settings list them. */
 export const NOTIFICATION_TYPES = [
@@ -82,20 +83,24 @@ export function mergeListActivity(
 export const LOCAL_OVERRIDES = {
   titleLanguage: {
     hintKey: "settings.alOverrideTitleLanguage",
-    /** Which Karasu pane holds the setting that wins instead, if any. */
+    /** Which Karasu pane holds the setting that wins instead. */
     pane: "appearance",
+    /** The `data-setting` id the link lands on inside that pane. */
+    setting: "titleLanguage",
   },
   displayAdultContent: {
     hintKey: "settings.alOverrideAdult",
     // The content filter lives in Appearance because it answers the same question the rest of that pane does.
     pane: "appearance",
+    setting: "contentFilter",
   },
   airingNotifications: {
     hintKey: "settings.alOverrideAiring",
     // Read rather than overridden: while it is on, the airing watcher leaves the bell row to AniList's own.
     pane: "detection",
+    setting: "airingNotify",
   },
-} as const;
+} as const satisfies Record<string, { hintKey: string; pane: PaneId; setting: string }>;
 
 export type OverriddenField = keyof typeof LOCAL_OVERRIDES;
 

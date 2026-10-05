@@ -68,6 +68,7 @@ fn candidate_from(node: &Value) -> Option<matcher::Candidate> {
         cover_url: None,
         progress: 0,
         status: String::new(),
+        display: None,
     })
 }
 

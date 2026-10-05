@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 25c2923 -->
+<!-- generated-through: e4c174b -->
 
 ### Fixed
 
@@ -73,6 +73,10 @@ tag time is then optional rather than load-bearing.
 - A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
 - A detail page no longer jumps when it finishes loading: its placeholder now has the page's banner height, and on a phone the page's layout too.
 - In a narrow window the detail page's community chart no longer runs its counts together, and its status legend no longer cuts names short.
+
+### Added
+
+- Settings → Appearance has a title language — English, Romaji or the original — for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included; the link from the AniList account settings now lands on it.
 
 ## 1.32.0 — 2026-10-03
 

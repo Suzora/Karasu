@@ -1332,7 +1332,7 @@ export const en = {
       "Karasu filters adult content with its own setting, which is the stricter of the two.",
     // The coupling needs both switches on, as `anilistCoversAiring` checks; stating it unconditionally contradicts Detection.
     alOverrideAiring:
-      "Karasu reads this one. While it and Karasu’s own airing notifications are both on, a new episode reaches you as a desktop notification and its bell row comes from AniList — the row that opens the entry. With either one off, Karasu writes that row itself.",
+      "Karasu reads this one. While it and Karasu’s own “New-episode notifications” are both on, a new episode reaches you as a desktop notification and its bell row comes from AniList — the row that opens the entry. With either one off, Karasu writes that row itself.",
     alOverrideWhere: "Karasu’s setting →",
     alListOptions: "List display",
     rescale: "Rescale scores",
@@ -1750,5 +1750,11 @@ export const en = {
     apkMeteredHint: "Off, Karasu waits for Wi-Fi. A nightly build is about 23 MB.",
     language: "Language",
     languageHint: "“System” follows your system display language.",
+    titleLanguage: "Title language",
+    titleLanguageHint:
+      "How Karasu writes titles: in lists, on detail pages, in notifications, widgets and the Discord status. Where a title lacks that version, Karasu uses the next one.",
+    titleLanguageEnglish: "English",
+    titleLanguageRomaji: "Romaji",
+    titleLanguageNative: "Native",
   },
 };

@@ -8,6 +8,7 @@ import {
   mergeNotificationOptions,
   NOTIFICATION_TYPES,
 } from "./anilistUserFields";
+import { PANE_IDS } from "@/lib/settingsPanes";
 
 describe("formToUpdateUserVars", () => {
   it("never emits animeListOptions or mangaListOptions", () => {
@@ -223,13 +224,10 @@ describe("LOCAL_OVERRIDES", () => {
     }
   });
 
-  it("points only at panes that exist", () => {
-    const panes = new Set([
-      "account", "anilist", "appearance", "detection", "library", "content",
-      "integrations", "advanced",
-    ]);
+  it("points only at panes that exist, each with the row it lands on", () => {
     for (const [field, o] of Object.entries(LOCAL_OVERRIDES)) {
-      if (o.pane !== null) expect(panes.has(o.pane), `${field} → ${o.pane}`).toBe(true);
+      expect(PANE_IDS, `${field} → ${o.pane}`).toContain(o.pane);
+      expect(o.setting, field).toMatch(/^[A-Za-z][\w-]*$/);
     }
   });
 });

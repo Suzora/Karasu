@@ -44,19 +44,6 @@ pub fn stale_months(db: &Db) -> i64 {
         .clamp(MIN_MONTHS, MAX_MONTHS)
 }
 
-fn pick_title(title: Option<&Value>) -> String {
-    let get = |k: &str| {
-        title
-            .and_then(|t| t.get(k))
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty())
-            .map(str::to_string)
-    };
-    get("english")
-        .or_else(|| get("romaji"))
-        .or_else(|| get("native"))
-        .unwrap_or_else(|| "Title".to_string())
-}
 
 /// The stale PAUSED entries of a cached list; the content filter applies here, where the media object is in scope.
 fn stale_entries(
@@ -64,6 +51,7 @@ fn stale_entries(
     now: i64,
     cutoff: i64,
     level: &str,
+    lang: crate::titles::TitleLanguage,
 ) -> Vec<(i64, i64, String)> {
     let mut out = Vec::new();
     for group in lists.as_array().into_iter().flatten() {
@@ -86,7 +74,9 @@ fn stale_entries(
                 }
             }
             if let Some(id) = entry.pointer("/media/id").and_then(|v| v.as_i64()) {
-                out.push((id, updated, pick_title(entry.pointer("/media/title"))));
+                let title = crate::titles::pick_json(lang, entry.pointer("/media/title"))
+                    .unwrap_or_else(|| "Title".to_string());
+                out.push((id, updated, title));
             }
         }
     }
@@ -111,6 +101,7 @@ fn check(app: &AppHandle) {
     let cutoff = months * SECS_PER_MONTH;
     // A filtered title must not arrive as a desktop toast, the one place the filter cannot be taken back.
     let level = crate::commands::read_content_filter(&db);
+    let lang = crate::titles::title_language(&db);
 
     for media_type in ["ANIME", "MANGA"] {
         let Some(lists) = db
@@ -119,7 +110,7 @@ fn check(app: &AppHandle) {
         else {
             continue;
         };
-        for (media_id, updated, title) in stale_entries(&lists, now, cutoff, &level) {
+        for (media_id, updated, title) in stale_entries(&lists, now, cutoff, &level, lang) {
             // At most once per (entry, updatedAt): touching the entry makes it eligible again, the built-in dismiss.
             let key = format!("stale_done:{media_id}");
             if db.kv_get(&key).and_then(|s| s.parse::<i64>().ok()) == Some(updated) {
@@ -142,6 +133,8 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    const ENGLISH: crate::titles::TitleLanguage = crate::titles::TitleLanguage::English;
+
     #[test]
     fn picks_only_old_paused_entries() {
         let now = 1_000_000_000;
@@ -156,7 +149,7 @@ mod tests {
                   "media": { "id": 3, "title": { "romaji": "Old Current" } } },
             ]
         }]);
-        let got = stale_entries(&lists, now, cutoff, "off");
+        let got = stale_entries(&lists, now, cutoff, "off", ENGLISH);
         assert_eq!(got.len(), 1);
         assert_eq!(got[0].0, 1);
         assert_eq!(got[0].2, "Old Paused");
@@ -171,7 +164,7 @@ mod tests {
                   "media": { "id": 1, "title": { "romaji": "No Time" } } },
             ]
         }]);
-        assert!(stale_entries(&lists, now, 100, "off").is_empty());
+        assert!(stale_entries(&lists, now, 100, "off", ENGLISH).is_empty());
     }
 
     /// A filtered title never becomes a reminder toast.
@@ -190,11 +183,11 @@ mod tests {
             ]
         }]);
 
-        let strict = stale_entries(&lists, now, cutoff, "strict");
+        let strict = stale_entries(&lists, now, cutoff, "strict", ENGLISH);
         assert_eq!(strict.len(), 1, "the adult entry is left out");
         assert_eq!(strict[0].0, 2);
 
         // And the filter being off is still the filter being off.
-        assert_eq!(stale_entries(&lists, now, cutoff, "off").len(), 2);
+        assert_eq!(stale_entries(&lists, now, cutoff, "off", ENGLISH).len(), 2);
     }
 }

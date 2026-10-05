@@ -1,3 +1,5 @@
+import { activeTitleLanguage, pickTitle, type TitleLanguage } from "@/lib/titleLanguage";
+
 export interface Viewer {
   id: number;
   name: string;
@@ -219,9 +221,9 @@ export const STATUS_ORDER: MediaListStatus[] = [
   "PLANNING",
 ];
 
-/** Preferred display title: English, else romaji, else native. */
-export function displayTitle(title: MediaTitle): string {
-  return title.english ?? title.romaji ?? title.native ?? "?";
+/** The title in the user's title language (the active one unless named), falling back as `pickTitle` says. */
+export function displayTitle(title: MediaTitle, lang: TitleLanguage = activeTitleLanguage()): string {
+  return pickTitle(title, lang);
 }
 
 /** Maximum progress: episodes (anime) or chapters (manga). */

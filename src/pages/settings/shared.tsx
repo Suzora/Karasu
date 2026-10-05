@@ -6,21 +6,34 @@ import { Switch } from "@/components/ui/switch";
 
 /** The controls every settings pane shares; none is a `components/ui` primitive, since each knows the pane. */
 
+/** What a `?setting=` deep link lands on: room for the outline `useSettingLanding` sets until the first interaction. */
+export const landingClass =
+  "-mx-3 rounded-control px-3 transition-surface data-landed:bg-accent-500/5 data-landed:ring-1 data-landed:ring-accent-500/40";
+
 /** A label-and-hint beside its control; below the phone breakpoint the control drops beneath it at the card's width. */
 export function Row({
   label,
   hint,
   note,
+  setting,
   children,
 }: {
   label: string;
   hint?: string;
   /** Below the hint — an `ExternalNote`, usually. */
   note?: ReactNode;
+  /** The id a `?setting=` deep link names to land here. */
+  setting?: string;
   children: ReactNode;
 }) {
   return (
-    <label className="flex items-center justify-between gap-4 py-1 text-sm max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:*:w-full">
+    <label
+      data-setting={setting}
+      className={cn(
+        "flex items-center justify-between gap-4 py-1 text-sm max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:*:w-full",
+        setting && landingClass,
+      )}
+    >
       <span>
         <span className="block text-ink-100">{label}</span>
         {hint && <span className="block text-xs text-ink-600">{hint}</span>}
@@ -87,6 +100,7 @@ export function Toggle({
   label,
   hint,
   disabled,
+  setting,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
@@ -94,12 +108,16 @@ export function Toggle({
   hint?: string;
   /** For a setting this desktop cannot honour — the hint says why. */
   disabled?: boolean;
+  /** The id a `?setting=` deep link names to land here. */
+  setting?: string;
 }) {
   return (
     <label
+      data-setting={setting}
       className={cn(
         "flex items-start justify-between gap-4 py-1",
         disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer",
+        setting && landingClass,
       )}
     >
       {/* May shrink and break a path mid-word, so a long hint can never push the switch out of the card. */}

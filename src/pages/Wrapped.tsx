@@ -35,6 +35,7 @@ import { EmptyState, OutlineYear } from "@/components/EmptyState";
 import { Select } from "@/components/ui/select";
 import markUrl from "@/assets/karasu-mark.svg";
 import { toBase64 } from "@/lib/base64";
+import { needsJapaneseFace } from "@/lib/titleLanguage";
 
 /** Poster type and geometry are written in em, like the design, so one layout serves every crop. */
 const FONT = '"SN Pro", system-ui, sans-serif';
@@ -144,13 +145,15 @@ function fitText(
   minSize: number,
   allowTruncate: boolean,
 ): { text: string; size: number } {
+  // A native title would fall back glyph by glyph in the Latin face, so it measures and draws in the Japanese one.
+  const family = needsJapaneseFace(text) ? FONT_JP : FONT;
   let size = startSize;
   while (size > minSize) {
-    ctx.font = `${weight} ${size}px ${FONT}`;
+    ctx.font = `${weight} ${size}px ${family}`;
     if (ctx.measureText(text).width <= maxWidth) return { text, size };
     size -= 2;
   }
-  ctx.font = `${weight} ${size}px ${FONT}`;
+  ctx.font = `${weight} ${size}px ${family}`;
   if (!allowTruncate || ctx.measureText(text).width <= maxWidth) {
     return { text, size };
   }

@@ -49,6 +49,8 @@ import { isAndroid, usePlatform } from "@/stores/platform";
 import { Button } from "@/components/ui/button";
 import { CardHeadingLevel } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
+import { useSettingLanding } from "@/hooks/useSettingLanding";
+import { afterBackSettles } from "@/hooks/useBackClose";
 
 /** The panes, keyed by URL parameter so deep links land; keep the ids, since renaming one breaks every deep link. */
 const PANES = [
@@ -165,6 +167,19 @@ export default function Settings() {
   const android = isAndroid(usePlatform((s) => s.info));
   const rawPane = params.get("pane");
   const active = resolvePane(rawPane);
+  // Once landed, the parameter goes, so going back to this page does not jump to the row again.
+  useSettingLanding(params.get("setting"), () =>
+    afterBackSettles(() =>
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("setting");
+          return next;
+        },
+        { replace: true },
+      ),
+    ),
+  );
   void _panesAreComplete;
 
   const panes = android ? PANES.filter((p) => !ANDROID_HIDDEN_PANES.has(p.id)) : PANES;

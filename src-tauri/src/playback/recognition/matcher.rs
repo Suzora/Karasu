@@ -15,6 +15,8 @@ pub struct Candidate {
     pub cover_url: Option<String>,
     pub progress: u32,
     pub status: String,
+    /// The title to show for this entry in the user's title language; matching reads `titles`, never this.
+    pub display: Option<String>,
 }
 
 pub fn normalize(s: &str) -> String {
@@ -198,6 +200,7 @@ mod tests {
             cover_url: None,
             progress: 0,
             status: "CURRENT".into(),
+            display: None,
         }
     }
 
@@ -214,6 +217,7 @@ mod tests {
                 cover_url: None,
                 progress: 27,
                 status: "CURRENT".into(),
+                display: None,
             },
             Candidate {
                 media_id: 21,
@@ -223,6 +227,7 @@ mod tests {
                 cover_url: None,
                 progress: 1070,
                 status: "CURRENT".into(),
+                display: None,
             },
             Candidate {
                 media_id: 166531,
@@ -235,6 +240,7 @@ mod tests {
                 cover_url: None,
                 progress: 4,
                 status: "CURRENT".into(),
+                display: None,
             },
         ]
     }
@@ -383,6 +389,7 @@ mod tests {
                 cover_url: None,
                 progress: 0,
                 status: "CURRENT".into(),
+                display: None,
             },
             Candidate {
                 media_id: 222,
@@ -392,6 +399,7 @@ mod tests {
                 cover_url: None,
                 progress: 0,
                 status: "CURRENT".into(),
+                display: None,
             },
         ];
         let parsed = parse("Sousou no Frieren - 28.mkv");
@@ -416,6 +424,7 @@ mod tests {
                 cover_url: None,
                 progress: 0,
                 status: "CURRENT".into(),
+                display: None,
             },
             Candidate {
                 media_id: 222,
@@ -425,6 +434,7 @@ mod tests {
                 cover_url: None,
                 progress: 0,
                 status: "CURRENT".into(),
+                display: None,
             },
         ];
         let parsed = parse("Sousou no Frieren - 28.mkv");
@@ -447,6 +457,7 @@ mod tests {
                 cover_url: None,
                 progress: 0,
                 status: "CURRENT".into(),
+                display: None,
             })
         }
 

@@ -20,6 +20,8 @@ import type { SiteNotifRow } from "@/lib/siteNotifications";
 import { isBlocked } from "@/lib/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
+import { useTitleLanguage } from "@/stores/titleLanguage";
+import { displayTitle } from "@/api/types";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { showToast } from "@/stores/toast";
 
@@ -149,9 +151,15 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
 
   // Filtered once before grouping: a row about a blocked title is dropped, since the row itself names the title.
   const level = useContentFilter((s) => s.level);
+  // The query keeps the lead line it was fetched with; a title language chosen since re-spells it here.
+  const titleLanguage = useTitleLanguage((s) => s.language);
   const siteRows = useMemo(
-    () => (site.data?.pages ?? []).flatMap((p) => p.rows).filter((r) => !isBlocked(r.media, level)),
-    [site.data, level],
+    () =>
+      (site.data?.pages ?? [])
+        .flatMap((p) => p.rows)
+        .filter((r) => !isBlocked(r.media, level))
+        .map((r) => (r.mediaTitle ? { ...r, title: displayTitle(r.mediaTitle, titleLanguage) } : r)),
+    [site.data, level, titleLanguage],
   );
 
   // One stream, grouped in presentation only: recomputed over the loaded set, so a group may grow as older pages land.
