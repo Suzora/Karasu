@@ -1479,6 +1479,30 @@ async update the real code makes after an await warns instead.
   and `connect_with_token`'s one bounded retry (1.5 s sleep) covering it.
   The hardware-key generation everyone suspected costs 27 ms. Do not move
   `save_token` off the sign-in path on the strength of the old guess.
+- **A streaming site is only as good as its tab title, and four were measured
+  on 2026-10-05** from server-rendered HTML and the player bundles. Bilibili.tv
+  names series and episode (`Face on Lie E2 - ILLUSION - BiliBili`, `Rakshasa
+  Street S4 E1 - BiliBili`, ` - Bstation` in the Indonesian locale) and sets no
+  media-session metadata. Disney+ (`<Series> | Disney+`) and Prime Video
+  (`Prime Video: <Series> - Staffel 1 [OV]`, `Amazon.de: … ansehen | Prime
+  Video`) name the series alone and keep the detail page's title during
+  playback, so they are `SeriesOnly` in `profiles.rs`: read without the parser
+  (whose bare-number rule makes "Mob Psycho 100" episode 100) and accepted only
+  from a playing media session, never from a window title, and only from a
+  session with no artist or album of its own (a YouTube trailer titled
+  "… | Disney+" names its channel). A later season is re-spelt "<Series>
+  Season N" because the matcher lets a season steer only when the title
+  carries it in a spelling it knows, and only "Prime Video: " names that
+  site without its suffix, since "Amazon.de: " leads every store page. HIDIVE's tab is
+  `E3 - <episode name>`, no series and no site, and Netflix's is `Netflix`
+  during playback; neither can be detected, and the Netflix profile went.
+  Crunchyroll's German watch page for Frieren's first episode read the series,
+  then the episode's name, then "- Schau auf Crunchyroll", with no number,
+  so its tab alone cannot scrobble; whether its player publishes media-session
+  metadata needs a subscriber's capture through the Settings diagnostic. ADN
+  appends its dub list (`… : Teufelsblut - streaming - DF, OmdU, … - ADN`),
+  which the profile cuts. A site is named by an affix that strips, never by a
+  word inside the title — "ADN" sits inside "MADNESS".
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

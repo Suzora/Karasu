@@ -419,7 +419,7 @@ fn build_now_playing(
     playback: detection::Playback,
 ) -> NowPlaying {
     let media_type = if playback.manga { "MANGA" } else { "ANIME" };
-    // A source that already knows the series and episode supplies them; re-parsing its string would lose that.
+    // A source that knows the series supplies the parse; re-parsing could lose its episode or invent one.
     let parsed = match playback.parsed.clone() {
         Some(p) => p,
         None if playback.manga => parser::parse_manga(&playback.media_title),

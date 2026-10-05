@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 36d36c7 -->
+<!-- generated-through: 336579e -->
 
 ### Fixed
 
@@ -87,6 +87,7 @@ tag time is then optional rather than load-bearing.
 ### Changed
 
 - The background notification check now names the newest AniList notification (who did what, never what anyone wrote) instead of only counting them.
+- Browser detection now recognises Bilibili, shows Disney+ and Prime Video titles as playing (series only, no episode updates), and no longer claims Netflix, whose tab never names the episode.
 
 ## 1.32.0 — 2026-10-03
 

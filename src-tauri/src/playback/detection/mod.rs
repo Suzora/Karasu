@@ -39,7 +39,7 @@ pub struct Playback {
     pub streaming: bool,
     /// true if this is manga reading (chapters instead of episodes)
     pub manga: bool,
-    /// Set when the source knows series and episode exactly, so the parser is skipped; only the Jellyfin API does.
+    /// Set when the source already knows the series, so the parser is skipped: Jellyfin's API and series-only sites.
     pub parsed: Option<crate::playback::recognition::parser::Parsed>,
     /// Playback position in seconds when the source reports one; a window title never does, so the wall clock steps in.
     pub position_sec: Option<u32>,

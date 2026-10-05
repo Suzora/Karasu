@@ -109,8 +109,10 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 
 **Tracking &amp; scrobbling**
 - Automatic detection in local players (mpv, VLC, MPC-HC/BE, PotPlayer, SMPlayer)
-  and in the browser (Crunchyroll, ADN, Netflix); a paused player is read from
-  its audio session, so a pause defers the update rather than faking a watch
+  and in the browser (Bilibili, ADN, Crunchyroll); Disney+ and Prime Video
+  name only the series in their tabs, so Karasu shows what is playing there
+  but cannot update an episode. A paused player is read from its audio
+  session, so a pause defers the update rather than faking a watch
 - An opt-in **mpv IPC** source — point Karasu at mpv's JSON IPC socket and it
   reads the real file path and the live position instead of a window title
 - Manga reading detection (MangaDex, MANGA Plus, Comick, Bato, MangaFire, Asura Scans)

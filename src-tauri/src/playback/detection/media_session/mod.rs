@@ -54,12 +54,18 @@ impl MediaSession {
         if MUSIC_PLAYERS.contains(&name.trim_end_matches(".exe")) {
             return false;
         }
-        crate::playback::recognition::parser::parse(&compose_title(
-            &self.artist,
-            &self.title,
-            &self.album,
-        ))
-        .episode_marked
+        let composed = compose_title(&self.artist, &self.title, &self.album);
+        // A series-only site's own tab is video whatever the label; an episode site still has to spell its episode.
+        self.site().is_some_and(|s| s.carries == super::profiles::Carries::SeriesOnly)
+            || crate::playback::recognition::parser::parse(&composed).episode_marked
+    }
+
+    /// The streaming site this session's title names; a series-only one only as the browser's bare tab title.
+    fn site(&self) -> Option<super::profiles::SiteTitle> {
+        let site = super::profiles::match_site(&compose_title(&self.artist, &self.title, &self.album))?;
+        // A page that sets its own metadata (a YouTube upload of a trailer) names a channel, which the tab never does.
+        let bare_tab = self.artist.trim().is_empty() && self.album.trim().is_empty();
+        (site.carries == super::profiles::Carries::Episode || bare_tab).then_some(site)
     }
 }
 
@@ -182,7 +188,10 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         });
     }
 
-    let media_title = compose_title(&session.artist, &session.title, &session.album);
+    let composed = compose_title(&session.artist, &session.title, &session.album);
+    // A browser tab carries its site's name, which must not reach the parser as the episode's name.
+    let site = session.site();
+    let media_title = site.as_ref().map_or(composed, |s| s.media.clone());
     if media_title.trim().is_empty() {
         // From the outside a `None` looks exactly like "nothing is playing", so the rejection is worth a line.
         crate::logging::debug_changed(
@@ -192,11 +201,26 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         );
         return None;
     }
+    let parsed = match site {
+        Some(s) if s.parsed.is_some() => s.parsed,
+        // An episode site's title whose number is not spelled out is the series page's own number, never an episode.
+        Some(_) => Some(crate::playback::recognition::parser::parse(&media_title))
+            .filter(|p| !p.episode_marked)
+            .map(|p| crate::playback::recognition::parser::Parsed {
+                // The whole title, since the bare-number rule also cut that number off the series.
+                title: media_title.trim().to_string(),
+                episode: None,
+                episode_title: None,
+                ..p
+            }),
+        None => None,
+    };
     // A composed title whose parse is empty is not playback; it matches nothing and would key a correction that never fires.
-    if crate::playback::recognition::parser::parse(&media_title)
-        .title
-        .trim()
-        .is_empty()
+    if parsed.is_none()
+        && crate::playback::recognition::parser::parse(&media_title)
+            .title
+            .trim()
+            .is_empty()
     {
         crate::logging::debug_changed(
             "session",
@@ -216,7 +240,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         // Not a local file, and the UI's "streaming" icon is the honest one for something known only through the OS.
         streaming: true,
         manga: false,
-        parsed: None,
+        parsed,
         position_sec: None,
         duration_sec: None,
     })
@@ -334,6 +358,50 @@ mod tests {
             status: status.into(),
             url: String::new(),
         }
+    }
+
+    /// A Bilibili tab loses the site's name before the parser sees it, or "BiliBili" would become the episode's name.
+    #[test]
+    fn a_site_tab_loses_its_site_name() {
+        let s = browser_session("Rakshasa Street S4 E1 - BiliBili", "music", "playing");
+        assert!(s.is_watchable());
+        let p = playback_from(&s).unwrap();
+        assert_eq!(p.media_title, "Rakshasa Street S4 E1");
+        assert!(p.parsed.is_none(), "an episode site still goes through the parser");
+    }
+
+    /// Disney+ names the series alone, so the session is watchable despite the label and arrives already parsed.
+    #[test]
+    fn a_series_only_tab_arrives_parsed_without_an_episode() {
+        let s = browser_session("Mob Psycho 100 | Disney+", "music", "playing");
+        assert!(s.is_watchable());
+        let parsed = playback_from(&s).unwrap().parsed.unwrap();
+        assert_eq!((parsed.title.as_str(), parsed.episode), ("Mob Psycho 100", None));
+        assert!(pick(&[browser_session("Mob Psycho 100 | Disney+", "music", "paused")]).is_none());
+    }
+
+    /// A trailer uploaded to YouTube carries the channel as its artist, so its "| Disney+" title is not the site's tab.
+    #[test]
+    fn a_trailer_with_a_channel_is_not_a_series_only_tab() {
+        let mut s = browser_session("Andor Season 2 | Official Trailer | Disney+", "music", "playing");
+        s.artist = "Disney Plus".into();
+        assert!(!s.is_watchable());
+    }
+
+    /// An episode site's tab with only the series page's own number arrives with no episode at all.
+    #[test]
+    fn an_unspelt_number_on_an_episode_site_is_no_episode() {
+        let s = browser_session("Mob Psycho 100 - Watch on Crunchyroll", "unknown", "playing");
+        let parsed = playback_from(&s).unwrap().parsed.unwrap();
+        assert_eq!((parsed.title.as_str(), parsed.episode), ("Mob Psycho 100", None));
+        assert!(!browser_session("Mob Psycho 100 - Watch on Crunchyroll", "music", "playing").is_watchable());
+    }
+
+    /// HIDIVE's tab names only the episode, which leaves no series to match.
+    #[test]
+    fn an_episode_name_alone_is_not_playback() {
+        let s = browser_session("E3 - Fencer Ordinaire", "music", "playing");
+        assert!(playback_from(&s).is_none());
     }
 
     /// The carve-out's fixture is the real thing: an anime episode in a tab that the browser reported as `type: music`.
