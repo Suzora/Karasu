@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: fcf3db5 -->
+<!-- generated-through: 3f757bc -->
 
 ### Fixed
 
@@ -77,6 +77,7 @@ tag time is then optional rather than load-bearing.
 - In the notifications, a row about someone's activity and that person's name are now two separate controls, so a screen reader can reach both.
 - The "how much you agree" line on another user's Lists tab no longer disappears on the phone after a while.
 - A custom-list membership you just saved no longer snaps back when the list screen is reopened soon after.
+- Opening a title from a cover moves the cover into the detail page again instead of only fading.
 
 ### Added
 

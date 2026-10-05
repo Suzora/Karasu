@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { flushSync } from "react-dom";
-import { useNavigate } from "react-router";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { prefersReducedMotion } from "@/lib/motion";
 
 /** Marks the cover that should morph into the detail hero. */
@@ -8,9 +7,19 @@ export const HERO_ATTR = "data-hero-cover";
 /** The `view-transition-name` both ends of that morph share. */
 const HERO_NAME = "karasu-hero";
 
-/** Wraps in-app navigation in a View Transition by intercepting clicks; keep `flushSync`, or the snapshot sees no change. */
+/** The longest the new snapshot waits for the route to commit; past it the browser would abandon the transition anyway. */
+const COMMIT_WAIT_MS = 1500;
+
+/** Wraps in-app navigation in a View Transition by intercepting clicks; the new snapshot waits for the route's commit. */
 export function useViewTransitions() {
   const navigate = useNavigate();
+  const { key: routeKey } = useLocation();
+  // The router commits inside `startTransition`, which `flushSync` cannot hurry, so the callback waits for this instead.
+  const committed = useRef<(() => void) | null>(null);
+  useLayoutEffect(() => {
+    committed.current?.();
+    committed.current = null;
+  }, [routeKey]);
 
   useEffect(() => {
     if (typeof document.startViewTransition !== "function") return;
@@ -40,9 +49,14 @@ export function useViewTransitions() {
       const cover = anchor.querySelector<HTMLElement>(`[${HERO_ATTR}]`);
       if (cover) cover.style.viewTransitionName = HERO_NAME;
 
-      const transition = document.startViewTransition(() => {
-        flushSync(() => navigate(to));
-      });
+      const transition = document.startViewTransition(
+        () =>
+          new Promise<void>((resolve) => {
+            committed.current = resolve;
+            void navigate(to);
+            window.setTimeout(resolve, COMMIT_WAIT_MS);
+          }),
+      );
       // Keep the `ready` handler; a skipped transition rejects both promises, and an unhandled one is a console error.
       transition.ready.catch(() => {});
       transition.finished
