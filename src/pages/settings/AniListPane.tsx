@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Shimmer } from "@/components/Skeleton";
 import { showToast } from "@/stores/toast";
 import { ExternalNote, Row, Toggle } from "./shared";
+import { BatteryRow, useBackgroundState } from "./BatteryRow";
 import { Select } from "@/components/ui/select";
 import {
   LIST_ACTIVITY_STATUSES,
@@ -27,7 +28,6 @@ import {
 } from "@/lib/anilistUserFields";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { useAuth } from "@/stores/auth";
-import { isAndroid, usePlatform } from "@/stores/platform";
 import { notifScheduleFailure } from "@/lib/notifSchedule";
 import { Chip } from "@/components/ui/chip";
 
@@ -517,7 +517,7 @@ function notificationLabel(
 export function NotificationScheduleSection() {
   const { t } = useTranslation();
   const viewer = useAuth((s) => s.viewer);
-  const android = isAndroid(usePlatform((s) => s.info));
+  const [background] = useBackgroundState();
   const [minutes, setMinutes] = useState<number | null>(null);
   const [custom, setCustom] = useState(false);
   // The field's text while editing; a number input bound straight to committed state is uneditable.
@@ -555,15 +555,6 @@ export function NotificationScheduleSection() {
     <Card>
       <CardTitle>{t("settings.notifSchedule")}</CardTitle>
       <p className="mt-2 text-sm text-ink-500">{t("settings.notifScheduleHint")}</p>
-      {/* Android's standby buckets stretch the job; the exemption under Detection is the lever, so it is named here. */}
-      {android && (
-        <p className="mt-1 text-xs text-ink-600">
-          {t("settings.notifScheduleAndroidHint")}{" "}
-          <Link to="/settings?pane=detection" className="text-accent-400 hover:underline">
-            {t("settings.pane_detection")}
-          </Link>
-        </p>
-      )}
       <div className="mt-3">
         <Row label={t("settings.notifScheduleLabel")}>
           <Select
@@ -608,6 +599,12 @@ export function NotificationScheduleSection() {
               onBlur={() => setDraft(null)}
             />
           </Row>
+        )}
+        {/* Android's standby buckets stretch the job, and the exemption is the lever, so it sits in the card it slows. */}
+        {background?.supported && (
+          <div className="mt-3 border-t border-hair pt-3">
+            <BatteryRow exempt={background.batteryExempt} />
+          </div>
         )}
       </div>
     </Card>

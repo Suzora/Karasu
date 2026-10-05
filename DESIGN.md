@@ -743,3 +743,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   from the AniList pane's note lands on the row centred and outlined in the
   accent at 40 % on a 5 % wash until the first press, the same vocabulary as
   a comment a thread link lands on.
+- **2026-10-05:** Android's battery exemption also sits in the card it slows,
+  "Background notification check", under the interval behind a hairline, as
+  the same row the Jellyfin card keeps under its tracking switch. The card's
+  old hint sent the reader to Detection → Jellyfin, a row a phone without
+  Jellyfin never shows. The row's hint names no phone maker: vendor rules
+  change by firmware, so it links dontkillmyapp.com, which keeps them per
+  phone.
