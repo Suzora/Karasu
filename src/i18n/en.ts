@@ -1624,7 +1624,7 @@ export const en = {
     libraryMatched: "{{n}} titles matched on disk.",
     notifSchedule: "Background notification check",
     notifScheduleHint:
-      "A system notification when unread AniList notifications are waiting — on the desktop while Karasu sits in the tray, on Android even with the app closed. Off by default; one check costs one request.",
+      "A system notification when unread AniList notifications are waiting — on the desktop while Karasu sits in the tray, on Android even with the app closed. It names the newest: who did what, never what anyone wrote. Off by default; a check costs one request, and a second only when AniList refuses the first.",
     notifScheduleLabel: "Check every",
     notifScheduleOff: "Off",
     notifSchedule15: "15 minutes",

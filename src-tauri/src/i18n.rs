@@ -26,6 +26,57 @@ pub fn lang(db: &Db) -> Lang {
     Lang::parse(db.kv_get(LANGUAGE_KEY).as_deref())
 }
 
+/// What someone did to one of the viewer's activities, or in one the viewer follows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActivityEvent {
+    Mention,
+    Reply,
+    ReplySubscribed,
+    Like,
+    ReplyLike,
+}
+
+/// What someone did in a forum thread.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThreadEvent {
+    Mention,
+    Reply,
+    Subscribed,
+    CommentLike,
+    ThreadLike,
+}
+
+/// What AniList's moderators did to a title.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediaEvent {
+    RelatedAdded,
+    DataChange,
+    Merge,
+    Deletion,
+}
+
+/// Which of the viewer's submissions moved.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SubmissionKind {
+    Media,
+    Staff,
+    Character,
+}
+
+/// A list activity's verb, the closed set the frontend's `ActivityVerb` also is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CaptionVerb {
+    WatchedEpisode,
+    RewatchedEpisode,
+    ReadChapter,
+    RereadChapter,
+    Completed,
+    PlansToWatch,
+    PlansToRead,
+    Dropped,
+    Paused,
+}
+
 /// Every string Rust composes for a user to read; an enum so the match is exhaustive in both languages.
 // The tray and toast variants are constructed only by desktop code, so the Android check reads them as unused.
 #[cfg_attr(mobile, allow(dead_code))]
@@ -43,6 +94,18 @@ pub enum Msg<'a> {
     UpdateBodyAndroid { version: &'a str },
     SiteNotifTitle,
     SiteNotifBody { count: i64 },
+    /// The newest AniList notification as a sentence, and how many more are unread beside it.
+    SiteNotifNews { sentence: &'a str, more: i64 },
+    /// A sentence and what it is about, joined the way each language joins them.
+    SiteNotifSubject { sentence: &'a str, subject: &'a str },
+    SiteAiring { title: &'a str, episode: i64 },
+    SiteFollowing { actor: &'a str },
+    SiteActivity { event: ActivityEvent, actor: &'a str },
+    SiteThread { event: ThreadEvent, actor: &'a str, thread: &'a str },
+    SiteMedia { event: MediaEvent, title: &'a str },
+    SiteSubmission { kind: SubmissionKind, name: &'a str },
+    /// The viewer's own list activity, with nobody in front of it; `progress` only for the four verbs that count.
+    ActivityCaption { verb: CaptionVerb, progress: &'a str, title: &'a str },
     QueueTitle,
     QueueBodyOne { reason: &'a str },
     QueueBodyMany { count: usize, reason: &'a str },
@@ -128,6 +191,67 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
                 format!("{count} ungelesene Benachrichtigungen warten.")
             }
         }
+
+        (En, SiteNotifNews { sentence, more }) => format!("{sentence} (+{more} more)"),
+        (De, SiteNotifNews { sentence, more }) => format!("{sentence} (+{more} weitere)"),
+        (En, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
+        (De, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
+        (En, SiteAiring { title, episode }) => format!("Episode {episode} of {title} aired"),
+        (De, SiteAiring { title, episode }) => format!("Folge {episode} von {title} ist erschienen"),
+        (En, SiteFollowing { actor }) => format!("{actor} started following you"),
+        (De, SiteFollowing { actor }) => format!("{actor} folgt dir jetzt"),
+        (En, SiteActivity { event: ActivityEvent::Mention, actor }) => format!("{actor} mentioned you in an activity"),
+        (De, SiteActivity { event: ActivityEvent::Mention, actor }) => format!("{actor} hat dich in einer Aktivität erwähnt"),
+        (En, SiteActivity { event: ActivityEvent::Reply, actor }) => format!("{actor} replied to your activity"),
+        (De, SiteActivity { event: ActivityEvent::Reply, actor }) => format!("{actor} hat auf deine Aktivität geantwortet"),
+        (En, SiteActivity { event: ActivityEvent::ReplySubscribed, actor }) => format!("{actor} replied to an activity you follow"),
+        (De, SiteActivity { event: ActivityEvent::ReplySubscribed, actor }) => format!("{actor} hat in einer Aktivität geantwortet, der du folgst"),
+        (En, SiteActivity { event: ActivityEvent::Like, actor }) => format!("{actor} liked your activity"),
+        (De, SiteActivity { event: ActivityEvent::Like, actor }) => format!("{actor} gefällt deine Aktivität"),
+        (En, SiteActivity { event: ActivityEvent::ReplyLike, actor }) => format!("{actor} liked your reply"),
+        (De, SiteActivity { event: ActivityEvent::ReplyLike, actor }) => format!("{actor} gefällt deine Antwort"),
+        (En, SiteThread { event: ThreadEvent::Mention, actor, thread }) => format!("{actor} mentioned you in “{thread}”"),
+        (De, SiteThread { event: ThreadEvent::Mention, actor, thread }) => format!("{actor} hat dich in „{thread}“ erwähnt"),
+        (En, SiteThread { event: ThreadEvent::Reply, actor, thread }) => format!("{actor} replied to your comment in “{thread}”"),
+        (De, SiteThread { event: ThreadEvent::Reply, actor, thread }) => format!("{actor} hat auf deinen Kommentar in „{thread}“ geantwortet"),
+        (En, SiteThread { event: ThreadEvent::Subscribed, actor, thread }) => format!("{actor} commented in “{thread}”"),
+        (De, SiteThread { event: ThreadEvent::Subscribed, actor, thread }) => format!("{actor} hat in „{thread}“ kommentiert"),
+        (En, SiteThread { event: ThreadEvent::CommentLike, actor, thread }) => format!("{actor} liked your comment in “{thread}”"),
+        (De, SiteThread { event: ThreadEvent::CommentLike, actor, thread }) => format!("{actor} gefällt dein Kommentar in „{thread}“"),
+        (En, SiteThread { event: ThreadEvent::ThreadLike, actor, thread }) => format!("{actor} liked your thread “{thread}”"),
+        (De, SiteThread { event: ThreadEvent::ThreadLike, actor, thread }) => format!("{actor} gefällt dein Thread „{thread}“"),
+        (En, SiteMedia { event: MediaEvent::RelatedAdded, title }) => format!("{title} was added to AniList"),
+        (De, SiteMedia { event: MediaEvent::RelatedAdded, title }) => format!("{title} wurde zu AniList hinzugefügt"),
+        (En, SiteMedia { event: MediaEvent::DataChange, title }) => format!("{title} received a data change"),
+        (De, SiteMedia { event: MediaEvent::DataChange, title }) => format!("{title} hat eine Datenänderung erhalten"),
+        (En, SiteMedia { event: MediaEvent::Merge, title }) => format!("{title} absorbed another entry"),
+        (De, SiteMedia { event: MediaEvent::Merge, title }) => format!("{title} hat einen anderen Eintrag übernommen"),
+        (En, SiteMedia { event: MediaEvent::Deletion, title }) => format!("{title} was removed from AniList"),
+        (De, SiteMedia { event: MediaEvent::Deletion, title }) => format!("{title} wurde von AniList entfernt"),
+        (En, SiteSubmission { kind: SubmissionKind::Media, name }) => format!("Your submission “{name}” was updated"),
+        (De, SiteSubmission { kind: SubmissionKind::Media, name }) => format!("Deine Einreichung „{name}“ wurde aktualisiert"),
+        (En, SiteSubmission { kind: SubmissionKind::Staff, name }) => format!("Your staff submission “{name}” was updated"),
+        (De, SiteSubmission { kind: SubmissionKind::Staff, name }) => format!("Deine Staff-Einreichung „{name}“ wurde aktualisiert"),
+        (En, SiteSubmission { kind: SubmissionKind::Character, name }) => format!("Your character submission “{name}” was updated"),
+        (De, SiteSubmission { kind: SubmissionKind::Character, name }) => format!("Deine Charakter-Einreichung „{name}“ wurde aktualisiert"),
+        (En, ActivityCaption { verb: CaptionVerb::WatchedEpisode, progress, title }) => format!("Watched episode {progress} of {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::WatchedEpisode, progress, title }) => format!("Episode {progress} von {title} geschaut"),
+        (En, ActivityCaption { verb: CaptionVerb::RewatchedEpisode, progress, title }) => format!("Rewatched episode {progress} of {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::RewatchedEpisode, progress, title }) => format!("Episode {progress} von {title} erneut geschaut"),
+        (En, ActivityCaption { verb: CaptionVerb::ReadChapter, progress, title }) => format!("Read chapter {progress} of {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::ReadChapter, progress, title }) => format!("Kapitel {progress} von {title} gelesen"),
+        (En, ActivityCaption { verb: CaptionVerb::RereadChapter, progress, title }) => format!("Reread chapter {progress} of {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::RereadChapter, progress, title }) => format!("Kapitel {progress} von {title} erneut gelesen"),
+        (En, ActivityCaption { verb: CaptionVerb::Completed, title, .. }) => format!("Completed {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::Completed, title, .. }) => format!("{title} abgeschlossen"),
+        (En, ActivityCaption { verb: CaptionVerb::PlansToWatch, title, .. }) => format!("Planning to watch {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::PlansToWatch, title, .. }) => format!("{title} zum Schauen geplant"),
+        (En, ActivityCaption { verb: CaptionVerb::PlansToRead, title, .. }) => format!("Planning to read {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::PlansToRead, title, .. }) => format!("{title} zum Lesen geplant"),
+        (En, ActivityCaption { verb: CaptionVerb::Dropped, title, .. }) => format!("Dropped {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::Dropped, title, .. }) => format!("{title} abgebrochen"),
+        (En, ActivityCaption { verb: CaptionVerb::Paused, title, .. }) => format!("Paused {title}"),
+        (De, ActivityCaption { verb: CaptionVerb::Paused, title, .. }) => format!("{title} pausiert"),
 
         (En, QueueTitle) => "Offline changes were not saved".into(),
         (De, QueueTitle) => "Offline-Änderungen wurden nicht gespeichert".into(),
@@ -216,6 +340,54 @@ mod tests {
         let many_de = text(Lang::De, Msg::StaleBody { title: "X", months: 6 });
         assert!(one_de.contains("1 Monat") && !one_de.contains("Monaten"));
         assert!(many_de.contains("6 Monaten"));
+    }
+
+    /// Every sentence the AniList toast can say, one block per language, so a change of wording is a reviewed diff.
+    fn site_samples(lang: Lang) -> String {
+        let mut out = Vec::new();
+        let caption = text(lang, Msg::ActivityCaption { verb: CaptionVerb::WatchedEpisode, progress: "1–3", title: "Frieren" });
+        let like = text(lang, Msg::SiteActivity { event: ActivityEvent::Like, actor: "Mikan" });
+        let joined = text(lang, Msg::SiteNotifSubject { sentence: &like, subject: &caption });
+        out.push(text(lang, Msg::SiteNotifNews { sentence: &joined, more: 2 }));
+        out.push(text(lang, Msg::SiteAiring { title: "Frieren", episode: 5 }));
+        out.push(text(lang, Msg::SiteFollowing { actor: "Hoshi" }));
+        for event in [ActivityEvent::Mention, ActivityEvent::Reply, ActivityEvent::ReplySubscribed, ActivityEvent::Like, ActivityEvent::ReplyLike] {
+            out.push(text(lang, Msg::SiteActivity { event, actor: "Mikan" }));
+        }
+        for event in [ThreadEvent::Mention, ThreadEvent::Reply, ThreadEvent::Subscribed, ThreadEvent::CommentLike, ThreadEvent::ThreadLike] {
+            out.push(text(lang, Msg::SiteThread { event, actor: "Hoshi", thread: "Weekly talk" }));
+        }
+        for event in [MediaEvent::RelatedAdded, MediaEvent::DataChange, MediaEvent::Merge, MediaEvent::Deletion] {
+            out.push(text(lang, Msg::SiteMedia { event, title: "Frieren" }));
+        }
+        for kind in [SubmissionKind::Media, SubmissionKind::Staff, SubmissionKind::Character] {
+            out.push(text(lang, Msg::SiteSubmission { kind, name: "Frieren" }));
+        }
+        for verb in [
+            CaptionVerb::WatchedEpisode,
+            CaptionVerb::RewatchedEpisode,
+            CaptionVerb::ReadChapter,
+            CaptionVerb::RereadChapter,
+            CaptionVerb::Completed,
+            CaptionVerb::PlansToWatch,
+            CaptionVerb::PlansToRead,
+            CaptionVerb::Dropped,
+            CaptionVerb::Paused,
+        ] {
+            out.push(text(lang, Msg::ActivityCaption { verb, progress: "7", title: "Frieren" }));
+        }
+        out.join("
+")
+    }
+
+    #[test]
+    fn site_toasts_en() {
+        insta::assert_snapshot!("site_toasts_en", site_samples(Lang::En));
+    }
+
+    #[test]
+    fn site_toasts_de() {
+        insta::assert_snapshot!("site_toasts_de", site_samples(Lang::De));
     }
 
     /// A sequel and a side story are different news, in both languages.

@@ -242,10 +242,15 @@ pub fn get_content_filter(db: State<'_, Db>) -> String {
 /// Whether explicit artwork the level let through is blurred until clicked; defaults on, since a blur costs one click.
 const BLUR_ADULT_KEY: &str = "blur_adult";
 
+/// The blur setting for the passes that cannot blur and hide instead; absent means on, as for a new install.
+pub fn read_blur_adult(db: &Db) -> bool {
+    db.kv_get(BLUR_ADULT_KEY).as_deref() != Some("0")
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn get_blur_adult(db: State<'_, Db>) -> bool {
-    db.kv_get(BLUR_ADULT_KEY).as_deref() != Some("0")
+    read_blur_adult(&db)
 }
 
 #[tauri::command]

@@ -9,7 +9,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::alerts::site::{
-    INTERVAL_KEY, INTERVAL_MAX, INTERVAL_MIN, LAST_CHECK_KEY, SEEN_KEY, SITE_QUERY,
+    announcement, job_verdict, JobVerdict, INTERVAL_KEY, INTERVAL_MAX, INTERVAL_MIN, LAST_CHECK_KEY,
+    SITE_QUERY, SITE_QUERY_PLAIN,
 };
 use crate::db::Db;
 
@@ -77,71 +78,76 @@ fn check(env: &mut JNIEnv, context: &JObject) -> Result<String, String> {
         return Ok(String::new());
     };
 
-    // One request on a throwaway current-thread runtime; the Android TLS arm needs no JNI, so a bare JVM thread will do.
+    // A throwaway current-thread runtime; the Android TLS arm needs no JNI, so a bare JVM thread will do.
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .map_err(|e| format!("runtime: {e}"))?;
-    let body: serde_json::Value = rt.block_on(async {
+    let (status, body) = ask(&rt, &db, &token, SITE_QUERY)?;
+    let body = match job_verdict(status, &body) {
+        JobVerdict::Answer => body,
+        JobVerdict::Stop => return Err(format!("HTTP {status}")),
+        // The same one fallback the live app makes, so a subject AniList cannot serve still leaves a count.
+        JobVerdict::Plain => {
+            let (status, body) = ask(&rt, &db, &token, SITE_QUERY_PLAIN)?;
+            if job_verdict(status, &body) != JobVerdict::Answer {
+                return Err(format!("HTTP {status}"));
+            }
+            body
+        }
+    };
+
+    let _ = db.kv_set(LAST_CHECK_KEY, &now_ms().to_string());
+
+    let Some((title, body)) = announcement(&db, body.get("data").unwrap_or(&serde_json::Value::Null)) else {
+        return Ok(String::new());
+    };
+    Ok(serde_json::json!({ "title": title, "body": body }).to_string())
+}
+
+/// One request and its answer, with the limiter's measurement written back whatever the status.
+fn ask(
+    rt: &tokio::runtime::Runtime,
+    db: &Db,
+    token: &str,
+    query: &str,
+) -> Result<(u16, serde_json::Value), String> {
+    rt.block_on(async {
         let client = crate::net::client_builder()
             .timeout(std::time::Duration::from_secs(30))
             .build()
             .map_err(|e| format!("client: {e}"))?;
         let resp = client
             .post("https://graphql.anilist.co")
-            .bearer_auth(&token)
+            .bearer_auth(token)
             .header("User-Agent", concat!("Karasu/", env!("CARGO_PKG_VERSION")))
-            .json(&serde_json::json!({ "query": SITE_QUERY }))
+            .json(&serde_json::json!({ "query": query }))
             .send()
             .await
             .map_err(|e| format!("send: {e}"))?;
-        // The live app restores this at its next start, so the job's one request is not a surprise to its limiter.
+        let status = resp.status().as_u16();
         let header = |name: &str| resp.headers().get(name).and_then(|v| v.to_str().ok()).and_then(|v| v.parse::<u32>().ok());
-        if let Some(remaining) = header("x-ratelimit-remaining") {
+        let remaining = header("x-ratelimit-remaining");
+        // A 429's own deadline too, so the live app's limiter waits it out at its next start instead of spending more.
+        let retry_until_ms = (status == 429).then(|| {
+            let wait = crate::anilist::client::retry_after_secs(resp.headers()).unwrap_or(60).min(120);
+            now_ms() + wait as i64 * 1000
+        });
+        if remaining.is_some() || retry_until_ms.is_some() {
             let state = crate::anilist::client::PersistedRate {
-                remaining,
+                remaining: remaining.unwrap_or(0),
                 limit: header("x-ratelimit-limit"),
                 observed_ms: now_ms(),
-                retry_until_ms: None,
+                retry_until_ms,
             };
             if let Ok(json) = serde_json::to_string(&state) {
                 let _ = db.kv_set(crate::anilist::RATE_STATE_KEY, &json);
             }
         }
-        if !resp.status().is_success() {
-            return Err(format!("HTTP {}", resp.status()));
-        }
-        resp.json::<serde_json::Value>()
-            .await
-            .map_err(|e| format!("body: {e}"))
-    })?;
-
-    let _ = db.kv_set(LAST_CHECK_KEY, &now_ms().to_string());
-
-    let unread = body
-        .pointer("/data/Viewer/unreadNotificationCount")
-        .and_then(|v| v.as_i64())
-        .unwrap_or(0);
-    let Some(newest) = body
-        .pointer("/data/Page/notifications/0/id")
-        .and_then(|v| v.as_i64())
-    else {
-        return Ok(String::new());
-    };
-
-    let seen = db.kv_get(SEEN_KEY).and_then(|s| s.parse::<i64>().ok());
-    let advanced = db.kv_advance_max(SEEN_KEY, newest);
-    let announce = matches!(seen, Some(s) if newest > s && unread > 0 && advanced);
-    if !announce {
-        return Ok(String::new());
-    }
-
-    let lang = crate::i18n::lang(&db);
-    Ok(serde_json::json!({
-        "title": crate::i18n::text(lang, crate::i18n::Msg::SiteNotifTitle),
-        "body": crate::i18n::text(lang, crate::i18n::Msg::SiteNotifBody { count: unread }),
+        // An unreadable body is judged by its status alone.
+        let body = resp.json::<serde_json::Value>().await.unwrap_or(serde_json::Value::Null);
+        Ok((status, body))
     })
-    .to_string())
 }
 
 /// The symbol `KarasuNative.backgroundNotifCheck` binds to; under `catch_unwind`, since a panic across JNI aborts.

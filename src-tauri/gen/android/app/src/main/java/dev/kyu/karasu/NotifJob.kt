@@ -108,6 +108,8 @@ class NotifJobService : JobService() {
       .setSmallIcon(R.mipmap.ic_launcher)
       .setContentTitle(body.optString("title"))
       .setContentText(body.optString("body"))
+      // Expanded, the whole sentence shows; Rust names the newest notification, which is longer than a count.
+      .setStyle(NotificationCompat.BigTextStyle().bigText(body.optString("body")))
       .setContentIntent(open)
       .setAutoCancel(true)
       .build()

@@ -83,6 +83,14 @@ impl From<ApiError> for String {
     }
 }
 
+/// The seconds a 429 asks for, when it says; Android's job reads it too, so the live app's limiter inherits the wait.
+pub(crate) fn retry_after_secs(headers: &reqwest::header::HeaderMap) -> Option<u64> {
+    headers
+        .get("retry-after")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.trim().parse::<u64>().ok())
+}
+
 /// HTTP statuses that mean "not now" rather than "not ever"; a 429 here has already outlived the one retry.
 fn status_is_retryable(code: u16) -> bool {
     matches!(code, 401 | 403 | 429) || (500..600).contains(&code)
@@ -721,13 +729,7 @@ impl AniList {
                     "anilist",
                     "rate limited (HTTP 429) — waiting before one retry",
                 );
-                let wait = resp
-                    .headers()
-                    .get("retry-after")
-                    .and_then(|v| v.to_str().ok())
-                    .and_then(|v| v.parse::<u64>().ok())
-                    .unwrap_or(60)
-                    .min(120);
+                let wait = retry_after_secs(resp.headers()).unwrap_or(60).min(120);
                 {
                     let mut rate = self.rate.lock().await;
                     rate.park(Duration::from_secs(wait), "retryAfter");

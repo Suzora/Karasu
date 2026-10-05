@@ -21,11 +21,12 @@ function sourceFiles() {
   const api = readdirSync(apiDir)
     .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"))
     .map((f) => join(apiDir, f));
-  // Read the whole commands module so LIST_QUERY and friends stay reachable wherever they end up living.
-  const cmdDir = join(ROOT, "src-tauri/src/commands");
-  const rust = readdirSync(cmdDir)
-    .filter((f) => f.endsWith(".rs"))
-    .map((f) => join(cmdDir, f));
+  // The whole commands module and the alert passes, so LIST_QUERY and SITE_QUERY stay reachable wherever they live.
+  const rust = ["src-tauri/src/commands", "src-tauri/src/alerts"].flatMap((dir) =>
+    readdirSync(join(ROOT, dir))
+      .filter((f) => f.endsWith(".rs"))
+      .map((f) => join(ROOT, dir, f)),
+  );
   return [...api, ...rust];
 }
 

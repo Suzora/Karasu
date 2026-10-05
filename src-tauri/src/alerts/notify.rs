@@ -47,6 +47,11 @@ pub fn notify_toast(app: &AppHandle, kind: &str, title: Msg<'_>, body: Msg<'_>) 
     toast(app, kind, &title, &body, false);
 }
 
+/// The toast for text composed elsewhere, as the site pass shares its wording with Android's job.
+pub fn notify_toast_text(app: &AppHandle, kind: &str, title: &str, body: &str) {
+    toast(app, kind, title, body, false);
+}
+
 /// Compose once in the user's language, so the toast, the bell row and the log cannot disagree.
 fn render(app: &AppHandle, title: Msg<'_>, body: Msg<'_>) -> (String, String) {
     let lang = crate::i18n::lang(&app.state::<Db>());
@@ -58,7 +63,8 @@ fn render(app: &AppHandle, title: Msg<'_>, body: Msg<'_>) -> (String, String) {
 
 /// The desktop half; not fatal, but a refused toast leaves a line saying whether the news survived in the bell.
 fn toast(app: &AppHandle, kind: &str, title: &str, body: &str, in_bell: bool) {
-    if let Err(e) = app.notification().builder().title(title).body(body).show() {
+    // The large body is Android's expanded form, so a long title or a count is never cut off; the desktop ignores it.
+    if let Err(e) = app.notification().builder().title(title).body(body).large_body(body).show() {
         let fallback = if in_bell {
             "It is still in the bell."
         } else {

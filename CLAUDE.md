@@ -127,8 +127,9 @@ src-tauri/src/
                      recognition/ (release-name parser, fuzzy matcher) →
                      relations (episode redirects) → scrobbler (when to write)
   alerts/            the background passes that end in a notification —
-                     airing, sequel, stale, site (AniList's own notifications
-                     as a summary toast), and notify itself
+                     airing, sequel, stale, site (the newest AniList
+                     notification named in a toast, or counted where it
+                     cannot be), and notify itself
   anilist/           auth (token handling), login (the localhost OAuth
                      callback), client (the limiter), query_cache (v20)
   db.rs              SQLite: PRAGMA user_version migrations + row helpers
@@ -212,7 +213,8 @@ src-tauri/src/
                      symbol NotifJob.kt calls over JNI, in a process where
                      Tauri may never have started — no AppHandle, every
                      dependency taken by hand; shares the site-notification
-                     kv vocabulary with alerts/site.rs. Also the live app's
+                     kv vocabulary, and the wording through `announcement`,
+                     with alerts/site.rs. Also the live app's
                      Android-only glue the other way round — Rust calling
                      Kotlin statics through the activity's class loader
                      (`with_app_class`): the notification job's schedule,
@@ -2013,6 +2015,26 @@ shape, and the question that follows them.
   so "Requests by source" says how often; that fallback is the query's one
   retry, and only a lost connection gets another. Neither source is ever
   added to `CACHEABLE`.
+- **The system notification names the newest AniList notification and never
+  quotes anyone.** `alerts/site.rs` asks, for the newest row only, for the
+  names that word it — the actor, a thread's title, a title with its filter
+  fields, a list activity's status and progress — and never for `text`,
+  `comment`, `context` or `reason`, because a lock screen shows the toast to
+  anyone; a test pins both queries to that. `describe` words it in the user's
+  language (`i18n.rs`, one `(De, …)` line per arm, so typos never reads the
+  German) and title language. A caption rides only on a like or a reply,
+  the two kinds AniList sends about the viewer's own activity, and only for
+  a status Karasu can word. A title the filter hides is never named, nor an
+  explicit one while the blur is on, since a notification cannot blur; a row
+  led by such a title falls back to the count, as does an AIRING row the
+  airing watcher already toasted (its `aired:` key). The desktop pass and
+  Android's job both end in `announcement`, so the two cannot word it
+  differently, and the job reads its raw answer through `job_verdict`. A
+  refused detailed answer earns one plain retry under the source `sitePlain`
+  — never for a token, a rate limit or a lost connection — and the job writes
+  a 429's `Retry-After` into `rate_state` (`retry_after_secs`), so the live
+  app's limiter waits it out at its next start instead of spending the next
+  request into the wall.
 - **A thread can land on one comment.** `/thread/:id?comment=<id>` rides the
   same uncapped `ThreadComment(id:)` tree route as the newest-jump — one
   request at any thread size, including comments past the 5,000-entry paging

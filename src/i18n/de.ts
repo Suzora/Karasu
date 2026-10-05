@@ -1635,7 +1635,7 @@ export const de: typeof en = {
     libraryMatched: "{{n}} Titel auf der Platte zugeordnet.",
     notifSchedule: "Benachrichtigungen im Hintergrund",
     notifScheduleHint:
-      "Eine Systembenachrichtigung, wenn ungelesene AniList-Benachrichtigungen warten — am Desktop, während Karasu im Tray sitzt, auf Android auch bei geschlossener App. Standardmäßig aus; ein Check kostet eine Anfrage.",
+      "Eine Systembenachrichtigung, wenn ungelesene AniList-Benachrichtigungen warten — am Desktop, während Karasu im Tray sitzt, auf Android auch bei geschlossener App. Sie nennt die neueste: wer was getan hat, nie, was jemand geschrieben hat. Standardmäßig aus; ein Check kostet eine Anfrage, eine zweite nur, wenn AniList die erste ablehnt.",
     notifScheduleLabel: "Prüfen alle",
     notifScheduleOff: "Aus",
     notifSchedule15: "15 Minuten",

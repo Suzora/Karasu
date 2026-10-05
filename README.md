@@ -236,7 +236,8 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 - An opt-in **background check for your AniList notifications** — off by
   default, with 15/30/60-minute presets or your own interval. On desktop it
   runs while Karasu sits in the tray; on Android it runs even with the app
-  closed, and the summary notification opens the bell
+  closed. The notification names the newest one — who did what, never what
+  anyone wrote, and no title your content filter hides — and opens the bell
 - A bundled in-app **notification centre** — the bell in the title bar on
   desktop, in the bottom bar's More area on the phone — with read /
   mark-all-read. Karasu's own alerts and your AniList notifications arrive

@@ -175,8 +175,7 @@ fn write_projection(app: &tauri::AppHandle) {
     let anime = parse("ANIME");
     let manga = parse("MANGA");
     let level = crate::commands::read_content_filter(&db);
-    // Absent means ON, matching `get_blur_adult`; reading `== "1"` here would invert the default.
-    let hide_adult = db.kv_get("blur_adult").as_deref() != Some("0");
+    let hide_adult = crate::commands::read_blur_adult(&db);
     let lang = crate::i18n::lang(&db);
     let doc = project(
         anime.as_ref(),
