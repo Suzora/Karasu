@@ -109,7 +109,7 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 
 **Tracking &amp; scrobbling**
 - Automatic detection in local players (mpv, VLC, MPC-HC/BE, PotPlayer, SMPlayer)
-  and in the browser (Bilibili, ADN, Crunchyroll); Disney+ and Prime Video
+  and in the browser (Bilibili, ADN); Disney+ and Prime Video
   name only the series in their tabs, so Karasu shows what is playing there
   but cannot update an episode. A paused player is read from its audio
   session, so a pause defers the update rather than faking a watch
@@ -298,6 +298,9 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
   format, activity posting, AniList's own notification toggles — so they
   apply on anilist.co and in every client at once. On Android the library
   and desktop panes are hidden, because nothing behind them exists there
+- **Compare your list with anyone's**: a profile's Compare tab shows how
+  much your scores agree, where you disagree most and what they rated that
+  you have not seen, from the list the profile already loads
 - **One interaction model, three presentations**: right-click on a title
   opens a context menu, a long press on the phone opens the same actions as
   a bottom sheet, and the command palette lists them too — update progress,

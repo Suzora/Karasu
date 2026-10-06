@@ -4,6 +4,8 @@ import { seriesDelay } from "@/lib/motion";
 
 /** A dumbbell plot: two scores per row on one 0-`max` axis, where `max` is the account's score scale top. */
 export interface DotPlotRow {
+  /** The row's key where labels can repeat, as two titles can. */
+  id?: string | number;
   label: string;
   mine: number;
   other: number;
@@ -34,7 +36,7 @@ export function DotPlot({
 
       <div className="mt-4 flex flex-1 flex-col justify-around gap-3">
         {rows.map((r, i) => (
-          <div key={r.label}>
+          <div key={r.id ?? r.label}>
             <div className="flex items-baseline justify-between gap-2 text-xs">
               <span className="min-w-0 truncate text-ink-300">{r.label}</span>
               <span className="shrink-0 tabular-nums text-ink-100">

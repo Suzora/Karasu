@@ -8,6 +8,7 @@ import {
   scoreOptions,
   scoreScale,
   toRaw,
+  unroundedScore,
   type ScoreFormat,
 } from "./scoreFormat";
 
@@ -98,6 +99,26 @@ describe("fromRaw", () => {
       expect(fromRaw(f, 0), f).toBe(0);
       expect(fromRaw(f, NaN), f).toBe(0);
     }
+  });
+});
+
+describe("unroundedScore", () => {
+  it("keeps the fraction a step would round away", () => {
+    expect(unroundedScore("POINT_10", 65)).toBe(6.5);
+    expect(unroundedScore("POINT_10", 70) - unroundedScore("POINT_10", 65)).toBeCloseTo(0.5);
+    expect(unroundedScore("POINT_100", 65)).toBe(65);
+    expect(unroundedScore("POINT_5", 50)).toBe(2.5);
+  });
+
+  it("puts the smiley scale's own raw points on its steps and reads between them", () => {
+    expect([35, 60, 85].map((r) => unroundedScore("POINT_3", r))).toEqual([1, 2, 3]);
+    expect(unroundedScore("POINT_3", 72.5)).toBe(2.5);
+    expect(unroundedScore("POINT_3", 100)).toBe(3);
+  });
+
+  it("reads zero and junk as unscored", () => {
+    expect(unroundedScore("POINT_10", 0)).toBe(0);
+    expect(unroundedScore("POINT_3", NaN)).toBe(0);
   });
 });
 

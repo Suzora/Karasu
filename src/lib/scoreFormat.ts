@@ -68,6 +68,15 @@ export function fromRaw(f: ScoreFormat, raw: number): number {
   return Math.round(value * factor) / factor;
 }
 
+/** A raw number on the display scale without rounding to its step, for means and gaps shown to one decimal. */
+export function unroundedScore(f: ScoreFormat, raw: number): number {
+  if (!Number.isFinite(raw) || raw <= 0) return 0;
+  const clamped = Math.min(100, raw);
+  // The smiley scale is three fixed raw points, so a value between two of them is read between their steps.
+  if (f === "POINT_3") return clamped <= 35 ? clamped / 35 : clamped <= 85 ? 1 + (clamped - 35) / 25 : 3;
+  return (clamped / 100) * scoreScale(f).max;
+}
+
 /** The smiley glyphs, index = score. Emoji, so no i18n key is needed. */
 const SMILEYS = ["", "☹️", "😐", "🙂"] as const;
 

@@ -15,6 +15,7 @@ import BackButton from "@/components/shell/BackButton";
 import { ProfileHeader } from "@/components/social/ProfileHeader";
 import { UserList } from "@/components/social/UserList";
 import { UserLists } from "@/components/social/UserLists";
+import { UserCompare } from "@/components/social/UserCompare";
 import { ActivityFeed } from "@/components/social/ActivityFeed";
 import { UserThreads } from "@/components/social/UserThreads";
 import { CoverOutline, EmptyState, PerchRule, StruckQuery } from "@/components/EmptyState";
@@ -130,7 +131,7 @@ export default function UserProfile() {
   );
 }
 
-const TABS = ["overview", "lists", "activity", "followers", "following", "forum"] as const;
+const TABS = ["overview", "lists", "compare", "activity", "followers", "following", "forum"] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(value: string | null): value is Tab {
@@ -142,7 +143,11 @@ function Tabbed({ user }: { user: UserProfileData }) {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
-  const tab: Tab = isTab(raw) ? raw : "overview";
+  const viewer = useAuth((s) => s.viewer);
+  // Comparing needs an own list and someone else's, so the tab exists only signed in on another profile.
+  const canCompare = viewer != null && !isSelf(viewer.id, user.id);
+  const tabs = TABS.filter((id) => id !== "compare" || canCompare);
+  const tab: Tab = isTab(raw) && tabs.includes(raw) ? raw : "overview";
 
   const counts = useQuery({
     queryKey: ["social", "followCounts", user.id],
@@ -154,6 +159,7 @@ function Tabbed({ user }: { user: UserProfileData }) {
   const tabCount: Record<Tab, number | undefined> = {
     overview: undefined,
     lists: undefined,
+    compare: undefined,
     // No count for activity: AniList's total there is a capped 5000.
     activity: undefined,
     followers: counts.data?.followers,
@@ -177,13 +183,15 @@ function Tabbed({ user }: { user: UserProfileData }) {
             else next.set("tab", id);
             setParams(next, { replace: true });
           }}
-          tabs={TABS.map((id) => ({
+          tabs={tabs.map((id) => ({
             value: id,
             label:
               id === "overview"
                 ? t("social.tabOverview")
                 : id === "lists"
                   ? t("social.tabLists")
+                  : id === "compare"
+                    ? t("social.tabCompare")
                   : id === "activity"
                     ? t("social.tabActivity")
                     : id === "followers"
@@ -200,6 +208,7 @@ function Tabbed({ user }: { user: UserProfileData }) {
       <div key={tab} className="animate-settle pt-6">
         {tab === "overview" && <Favourites user={user} />}
         {tab === "lists" && <UserLists user={user} />}
+        {tab === "compare" && <UserCompare user={user} />}
         {tab === "activity" && (
           <ActivityFeed
             queryKey={["social", "activities", user.id]}

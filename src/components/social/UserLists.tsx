@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { userList, type ForeignListEntry, type UserProfile } from "@/api/social";
+import { userListQuery, type ForeignListEntry, type UserProfile } from "@/api/social";
 import { fetchMediaList, isTauri } from "@/api/anilist";
 import {
   STATUS_ORDER,
@@ -11,7 +11,7 @@ import {
   type MediaType,
 } from "@/api/types";
 import { asScoreFormat, formatScore, toRaw } from "@/lib/scoreFormat";
-import { affinity } from "@/lib/affinity";
+import { affinity, affinityGap, affinityPct } from "@/lib/affinity";
 import { isBlocked, shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth, useScoreFormat } from "@/stores/auth";
@@ -33,12 +33,7 @@ export function UserLists({ user }: { user: UserProfile }) {
   const [type, setType] = useState<MediaType>("ANIME");
   const [status, setStatus] = useState<MediaListStatus>("CURRENT");
 
-  const q = useQuery({
-    queryKey: ["social", "userList", user.id, type],
-    queryFn: () => userList(user.id, type),
-    enabled: isTauri,
-    staleTime: 10 * 60 * 1000,
-  });
+  const q = useQuery({ ...userListQuery(user.id, type), enabled: isTauri });
 
   const theirFormat = asScoreFormat(user.mediaListOptions?.scoreFormat);
 
@@ -75,8 +70,8 @@ export function UserLists({ user }: { user: UserProfile }) {
 
   const match = useMemo(() => {
     if (!comparing || !mineData) return null;
+    // Custom groups too: an entry hidden from the status lists sits only there, and `affinity` keeps one per title.
     const mine = mineData.lists
-      .filter((g) => !g.isCustomList)
       .flatMap((g) => g.entries)
       .map((e) => ({ mediaId: e.mediaId, raw: toRaw(viewerFormat, e.score) }));
     const theirs = entries.map((e) => ({
@@ -116,8 +111,10 @@ export function UserLists({ user }: { user: UserProfile }) {
         <div className="rounded-control border border-hair bg-surface-900 px-3 py-2 text-xs text-ink-300">
           <span className="font-medium text-ink-100">
             {match.pearson !== null
-              ? t("social.affinity", { pct: Math.round(match.pearson * 100) })
-              : t("social.affinityNone")}
+              ? t("social.affinity", { pct: affinityPct(match.pearson) })
+              : affinityGap(match) === "spread"
+                ? t("social.compareNoSpread")
+                : t("social.affinityNone")}
           </span>
           {" · "}
           {t("social.affinityShared", { n: match.shared })}

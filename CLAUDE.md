@@ -1526,7 +1526,10 @@ async update the real code makes after an await warns instead.
   Crunchyroll's German watch page for Frieren's first episode read the series,
   then the episode's name, then "- Schau auf Crunchyroll", with no number,
   so its tab alone cannot scrobble; whether its player publishes media-session
-  metadata needs a subscriber's capture through the Settings diagnostic. ADN
+  metadata needs a subscriber's capture through the Settings diagnostic. The
+  maintainer took Crunchyroll off the README and the site on 2026-10-06, as
+  Netflix before it; its profile stays, since a title that spells its number
+  still matches. ADN
   appends its dub list (`… : Teufelsblut - streaming - DF, OmdU, … - ADN`),
   which the profile cuts. A site is named by an affix that strips, never by a
   word inside the title — "ADN" sits inside "MADNESS".

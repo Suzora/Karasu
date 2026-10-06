@@ -773,3 +773,15 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   flick through `useFlickDismiss`. Replacing one toast with the next now
   swaps at once with the new one's entrance, where Motion waited for the old
   one's exit.
+- **2026-10-06:** Comparing lists with another user is a tab of its own,
+  "Vergleich" beside "Listen", only on someone else's profile and only signed
+  in (A of three mockups, over B, a compact form above the Lists tab's list,
+  and C, the same at the head of the overview). The tab shows the figures,
+  the widest disagreements on the viewer's scale and what the other person
+  rated that the viewer has not seen; the one-line strip in the Lists tab
+  stays. An affinity in per cent appears from ten titles both scored, and a
+  value below zero is shown as a number with a real minus sign.
+- **2026-10-06:** On a Wayland session the hotkey row's hint says the desktop
+  owns the key, a status line under it gives the desktop's answer, and a
+  button opens the desktop's own shortcut dialog where it has one; Windows and
+  X11 keep the row as it was (a before/after board, accepted as shown).

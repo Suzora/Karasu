@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affinity, AFFINITY_MIN_SHARED } from "./affinity";
+import { affinity, affinityGap, affinityPct, AFFINITY_MIN_SHARED } from "./affinity";
 
 const list = (pairs: [number, number][]) => pairs.map(([mediaId, raw]) => ({ mediaId, raw }));
 
@@ -14,9 +14,10 @@ describe("affinity", () => {
   });
 
   it("perfect agreement is +1, perfect opposition is -1", () => {
-    const mine = list([[1, 10], [2, 30], [3, 50], [4, 70], [5, 90]]);
+    const ids = Array.from({ length: AFFINITY_MIN_SHARED }, (_, i) => i + 1);
+    const mine = list(ids.map((id) => [id, id * 9]));
     expect(affinity(mine, mine).pearson).toBeCloseTo(1, 5);
-    const inverted = list([[1, 90], [2, 70], [3, 50], [4, 30], [5, 10]]);
+    const inverted = list(ids.map((id) => [id, 100 - id * 9]));
     expect(affinity(mine, inverted).pearson).toBeCloseTo(-1, 5);
   });
 
@@ -29,8 +30,9 @@ describe("affinity", () => {
   });
 
   it("a constant scorer correlates with nothing — null, not NaN", () => {
-    const mine = list([[1, 70], [2, 70], [3, 70], [4, 70], [5, 70]]);
-    const theirs = list([[1, 10], [2, 30], [3, 50], [4, 70], [5, 90]]);
+    const ids = Array.from({ length: AFFINITY_MIN_SHARED }, (_, i) => i + 1);
+    const mine = list(ids.map((id) => [id, 70]));
+    const theirs = list(ids.map((id) => [id, id * 9]));
     expect(affinity(mine, theirs).pearson).toBeNull();
   });
 
@@ -49,5 +51,21 @@ describe("affinity", () => {
     );
     expect(out.shared).toBe(1);
     expect(out.scoredShared).toBe(1);
+  });
+});
+
+describe("affinityGap", () => {
+  const ids = Array.from({ length: AFFINITY_MIN_SHARED }, (_, i) => i + 1);
+
+  it("names the floor below enough shared scores, and the spread when one side scores all alike", () => {
+    expect(affinityGap(affinity(list([[1, 70]]), list([[1, 80]])))).toBe("floor");
+    const flat = affinity(list(ids.map((id) => [id, 70])), list(ids.map((id) => [id, id * 9])));
+    expect(affinityGap(flat)).toBe("spread");
+    expect(affinityGap(affinity(list(ids.map((id) => [id, id * 9])), list(ids.map((id) => [id, id * 9]))))).toBeNull();
+  });
+
+  it("writes a negative share with a real minus sign", () => {
+    expect(affinityPct(-0.42)).toBe("\u221242");
+    expect(affinityPct(0.5)).toBe("50");
   });
 });

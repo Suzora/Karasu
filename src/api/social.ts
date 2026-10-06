@@ -1118,6 +1118,13 @@ export async function userList(
   return data.MediaListCollection?.lists ?? [];
 }
 
+/** The Lists and Compare tabs' one definition, so the request they share behaves the same whichever tab started it. */
+export const userListQuery = (userId: number, type: MediaType) => ({
+  queryKey: ["social", "userList", userId, type] as const,
+  queryFn: () => userList(userId, type),
+  staleTime: 10 * 60 * 1000,
+});
+
 // --- Site notifications ----------------------------------------------------
 
 /** The kinds the bell shows; ACTIVITY_MESSAGE stays out here, in the fragments and in the normalizer. */

@@ -15,14 +15,23 @@ vi.mock("@/api/anilist", async (orig) => ({
 
 const theirs = vi.fn<(userId: number, type: string) => Promise<ForeignListGroup[]>>();
 
-vi.mock("@/api/social", async (orig) => ({
-  ...(await orig<typeof import("@/api/social")>()),
-  userList: (userId: number, type: string) => theirs(userId, type),
-}));
+// The query definition closes over the module's own `userList`, so it is swapped here as well.
+vi.mock("@/api/social", async (orig) => {
+  const real = await orig<typeof import("@/api/social")>();
+  return {
+    ...real,
+    userList: (userId: number, type: string) => theirs(userId, type),
+    userListQuery: (userId: number, type: "ANIME" | "MANGA") => ({
+      ...real.userListQuery(userId, type),
+      queryFn: () => theirs(userId, type),
+    }),
+  };
+});
 
 import { UserLists } from "./UserLists";
 
-const SCORES = [9, 8, 7, 6, 5, 4];
+// Ten, the floor below which an affinity is noise rather than taste.
+const SCORES = [9, 8, 7, 6, 5, 4, 3, 7, 8, 2];
 
 const them = {
   id: 11,

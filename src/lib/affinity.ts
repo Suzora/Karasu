@@ -26,7 +26,16 @@ export interface AffinityResult {
 }
 
 /** Below this many shared scored titles a correlation is noise, not taste. */
-export const AFFINITY_MIN_SHARED = 5;
+export const AFFINITY_MIN_SHARED = 10;
+
+/** A correlation as a whole percentage with a real minus sign, since a negative one is an answer and not a dash. */
+export const affinityPct = (pearson: number) => String(Math.round(pearson * 100)).replace("-", "\u2212");
+
+/** Why `pearson` is null: too few shared scores, or a side that scores every shared title the same. */
+export function affinityGap(r: AffinityResult): "floor" | "spread" | null {
+  if (r.pearson !== null) return null;
+  return r.scoredShared < AFFINITY_MIN_SHARED ? "floor" : "spread";
+}
 
 export function affinity(
   mine: AffinityEntry[],

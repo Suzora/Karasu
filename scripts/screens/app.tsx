@@ -124,6 +124,25 @@ function list(manga: boolean) {
 }
 
 const LISTS = { ANIME: list(false), MANGA: list(true) };
+
+/** Another user's list: most of the viewer's titles, scored near the viewer's with a few wide gaps, plus four of its own. */
+function foreignList(manga: boolean) {
+  const nudge = [1, -2, 0, 2, -1, 3, -4, 0, 1, -1];
+  const shared = LISTS[manga ? "MANGA" : "ANIME"].lists
+    .flatMap((g) => g.entries)
+    .filter((_, i) => i % 7 !== 3)
+    .map((e, i) => {
+      const finishedHere = e.status === "PLANNING" && i % 2 === 0;
+      const score = e.score > 0 ? Math.max(1, Math.min(10, e.score + nudge[i % nudge.length])) : i % 4 === 0 ? 8 : 0;
+      return { id: 70000 + i, mediaId: e.mediaId, status: finishedHere ? "COMPLETED" : e.status, score, progress: e.progress, progressVolumes: null, media: e.media };
+    });
+  const own = Array.from({ length: 4 }, (_, k) => {
+    const m = media(36 + k, manga);
+    return { id: 71000 + k, mediaId: m.id, status: "COMPLETED", score: 9 - k, progress: m.episodes ?? 12, progressVolumes: null, media: m };
+  });
+  const entries = [...shared, ...own];
+  return STATUSES.map((status) => ({ name: status, status, isCustomList: false, entries: entries.filter((e) => e.status === status) }));
+}
 const viewer = {
   id: 1,
   name: "Kyusetzu",
@@ -428,6 +447,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     ];
     return { Page: { pageInfo: { hasNextPage: true, total: 5, currentPage: 1, lastPage: 2 }, notifications } };
   }
+  if (/MediaListCollection\s*\(/.test(q)) return { MediaListCollection: { lists: foreignList(variables?.type === "MANGA") } };
   if (/relations \{ edges \{ relationType node/.test(q) && /id_in/.test(q)) {
     const ids = new Set((variables?.ids as number[]) ?? []);
     return { Page: { media: franchise().filter((m) => ids.has(m.id)) } };

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f828c79 -->
+<!-- generated-through: 601ac0e -->
 
 ### Fixed
 
@@ -85,6 +85,7 @@ tag time is then optional rather than load-bearing.
 - Notifications about an activity or a forum comment now say which one: the list entry with its cover, the post or the comment, with spoilers hidden and nothing past your content filter.
 - Mute new-episode notifications for a single show from its context menu; Settings lists the muted shows.
 - On a Wayland desktop the global hotkey now goes through the desktop's own shortcut portal (GNOME 48+, KDE Plasma, Hyprland), with its status shown in Settings.
+- A Compare tab on other users' profiles shows how much your scores agree, where you disagree most and what they rated that you have not seen.
 
 ### Changed
 
