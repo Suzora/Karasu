@@ -118,14 +118,15 @@ pub(super) fn process_name(pid: u32) -> Option<String> {
 /// Scans visible windows for anime playback or manga reading; the media-session pass is async and runs after this.
 pub fn detect_windows() -> Option<Playback> {
     let windows = enumerate_windows();
-    // Read once per sweep rather than per candidate, since it is a COM round trip; an empty map suppresses nothing.
-    let playing = audio::play_states();
+    // A COM round trip, so it runs at most once a sweep and only once a window has matched; empty suppresses nothing.
+    let mut playing: Option<audio::PlayStates> = None;
+    let mut paused = |process: &str| audio::is_paused(playing.get_or_insert_with(audio::play_states), process);
     // Local players take precedence over browser detection
     for w in &windows {
-        if audio::is_paused(&playing, &w.process) {
-            continue;
-        }
         if let Some(media) = profiles::match_player(&w.process, &w.title) {
+            if paused(&w.process) {
+                continue;
+            }
             return Some(Playback {
                 process: w.process.clone(),
                 media_title: media,
@@ -138,10 +139,10 @@ pub fn detect_windows() -> Option<Playback> {
         }
     }
     for w in &windows {
-        if audio::is_paused(&playing, &w.process) {
-            continue;
-        }
         if let Some(media) = profiles::match_streaming(&w.process, &w.title) {
+            if paused(&w.process) {
+                continue;
+            }
             return Some(Playback {
                 process: w.process.clone(),
                 media_title: media,
