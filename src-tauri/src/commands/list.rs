@@ -176,9 +176,9 @@ mutation ($id: Int) {
 
 /// One request for a whole selection, keyed on list-entry ids; `notes` stays out, since it would destroy every tag.
 const UPDATE_ENTRIES_MUTATION: &str = "
-mutation ($ids: [Int], $status: MediaListStatus, $scoreRaw: Int, $progress: Int, $progressVolumes: Int, $repeat: Int, $private: Boolean, $startedAt: FuzzyDateInput, $completedAt: FuzzyDateInput, $scoreFormat: ScoreFormat) {
-  UpdateMediaListEntries(ids: $ids, status: $status, scoreRaw: $scoreRaw, progress: $progress, progressVolumes: $progressVolumes, repeat: $repeat, private: $private, startedAt: $startedAt, completedAt: $completedAt) {
-    id mediaId status progress progressVolumes repeat notes updatedAt private
+mutation ($ids: [Int], $status: MediaListStatus, $scoreRaw: Int, $progress: Int, $progressVolumes: Int, $repeat: Int, $private: Boolean, $hiddenFromStatusLists: Boolean, $startedAt: FuzzyDateInput, $completedAt: FuzzyDateInput, $scoreFormat: ScoreFormat) {
+  UpdateMediaListEntries(ids: $ids, status: $status, scoreRaw: $scoreRaw, progress: $progress, progressVolumes: $progressVolumes, repeat: $repeat, private: $private, hiddenFromStatusLists: $hiddenFromStatusLists, startedAt: $startedAt, completedAt: $completedAt) {
+    id mediaId status progress progressVolumes repeat notes updatedAt private hiddenFromStatusLists
     media { type }
     startedAt { year month day }
     completedAt { year month day }
@@ -520,6 +520,8 @@ pub struct BulkSaveInput {
     #[specta(type = Option<crate::commands::Num>)]
     pub repeat: Option<i64>,
     pub private: Option<bool>,
+    /// Back onto the status lists, for entries a deleted custom list would otherwise leave on no list at all.
+    pub hidden_from_status_lists: Option<bool>,
     /// `FuzzyDateInput`, forwarded as an opaque `{year, month, day}` because every part is nullable.
     #[specta(type = Option<crate::commands::Json>)]
     pub started_at: Option<Value>,
@@ -536,7 +538,18 @@ pub async fn bulk_save_list_entries(
     api: State<'_, AniList>,
     input: BulkSaveInput,
 ) -> Result<BulkResult, String> {
-    let BulkSaveInput { ids, status, score_raw, progress, progress_volumes, repeat, private, started_at, completed_at } = input;
+    let BulkSaveInput {
+        ids,
+        status,
+        score_raw,
+        progress,
+        progress_volumes,
+        repeat,
+        private,
+        hidden_from_status_lists,
+        started_at,
+        completed_at,
+    } = input;
     if ids.is_empty() {
         return Ok(BulkResult { updated: 0, error: None });
     }
@@ -547,6 +560,7 @@ pub async fn bulk_save_list_entries(
         && progress_volumes.is_none()
         && repeat.is_none()
         && private.is_none()
+        && hidden_from_status_lists.is_none()
         && started_at.is_none()
         && completed_at.is_none()
     {
@@ -575,6 +589,7 @@ pub async fn bulk_save_list_entries(
             "progressVolumes": progress_volumes,
             "repeat": repeat,
             "private": private,
+            "hiddenFromStatusLists": hidden_from_status_lists,
             "startedAt": started_at,
             "completedAt": completed_at,
             "scoreFormat": viewer_score_format(&db),

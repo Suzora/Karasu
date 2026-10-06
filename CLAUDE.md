@@ -97,7 +97,7 @@ src/
                      usePullToSync, useActionRunner, useCachedMedia,
                      useDetectionMedia, useDetectionDrag, useElementSize,
                      usePointerSwipe, useTabSwipe, useSettingLanding,
-                     useFlickDismiss)
+                     useFlickDismiss, useCustomListAdmin)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
                      key parity across the two files
   lib/               pure logic + its *.test.ts — the place testable code goes
@@ -507,6 +507,46 @@ name and looking it up in the raw map is a bug with three faces, and it shipped
 for a while: the membership checkbox never ticked, the filter returned nothing,
 and saving sent a name the account did not have. `lib/customLists` is the one
 reader; do not go back to `g.name`.
+
+**Custom lists are written one op at a time, and every rename or delete is
+checked afterwards.** `UpdateUser(animeListOptions | mangaListOptions)` takes
+`customLists` as a whole replacement with no undo, AniList keeps an entry's
+membership against the list's *position* in that array as far as anyone can
+tell from outside, and its forum reports deletes that moved entries between the
+other lists (threads 76237 and 92875). So `lib/customListRun` reads the options
+fresh (`listOptions`), refuses while a queued save could replay the old names,
+snapshots every membership from a forced list fetch, sends exactly one create,
+rename or delete (`lib/customListOps` `planOp`, held to `isSingleEdit`), sends
+back the section order, the split by format and the advanced scoring exactly as
+it just read them (`fullWrite`), because nothing measured says whether AniList
+keeps an option the input leaves out or resets it, fetches again, and
+writes back each drifted entry's whole membership through `saveListEntry`,
+including a hidden entry that left the read because it lost every list. A
+create costs three requests, a rename or a delete four, a delete that unhides
+five, plus one per repaired entry. An answer that is not the array it sent stops
+the run before any repair, since the model is then not the one assumed, and so
+does an options answer with no lists object, which a create would otherwise
+read as an account without lists and overwrite. A forced list read that fell
+back to the SQLite copy (`fromCache`) is not the account: before the write it
+stops the run with nothing written, after it the run reports itself unchecked
+and repairs nothing. A delete offers to unhide the entries it would leave on no
+list at all (`hiddenOrphans`, one bulk `hiddenFromStatusLists: false`), and the
+run refuses when its fresh snapshot strands one the dialog did not show. Runs
+are one at a time per list type across every mount (`customListAdminKey`, a
+mutation scope, `useIsMutating` for the buttons). The write shares nothing with
+`formToUpdateUserVars`, whose guard test still keeps the lists out of the
+account form. Sources `listOptions` and `customLists`, both uncached; every
+mutation through the passthrough drops the cached `profile` answers
+(`forget_after_mutation`), since a profile carries the lists, the favourites
+and the follow state and the ten-minute row would otherwise bring the old ones
+back.
+Measured in the rig on 2026-10-06 against the maintainer's account with a
+throwaway list (create, one member, rename, delete), with the write that still
+sent the lists alone: the rename carried the member to the new name, the delete
+left no membership and the section order as it was, and no repair ran. That
+account has split and advanced scoring off, so it could not show a reset of
+either; `fullWrite` came after it for that reason. That fits either storage model, so the repair
+stays the guard for the bug the forum describes, not a path anyone has seen run.
 
 **The season is inert for matching unless the *title* carries it.**
 `matcher::variants` only re-spells a marker already in the string; it never

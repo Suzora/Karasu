@@ -322,6 +322,8 @@ export type BulkSaveInput = {
 	progressVolumes: number | null,
 	repeat: number | null,
 	private: boolean | null,
+	/**  Back onto the status lists, for entries a deleted custom list would otherwise leave on no list at all. */
+	hiddenFromStatusLists: boolean | null,
 	/**  `FuzzyDateInput`, forwarded as an opaque `{year, month, day}` because every part is nullable. */
 	startedAt: any | null,
 	completedAt: any | null,

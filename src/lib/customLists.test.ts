@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { customListNames } from "./customLists";
+import { customListNames, membership } from "./customLists";
 import type { MediaListGroup } from "@/api/types";
 
 const group = (
@@ -47,5 +47,15 @@ describe("customListNames", () => {
   it("reports nothing for an empty list", () => {
     expect(customListNames([])).toEqual([]);
     expect(customListNames([group("Watching", false, [])])).toEqual([]);
+  });
+});
+
+describe("membership", () => {
+  it("keeps every known list as a key, unchecked ones false, so a list nobody else is in stays offered", () => {
+    expect(membership({ backlog: true, someday: false }, ["someday"])).toEqual({ backlog: false, someday: true });
+  });
+
+  it("adds a list the entry never carried", () => {
+    expect(membership(null, ["fresh"])).toEqual({ fresh: true });
   });
 });

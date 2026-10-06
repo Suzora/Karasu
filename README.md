@@ -162,6 +162,9 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 - **Bulk multi-select** edits, saved **filter/sort presets**, a **random pick**,
   private **notes**, custom **tags** (with a tag filter), and a
   **rewatch/reread counter**
+- **Custom lists** you can create, rename and delete in Settings, one change at
+  a time; after a rename or a delete Karasu reads your list again and puts
+  back any entry AniList moved
 - Manga counts **chapters and volumes** as two separate axes, the way AniList
   stores them
 - Scores read and write in **your account's own format** — 100-point, 10-point

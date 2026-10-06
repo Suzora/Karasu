@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
   leaving = false,
+  children,
 }: {
   title: string;
   /** The first few things this will destroy, spelled out. */
@@ -25,6 +27,8 @@ export default function ConfirmDialog({
   onCancel: () => void;
   /** On its way out — see `usePresence`. */
   leaving?: boolean;
+  /** A choice that goes with the confirmation, such as what to do with what the action would strand. */
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
@@ -51,7 +55,7 @@ export default function ConfirmDialog({
         </>
       }
     >
-      {(names.length > 0 || note) && (
+      {(names.length > 0 || note || children) && (
         <div className="pl-10">
           {names.length > 0 && (
             <ul className="space-y-0.5 text-xs text-ink-500">
@@ -64,6 +68,7 @@ export default function ConfirmDialog({
             </ul>
           )}
           {note && <p className="mt-2 text-2xs leading-relaxed text-ink-600">{note}</p>}
+          {children}
         </div>
       )}
     </Modal>

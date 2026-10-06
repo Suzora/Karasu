@@ -29,7 +29,7 @@ import {
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { useAuth } from "@/stores/auth";
 import { notifScheduleFailure } from "@/lib/notifSchedule";
-import { Chip } from "@/components/ui/chip";
+import { CustomListManager } from "./CustomLists";
 
 /** AniList's own account settings, served from the profile's cache entry; bio and colour stay in the profile editor. */
 
@@ -386,30 +386,18 @@ export function AniListListOptionsSection() {
               </Select>
             </Row>
 
-            {/* Read-only on purpose: `customLists` is a full replacement with no undo, so never send it (`lib/anilistUserFields`). */}
-            <div className={cn(cardClass("sunken"), "p-3")}>
+            {/* Its own write path, one list per request (`useCustomListAdmin`); `UpdateUser` here never carries the lists. */}
+            <div
+              data-setting="customLists"
+              className={cn(cardClass("sunken"), "p-3 transition-surface data-landed:ring-1 data-landed:ring-accent-500/40")}
+            >
               <p className="text-xs font-medium text-ink-300">
                 {t("settings.alCustomLists")}
               </p>
               <p className="mt-1 text-2xs text-ink-600">
                 {t("settings.alCustomListsHint")}
               </p>
-              <div className="mt-2 flex flex-wrap gap-1">
-                {[
-                  ...(mlo.animeList?.customLists ?? []),
-                  ...(mlo.mangaList?.customLists ?? []),
-                ].map((name, i) => (
-                  <Chip key={`${name}-${i}`} tone="muted" size="xs">
-                    {name}
-                  </Chip>
-                ))}
-                {!(mlo.animeList?.customLists ?? []).length &&
-                  !(mlo.mangaList?.customLists ?? []).length && (
-                    <span className="text-2xs text-ink-600">
-                      {t("settings.alCustomListsNone")}
-                    </span>
-                  )}
-              </div>
+              <CustomListManager options={mlo} />
             </div>
           </>
         )}

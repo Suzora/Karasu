@@ -123,6 +123,13 @@ export const SCREENS = [
   { id: "p58-profil-uebersicht", w: 405, h: 2200, phone: true, route: "/user/Mikan" },
   { id: "d79-tastenkuerzel", w: 1232, h: 1000, route: "/settings?pane=desktop", mock: "hotkey-portal", act: toCard("System") },
   { id: "d80-tastenkuerzel-x11", w: 1232, h: 1000, route: "/settings?pane=desktop", act: toCard("System") },
+  { id: "d81-eigene-listen", w: 1232, h: 1000, route: "/settings?pane=account", act: landOn("customLists") },
+  { id: "d82-eigene-listen-loeschen", w: 1232, h: 1000, route: "/settings?pane=account", act: async (p) => {
+    await landOn("customLists")(p);
+    await p.getByRole("button", { name: "Löschen: Ghibli" }).click();
+    await p.waitForTimeout(400);
+  } },
+  { id: "p59-eigene-listen", w: 405, h: 1300, phone: true, route: "/settings?pane=account", act: landOn("customLists") },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },

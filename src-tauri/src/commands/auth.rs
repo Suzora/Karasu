@@ -318,7 +318,21 @@ async fn passthrough(
         db.query_cache_put(&key, viewer, &source, cache.as_ref().and_then(|c| c.media_id), &value.to_string());
         return Ok(value);
     }
-    Ok(api.query_from(&source, token.as_deref(), &query, variables).await?)
+    let value = api.query_from(&source, token.as_deref(), &query, variables).await?;
+    if is_mutation(&query) {
+        forget_after_mutation(db);
+    }
+    Ok(value)
+}
+
+/// Whether a document is a mutation, read from its first keyword as the operation's own type.
+fn is_mutation(query: &str) -> bool {
+    query.trim_start().strip_prefix("mutation").is_some_and(|rest| rest.starts_with(|c: char| !c.is_alphanumeric() && c != '_'))
+}
+
+/// A profile answer carries the lists, the favourites and who follows whom, and any mutation can change one of those.
+fn forget_after_mutation(db: &Db) {
+    db.query_cache_forget_source("profile");
 }
 
 // --- Media list: loading with cache, mutations with offline queue -----------
@@ -326,6 +340,26 @@ async fn passthrough(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A mutation is told by its keyword, not by a field that merely starts with the word.
+    #[test]
+    fn a_mutation_is_named_by_its_keyword() {
+        assert!(is_mutation("mutation ($id: Int) { ToggleFollow(userId: $id) { id } }"));
+        assert!(is_mutation("\n  mutation{ UpdateUser { id } }"));
+        assert!(!is_mutation("query { User(id: 1) { id } }"));
+        assert!(!is_mutation("mutationsCount { x }"));
+    }
+
+    /// After a write the cached profiles go, so a re-read shows what the account now holds rather than the old answer.
+    #[test]
+    fn a_mutation_forgets_the_cached_profiles_and_nothing_else() {
+        let db = crate::db::tests::mem_db();
+        db.query_cache_put("p", 1, "profile", None, "{}");
+        db.query_cache_put("d", 1, "mediaDetail", Some(5), "{}");
+        forget_after_mutation(&db);
+        assert!(db.query_cache_get("p").is_none());
+        assert!(db.query_cache_get("d").is_some());
+    }
 
     /// Switching accounts drops the site-notification cursor; the `AniList` arm only, since the others delete a real token.
     #[test]

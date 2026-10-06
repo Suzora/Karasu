@@ -104,8 +104,10 @@ function list(manga: boolean) {
       notes: null,
       updatedAt: now - i * 3600,
       private: false,
-      hiddenFromStatusLists: false,
-      customLists: {},
+      hiddenFromStatusLists: !manga && i === 8,
+      customLists: manga
+        ? { Oneshots: i % 6 === 0, Lieblinge: i % 4 === 1 }
+        : { Rewatch: i % 5 === 0, Ghibli: i % 7 === 1, "Seasonals — Airing": i < 4 },
       advancedScores: {},
       startedAt: { year: 2026, month: 3, day: 1 },
       // Finished titles carry a date this year, so the year in review has something to count.
@@ -516,7 +518,17 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
       },
     };
   if (/\bUser\s*\(/.test(q)) {
-    const list = { customLists: ["Rewatch"], splitCompletedSectionByFormat: false };
+    const sections = (manga: boolean) =>
+      manga
+        ? ["Reading", "Rereading", "Completed", "Paused", "Dropped", "Planning"]
+        : ["Watching", "Rewatching", "Completed", "Paused", "Dropped", "Planning"];
+    const options = (manga: boolean) => ({
+      customLists: manga ? ["Oneshots", "Lieblinge"] : ["Rewatch", "Ghibli", "Seasonals — Airing"],
+      sectionOrder: sections(manga),
+      splitCompletedSectionByFormat: false,
+      advancedScoring: [],
+      advancedScoringEnabled: false,
+    });
     // Someone else's profile by name draws the full header: banner, bio, favourites and a follow button.
     const other = PEOPLE.find((u) => u.id !== 1 && u.name === variables?.name);
     const favourites = { nodes: other ? [0, 1, 2, 3].map(socialMedia) : [] };
@@ -535,7 +547,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         isBlocked: false,
         previousNames: [],
         options: { titleLanguage: "ROMAJI", displayAdultContent: false, airingNotifications: true, profileColor: "purple", timezone: "+02:00", activityMergeTime: 30, staffNameLanguage: "ROMAJI_WESTERN", restrictMessagesToFollowing: false, disabledListActivity: [] },
-        mediaListOptions: { scoreFormat: "POINT_10", rowOrder: "score", animeList: list, mangaList: list },
+        mediaListOptions: { scoreFormat: "POINT_10", rowOrder: "score", animeList: options(false), mangaList: options(true) },
         statistics: { anime: { count: 36, meanScore: 78, minutesWatched: 42_000, episodesWatched: 1_700 }, manga: { count: 36, meanScore: 80, chaptersRead: 3_100, volumesRead: 210 } },
         favourites: { anime: favourites, manga: { nodes: [] }, characters: { nodes: [] }, staff: { nodes: [] }, studios: { nodes: [] } },
       },

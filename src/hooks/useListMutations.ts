@@ -19,6 +19,7 @@ import type {
 import { displayTitle } from "@/api/types";
 import { headline, inverse, type EntrySnapshot } from "@/lib/receipt";
 import { splitBulkPatch, withCompletion } from "@/lib/completion";
+import { membership } from "@/lib/customLists";
 import { showToast } from "@/stores/toast";
 
 /** Mutations on one media list with optimistic cache updates; a status change moves the entry locally, no refetch. */
@@ -88,10 +89,7 @@ export function useListMutations(userId: number, mediaType: MediaType) {
     notes: input.notes ?? e.notes,
     private: input.private ?? e.private,
     hiddenFromStatusLists: input.hiddenFromStatusLists ?? e.hiddenFromStatusLists,
-    customLists:
-      input.customLists !== undefined
-        ? Object.fromEntries(input.customLists.map((n) => [n, true]))
-        : e.customLists,
+    customLists: input.customLists !== undefined ? membership(e.customLists, input.customLists) : e.customLists,
     startedAt: input.startedAt ?? e.startedAt,
     completedAt: input.completedAt ?? e.completedAt,
     updatedAt: now,

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 8e2f392 -->
+<!-- generated-through: 1d1588a -->
 
 ### Fixed
 
@@ -87,6 +87,7 @@ tag time is then optional rather than load-bearing.
 - Mute new-episode notifications for a single show from its context menu; Settings lists the muted shows.
 - On a Wayland desktop the global hotkey now goes through the desktop's own shortcut portal (GNOME 48+, KDE Plasma, Hyprland), with its status shown in Settings.
 - A Compare tab on other users' profiles shows how much your scores agree, where you disagree most and what they rated that you have not seen.
+- Custom lists can be created, renamed and deleted in Settings, with every entry's membership checked and put back after the change.
 
 ### Changed
 

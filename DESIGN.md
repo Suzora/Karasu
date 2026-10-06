@@ -785,3 +785,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   owns the key, a status line under it gives the desktop's answer, and a
   button opens the desktop's own shortcut dialog where it has one; Windows and
   X11 keep the row as it was (a before/after board, accepted as shown).
+- **2026-10-06:** Custom lists are managed in Settings › Account › List
+  display as rows inside the card (A of three mockups, over B, today's chips
+  each opening a menu, and C, a dialog behind a "Manage lists" button): a
+  Segmented control for Anime and Manga, one row per list with its member
+  count, a pencil that renames in place and a bin that asks first, and a field
+  that adds a list at the end. The list's filter panel links there.

@@ -156,6 +156,7 @@ export type BulkPatch = Pick<
   | "progressVolumes"
   | "repeat"
   | "private"
+  | "hiddenFromStatusLists"
   | "startedAt"
   | "completedAt"
 >;
@@ -193,6 +194,7 @@ export const bulkSaveEntries = async (
     progressVolumes: patch.progressVolumes ?? null,
     repeat: patch.repeat ?? null,
     private: patch.private ?? null,
+    hiddenFromStatusLists: patch.hiddenFromStatusLists ?? null,
     startedAt: patch.startedAt ?? null,
     completedAt: patch.completedAt ?? null,
   }));

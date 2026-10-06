@@ -14,6 +14,7 @@ import {
   LayoutList,
   List as ListIcon,
   ListChecks,
+  Pencil,
   Plus,
   SlidersHorizontal,
   Tag,
@@ -63,6 +64,8 @@ export interface ListToolbarProps {
   presets: readonly Preset[];
   onApplyPreset: (name: string) => void;
   onManagePresets: () => void;
+  /** Where the account's custom lists are edited; absent where there are none to edit, as in the local list. */
+  onManageLists?: () => void;
   onRandom: () => void;
   layout: ViewMode;
   onLayout: (mode: ViewMode) => void;
@@ -138,8 +141,8 @@ export function ListToolbar(props: ListToolbarProps) {
         </ToolTrigger>
       )}
     >
-      {({ close }) => (
-        <FilterPanel {...props} narrowed={narrowed} onDone={close} />
+      {({ close, closeThen }) => (
+        <FilterPanel {...props} narrowed={narrowed} onDone={close} closeThen={closeThen} />
       )}
     </Popover>
   );
@@ -448,7 +451,9 @@ function FilterPanel({
   narrowed,
   onDraft,
   onDone,
-}: ListToolbarProps & { narrowed: boolean; onDone: () => void }) {
+  onManageLists,
+  closeThen,
+}: ListToolbarProps & { narrowed: boolean; onDone: () => void; closeThen: (fn: () => void) => void }) {
   const { t } = useTranslation();
   const [term, setTerm] = useState("");
   const pick = (key: "format" | "country" | "list" | "tag", value: string) => onDraft(toggleFilter(view, key, value));
@@ -485,15 +490,22 @@ function FilterPanel({
             </PillGroup>
           </PanelSection>
         )}
-        {listNames.length > 0 && (
+        {(listNames.length > 0 || onManageLists) && (
           <PanelSection title={t("list.customList")}>
-            <PillGroup label={t("list.customList")}>
-              {listNames.map((n) => (
-                <Pill key={n} className="h-7" active={view.list === n} onClick={() => pick("list", n)}>
-                  {n}
-                </Pill>
-              ))}
-            </PillGroup>
+            {listNames.length > 0 && (
+              <PillGroup label={t("list.customList")}>
+                {listNames.map((n) => (
+                  <Pill key={n} className="h-7" active={view.list === n} onClick={() => pick("list", n)}>
+                    {n}
+                  </Pill>
+                ))}
+              </PillGroup>
+            )}
+            {onManageLists && (
+              <MenuRow icon={Pencil} onClick={() => closeThen(onManageLists)} className={listNames.length > 0 ? "mt-2" : undefined}>
+                {t("settings.customListsManage")}
+              </MenuRow>
+            )}
           </PanelSection>
         )}
         {tags.length > 0 && (

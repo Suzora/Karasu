@@ -484,6 +484,12 @@ impl Db {
         let _ = conn.execute("DELETE FROM query_cache WHERE media_id = ?1", [media_id]);
     }
 
+    /// Drops every cached answer of one source, for a write that can change all of them at once.
+    pub fn query_cache_forget_source(&self, source: &str) {
+        let conn = self.0.guard();
+        let _ = conn.execute("DELETE FROM query_cache WHERE source = ?1", [source]);
+    }
+
     /// Drops rows fetched before `cutoff` (unix seconds); the startup sweep.
     pub fn query_cache_prune(&self, cutoff: i64) -> usize {
         let conn = self.0.guard();

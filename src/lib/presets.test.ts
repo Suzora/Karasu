@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { loadPresets, savePresets, type Preset } from "./presets";
+import { loadPresets, retargetPresets, savePresets, type Preset } from "./presets";
 
 // Defined, not assigned: the node project shares globals, and another file may leave the property read-only.
 beforeEach(() => {
@@ -59,5 +59,25 @@ describe("presets", () => {
     const full: Preset = { ...preset, name: "Movies", format: "MOVIE", country: "", tagFilter: "gem", list: "Favourites" };
     savePresets("ANIME", [full]);
     expect(loadPresets("ANIME")[0]).toEqual(full);
+  });
+});
+
+describe("retargetPresets", () => {
+  const ghibli: Preset = { ...preset, name: "Ghibli", list: "Ghibli" };
+  const other: Preset = { ...preset, name: "Other", list: "Seasonals" };
+
+  it("follows a renamed list and leaves the others and the other media type alone", () => {
+    savePresets("ANIME", [ghibli, other]);
+    savePresets("MANGA", [ghibli]);
+    retargetPresets("ANIME", "Ghibli", "Studio Ghibli");
+    expect(loadPresets("ANIME").map((p) => p.list)).toEqual(["Studio Ghibli", "Seasonals"]);
+    expect(loadPresets("MANGA")[0].list).toBe("Ghibli");
+  });
+
+  it("drops a deleted list's filter, which applying then reads as clear", () => {
+    savePresets("ANIME", [ghibli]);
+    retargetPresets("ANIME", "Ghibli", null);
+    expect(loadPresets("ANIME")[0]).not.toHaveProperty("list");
+    expect(loadPresets("ANIME")[0].name).toBe("Ghibli");
   });
 });

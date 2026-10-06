@@ -39,3 +39,13 @@ export function savePresets(mediaType: string, presets: Preset[]): void {
     /* storage full / unavailable — presets are best-effort */
   }
 }
+
+/** Points a media type's presets at a renamed custom list, or drops a deleted one's filter (`to` null). */
+export function retargetPresets(mediaType: string, from: string, to: string | null): void {
+  const presets = loadPresets(mediaType);
+  if (!presets.some((p) => p.list === from)) return;
+  savePresets(
+    mediaType,
+    presets.map(({ list, ...rest }) => (list !== from ? { ...rest, list } : to === null ? rest : { ...rest, list: to })),
+  );
+}

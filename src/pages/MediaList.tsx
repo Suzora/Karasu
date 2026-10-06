@@ -698,6 +698,9 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
           presets={presets}
           onApplyPreset={applyPreset}
           onManagePresets={() => setShowPresetSave(true)}
+          onManageLists={
+            profileMode === "anilist" ? () => navigate("/settings?pane=account&setting=customLists") : undefined
+          }
           onRandom={() => setShowRandom(true)}
           layout={layout}
           onLayout={changeLayout}
