@@ -37,7 +37,7 @@ const RULES = [
 const SOURCES = {
   Players: ["mpv", "VLC", "MPC-HC", "MPC-BE", "PotPlayer", "SMPlayer"],
   Browsers: ["Chrome", "Firefox", "Edge", "Brave", "Opera", "Vivaldi", "Zen", "LibreWolf", "Waterfox", "Helium"],
-  "Streaming sites": ["Bilibili", "ADN", "Crunchyroll"],
+  "Streaming sites": ["Bilibili", "ADN"],
   "Manga sites": ["MangaDex", "MANGA Plus", "Comick", "Bato.to", "MangaFire", "Asura Scans"],
   Servers: ["Jellyfin"],
 } as const;
