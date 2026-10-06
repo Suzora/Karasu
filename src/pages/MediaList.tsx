@@ -23,7 +23,7 @@ import {
   type MediaType,
 } from "@/api/types";
 import { useListMutations } from "@/hooks/useListMutations";
-import EntryEditModal from "@/components/media/EntryEditModal";
+import EntryEditModal from "@/components/media/LazyEntryEditModal";
 import { CoverGridSkeleton } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { isTyping } from "@/components/shell/KeyboardSheet";

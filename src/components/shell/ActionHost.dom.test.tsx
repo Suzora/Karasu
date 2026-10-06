@@ -311,18 +311,20 @@ describe("ActionHost overlay exclusivity", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "common.edit" }));
   }
 
-  it("does not re-target an open editor from a right-click behind it", () => {
+  it("does not re-target an open editor from a right-click behind it", async () => {
     mount();
     openEditorByRightClick();
-    expect(screen.getByRole("dialog", { name: "Cowboy Bebop" })).toBeInTheDocument();
+    // The editor's code loads with its first opening, so the dialog arrives a tick later.
+    expect(await screen.findByRole("dialog", { name: "Cowboy Bebop" })).toBeInTheDocument();
 
     fireEvent.contextMenu(card("2", "Trigun"), { clientX: 60, clientY: 60 });
     expect(screen.getByRole("dialog", { name: "Cowboy Bebop" })).toBeInTheDocument();
   });
 
-  it("does not open a menu over a dialog that owns the screen", () => {
+  it("does not open a menu over a dialog that owns the screen", async () => {
     mount();
     openEditorByRightClick();
+    await screen.findByRole("dialog", { name: "Cowboy Bebop" });
     // Past the menu's own exit animation, or the retained leaving node answers instead of the one being asserted about.
     act(() => void vi.advanceTimersByTime(300));
     expect(screen.queryByRole("menu", { name: "ctx.menuLabel" })).toBeNull();

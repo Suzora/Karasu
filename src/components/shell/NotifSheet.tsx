@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
-import { NotifFeed } from "@/components/shell/NotifFeed";
+import { LazyNotifFeed } from "@/components/shell/LazyNotifFeed";
 import { afterBackSettles } from "@/hooks/useBackClose";
 import { useNotifications, type Leave } from "@/hooks/useNotifications";
 
@@ -26,7 +26,7 @@ export default function NotifSheet({ open, onClose }: { open: boolean; onClose: 
         </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto border-t border-hair">
-        <NotifFeed n={n} leave={leave} byDay more />
+        <LazyNotifFeed n={n} leave={leave} byDay more />
       </div>
     </Sheet>
   );

@@ -18,7 +18,8 @@ import { shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import type { MediaWithListStatus } from "@/api/queries";
 import { useAuth } from "@/stores/auth";
-import EntryEditModal, { type EntrySaveInput } from "@/components/media/EntryEditModal";
+import EntryEditModal from "@/components/media/LazyEntryEditModal";
+import type { EntrySaveInput } from "@/components/media/EntryEditModal";
 import { PresenceIf } from "@/components/ui/presence";
 
 /** Card for discovery grids (search, season): quick add and full editing straight from the results. */

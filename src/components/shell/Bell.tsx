@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
 import { Bell as BellIcon, CheckCheck } from "lucide-react";
@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MenuGroupLabel } from "@/components/ui/menu-row";
 import { Popover } from "@/components/ui/popover";
-import { NotifFeed } from "@/components/shell/NotifFeed";
+import { LazyNotifFeed, preloadNotifFeed } from "@/components/shell/LazyNotifFeed";
+import { whenIdle } from "@/lib/idle";
 import { useNotifBadge } from "@/hooks/useNotifBadge";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -23,6 +24,7 @@ export default function Bell() {
   const n = useNotifications({ active: open });
   // The one number on the bell, computed once and shared with the phone shell's More button by query key.
   const badge = useNotifBadge();
+  useEffect(() => whenIdle(preloadNotifFeed), []);
 
   if (!isTauri) return null;
 
@@ -64,7 +66,7 @@ export default function Bell() {
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <NotifFeed n={n} leave={api.closeThen} limit={GLANCE} />
+            <LazyNotifFeed n={n} leave={api.closeThen} limit={GLANCE} />
           </div>
           <div className="shrink-0 border-t border-hair p-1.5">
             <Button variant="ghost" size="sm" className="w-full" onClick={() => (pathname === "/notifications" ? api.close() : api.closeThen(() => navigate("/notifications")))}>

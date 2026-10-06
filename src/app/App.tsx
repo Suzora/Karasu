@@ -36,18 +36,33 @@ import GlobalKeys from "@/components/shell/GlobalKeys";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useViewTransitions } from "@/hooks/useViewTransitions";
 import ActionHost from "@/components/shell/ActionHost";
-import DetectionPopup from "@/components/shell/DetectionPopup";
 import SignInMerge from "@/components/overlays/SignInMerge";
 import Dashboard from "@/pages/Dashboard";
 import MediaList from "@/pages/MediaList";
 import { DetailSkeleton } from "@/components/Skeleton";
 import { commands } from "@/api/tauri";
-import { lazyRoute, whenIdle } from "./lazyRoute";
+import { lazyRoute } from "./lazyRoute";
+import { whenIdle } from "@/lib/idle";
 
 // The launch screens stay eager; the pages one click away load on idle and render directly once in, for the morph.
 const AnimeDetail = lazyRoute(() => import("@/pages/AnimeDetail"), <DetailSkeleton />);
 const Search = lazyRoute(() => import("@/pages/Search"));
 const Seasonal = lazyRoute(() => import("@/pages/Seasonal"));
+
+const DetectionPopup = lazy(() => import("@/components/shell/DetectionPopup"));
+
+/** Loads the detection window with the first detection, then keeps it mounted so its exits still play. */
+function DetectionPopupWhenNeeded() {
+  const detected = useNowPlaying((s) => s.current !== null);
+  const [armed, setArmed] = useState(false);
+  if (detected && !armed) setArmed(true);
+  if (!armed) return null;
+  return (
+    <Suspense fallback={null}>
+      <DetectionPopup />
+    </Suspense>
+  );
+}
 
 /** Whether a route's page can render in the same frame, which a View Transition's snapshot needs; else it starts loading. */
 function routeReady(to: string): boolean {
@@ -255,7 +270,7 @@ export default function App() {
       {/* One bottom-right stack for both while they float here; the popup leaves it on its own once dragged. */}
       <div className="pointer-events-none fixed bottom-[calc(1rem+var(--shell-bottom,0px))] right-4 z-30 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
         <PlaybackError />
-        <DetectionPopup />
+        <DetectionPopupWhenNeeded />
       </div>
       {phone && <BottomBar />}
     </div>

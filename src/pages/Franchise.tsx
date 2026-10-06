@@ -22,7 +22,7 @@ import { useCachedEntry } from "@/hooks/useCachedEntry";
 import { useListMutations } from "@/hooks/useListMutations";
 import { displayTitle, STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import BackButton from "@/components/shell/BackButton";
-import EntryEditModal from "@/components/media/EntryEditModal";
+import EntryEditModal from "@/components/media/LazyEntryEditModal";
 import { Presence } from "@/components/ui/presence";
 import { EmptyState, PerchRule } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
