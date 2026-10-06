@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.37.10"
+version = "1.37.11"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -204,7 +204,9 @@ incremental = true
 debug = "line-tables-only"
 
 # Release: default codegen-units (16) already parallelises; skip LTO so the
-# bundle build stays fast (this app is I/O-bound, not CPU-bound).
+# bundle build stays fast (this app is I/O-bound, not CPU-bound). The desktop
+# jobs in release.yml override both through CARGO_PROFILE_RELEASE_* for the
+# builds that ship; CI, verify:full and the Android/F-Droid builds keep these.
 [profile.release]
 # Do not add `panic = "abort"` here. `lib.rs` catches the panic
 # `libappindicator-sys` raises when it cannot dlopen the AppIndicator library,

@@ -1627,7 +1627,12 @@ process default at its first check. Since 2026-10-06 the updater runs with
 and `ring` is out of the build: re-measured that day, `aws_lc_sys` 200 KiB and
 no `ring` in a 24.2 MiB file with 17.1 MiB of `.text` (the app grew since the
 first run). The live update check over the new path was not exercised then;
-the next Nightly's update is that check. Run it from `src-tauri/`
+the next Nightly's update is that check. The shipped desktop builds set
+`CARGO_PROFILE_RELEASE_LTO=fat` and `CODEGEN_UNITS=1` in `release.yml` (the
+maintainer's call, 2026-10-06): measured that day on Windows the exe fell from
+25.4 to 22.6 MiB, and a cold local build took 4 min 31 s; the release jobs'
+timeouts went to 75 and 90 minutes because the shared cache cannot hold the
+bitcode. Run it from `src-tauri/`
 (`cargo bloat --release --crates -n 40`): the npm script's
 `--manifest-path` is refused on Windows. `npm run mutants` is cargo-mutants through
 `scripts/mutants.mjs` (the copy holds `src-tauri` alone, so the wrapper drops
