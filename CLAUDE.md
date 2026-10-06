@@ -1718,20 +1718,70 @@ test), and six pointed at real gaps that got tests the same day: `season_key`'s
 ## Packaging beyond the release page
 
 `packaging/` holds what other channels need and the repository can prepare;
-the submissions themselves are the maintainer's. **Flatpak**:
-`packaging/flatpak/dev.kyu.karasu.yml` builds from the release `.deb` (extract,
-install the binary, re-name the desktop file and icons to the app id, which
-Flathub requires), `dev.kyu.karasu.metainfo.xml` is the AppStream data, and
-`scripts/release/flatpak-manifest.ps1 -Tag vX.Y.Z` fills the URL, the sha256
-and the release date from that tag. The `Flatpak` workflow (dispatch, input
-`tag`) validates the metainfo with `appstreamcli --pedantic` on the runner and
-builds the bundle in the GNOME 50 builder image; run it before a Flathub pull
-request. The `finish-args` are each a feature — StatusNotifier for the tray,
-`org.mpris.MediaPlayer2.*` for the media-session pass, `org.freedesktop.secrets`
-for the token, the settings portal for the accent, network for AniList and the
-OAuth callback — and `SUBMISSION.md` there lists what the sandbox changes
-(autostart writes an app-private folder, the updater stays off through
-`can_install`). **F-Droid**: `packaging/fdroid/dev.kyu.karasu.yml`
+the submissions themselves are the maintainer's. **Flatpak**, since
+2026-10-06 built from source under the Flathub id `io.github.Suzora.Karasu`
+(a Flathub id names a domain the developer controls; Karasu's own identifier
+stays `dev.kyu.karasu`): `packaging/flatpak/io.github.Suzora.Karasu.yml` is
+the manifest (GNOME 50 with the rust-stable and node22 SDK extensions, the
+AppIndicator library from flathub/shared-modules, then `npm ci --offline`,
+`npm run build` and `cargo --offline build --release --locked --features
+tauri/custom-protocol`, which is what `tauri build` passes and no CLI is
+needed for), with its metainfo, desktop file and `flathub.json` beside it.
+`scripts/release/flatpak-manifest.ps1 -Tag vX.Y.Z` fills a release into
+`packaging/flatpak/out/`: the git source at the tag and its commit, the cargo
+and npm sources from that commit's lockfiles through flatpak-builder-tools and
+the shared modules, each at a pinned commit, and the metainfo's release.
+`-Local` (with `-Commit`, for a `git stash create` of the working tree on a
+throwaway branch) does the same for this clone with a `file://` source WSL can
+fetch. The npm generator joins its paths with the host's separator, so on
+Windows the script runs it inside WSL; every one of its 1,304 entries came out
+with backslashes when it ran natively, and the build then failed on
+`flatpak-node\setup_sdk_node_headers.sh`. The `Flatpak` workflow (dispatch,
+input `tag`, and `release.yml` starts it for every Stable tag) validates the
+metainfo with `appstreamcli --pedantic`, lints the manifest and the built
+repository with `flatpak-builder-lint`, and builds the bundle in the GNOME 50
+builder image. The `finish-args` are each a feature — StatusNotifier for the
+tray, `org.mpris.MediaPlayer2.*` for the media-session pass,
+`org.freedesktop.secrets` for the token, `org.freedesktop.Notifications` for
+the toasts, Discord's IPC socket (native and Flatpak) for rich presence, the
+videos folder read-only for the library, network for AniList and the OAuth
+callback — and the settings portal is left out because a portal needs no
+name. The sandbox changes four things in the code, each keyed on
+`portable::flatpak_id`: the single-instance bus name takes the Flatpak id (a
+sandbox may own names under its own id only, and the plugin starts a second
+instance when it cannot own one), the tray writes its icon into the cache
+folder the tray host can read (the default, `$XDG_RUNTIME_DIR/tray-icon`, is
+the sandbox's own), mpv's default socket moves to
+`$XDG_RUNTIME_DIR/app/<id>/` (a folder the host has only once Karasu ran in
+that login, so the Settings hint says to start Karasu before mpv), and
+Settings hides autostart, portable mode and the mpv library launch, which
+cannot start a host program (`PlatformInfo.flatpak`); the diagnostics report
+reads the host's `/run/host/os-release` and has a Flatpak row.
+`KARASU_NO_SELF_UPDATE` in the manifest's build environment turns the updater
+off as for F-Droid, and since 2026-10-06 that means every path: the check
+returns before any request even from About's button, About says the store
+delivers the updates, and the Updates card is hidden
+(`PlatformInfo.storeUpdates`).
+Built and linted in WSL on 2026-10-06 (Ubuntu 26.04, flatpak 1.16.6,
+flatpak-builder 1.4.8, and once more with Flathub's own `org.flatpak.Builder`):
+the manifest lint reports only the `file://` source a local build uses and
+GNOME 51 being available; the repository lint passes with only that same
+GNOME 51 note once the build ran with
+`--mirror-screenshots-url=https://dl.flathub.org/media/ --compose-url-policy=full`
+and the screenshots were committed to the repository, while without the policy
+the compose left the media paths relative and two appstream rules failed (the
+workflow's builder action passes both, so CI needs no exception);
+`appstreamcli --pedantic`
+passes with one pedantic note on the upper-case id, and that build is the first
+place the Linux-only Rust ever compiled outside CI. Started under WSLg the same
+day, the window and its WebKit process were alive after 25 s, the bus name was
+`io.github.Suzora.Karasu.SingleInstance`, a second start handed over and
+exited within a second, the tray icon file lay in
+`~/.var/app/io.github.Suzora.Karasu/cache/dev.kyu.karasu/`, and the data
+folder sat under `~/.var/app/io.github.Suzora.Karasu/data/dev.kyu.karasu/`.
+WSLg has no tray host, no Secret Service and no real GPU, so the tray menu,
+the token and the GPU path were not exercised there. `SUBMISSION.md` there has
+the request's steps and what the sandbox changes. **F-Droid**: `packaging/fdroid/dev.kyu.karasu.yml`
 is the fdroiddata recipe, `scripts/release/fdroid-recipe.ps1 -Tag` fills its
 version, code and commit, `fastlane/metadata/android/{en-US,de-DE}` is the
 listing F-Droid reads at the tag. The recipe sets two build-time switches:
@@ -1767,15 +1817,16 @@ release.
 
 **The two packaging workflows had never run against a real tag before
 v1.32.0**, and the first runs failed on four things no other check could
-see: `SHA256SUMS.txt` arrives as octet-stream bytes with CRLF lines in pwsh 7
-(the manifest script decodes and splits on `\r?\n`), `bsdtar` in the
-flatpak-builder sandbox runs as root and cannot chown to the packager's uid
-(`--no-same-owner`), the `.deb` keeps the notices under the product name
-(`usr/lib/Karasu/`), and `apksigner` is not on the runner's `PATH`. So
+see: `SHA256SUMS.txt` arrived as octet-stream bytes with CRLF lines in pwsh 7,
+`bsdtar` in the flatpak-builder sandbox ran as root and could not chown to the
+packager's uid, the `.deb` kept the notices under the product name, and
+`apksigner` is not on the runner's `PATH`. The first three went with the
+`.deb` when the Flatpak moved to a source build on 2026-10-06. So
 `release.yml`'s publish job dispatches both, from `main` with the tag as input,
-for every Stable tag, beside the website: the Flatpak check only when the
-release carries a `.deb`, the reproducibility check only when it carries an
-arm64 APK, and a `::warning::` in the publish log for whichever it skipped. A
+for every Stable tag, beside the website: the Flatpak check always, since it
+builds from the tag's source and needs nothing the release carries, the
+reproducibility check only when it carries an arm64 APK, with a `::warning::`
+in the publish log when it skipped. A
 red run reaches the maintainer as that workflow's own notification; the
 release itself is already out by then and is not held back by either.
 

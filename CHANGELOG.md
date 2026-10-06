@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 1d1588a -->
+<!-- generated-through: 8ac94b7 -->
 
 ### Fixed
 
@@ -96,6 +96,7 @@ tag time is then optional rather than load-bearing.
 - The app's code loads at start in a few larger pieces instead of seventy-five small ones, and about 20 KiB smaller.
 - The detail, search and season pages load after the first paint, which makes the start about 33 KiB lighter.
 - The app's code is about 44 KiB smaller after dropping the animation library the notification toast used; the toast looks and behaves as before.
+- A store build (Flathub, F-Droid) no longer offers an update check; the store delivers its updates.
 
 ## 1.32.0 — 2026-10-03
 

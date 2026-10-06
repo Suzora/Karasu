@@ -41,6 +41,15 @@ pub fn exe_dir() -> Option<PathBuf> {
     base_dir(appimage.as_deref(), current.as_deref())
 }
 
+/// The Flatpak app id when this process runs inside one, read from the variable the sandbox always sets.
+pub fn flatpak_id() -> Option<String> {
+    flatpak_id_from(std::env::var("FLATPAK_ID").ok())
+}
+
+fn flatpak_id_from(value: Option<String>) -> Option<String> {
+    value.map(|v| v.trim().to_string()).filter(|v| !v.is_empty())
+}
+
 /// Whether this process runs from an AppImage, where autostart cannot work and the updater can only replace the bundle.
 pub fn running_from_appimage() -> bool {
     appimage_path().is_some()
@@ -117,6 +126,14 @@ pub fn remove_marker() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Only a non-empty value is a sandbox; an unset or blank variable is the host.
+    #[test]
+    fn a_flatpak_is_named_by_a_non_empty_id() {
+        assert_eq!(flatpak_id_from(Some("io.github.Suzora.Karasu".into())).as_deref(), Some("io.github.Suzora.Karasu"));
+        assert_eq!(flatpak_id_from(Some("  ".into())), None);
+        assert_eq!(flatpak_id_from(None), None);
+    }
 
     #[test]
     fn data_dir_uses_fallback_when_not_portable() {

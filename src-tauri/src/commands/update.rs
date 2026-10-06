@@ -8,7 +8,7 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 805;
+pub const COMMIT_NUMBER: u32 = 806;
 
 /// The full four-part display version; the semver core comes from the crate version.
 pub fn app_version_string() -> String {
@@ -123,12 +123,13 @@ pub async fn check_for_updates(
     let current = app_version_string();
     let channel = stored_channel(&db);
 
-    if !force {
+    // A store build (F-Droid, Flathub) neither installs nor announces, even when asked: the store's client updates it.
+    let store_build = self_update_disabled();
+    if store_build || !force {
         let last_check = db
             .kv_get("last_update_check_ms")
             .and_then(|s| s.parse::<i64>().ok());
-        // An F-Droid build (packaging/fdroid) neither installs nor announces: its client is the update path.
-        if self_update_disabled() || !check_due(last_check, now_ms(), UPDATE_CHECK_THROTTLE_MS) {
+        if store_build || !check_due(last_check, now_ms(), UPDATE_CHECK_THROTTLE_MS) {
             return Ok(UpdateInfo {
                 current,
                 latest: None,
@@ -248,7 +249,7 @@ fn updater_available() -> bool {
     false
 }
 
-/// Set at build time for a store that owns updates; today only the F-Droid recipe sets it.
+/// Set at build time for a store that owns updates: the F-Droid recipe and the Flatpak manifest.
 pub(crate) fn self_update_disabled() -> bool {
     option_env!("KARASU_NO_SELF_UPDATE").is_some()
 }

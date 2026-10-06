@@ -530,6 +530,7 @@ export const en = {
       "Karasu is a desktop tracker for your AniList anime and manga. It detects what you watch in your player or browser and what you read on manga sites, updates your progress automatically, plays the next episode from your local library, and shows your activity on Discord — all from your PC.",
     updates: "Updates",
     checkUpdates: "Check for updates",
+    storeUpdates: "This copy came from a store, Flathub or F-Droid, which delivers its updates; there is nothing to check here.",
     checking: "Checking …",
     upToDate: "You're on the latest version ({{version}}).",
     updateAvailable: "Version {{version}} available",
@@ -1555,6 +1556,7 @@ export const en = {
       "Checked before every other source. With a live position, pausing pauses the scrobble clock too.",
     mpvPath: "Pipe / socket path",
     mpvPathHint: "Must match the input-ipc-server value in mpv.conf.",
+    mpvPathHintFlatpak: "Must match input-ipc-server in mpv.conf. Inside the Flatpak only the default path is shared with a player outside it, and its folder exists once Karasu has started in this login, so start Karasu before mpv.",
     mpvLaunch: "Play library files with mpv",
     mpvLaunchHint:
       "Path to the mpv executable. When set, the library's play buttons start mpv with the pipe above instead of the default player — no mpv.conf needed for launches. Empty keeps the default player.",

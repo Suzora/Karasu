@@ -1,66 +1,98 @@
 # Flathub submission
 
 What is here and what the maintainer still has to do by hand. The repo side is
-complete: `dev.kyu.karasu.yml` is the manifest, `dev.kyu.karasu.metainfo.xml`
-the AppStream data, and `scripts/release/flatpak-manifest.ps1 -Tag vX.Y.Z`
-fills both from a tagged release (the `.deb`'s URL and sha256 out of its
-`SHA256SUMS.txt`, the release date). The `Flatpak` workflow runs that script,
-validates the metainfo with `appstreamcli --pedantic` and builds the bundle on
-a GNOME 50 builder — run it once against the tag before opening the request,
-and again after every change to either file.
+complete: `io.github.Suzora.Karasu.yml` is the manifest, built from source;
+`io.github.Suzora.Karasu.metainfo.xml` the AppStream data;
+`io.github.Suzora.Karasu.desktop` the launcher, installed from the tagged
+source; and `flathub.json` limits the build to x86_64.
+`scripts/release/flatpak-manifest.ps1 -Tag vX.Y.Z` fills all of it for one
+release into `packaging/flatpak/out/`:
 
-## Before the request: two changes the files here do not have yet
+- the git source, pinned to the tag and its commit;
+- `cargo-sources.json` and `node-sources.json`, every crate and npm package of
+  that commit's lockfiles, written by flatpak-builder-tools at a pinned commit
+  (run through `uv`), so the build needs no network;
+- the metainfo's release and date;
+- `shared-modules/`, flathub/shared-modules at a pinned commit, for the
+  AppIndicator library the tray loads.
 
-Both are in ROADMAP.md under "Before the stores", and the submission waits
-for them; it goes in with the next Stable (decided on 2026-10-05).
+The `Flatpak` workflow runs that script, validates the metainfo with
+`appstreamcli --pedantic`, lints the manifest and the built repository with
+`flatpak-builder-lint` and builds the bundle on a GNOME 50 builder. A local
+build that should pass the repository lint needs
+`--mirror-screenshots-url=https://dl.flathub.org/media/ --compose-url-policy=full`
+and the mirrored screenshots committed to the repository
+(`ostree commit --branch=screenshots/x86_64 <builddir>/files/share/app-info/media`);
+without the policy the screenshot and icon paths stay relative and two
+appstream rules fail. The workflow's builder action passes both itself. It runs
+by itself for every Stable tag; run it by hand against the tag before opening
+the request, and again after every change to the files here.
 
-- **Flathub builds from source.** The manifest here repackages the release
-  `.deb`, which Flathub accepts only for software that cannot be built,
-  so it becomes a from-source manifest: the cargo and npm dependencies
-  vendored as sources by flatpak-builder-tools, built offline in the GNOME 50
-  SDK, and checked with `flatpak-builder-lint` before the pull request.
-- **The id becomes `io.github.Suzora.Karasu`.** A Flathub id must name a
-  domain the developer controls, and the project's home is its GitHub
-  organisation; `dev.kyu.karasu` names a domain nobody here owns. The rename
-  covers the files here, `flatpak-manifest.ps1` and the `Flatpak` workflow.
-  Karasu's own identifier stays `dev.kyu.karasu` (the data folder and the
-  single-instance name); whether that name may be owned on the session bus
-  from inside the sandbox is checked before the rename lands.
+`-Local` fills the same files for this clone's HEAD (or `-Commit`), with a
+`file://` source a build in WSL can fetch; that is how the manifest was
+checked before it ever met a tag.
 
 ## The one-time request
 
-1. Fork <https://github.com/flathub/flathub>, branch from `new-pr`, add the two
-   filled files from `packaging/flatpak/out/` at the repository root.
+1. Fork <https://github.com/flathub/flathub>, branch from `new-pr`, and add the
+   filled files from `packaging/flatpak/out/` at the repository root:
+   the manifest, the metainfo, the two source lists and `flathub.json`.
+   `shared-modules` goes in as a git submodule
+   (`git submodule add https://github.com/flathub/shared-modules.git`), not as
+   the copied folder.
 2. Open the pull request against `new-pr`. The template asks for the app id
-   (`io.github.Suzora.Karasu`, once renamed), that the app is not already on
-   Flathub, and that the submitter is the developer — which is the case.
-3. Review answers what the manifest cannot: the reviewers may ask for the
-   `--talk-name` lines to be justified. The reasons are in the manifest's
-   comments (tray = StatusNotifier, MPRIS = the media-session pass, secrets =
-   the token, the settings portal = the accent), and each is a real feature.
+   (`io.github.Suzora.Karasu`), that the app is not already on Flathub, and
+   that the submitter is the developer, which is the case.
+3. Review answers what the manifest cannot. The reviewers may ask for the
+   `--talk-name` and `--filesystem` lines to be justified; each is a feature,
+   and the manifest says which: the tray (StatusNotifier), the media-session
+   pass (MPRIS), the token (the Secret Service), the toasts (the notification
+   daemon), Discord's rich presence (its socket, native and Flatpak), and the
+   local library (the videos folder, read-only).
+
+## The id, and the one that stays
+
+A Flathub id must name a domain the developer controls, and the project's home
+is its GitHub organisation, so the Flatpak is `io.github.Suzora.Karasu`.
+Karasu's own identifier stays `dev.kyu.karasu`: it names the data folder
+(inside the sandbox under `~/.var/app/io.github.Suzora.Karasu/`), the
+credential entry and the hidden desktop file the `.deb` and the `.rpm` carry
+for the shortcut portal. Inside the sandbox the single-instance bus name takes
+the Flatpak id instead (`io.github.Suzora.Karasu.SingleInstance`), because a
+sandboxed app may own names under its own id only.
 
 ## What changes under Flatpak, and what to say if asked
 
-- **Autostart** — `tauri-plugin-autostart` writes `~/.config/autostart`, which
-  inside the sandbox is app-private, so the toggle in Settings does nothing on
-  Flathub. The right way is the Background portal's `RequestBackground`,
-  which the plugin does not use; until it does, the Settings pane should hide
-  the toggle when `FLATPAK_ID` is set (an item for the session that lands
-  Flathub, not before).
-- **The local library** — the folder picker goes through the file-chooser
-  portal and hands back a `/run/user/…/doc/` path that is valid for that
-  session; the scanner re-reads it on the next start, which needs the grant
-  persisted. `--filesystem=xdg-videos:ro` covers the usual folder outright.
-- **The updater** — must stay off: Flathub updates the app, and the in-app
-  updater would try to replace a read-only `/app/bin/karasu`. `can_install`
-  in `commands/update.rs` already refuses on Linux outside an AppImage, so a
-  Flatpak sees the notice and no install button, which is the right shape.
+- **The updater** is off: the manifest sets `KARASU_NO_SELF_UPDATE` at build
+  time, as the F-Droid recipe does, so the app never asks GitHub, not even
+  from About's button, never installs, and shows no update settings; About
+  says the store delivers the updates. Flathub is the update path.
+- **Autostart and portable mode** are hidden in Settings. An autostart entry
+  written from inside the sandbox lands in its own config and never runs, and
+  portable mode keeps its data beside the binary, which `/app` does not allow.
+  The Background portal is the right way to start at login and is not wired.
+- **The tray** writes its icon into the app's cache folder, which the tray host
+  outside the sandbox can read; the default, `$XDG_RUNTIME_DIR/tray-icon`, is
+  private to the sandbox.
+- **mpv's socket** defaults to `$XDG_RUNTIME_DIR/app/io.github.Suzora.Karasu/`,
+  the one runtime folder both sides of the sandbox see at the same path. That
+  folder exists only once Karasu has started in the current login, so a host
+  mpv started before it cannot create the socket; the Settings hint says to
+  start Karasu first. Playing a library file with mpv is not offered: the
+  sandbox cannot start a host program, so the library uses the default opener.
+- **The diagnostics report** names the host's distro (`/run/host/os-release`)
+  rather than the runtime's, and says it is a Flatpak.
+- **The local library**: the folder picker goes through the file-chooser
+  portal and hands back a `/run/user/…/doc/` path; `--filesystem=xdg-videos:ro`
+  covers the usual folder outright.
+- **The summon hotkey** on Wayland goes through the GlobalShortcuts portal,
+  which knows a Flatpak by its id without any registration.
 - **The OAuth callback** listens on localhost; `--share=network` is what makes
   it reachable from the browser the portal opens.
 
 ## Updating a release
 
-Run `flatpak-manifest.ps1` for the new tag and open a pull request against
-`flathub/dev.kyu.karasu` with the two regenerated files; the Flathub
+Run `flatpak-manifest.ps1 -Tag` for the new tag and open a pull request against
+`flathub/io.github.Suzora.Karasu` with the regenerated files; the Flathub
 buildbot builds and publishes on merge. `flatpak-external-data-checker` can be
 enabled in that repository later so the bot opens the update itself.

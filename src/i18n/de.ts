@@ -531,6 +531,7 @@ export const de: typeof en = {
       "Karasu ist ein Desktop-Tracker für deine AniList-Anime und -Manga. Er erkennt, was du im Player oder Browser schaust und auf Manga-Seiten liest, aktualisiert deinen Fortschritt automatisch, startet die nächste Folge aus deiner lokalen Bibliothek und zeigt deine Aktivität auf Discord — alles direkt vom PC.",
     updates: "Updates",
     checkUpdates: "Nach Updates suchen",
+    storeUpdates: "Diese Kopie stammt aus einem Store, Flathub oder F-Droid, der auch ihre Updates liefert; hier gibt es nichts zu prüfen.",
     checking: "Prüfe …",
     upToDate: "Du hast die neueste Version ({{version}}).",
     updateAvailable: "Version {{version}} verfügbar",
@@ -1566,6 +1567,7 @@ export const de: typeof en = {
       "Wird vor allen anderen Quellen geprüft. Mit einer echten Position pausiert eine Pause auch die Scrobble-Uhr.",
     mpvPath: "Pipe-/Socket-Pfad",
     mpvPathHint: "Muss dem input-ipc-server-Wert in der mpv.conf entsprechen.",
+    mpvPathHintFlatpak: "Muss zu input-ipc-server in der mpv.conf passen. Im Flatpak teilt nur der Standardpfad einen Ordner mit einem Player außerhalb, und den gibt es erst, sobald Karasu in dieser Anmeldung gestartet wurde; starte Karasu also vor mpv.",
     mpvLaunch: "Bibliotheksdateien mit mpv abspielen",
     mpvLaunchHint:
       "Pfad zur mpv-Programmdatei. Wenn gesetzt, starten die Abspielknöpfe der Bibliothek mpv mit der Pipe oben statt des Standardplayers — für Starts ist keine mpv.conf nötig. Leer behält den Standardplayer.",

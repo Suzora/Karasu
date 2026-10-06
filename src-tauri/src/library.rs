@@ -1109,7 +1109,9 @@ fn open_path(app: &AppHandle, path: &str) -> Result<(), String> {
     if !Path::new(path).exists() {
         return Err("That file is no longer on disk — rescan your library".into());
     }
-    if let Some((player, pipe)) = crate::commands::mpv_launch_config(&app.state::<Db>()) {
+    // A sandbox cannot start a program on the host, so a Flatpak goes straight to the default opener.
+    let launch = crate::commands::mpv_launch_config(&app.state::<Db>()).filter(|_| crate::portable::flatpak_id().is_none());
+    if let Some((player, pipe)) = launch {
         match std::process::Command::new(&player)
             .arg(format!("--input-ipc-server={pipe}"))
             // `--` first: a filename beginning with a dash is not an option, and mpv cannot tell without being told.

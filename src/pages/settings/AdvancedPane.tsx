@@ -190,7 +190,8 @@ export function PortableSection() {
     commands.getPortableStatus().then(setStatus);
   }, []);
 
-  if (!status) return null;
+  // A Flatpak's app folder is read-only, so there is nowhere beside the binary to keep the data.
+  if (!status || platform?.flatpak) return null;
 
   /** Enabling beside an existing database needs `replace`: true takes ours along, false adopts it, unset is refused. */
   const toggle = async (replace?: boolean) => {
@@ -703,8 +704,8 @@ export function SystemSection() {
     <Card>
       <CardTitle>{t("settings.app")}</CardTitle>
       <div className="mt-3 space-y-3">
-        {/* Hidden inside an AppImage: the autostart entry would point at a /tmp mount gone by the next login. */}
-        {autostart !== null && !platform?.appImage && (
+        {/* Hidden in an AppImage, whose entry would name a gone mount, and in a Flatpak, whose entry stays in the sandbox. */}
+        {autostart !== null && !platform?.appImage && !platform?.flatpak && (
           <Toggle
             checked={autostart}
             onChange={toggleAutostart}
@@ -775,10 +776,11 @@ export function SystemSection() {
 /** Whether Karasu looks for a new version, and which kind it accepts. */
 export function UpdatesSection() {
   const { t } = useTranslation();
+  const platform = usePlatform((s) => s.info);
   const [auto, setAuto] = useState<boolean | null>(null);
   // Null until the stored value lands, or a stable-channel install flashes the wrong answer for a frame.
   const [channel, setChannel] = useState<api.UpdateChannel | null>(null);
-  const android = isAndroid(usePlatform((s) => s.info));
+  const android = isAndroid(platform);
   const [metered, setMetered] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -787,6 +789,9 @@ export function UpdatesSection() {
     api.getUpdateChannel().then(setChannel);
     api.getApkDownloadMetered().then(setMetered);
   }, []);
+
+  // A store build has no check to switch on and no channel to pick; About says where its updates come from.
+  if (platform?.storeUpdates) return null;
 
   return (
     <Card>

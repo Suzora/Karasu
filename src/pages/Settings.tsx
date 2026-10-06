@@ -115,7 +115,7 @@ const ANDROID_HIDDEN_PANES: ReadonlySet<PaneId> = new Set(["library", "desktop"]
 /** Sections Android hides, by component identity so a rename breaks the build instead of un-hiding one. */
 const ANDROID_HIDDEN_SECTIONS: ReadonlySet<unknown> = new Set([PortableSection]);
 /** Sections Android shows elsewhere, after an anchor: the desktop pane is hidden there, but the updater is Karasu's. */
-const ANDROID_EXTRA_SECTIONS: Partial<Record<PaneId, { after: unknown; sections: readonly (() => React.JSX.Element)[] }>> = {
+const ANDROID_EXTRA_SECTIONS: Partial<Record<PaneId, { after: unknown; sections: readonly (() => React.JSX.Element | null)[] }>> = {
   account: { after: NotificationScheduleSection, sections: [UpdatesSection] },
 };
 

@@ -10,6 +10,7 @@ expression: "render(&sample(), false)"
 | Desktop | GNOME |
 | Session | wayland |
 | AppImage | yes |
+| Flatpak | no |
 | Tray | no |
 | Portable | no |
 | Data folder | `/home/kyu/.local/share/dev.kyu.karasu` |

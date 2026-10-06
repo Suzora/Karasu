@@ -25,10 +25,6 @@ Flathub and F-Droid are submitted with the next Stable, whose date is not
 set (maintainer, 2026-10-05). What stands between the tree and the two
 requests, each detailed in its `packaging/*/SUBMISSION.md`:
 
-- **A from-source Flatpak under `io.github.Suzora.Karasu`.** Flathub builds
-  from source, and the manifest still repackages the release `.deb`; the id
-  changes because a Flathub id must name a domain the developer controls.
-  Karasu's own identifier `dev.kyu.karasu` stays.
 - **The F-Droid recipe's open questions:** the computed version code
   (`UpdateCheckData` and `VercodeOperation`), the prebuilt native binaries
   `npm ci` brings in, a Node at least as new as `engines.node`, and the

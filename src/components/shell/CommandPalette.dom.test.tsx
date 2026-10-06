@@ -75,7 +75,7 @@ describe("CommandPalette", () => {
   });
 
   it("shows no keyboard reference on a phone", () => {
-    usePlatform.setState({ info: { os: "android", appImage: false } });
+    usePlatform.setState({ info: { os: "android", appImage: false, flatpak: false, storeUpdates: false } });
     signIn();
     renderWithProviders(<CommandPalette />);
     openPalette();

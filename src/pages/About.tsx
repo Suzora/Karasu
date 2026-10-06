@@ -381,6 +381,16 @@ function UpdateSection() {
     }
   };
 
+  // A store build has nothing to check: the store's own client delivers the next version.
+  if (platform?.storeUpdates) {
+    return (
+      <Card>
+        <CardTitle>{t("about.updates")}</CardTitle>
+        <p className="mt-3 text-sm text-ink-500">{t("about.storeUpdates")}</p>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardTitle>{t("about.updates")}</CardTitle>

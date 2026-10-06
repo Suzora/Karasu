@@ -237,8 +237,13 @@ fn build_tray(app: &tauri::App) -> tauri::Result<()> {
         return Err(tauri::Error::UnknownPath);
     };
 
-    TrayIconBuilder::with_id("main-tray")
-        .icon(icon)
+    let tray = TrayIconBuilder::with_id("main-tray");
+    // The tray host reads the icon from a file, and the sandbox's runtime folder is its own; the cache folder is shared.
+    let tray = match (portable::flatpak_id(), app.path().app_cache_dir()) {
+        (Some(_), Ok(dir)) => tray.temp_dir_path(dir),
+        _ => tray,
+    };
+    tray.icon(icon)
         .tooltip("Karasu")
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -553,13 +558,21 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
 }
 
 
+/// One running Karasu; inside a Flatpak the bus name takes the sandbox's id, the only prefix it may own.
+#[cfg(desktop)]
+fn single_instance() -> tauri::plugin::TauriPlugin<Wry> {
+    let builder = tauri_plugin_single_instance::Builder::new().callback(|app, _args, _cwd| show_main_window(app));
+    match portable::flatpak_id() {
+        Some(id) => builder.dbus_id(id).build(),
+        None => builder.build(),
+    }
+}
+
 /// The desktop-only plugins and the close-to-tray handler; a cfg'd pair, since those crates do not exist on mobile.
 #[cfg(desktop)]
 fn attach_desktop(builder: tauri::Builder<Wry>) -> tauri::Builder<Wry> {
     builder
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            show_main_window(app);
-        }))
+        .plugin(single_instance())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // Size, position and maximised state come back on the next start; `center: true` only places a first run.

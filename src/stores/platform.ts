@@ -7,6 +7,10 @@ export interface PlatformInfo {
   os: string;
   /** Running from an AppImage: the updater works and portable mode has a home. */
   appImage: boolean;
+  /** Running inside a Flatpak: the app folder is read-only, and an autostart entry would never leave the sandbox. */
+  flatpak: boolean;
+  /** Built for a store (Flathub, F-Droid) that delivers the updates, so the app neither checks nor offers one. */
+  storeUpdates: boolean;
 }
 
 interface PlatformState {

@@ -1,7 +1,7 @@
 {
   "name": "karasu",
   "private": true,
-  "version": "1.40.0",
+  "version": "1.40.1",
   "type": "module",
   "author": "Kyu",
   "license": "AGPL-3.0-or-later",

@@ -568,7 +568,7 @@ mockIPC((cmd, args) => {
     case "get_profile_mode":
       return signedOut ? "none" : "anilist";
     case "platform_info":
-      return { os: android ? "android" : "windows", appImage: false };
+      return { os: android ? "android" : "windows", appImage: false, flatpak: false, storeUpdates: false };
     case "fetch_media_list":
     case "local_fetch_list":
     case "cached_media_list":

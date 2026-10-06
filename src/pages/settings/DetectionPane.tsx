@@ -471,6 +471,7 @@ interface MpvIpcSettings {
 /** The opt-in mpv IPC pipe; the hint quotes the effective path so the two sides of it cannot disagree. */
 export function MpvSection() {
   const { t } = useTranslation();
+  const platform = usePlatform((s) => s.info);
   const [settings, setSettings] = useState<MpvIpcSettings | null>(null);
   const [pathDraft, setPathDraft] = useState<string | null>(null);
   const [launchDraft, setLaunchDraft] = useState<string | null>(null);
@@ -528,7 +529,10 @@ export function MpvSection() {
           label={t("settings.mpvEnable")}
           hint={t("settings.mpvEnableHint")}
         />
-        <Row label={t("settings.mpvPath")} hint={t("settings.mpvPathHint")}>
+        <Row
+          label={t("settings.mpvPath")}
+          hint={platform?.flatpak ? t("settings.mpvPathHintFlatpak") : t("settings.mpvPathHint")}
+        >
           <Input
             value={pathDraft ?? settings.path}
             onChange={(e) => setPathDraft(e.target.value)}
@@ -543,6 +547,8 @@ export function MpvSection() {
             className="w-72"
           />
         </Row>
+        {/* A sandboxed Karasu cannot start a program on the host, so the library opens files with the default player. */}
+        {!platform?.flatpak && (
         <Row label={t("settings.mpvLaunch")} hint={t("settings.mpvLaunchHint")}>
           <Input
             value={launchDraft ?? settings.launchPath}
@@ -558,6 +564,7 @@ export function MpvSection() {
             className="w-72"
           />
         </Row>
+        )}
       </div>
       {error && <p className="mt-2 text-sm text-danger">{error}</p>}
     </Card>

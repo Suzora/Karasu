@@ -369,6 +369,8 @@ export type Diagnostics = {
 	version: string,
 	os: string,
 	appImage: boolean,
+	/**  Inside a Flatpak, which changes the bus name, the tray folder, the mpv socket and what Settings offers. */
+	flatpak: boolean,
 	portable: boolean,
 	/**  Where the database lives; redacted by `render`, not here, so the viewer can show the owner the real path. */
 	dataDir: string,
@@ -662,6 +664,10 @@ export type PlatformInfo = {
 	os: string,
 	/**  Running from an AppImage, the only Linux layout the updater can replace and portable mode can write beside. */
 	appImage: boolean,
+	/**  Running inside a Flatpak, whose app folder is read-only and whose autostart entry lands in the sandbox. */
+	flatpak: boolean,
+	/**  Built for a store that delivers its own updates, so there is no update check to offer. */
+	storeUpdates: boolean,
 };
 
 export type PortableStatus = {

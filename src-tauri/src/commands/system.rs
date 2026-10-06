@@ -177,6 +177,10 @@ pub struct PlatformInfo {
     pub os: String,
     /// Running from an AppImage, the only Linux layout the updater can replace and portable mode can write beside.
     pub app_image: bool,
+    /// Running inside a Flatpak, whose app folder is read-only and whose autostart entry lands in the sandbox.
+    pub flatpak: bool,
+    /// Built for a store that delivers its own updates, so there is no update check to offer.
+    pub store_updates: bool,
 }
 
 #[tauri::command]
@@ -186,6 +190,8 @@ pub fn platform_info() -> PlatformInfo {
         os: std::env::consts::OS.to_string(),
         // The same gate portable mode applies, so the UI and the data folder never disagree about it.
         app_image: crate::portable::running_from_appimage(),
+        flatpak: crate::portable::flatpak_id().is_some(),
+        store_updates: crate::commands::self_update_disabled(),
     }
 }
 

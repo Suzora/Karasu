@@ -15,13 +15,21 @@ pub fn default_pipe() -> String {
 
 #[cfg(not(windows))]
 pub fn default_pipe() -> String {
-    match std::env::var_os("XDG_RUNTIME_DIR") {
-        Some(dir) if !dir.is_empty() => std::path::Path::new(&dir)
-            .join("karasu-mpv")
-            .to_string_lossy()
-            .into_owned(),
-        _ => "/tmp/karasu-mpv".to_string(),
-    }
+    unix_pipe(std::env::var_os("XDG_RUNTIME_DIR"), crate::portable::flatpak_id())
+}
+
+/// Inside a Flatpak only the app's own runtime folder is the same path on both sides of the sandbox.
+#[cfg_attr(windows, allow(dead_code))]
+fn unix_pipe(runtime: Option<std::ffi::OsString>, flatpak: Option<String>) -> String {
+    let base = match runtime {
+        Some(dir) if !dir.is_empty() => std::path::PathBuf::from(dir),
+        _ => return "/tmp/karasu-mpv".to_string(),
+    };
+    let dir = match flatpak {
+        Some(id) => base.join("app").join(id),
+        None => base,
+    };
+    dir.join("karasu-mpv").to_string_lossy().into_owned()
 }
 
 /// One property per request id, ids being 1-based indexes into this list.
@@ -157,6 +165,22 @@ pub async fn detect(cfg: &MpvConfig) -> Option<(Playback, bool)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The host's mpv writes the socket where the sandbox can read it, and an unset runtime folder falls back to /tmp.
+    #[test]
+    fn the_socket_sits_in_the_folder_both_sides_of_a_sandbox_share() {
+        let path = |runtime: Option<&str>, id: Option<&str>| {
+            std::path::PathBuf::from(unix_pipe(runtime.map(Into::into), id.map(String::from)))
+        };
+        let run = Some("/run/user/1000");
+        assert_eq!(path(run, None), std::path::Path::new("/run/user/1000/karasu-mpv"));
+        assert_eq!(
+            path(run, Some("io.github.Suzora.Karasu")),
+            std::path::Path::new("/run/user/1000/app/io.github.Suzora.Karasu/karasu-mpv")
+        );
+        assert_eq!(unix_pipe(None, Some("x".into())), "/tmp/karasu-mpv");
+        assert_eq!(unix_pipe(Some("".into()), None), "/tmp/karasu-mpv");
+    }
 
     fn answered(state: &mut MpvState, lines: &[&str]) -> usize {
         lines.iter().filter(|l| apply_reply(state, l)).count()

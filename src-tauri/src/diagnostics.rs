@@ -22,6 +22,8 @@ pub struct Diagnostics {
     pub version: String,
     pub os: String,
     pub app_image: bool,
+    /// Inside a Flatpak, which changes the bus name, the tray folder, the mpv socket and what Settings offers.
+    pub flatpak: bool,
     pub portable: bool,
     /// Where the database lives; redacted by `render`, not here, so the viewer can show the owner the real path.
     pub data_dir: String,
@@ -104,8 +106,9 @@ fn linux_info() -> Option<LinuxInfo> {
             .filter(|v| !v.is_empty())
     };
     Some(LinuxInfo {
-        distro: std::fs::read_to_string("/etc/os-release")
-            .ok()
+        distro: os_release_paths(crate::portable::flatpak_id().is_some())
+            .iter()
+            .find_map(|p| std::fs::read_to_string(p).ok())
             .as_deref()
             .and_then(parse_os_release),
         desktop: env("XDG_CURRENT_DESKTOP"),
@@ -116,6 +119,16 @@ fn linux_info() -> Option<LinuxInfo> {
 #[cfg(not(target_os = "linux"))]
 fn linux_info() -> Option<LinuxInfo> {
     None
+}
+
+/// Where the distro is named; a sandbox's own `/etc/os-release` names its runtime, the host's sits under `/run/host`.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn os_release_paths(flatpak: bool) -> &'static [&'static str] {
+    if flatpak {
+        &["/run/host/os-release", "/etc/os-release"]
+    } else {
+        &["/etc/os-release"]
+    }
 }
 
 // --- Gathering ---------------------------------------------------------------
@@ -141,6 +154,7 @@ pub fn collect(app: &tauri::AppHandle) -> Diagnostics {
         version: crate::commands::app_version_string(),
         os: std::env::consts::OS.to_string(),
         app_image: crate::portable::running_from_appimage(),
+        flatpak: crate::portable::flatpak_id().is_some(),
         portable,
         data_dir,
         tray: app.state::<crate::TrayPresent>().0,
@@ -199,6 +213,7 @@ pub fn render(d: &Diagnostics, redact: bool) -> String {
             linux.session.clone().unwrap_or_else(|| "?".into()),
         );
         row("AppImage", yn(d.app_image).into());
+        row("Flatpak", yn(d.flatpak).into());
     }
     row("Tray", yn(d.tray).into());
     row("Portable", yn(d.portable).into());
@@ -302,6 +317,7 @@ mod tests {
             version: "0.67.2.229".into(),
             os: "linux".into(),
             app_image: true,
+            flatpak: false,
             portable: false,
             data_dir: "/home/kyu/.local/share/dev.kyu.karasu".into(),
             tray: false,
@@ -364,6 +380,13 @@ mod tests {
                 "diagnostics gained a {forbidden}-shaped field"
             );
         }
+    }
+
+    /// Inside a Flatpak the host's file names the distro, and the sandbox's own is only the fallback.
+    #[test]
+    fn a_flatpak_reads_the_host_distro_first() {
+        assert_eq!(os_release_paths(true), ["/run/host/os-release", "/etc/os-release"]);
+        assert_eq!(os_release_paths(false), ["/etc/os-release"]);
     }
 
     #[test]

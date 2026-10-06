@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Karasu
+Comment=Anime and manga tracker for AniList
+Exec=karasu
+Icon=io.github.Suzora.Karasu
+Terminal=false
+Categories=AudioVideo;Video;Network;
+Keywords=anime;manga;anilist;tracker;scrobble;
+StartupWMClass=karasu

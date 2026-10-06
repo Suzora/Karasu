@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- AppStream metadata for the Flatpak; scripts/release/flatpak-manifest.ps1 writes the <releases> block from the tag. -->
 <component type="desktop-application">
-  <id>dev.kyu.karasu</id>
+  <id>io.github.Suzora.Karasu</id>
   <name>Karasu</name>
   <summary>Anime and manga tracker for AniList</summary>
-  <developer id="dev.kyu">
+  <developer id="io.github.suzora">
     <name>Kyu</name>
   </developer>
   <metadata_license>CC0-1.0</metadata_license>
@@ -21,7 +21,7 @@
       Everything talks to AniList directly; there is no server in between.
     </p>
   </description>
-  <launchable type="desktop-id">dev.kyu.karasu.desktop</launchable>
+  <launchable type="desktop-id">io.github.Suzora.Karasu.desktop</launchable>
   <url type="homepage">https://suzora.github.io/Karasu/</url>
   <url type="bugtracker">https://github.com/Suzora/Karasu/issues</url>
   <url type="vcs-browser">https://github.com/Suzora/Karasu</url>
@@ -43,7 +43,10 @@
       <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/statistics.jpg</image>
     </screenshot>
   </screenshots>
-  <content_rating type="oars-1.1" />
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">moderate</content_attribute>
+    <content_attribute id="social-info">intense</content_attribute>
+  </content_rating>
   <branding>
     <color type="primary" scheme_preference="light">#4b3fc7</color>
     <color type="primary" scheme_preference="dark">#0b0d12</color>

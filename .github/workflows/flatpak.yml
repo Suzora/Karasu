@@ -1,11 +1,11 @@
 name: Flatpak
 
-# After every Stable tag (release.yml dispatches it) or by hand: fills, validates and builds the Flatpak once.
+# After every Stable tag (release.yml dispatches it) or by hand: fills, lints and builds the from-source Flatpak once.
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag whose .deb the manifest points at (v1.18.1 or later)"
+        description: "Release tag the manifest builds from source (a Stable after v1.32.0; older tags have no source build)"
         required: true
         type: string
 
@@ -13,12 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  # pwsh and appstreamcli live on the runner, not in the builder image, so the filled files travel as an artifact.
+  # pwsh, uv and appstreamcli live on the runner, not in the builder image, so the filled files travel as an artifact.
   prepare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The script runs the pinned flatpak-builder-tools generators through uv.
+      - name: Install uv
+        run: pipx install uv
 
       - name: Fill the manifest from the release
         shell: pwsh
@@ -31,7 +35,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y appstream
-          appstreamcli validate --pedantic flatpak-out/dev.kyu.karasu.metainfo.xml
+          appstreamcli validate --pedantic flatpak-out/io.github.Suzora.Karasu.metainfo.xml
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -42,7 +46,7 @@ jobs:
   build:
     needs: prepare
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 90
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
@@ -52,10 +56,22 @@ jobs:
           name: flatpak-manifest
           path: flatpak-out
 
+      # Flathub's own linter, from the same Builder app its reviewers run.
+      - name: Lint the manifest
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub org.flatpak.Builder
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest flatpak-out/io.github.Suzora.Karasu.yml
+
       - name: Build
         uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6.8
         with:
           bundle: karasu.flatpak
-          manifest-path: flatpak-out/dev.kyu.karasu.yml
+          manifest-path: flatpak-out/io.github.Suzora.Karasu.yml
+          # With this the action composes full media URLs and commits the screenshots, which the repository lint checks.
+          mirror-screenshots-url: https://dl.flathub.org/media/
           cache: false
           upload-artifact: true
+
+      - name: Lint the built repository
+        run: flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
