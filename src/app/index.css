@@ -2,6 +2,10 @@
 @import "tailwindcss";
 @source not "../../site";
 @source not "../../scripts";
+@source not "../../src-tauri";
+@source not "../../.claude";
+@source not "../../*.md";
+@source not "../**/*.test.{ts,tsx}";
 
 /* A touch screen, by its pointer rather than its width: a narrowed desktop window keeps mouse-sized targets. */
 @custom-variant coarse (@media (pointer: coarse));

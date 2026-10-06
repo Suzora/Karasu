@@ -1549,6 +1549,11 @@ page"). The `release` trigger stays for a release someone publishes by hand.
   `@source not "../../scripts";` sits beside it since 2026-09-25, when the
   style audit's fixtures started naming classes: the emitted CSS lost 254
   bytes, five classes named only in `scripts/`, and nothing the app uses.
+  `src-tauri`, `.claude` (agent worktrees, whole copies of the tree), the root
+  `*.md` and the test files joined them on 2026-10-06: 1,476 bytes and 15
+  classes went, every one a bare form named only in a doc or a test (the
+  banned `rounded-lg`, `transition-all`, `text-white` among them), while the
+  variants the app uses (`md:text-hero-lg`, `focus:z-skip`) stayed.
 - **Tokens are generated, never copied.** `site/src/styles/tokens.generated.css`
   is written by `node site/scripts/sync-tokens.mjs` from the `@theme`,
   `@keyframes`, `@utility`, `:root` and `[data-theme]` blocks of
