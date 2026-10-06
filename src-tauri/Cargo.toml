@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.37.12"
+version = "1.38.0"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -191,6 +191,13 @@ chacha20poly1305 = "0.10"
 # "worked" because nobody has ever built for macOS. This way a macOS build
 # fails at the manifest instead of compiling a backend that cannot work.
 keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }
+# The summon hotkey on a Wayland session, through the desktop's GlobalShortcuts portal. async-io rather than
+# its default tokio feature, which would turn zbus's tokio on beside the async-io the tree already uses.
+ashpd = { version = "0.13", default-features = false, features = ["async-io", "global_shortcuts"] }
+# `StreamExt` for that portal's two signal streams; already in the tree through ashpd and zbus.
+futures-util = { version = "0.3", default-features = false }
+# The window's activation token from that portal; gtk 0.18 is what tauri already compiles here.
+gtk = "0.18"
 # The Linux half of the scrobble-confirm toast's button — same story as
 # tauri-winrt-notification above: already in the tree via the notification
 # plugin, direct because the plugin drops actions on desktop.

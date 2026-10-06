@@ -292,7 +292,7 @@ pub fn get_global_hotkey(db: State<'_, Db>) -> Option<String> {
     read_global_hotkey(&db)
 }
 
-/// Registers first, stores second, so an accelerator the OS rejects never comes back silently at every startup.
+/// Registers (or on Wayland validates) before it stores, so a rejected key never returns at every startup.
 #[tauri::command]
 #[specta::specta]
 pub fn set_global_hotkey(
@@ -303,8 +303,29 @@ pub fn set_global_hotkey(
     let accel = accelerator
         .map(|a| a.trim().to_string())
         .filter(|a| !a.is_empty());
+    // Setting a key is the user asking again, so a decline the desktop gave earlier no longer holds it back.
+    db.kv_remove(crate::hotkey::DECLINED_KEY)?;
     crate::apply_global_hotkey(&app, accel.as_deref())?;
     db.kv_set(GLOBAL_HOTKEY_KEY, accel.as_deref().unwrap_or(""))
+}
+
+/// Where the summon hotkey stands: which backend holds it and, for the portal, what the desktop answered.
+#[tauri::command]
+#[specta::specta]
+pub fn global_hotkey_status(app: tauri::AppHandle) -> crate::hotkey::HotkeyStatus {
+    use crate::hotkey::{HotkeyBackend, HotkeyState, HotkeyStatus, HotkeyStatusState};
+    use crate::sync::LockExt;
+    use tauri::Manager;
+    app.try_state::<HotkeyStatusState>()
+        .map(|state| state.0.guard().clone())
+        .unwrap_or_else(|| HotkeyStatus::new(HotkeyBackend::Grab, HotkeyState::Off))
+}
+
+/// Opens the desktop's own dialog for the summon key, where the portal's second version offers one.
+#[tauri::command]
+#[specta::specta]
+pub async fn configure_global_hotkey() -> Result<(), String> {
+    crate::hotkey::configure_portal().await
 }
 
 // --- Portable mode -----------------------------------------------------------

@@ -1757,6 +1757,23 @@ export const en = {
     hotkeyHint:
       "Summons Karasu from anywhere; pressing it again while focused hides the window. Leave empty to disable.",
     hotkeyPlaceholder: "e.g. Ctrl+Shift+K",
+    hotkeyHintPortal:
+      "On Wayland your desktop owns global shortcuts: Karasu proposes this one, the desktop may ask you to confirm it, and from then on the key is changed in the desktop's own settings. Leave empty to disable.",
+    hotkeyPending:
+      "Waiting for your desktop to confirm the shortcut …",
+    hotkeyBound:
+      "Active as {{trigger}}.",
+    hotkeyBoundNoTrigger:
+      "Registered with your desktop; set the key in its own shortcut settings.",
+    hotkeyNoPortal:
+      "Your desktop offers apps no global shortcuts (GNOME 48 and later, KDE Plasma and Hyprland do), so this only works while an X11 window has focus. A system shortcut that starts Karasu works everywhere and shows a hidden window again.",
+    hotkeyNoAppId:
+      "Your desktop could not tell which app is asking, so this only works while an X11 window has focus. Telling it needs Karasu's desktop entry, which the .deb, the .rpm and the Flatpak install and a bare AppImage does not.",
+    hotkeyDenied:
+      "Your desktop declined the shortcut. Press Enter in the field to be asked once more, or assign a key in your system's keyboard settings.",
+    hotkeyFailed:
+      "Your desktop could not take the shortcut, so this only works while an X11 window has focus; the log has the reason. Press Enter in the field to try again.",
+    hotkeyConfigure: "Change in system settings",
     updateAuto: "Automatically check for updates",
     updateAutoHint: "Checks once a day on startup and notifies you if found.",
     updateChannel: "Update channel",

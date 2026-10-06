@@ -306,7 +306,9 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
 - On the phone: **pull a list down to sync**, and **swipe up from the
   bottom bar** for the command palette
 - System tray, single instance, autostart, and a global hotkey that shows or
-  hides the window
+  hides the window — on a Wayland desktop through the desktop's own shortcut
+  portal (GNOME 48 and later, KDE Plasma, Hyprland), which may ask you to
+  confirm the key
 - **Daily local backups** of the database (one per day, the newest kept) —
   what the app restores from by itself when the file will not open
 - English / German with automatic system-language detection
@@ -394,8 +396,10 @@ with no UAC prompt and nothing written outside your own profile.
 > ./Karasu_*.AppImage` runs it through XWayland instead, which is the first thing
 > to try if the window stays blank or crashes under Wayland. Two things behave
 > differently on Wayland by its design: the window comes back at its last size
-> but not its last position, and the summon shortcut only fires while an X11
-> window has focus.
+> but not its last position, and the summon shortcut goes through the
+> desktop's shortcut portal, which needs Karasu's desktop entry to know the
+> app: the `.deb`, the `.rpm` and the Flatpak install one, a bare AppImage
+> does not, and there the shortcut only fires while an X11 window has focus.
 >
 > Android ships as two APKs — take `Karasu_<version>_arm64.apk`, and fall
 > back to `_universal` only if your device refuses it (releases carry it;

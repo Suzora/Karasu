@@ -28,6 +28,10 @@ import { displayTitle, type QueuedEdit, type SyncStatus } from "@/api/types";
 import { isQueueField, queuedMediaId } from "@/lib/syncQueue";
 import { fieldLabel } from "@/components/shell/SyncPanel";
 import { IconButton } from "@/components/ui/icon-button";
+import { listen } from "@tauri-apps/api/event";
+import type { HotkeyStatus } from "@/api/bindings";
+import { hotkeyHintKey, hotkeyRetryable, hotkeyStatusKey, type HotkeyStatusKey } from "@/lib/hotkeyStatus";
+import type { TFunction } from "i18next";
 import { Presence } from "@/components/ui/presence";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { commands, unwrap } from "@/api/tauri";
@@ -609,6 +613,26 @@ interface CloseToTray {
   tray: boolean;
 }
 
+/** The hotkey's status line, each key spelt literally so the key test can find it. */
+function hotkeyStatusText(t: TFunction, key: HotkeyStatusKey, trigger: string): string {
+  switch (key) {
+    case "settings.hotkeyPending":
+      return t("settings.hotkeyPending");
+    case "settings.hotkeyBound":
+      return t("settings.hotkeyBound", { trigger });
+    case "settings.hotkeyBoundNoTrigger":
+      return t("settings.hotkeyBoundNoTrigger");
+    case "settings.hotkeyNoPortal":
+      return t("settings.hotkeyNoPortal");
+    case "settings.hotkeyNoAppId":
+      return t("settings.hotkeyNoAppId");
+    case "settings.hotkeyDenied":
+      return t("settings.hotkeyDenied");
+    case "settings.hotkeyFailed":
+      return t("settings.hotkeyFailed");
+  }
+}
+
 /** How Karasu behaves as a program on this desktop, kept apart from the unrelated update settings. */
 export function SystemSection() {
   const { t } = useTranslation();
@@ -617,17 +641,23 @@ export function SystemSection() {
   const [closeTray, setCloseTray] = useState<CloseToTray | null>(null);
   const [hotkey, setHotkey] = useState<string | null>(null);
   const [hotkeyDraft, setHotkeyDraft] = useState("");
+  const [hotkeyStatus, setHotkeyStatus] = useState<HotkeyStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!api.isTauri) return;
     commands.getAutostart().then(setAutostart);
     commands.getCloseToTray().then(setCloseTray);
-    commands.getGlobalHotkey().then((v) => {
+    // Listening before reading, so a status announced in between is not lost; the desktop answers after its own dialog.
+    const un = listen<HotkeyStatus>("hotkey-status", (e) => setHotkeyStatus(e.payload));
+    void Promise.all([commands.getGlobalHotkey(), commands.globalHotkeyStatus()]).then(([v, status]) => {
       setHotkey(v ?? "");
       setHotkeyDraft(v ?? "");
+      setHotkeyStatus(status);
     });
+    return () => void un.then((f) => f());
   }, []);
+  const statusKey = hotkeyStatusKey(hotkeyStatus);
 
   // Paint first, await, roll back on failure, or a refused write reads "on" for the rest of the session.
   const toggleAutostart = async (enabled: boolean) => {
@@ -653,9 +683,11 @@ export function SystemSection() {
   };
 
   // Same rollback idiom: the OS can refuse an accelerator, and Rust registers before it stores one.
-  const applyHotkey = async () => {
+  const applyHotkey = async (askAgain = false) => {
     const next = hotkeyDraft.trim();
-    if (hotkey === null || next === hotkey) return;
+    // The same key goes through only from Enter after a refusal, or every blur would put the desktop's dialog up.
+    const retry = askAgain && next !== "" && hotkeyRetryable(hotkeyStatus);
+    if (hotkey === null || (next === hotkey && !retry)) return;
     setError(null);
     try {
       await unwrap(commands.setGlobalHotkey(next || null));
@@ -696,22 +728,42 @@ export function SystemSection() {
           />
         )}
 
-        {hotkey !== null && (
-          <Row label={t("settings.hotkey")} hint={t("settings.hotkeyHint")}>
+        {hotkey !== null && hotkeyStatus !== null && (
+          <Row
+            label={t("settings.hotkey")}
+            hint={hotkeyHintKey(hotkeyStatus) === "settings.hotkeyHintPortal" ? t("settings.hotkeyHintPortal") : t("settings.hotkeyHint")}
+          >
             <Input
               value={hotkeyDraft}
               onChange={(e) => setHotkeyDraft(e.target.value)}
-              onBlur={applyHotkey}
+              onBlur={() => void applyHotkey()}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  applyHotkey();
+                  void applyHotkey(true);
                 }
               }}
               placeholder={t("settings.hotkeyPlaceholder")}
               className="w-48"
             />
           </Row>
+        )}
+        {statusKey && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-xs text-ink-500" role="status">
+              {hotkeyStatusText(t, statusKey, hotkeyStatus?.trigger ?? "")}
+            </p>
+            {/* The desktop keeps the key once bound, so a change goes through its own dialog where it offers one. */}
+            {hotkeyStatus?.state === "bound" && hotkeyStatus.configurable && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void unwrap(commands.configureGlobalHotkey()).catch((e) => setError(String(e)))}
+              >
+                {t("settings.hotkeyConfigure")}
+              </Button>
+            )}
+          </div>
         )}
 
         {error && <p className="text-sm text-danger">{error}</p>}

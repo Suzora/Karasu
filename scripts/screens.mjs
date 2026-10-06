@@ -115,6 +115,7 @@ export const SCREENS = [
   { id: "p54-benachrichtigungen-aufgeklappt", w: 405, h: 860, phone: true, route: "/notifications", act: (p) => p.getByRole("button", { name: /gefällt 2 deiner Aktivitäten/ }).first().click() },
   { id: "d75-stumm", w: 1232, h: 1300, route: "/settings?pane=detection&setting=airingNotify", act: landOn("airingNotify") },
   { id: "p55-stumm", w: 405, h: 1400, phone: true, route: "/settings?pane=detection&setting=airingNotify", act: landOn("airingNotify") },
+  { id: "d79-tastenkuerzel", w: 1232, h: 1000, route: "/settings?pane=desktop", mock: "hotkey-portal", act: toCard("System") },
   { id: "p3-editor", w: 405, h: 860, phone: true, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "p4-mehr", w: 405, h: 860, phone: true, route: "/", act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "p5-einstellungen", w: 405, h: 860, phone: true, route: "/settings" },

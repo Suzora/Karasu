@@ -203,8 +203,12 @@ export const commands = {
 	getCloseToTray: () => __TAURI_INVOKE<CloseToTray>("get_close_to_tray"),
 	setCloseToTray: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_close_to_tray", { enabled })),
 	getGlobalHotkey: () => __TAURI_INVOKE<string | null>("get_global_hotkey"),
-	/**  Registers first, stores second, so an accelerator the OS rejects never comes back silently at every startup. */
+	/**  Registers (or on Wayland validates) before it stores, so a rejected key never returns at every startup. */
 	setGlobalHotkey: (accelerator: string | null) => typedError<null, string>(__TAURI_INVOKE("set_global_hotkey", { accelerator })),
+	/**  Where the summon hotkey stands: which backend holds it and, for the portal, what the desktop answered. */
+	globalHotkeyStatus: () => __TAURI_INVOKE<HotkeyStatus>("global_hotkey_status"),
+	/**  Opens the desktop's own dialog for the summon key, where the portal's second version offers one. */
+	configureGlobalHotkey: () => typedError<null, string>(__TAURI_INVOKE("configure_global_hotkey")),
 	/**  `save_text`'s opposite: the WebView asks for a kind of file and receives bounded text, never a path. */
 	openText: (filterLabel: string, extension: string) => typedError<string | null, string>(__TAURI_INVOKE("open_text", { filterLabel, extension })),
 	getBackupSettings: () => __TAURI_INVOKE<BackupSettings>("get_backup_settings"),
@@ -412,6 +416,21 @@ export type DiscoveredServer = {
 export type DownloadedUpdate = {
 	version: string,
 	notes: string | null,
+};
+
+/**  Which mechanism holds the summon hotkey in this session. */
+export type HotkeyBackend = "grab" | "portal";
+
+/**  How far the binding got; a grab is settled the moment it registers, the portal answers later. */
+export type HotkeyState = "off" | "pending" | "bound" | "noPortal" | "noAppId" | "denied" | "failed";
+
+export type HotkeyStatus = {
+	backend: HotkeyBackend,
+	state: HotkeyState,
+	/**  The desktop's own spelling of the bound key, which need not be the one Karasu proposed. */
+	trigger: string | null,
+	/**  Whether the desktop can open its own dialog to change the key (the portal's second version). */
+	configurable: boolean,
 };
 
 export type JellyfinBackground = {

@@ -1,0 +1,9 @@
+# The id the desktop's shortcut portal knows Karasu by; hidden, since Karasu.desktop is the one in the menus.
+[Desktop Entry]
+Type=Application
+Name=Karasu
+Comment=Anime and manga tracker for AniList
+Exec=karasu
+Icon=karasu
+Terminal=false
+NoDisplay=true

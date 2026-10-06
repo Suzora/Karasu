@@ -607,6 +607,10 @@ mockIPC((cmd, args) => {
       };
     case "get_jellyfin_background":
       return { enabled: android, supported: android, batteryExempt: android ? false : null };
+    case "global_hotkey_status":
+      return mock === "hotkey-portal"
+        ? { backend: "portal", state: "bound", trigger: "Ctrl+Shift+K", configurable: true }
+        : { backend: "grab", state: "bound", trigger: "Ctrl+Shift+K", configurable: false };
     case "list_airing_mutes":
       return [
         { mediaId: REAL[1].id, title: REAL[1].title },

@@ -119,6 +119,9 @@ pub enum Msg<'a> {
     TrayDetection,
     TrayOpen,
     TrayQuit,
+    /// What the desktop lists for the summon shortcut in its own settings and approval dialog.
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+    HotkeyDescription,
     /// The Android tracking service's persistent notification, composed here so Kotlin renders text it never chose.
     #[cfg_attr(not(target_os = "android"), allow(dead_code))]
     TrackingServiceTitle,
@@ -285,6 +288,8 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
         (De, TrayOpen) => "Karasu öffnen".into(),
         (En, TrayQuit) => "Quit".into(),
         (De, TrayQuit) => "Beenden".into(),
+        (En, HotkeyDescription) => "Show or hide Karasu".into(),
+        (De, HotkeyDescription) => "Karasu zeigen oder verbergen".into(),
         (En, TrackingServiceTitle) => "Watching Jellyfin".into(),
         (De, TrackingServiceTitle) => "Jellyfin wird beobachtet".into(),
         (En, TrackingServiceBody) => {

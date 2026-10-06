@@ -1768,6 +1768,23 @@ export const de: typeof en = {
     hotkeyHint:
       "Holt Karasu von überall in den Vordergrund; erneutes Drücken bei fokussiertem Fenster versteckt es. Leer lassen zum Deaktivieren.",
     hotkeyPlaceholder: "z. B. Ctrl+Shift+K",
+    hotkeyHintPortal:
+      "Unter Wayland verwaltet die Arbeitsumgebung globale Tastenkürzel: Karasu schlägt dieses vor, die Arbeitsumgebung fragt eventuell nach Bestätigung, und danach änderst du die Taste in deren eigenen Einstellungen. Leer lassen zum Deaktivieren.",
+    hotkeyPending:
+      "Wartet auf die Bestätigung der Arbeitsumgebung …",
+    hotkeyBound:
+      "Aktiv als {{trigger}}.",
+    hotkeyBoundNoTrigger:
+      "Bei der Arbeitsumgebung angemeldet; die Taste legst du in deren Kürzel-Einstellungen fest.",
+    hotkeyNoPortal:
+      "Deine Arbeitsumgebung bietet Apps keine globalen Tastenkürzel an (GNOME ab 48, KDE Plasma und Hyprland schon), deshalb greift es nur, solange ein X11-Fenster den Fokus hat. Ein Systemkürzel, das Karasu startet, funktioniert überall und zeigt ein verstecktes Fenster wieder an.",
+    hotkeyNoAppId:
+      "Deine Arbeitsumgebung konnte nicht zuordnen, welche App fragt, deshalb greift es nur, solange ein X11-Fenster den Fokus hat. Dafür braucht es Karasus Desktop-Eintrag, den .deb, .rpm und Flatpak installieren, ein einzelnes AppImage aber nicht.",
+    hotkeyDenied:
+      "Deine Arbeitsumgebung hat das Kürzel abgelehnt. Drücke Enter im Feld, um erneut gefragt zu werden, oder lege eine Taste in den Tastatureinstellungen des Systems fest.",
+    hotkeyFailed:
+      "Deine Arbeitsumgebung konnte das Kürzel nicht übernehmen, deshalb greift es nur, solange ein X11-Fenster den Fokus hat; der Grund steht im Protokoll. Drücke Enter im Feld für einen neuen Versuch.",
+    hotkeyConfigure: "In den Systemeinstellungen ändern",
     updateAuto: "Automatisch nach Updates suchen",
     updateAutoHint:
       "Prüft einmal täglich beim Start und benachrichtigt dich bei Funden.",

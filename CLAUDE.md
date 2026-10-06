@@ -110,7 +110,7 @@ src/
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          106 of the 130 frontend-facing commands, by subject:
+  commands/          108 of the 132 frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
                      update. The other 24 are the library scanner's 15 in
                      `library.rs` and the Android updater's 9 in
@@ -133,6 +133,9 @@ src-tauri/src/
                      cannot be), and notify itself
   anilist/           auth (token handling), login (the localhost OAuth
                      callback), client (the limiter), query_cache (v20)
+  hotkey/            the summon hotkey's two backends: the key grab, and on a
+                     Wayland session the GlobalShortcuts portal (portal.rs,
+                     Linux only, through ashpd), chosen by `choose_backend`
   db.rs              SQLite: PRAGMA user_version migrations + row helpers
   identify.rs        the AniList search pass for titles the local matcher
                      cannot place — 25 per request, capped at 8 requests a
@@ -793,12 +796,35 @@ through XWayland. X11 had been forced only to dodge the bundled
 library is gone at the root now. Native Wayland buys sharp fractional scaling
 and native input methods; it costs the window's position, which Wayland does
 not let a client set, so there `tauri-plugin-window-state` brings back size and
-maximised state only. The one part that speaks X11 regardless is the summon
-hotkey: `global-hotkey` 0.8 grabs keys over its own `x11rb` connection, and on a
-Wayland session XWayland only sees keys meant for X11 windows, so there it
-never was global; what changes is that pressing it inside Karasu's own window
-no longer hides it (derived from the protocol, not measured on a desktop). The
-GlobalShortcuts portal is the real fix and is not wired. No real GPU has run
+maximised state only. The summon hotkey is the one part that needs more than
+GDK: `global-hotkey` 0.8 grabs keys over its own `x11rb` connection, and on a
+Wayland session XWayland only sees keys meant for X11 windows, so a grab there
+was never global. Since 2026-10-06 a Wayland session (`XDG_SESSION_TYPE`, else
+`WAYLAND_DISPLAY`; `hotkey::choose_backend`) hands the key to the desktop's
+GlobalShortcuts portal through `ashpd` on a connection of its own
+(`hotkey/portal.rs`): the stored accelerator is offered as the XDG shortcut
+`preferred_trigger` (`portal_trigger`, our own keysym table), the desktop may
+show a dialog and answers later, so the portal path stores first and reports
+through the `hotkey-status` event and `global_hotkey_status`, which Settings
+shows as one line. A host app needs an app id: since xdg-desktop-portal 1.21
+`CreateSession` refuses a caller without one, and `Registry.Register`
+accepts an id only when its `.desktop` file is installed, so the `.deb` and
+the `.rpm` carry a hidden `dev.kyu.karasu.desktop` (`packaging/linux/`),
+registered before any other portal call on that connection (it carries no
+`StartupWMClass`, so `Karasu.desktop` alone claims the window); a bare AppImage
+has none and reports `noAppId`, a Flatpak takes its id from the sandbox. Short
+of a refusal, every failure — a missing portal (wlroots, COSMIC, an older
+GNOME, or no portal service at all, which only the first call reveals), no
+app id, a failed bind — falls back to the X11 grab with a hint. A refusal
+(any non-success answer, since GNOME reports a cancel as "other", or a reply
+without the shortcut) is remembered in kv `global_hotkey_declined`, so a
+launch does not put the dialog up again; setting a key clears it, and Enter
+on the same key asks again. Once bound the desktop keeps the key, so a
+change goes through its own dialog (`configure_global_hotkey`, portal v2). The `Activated` signal's activation token is handed to GTK
+(`set_startup_id`) before the window is toggled, or GNOME refuses the focus.
+None of this has run on a real Wayland desktop yet: it is derived from the
+portal's specification and the GNOME and KDE backends' sources, and the
+Linux module compiles only on Linux (CI, or the local Flatpak build). No real GPU has run
 native Wayland yet, so a Wayland graphics report starts with `GDK_BACKEND=x11`
 as the comparison. The script throws if the hook forces a
 backend again, because that would be a decision to take again, not a line to

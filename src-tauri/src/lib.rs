@@ -5,6 +5,7 @@ mod backups;
 pub mod commands;
 mod db;
 mod diagnostics;
+mod hotkey;
 mod discord;
 mod identify;
 mod background;
@@ -47,7 +48,7 @@ fn show_main_window(app: &AppHandle) {
 
 /// The global hotkey's action; focus decides, not visibility, so a buried window comes forward rather than vanishing.
 #[cfg(desktop)]
-fn toggle_main_window(app: &AppHandle) {
+pub(crate) fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let focused = window.is_focused().unwrap_or(false);
         let visible = window.is_visible().unwrap_or(false);
@@ -59,9 +60,33 @@ fn toggle_main_window(app: &AppHandle) {
     }
 }
 
-/// (Re)binds the summon hotkey, the only global shortcut Karasu registers, so `unregister_all` is exact.
+/// (Re)binds the summon hotkey: a grab, or on a Wayland session the portal, which answers later through its status.
 #[cfg(desktop)]
 pub(crate) fn apply_global_hotkey(app: &AppHandle, accel: Option<&str>) -> Result<(), String> {
+    use hotkey::{HotkeyBackend, HotkeyState, HotkeyStatus};
+    match hotkey::session_backend() {
+        HotkeyBackend::Grab => {
+            grab_global_hotkey(app, accel)?;
+            let state = if accel.is_some() { HotkeyState::Bound } else { HotkeyState::Off };
+            let mut status = HotkeyStatus::new(HotkeyBackend::Grab, state);
+            status.trigger = accel.map(str::to_string);
+            hotkey::publish(app, status);
+        }
+        HotkeyBackend::Portal => {
+            // Validated here, so a key the portal cannot be offered fails in Settings exactly as a refused grab does.
+            if let Some(accel) = accel {
+                hotkey::portal_trigger(accel)?;
+            }
+            grab_global_hotkey(app, None)?;
+            hotkey::bind_portal(app, accel.map(str::to_string));
+        }
+    }
+    Ok(())
+}
+
+/// The key grab itself, the only global shortcut Karasu registers, so `unregister_all` is exact.
+#[cfg(desktop)]
+pub(crate) fn grab_global_hotkey(app: &AppHandle, accel: Option<&str>) -> Result<(), String> {
     use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
     let shortcuts = app.global_shortcut();
     shortcuts.unregister_all().map_err(|e| e.to_string())?;
@@ -316,6 +341,10 @@ pub fn run() {
                 }
             };
             app.manage(db);
+            app.manage(hotkey::HotkeyStatusState(std::sync::Mutex::new(hotkey::HotkeyStatus::new(
+                hotkey::HotkeyBackend::Grab,
+                hotkey::HotkeyState::Off,
+            ))));
             // The window exists and the page has not painted, so the stored zoom lands before anything is drawn.
             commands::apply_ui_zoom(
                 app.handle(),
@@ -491,6 +520,8 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::set_close_to_tray,
             commands::get_global_hotkey,
             commands::set_global_hotkey,
+            commands::global_hotkey_status,
+            commands::configure_global_hotkey,
             commands::open_text,
             commands::get_backup_settings,
             commands::set_backup_settings,
@@ -611,8 +642,18 @@ fn setup_platform(app: &tauri::App) {
     // Debug builds only, and only with a tray to come back from.
     hide_window_in_dev(app, built);
 
+    // The session's backend from the start, so Settings words its hint for Wayland even with no key set.
+    hotkey::publish(
+        app.handle(),
+        hotkey::HotkeyStatus::new(hotkey::session_backend(), hotkey::HotkeyState::Off),
+    );
     // A stored hotkey that no longer registers must not fail the launch; it goes to the log and the setting stays.
-    if let Some(accel) = commands::read_global_hotkey(&app.state::<db::Db>()) {
+    let stored = commands::read_global_hotkey(&app.state::<db::Db>());
+    let declined = app.state::<db::Db>().kv_get(hotkey::DECLINED_KEY);
+    if stored.is_some() && stored == declined && hotkey::session_backend() == hotkey::HotkeyBackend::Portal {
+        // The desktop said no to this key before; asking at every login would only put its dialog up again.
+        hotkey::publish(app.handle(), hotkey::HotkeyStatus::new(hotkey::HotkeyBackend::Portal, hotkey::HotkeyState::Denied));
+    } else if let Some(accel) = stored {
         if let Err(e) = apply_global_hotkey(app.handle(), Some(&accel)) {
             logging::warn(
                 "hotkey",
