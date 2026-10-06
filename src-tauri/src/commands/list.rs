@@ -179,6 +179,7 @@ const UPDATE_ENTRIES_MUTATION: &str = "
 mutation ($ids: [Int], $status: MediaListStatus, $scoreRaw: Int, $progress: Int, $progressVolumes: Int, $repeat: Int, $private: Boolean, $startedAt: FuzzyDateInput, $completedAt: FuzzyDateInput, $scoreFormat: ScoreFormat) {
   UpdateMediaListEntries(ids: $ids, status: $status, scoreRaw: $scoreRaw, progress: $progress, progressVolumes: $progressVolumes, repeat: $repeat, private: $private, startedAt: $startedAt, completedAt: $completedAt) {
     id mediaId status progress progressVolumes repeat notes updatedAt private
+    media { type }
     startedAt { year month day }
     completedAt { year month day }
     score(format: $scoreFormat)
@@ -1064,6 +1065,29 @@ mod tests {
         let entry = &cached[0]["entries"][0];
         assert_eq!(entry["customLists"], serde_json::json!({ "Rewatch": true, "Favs": false }));
         assert_eq!(entry["hiddenFromStatusLists"], serde_json::json!(true));
+    }
+
+    /// A manga echo patches the manga list; without `media { type }` the patch fell back to the anime list and missed.
+    #[test]
+    fn every_mutation_the_cache_mirrors_names_its_media_type() {
+        for (name, mutation) in [("save", super::SAVE_MUTATION), ("bulk", super::UPDATE_ENTRIES_MUTATION)] {
+            assert!(mutation.contains("media { type }"), "{name} echo carries no media type");
+        }
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id":1}"#).unwrap();
+        let entries = |status: &str| serde_json::json!([{ "name": "Reading", "entries": [{ "id": 10, "mediaId": 100, "status": status }] }]);
+        db.cache_list(1, "ANIME", &entries("CURRENT").to_string()).unwrap();
+        db.cache_list(1, "MANGA", &entries("CURRENT").to_string()).unwrap();
+        let fetched_at = |t: &str| db.cached_list_with_age(1, t).map(|(_, at)| at);
+        let before = fetched_at("ANIME");
+
+        super::cache_entry_echo(&db, &serde_json::json!({ "mediaId": 100, "media": { "type": "MANGA" }, "status": "PAUSED" }));
+
+        let manga: serde_json::Value = serde_json::from_str(&db.cached_list(1, "MANGA").unwrap()).unwrap();
+        let anime: serde_json::Value = serde_json::from_str(&db.cached_list(1, "ANIME").unwrap()).unwrap();
+        assert_eq!(manga[0]["entries"][0]["status"], "PAUSED");
+        assert_eq!(anime[0]["entries"][0]["status"], "CURRENT");
+        assert_eq!(fetched_at("ANIME"), before, "the anime list was not marked stale");
     }
 
     /// The window in one place: fresh serves for nothing, stale serves and refreshes behind, forced or empty fetches.
