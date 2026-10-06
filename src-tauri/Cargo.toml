@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.37.7"
+version = "1.37.8"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -67,7 +67,9 @@ sha2 = "0.10"
 # save dialog on Android answers with a content:// URI that `std::fs` cannot
 # open; `Fs::open` goes through the platform's own descriptor for either.
 tauri-plugin-fs = "2"
-tauri-plugin-updater = "2"
+# Without its default `rustls-tls`, which brought `ring` beside our aws-lc-rs and installed it as the process default;
+# its reqwest is ours, so it speaks TLS through the same aws-lc-rs provider. `zip` stays for v1-style artifacts.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["zip"] }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-window-state = "2"
 # WebView2 and WebKitGTK answer F5, Ctrl+F and Ctrl+P themselves; a desktop app owns those keys.
@@ -165,11 +167,11 @@ windows = { version = "0.62", features = [
   "Win32_System_Com_StructuredStorage",
   "Win32_System_Variant",
 ] }
-# The scrobble-confirm toast's button. Already compiled into this tree by
-# tauri-plugin-notification; the direct dependency exists because the plugin
-# *drops* action buttons on desktop, so the one toast that is an action talks
-# to the underlying crate itself.
-tauri-winrt-notification = "0.7"
+# The scrobble-confirm toast's button: the version notify-rust (under
+# tauri-plugin-notification) already compiles, so it is one copy; the direct
+# dependency exists because the plugin *drops* action buttons on desktop, so
+# the one toast that is an action talks to the underlying crate itself.
+tauri-winrt-notification = "0.8"
 
 # Linux groundwork: keyring via the Secret Service (libsecret/D-Bus).
 [target.'cfg(target_os = "linux")'.dependencies]

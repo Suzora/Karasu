@@ -14,7 +14,7 @@ pub fn client_builder() -> reqwest::ClientBuilder {
 /// Webpki roots in a preconfigured rustls config; rustls must stay in lockstep with reqwest's own or it fails at runtime.
 #[cfg(target_os = "android")]
 fn android_tls_config() -> rustls::ClientConfig {
-    // A named aws-lc-rs provider on Android; the default-provider lookup panics with two providers in the graph.
+    // A named aws-lc-rs provider, so a second provider entering the graph can never make the default lookup panic.
     let provider = std::sync::Arc::new(rustls::crypto::aws_lc_rs::default_provider());
     let roots = rustls::RootCertStore {
         roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),

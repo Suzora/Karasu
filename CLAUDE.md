@@ -1614,10 +1614,17 @@ answer on 2026-09-20 was not the suspected one: of a 23.3 MiB file, `.text` is
 16.4 MiB and the `windows` crate is not in the top sixty (its bindings inline
 into `karasu_lib`); the weight is tauri 2.6 MiB, std 2.6, karasu_lib 2.2,
 tokio 1.3, the HTTP stack (reqwest, rustls, h2, hyper) ~1.5, and the regex
-family ~0.8. The one oddity is two crypto backends at once — `ring` (125 KiB)
-beside `aws_lc_sys` (197 KiB), because `tauri-plugin-updater`'s reqwest wants
-rustls with `ring` while ours resolves to aws-lc — worth ~300 KiB if anyone
-ever cares, which is not now. `npm run mutants` is cargo-mutants through
+family ~0.8. The one oddity was two crypto backends at once — `ring` (125 KiB)
+beside `aws_lc_sys` (197 KiB), because `tauri-plugin-updater`'s default
+`rustls-tls` feature asked for rustls with `ring` and installed it as the
+process default at its first check. Since 2026-10-06 the updater runs with
+`default-features = false` (plus `zip`), shares our reqwest and its aws-lc-rs,
+and `ring` is out of the build: re-measured that day, `aws_lc_sys` 200 KiB and
+no `ring` in a 24.2 MiB file with 17.1 MiB of `.text` (the app grew since the
+first run). The live update check over the new path was not exercised then;
+the next Nightly's update is that check. Run it from `src-tauri/`
+(`cargo bloat --release --crates -n 40`): the npm script's
+`--manifest-path` is refused on Windows. `npm run mutants` is cargo-mutants through
 `scripts/mutants.mjs` (the copy holds `src-tauri` alone, so the wrapper drops
 the `../THIRD-PARTY-NOTICES.md` resource through `TAURI_CONFIG` or
 tauri-build refuses to configure it); `src-tauri/.cargo/mutants.toml`

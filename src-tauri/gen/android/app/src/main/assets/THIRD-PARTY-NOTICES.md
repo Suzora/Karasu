@@ -76,7 +76,7 @@ days.
 
 ## Rust crates
 
-665 crates in the resolved graph, `--all-features` across every target — the
+664 crates in the resolved graph, `--all-features` across every target — the
 superset of what a Windows and a Linux build each link. The licence spread:
 
 | Licence | Crates |
