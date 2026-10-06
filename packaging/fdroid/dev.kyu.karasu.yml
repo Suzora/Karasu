@@ -1,19 +1,18 @@
-# The fdroiddata recipe (metadata/dev.kyu.karasu.yml there); scripts/release/fdroid-recipe.ps1 fills it from a tag.
+AntiFeatures:
+  NonFreeNet:
+    en-US: Everything it shows and writes goes through AniList, a proprietary online
+      service.
 Categories:
-  - Multimedia
   - Internet
+  - Multimedia
 License: AGPL-3.0-or-later
 AuthorName: Kyu
+WebSite: https://suzora.github.io/Karasu/
 SourceCode: https://github.com/Suzora/Karasu
 IssueTracker: https://github.com/Suzora/Karasu/issues
 Changelog: https://github.com/Suzora/Karasu/blob/HEAD/CHANGELOG.md
-WebSite: https://suzora.github.io/Karasu/
 
 AutoName: Karasu
-
-AntiFeatures:
-  NonFreeNet:
-    en-US: Everything it shows and writes goes through AniList, a proprietary online service.
 
 RepoType: git
 Repo: https://github.com/Suzora/Karasu
@@ -25,41 +24,34 @@ Builds:
     subdir: src-tauri/gen/android/app
     sudo:
       - apt-get update
-      - apt-get install -y --no-install-recommends curl ca-certificates build-essential pkg-config xz-utils
-      # Node 22, the floor package.json's engines names, as the official build checked against its published sha256.
+      - apt-get install -y --no-install-recommends curl ca-certificates build-essential
+        pkg-config xz-utils
       - curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.xz
-      - echo "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de  /tmp/node.tar.xz" | sha256sum -c -
+      - echo "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de  /tmp/node.tar.xz"
+        | sha256sum -c -
       - tar -xJf /tmp/node.tar.xz -C /opt
-      - ln -sf /opt/node-v22.23.3-linux-x64/bin/node /opt/node-v22.23.3-linux-x64/bin/npm /opt/node-v22.23.3-linux-x64/bin/npx /usr/local/bin/
+      - ln -sf /opt/node-v22.23.3-linux-x64/bin/node /opt/node-v22.23.3-linux-x64/bin/npm
+        /opt/node-v22.23.3-linux-x64/bin/npx /usr/local/bin/
     init:
-      # rustup as the build user, the pinned toolchain only; the Gradle build spawns `node …/tauri.js` itself.
-      - curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.97.1 --profile minimal
+      - curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.97.1 --profile
+        minimal
       - . $HOME/.cargo/env && rustup target add aarch64-linux-android
-      - cd ../../.. && npm ci
-    # Tooling `npm ci` brings that the build never runs, each one the scanner flags; measured with fdroidserver 2.4.5.
-    scandelete:
-      - node_modules/playwright-core/lib/webp_codec.wasm
-      - node_modules/@typescript/typescript-linux-x64/lib/tsc
-      - node_modules/@astrojs/compiler/dist/astro.wasm
-      - node_modules/source-map/lib/mappings.wasm
-    gradle:
-      - yes
-    ndk: r27b
-    prebuild:
-      # The updater is compiled out and the APK left unsigned, so F-Droid signs its own build; the paths remapped as in CI.
-      - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
-      - export RUSTFLAGS="--remap-path-prefix=$(cd ../../.. && pwd)=/build --remap-path-prefix=$HOME/.cargo=/cargo"
-      - export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+      - cd ../../../.. && npm ci
+      - cd ../../../.. && rm -f node_modules/playwright-core/lib/webp_codec.wasm node_modules/@typescript/typescript-linux-x64/lib/tsc
+        node_modules/@astrojs/compiler/dist/astro.wasm node_modules/source-map/lib/mappings.wasm
+    output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
     build:
       - . $HOME/.cargo/env
-      - cd ../../.. && npx tauri android build --apk --target aarch64 --split-per-abi
-    output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
+      - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
+      - export RUSTFLAGS="--remap-path-prefix=$(cd ../../../.. && pwd)=/build --remap-path-prefix=$HOME/.cargo=/cargo"
+      - ln -s "$(command -v gradle)" ../gradlew
+      - cd ../../../.. && npx tauri android build --apk --target aarch64 --split-per-abi
+    ndk: r27b
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
-# The code is the commit counter plus the base build.gradle.kts adds; the name is the four-part literal beside it.
-UpdateCheckData: src-tauri/src/commands/update.rs|COMMIT_NUMBER:\s*u32\s*=\s*(\d+);|.|FULL_VERSION:\s*&str\s*=\s*"([^"]+)";
 VercodeOperation:
-  - "%c + 1000000"
+  - '%c + 1000000'
+UpdateCheckData: src-tauri/src/commands/update.rs|COMMIT_NUMBER:\s*u32\s*=\s*(\d+);|.|FULL_VERSION:\s*&str\s*=\s*"([^"]+)";
 CurrentVersion: VERSION_TO_FILL
 CurrentVersionCode: VERSIONCODE_TO_FILL

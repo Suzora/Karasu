@@ -26,9 +26,9 @@ set (maintainer, 2026-10-05). What stands between the tree and the two
 requests, each detailed in its `packaging/*/SUBMISSION.md`:
 
 - **F-Droid's own build of the recipe.** The update check, the Node pin, the
-  scanner's four deletions and the `NonFreeNet` label are settled and linted
-  locally; only F-Droid's build server, after the submission, runs the whole
-  recipe.
+  scanner's four deletions, the `NonFreeNet` label and the rewritemeta form are
+  settled and checked locally; the whole recipe, the Gradle wrapper's stand-in
+  above all, runs only on F-Droid's build server after the submission.
 
 ## After v1.32.0
 

@@ -1802,9 +1802,19 @@ a character. Node 22 comes from nodejs.org pinned by its sha256, because
 `npm ci` as `fdroid build` does after `init`, fdroidserver 2.4.5's scanner
 flagged four files on 2026-10-06, all tooling the build never runs (a
 Playwright codec, TypeScript 7's native `tsc`, react-scan's Astro compiler and
-the visualizer's source-map), and the frontend built without them, so the
-recipe's `scandelete` names exactly those; a dependency bump can add one, and
-the scanner says which. **F-Droid signs its own build,
+the visualizer's source-map), and the frontend built without them, so `init`
+deletes them with `rm -f` after `npm ci`: a file that later moves or leaves
+costs nothing, where a `scandelete` entry that matches nothing fails the build,
+and a newly flagged file still fails the scan, which is the useful direction.
+With that entry in place the scan counted 0. The recipe is written in the form
+`fdroid rewritemeta` produces (no comments, its key order, its line wrapping),
+because fdroiddata's CI fails a file it would rewrite; the reasons live in
+`packaging/fdroid/SUBMISSION.md`. A review of 2026-10-06 found the recipe had
+never been able to build: `subdir` is four levels deep and `init` climbed three,
+so `npm ci` ran in `src-tauri`; the switches were exported in `prebuild`, and
+every phase is its own shell, so they never reached the build; and `gradle: yes`
+beside `output:` made fdroidserver run a second `assembleRelease` for every
+Rust target. **F-Droid signs its own build,
 decided by the maintainer on 2026-10-03**, so the recipe carries no
 `AllowedAPKSigningKeys` and the F-Droid and GitHub installs do not update over
 each other. The reason is the first switch: it is read with `option_env!`, so

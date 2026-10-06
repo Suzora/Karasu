@@ -44,29 +44,54 @@ over each other; a user who switches uninstalls first.
    `fdroid build` on it; expect a round of questions about the `sudo:` steps
    (Node and Rust are not in the base image) and the anti-feature list.
 
-## What the recipe still has to answer
+## Why each step of the recipe is there
 
-Found while preparing the submission; each is in ROADMAP.md under "Before the
-stores", and the request goes in with the next Stable (decided on
-2026-10-05).
+The recipe carries no comments, because fdroiddata's CI runs `fdroid
+rewritemeta` and fails a file it would rewrite; it is kept in exactly that
+form, so the reasons are here.
 
-- **The version code is computed.** It is `1000000 + COMMIT_NUMBER`, a
-  constant in `src-tauri/src/commands/update.rs`, not a literal in a Gradle
-  file, so `AutoUpdateMode: Version` cannot read it on its own. The recipe
-  needs `UpdateCheckData` pointing at that constant and a `VercodeOperation`
-  adding the million, or F-Droid's bot cannot follow a new tag.
-- **`npm ci` installs prebuilt native binaries** — the Tauri CLI and the
-  bundler's native parts ship one per platform. F-Droid's scanner refuses
-  prebuilt binaries in the source tree it builds from, so each needs
-  building from source, a scan exception with its reason, or a different
-  way to run the step.
-- **Node.** The build server's Debian packages an older Node than the
-  `engines.node >=22` the tree asks for; the recipe has to install a current
-  one itself rather than take `nodejs` from apt.
-- **Anti-features: expect `NonFreeNet`.** Karasu depends on AniList, a
-  proprietary network service, which is what that label marks; the label
-  says so on the listing and does not block inclusion. Jellyfin is free
-  software and adds nothing.
+- **`subdir: src-tauri/gen/android/app`** is four levels deep, so every step
+  that needs the repository root climbs `../../../..`.
+- **`sudo`** installs the build tools and Node 22 from nodejs.org, checked
+  against its published sha256: `engines.node` asks for 22, and the build
+  server's Debian ships an older Node.
+- **`init`** installs the pinned Rust as the build user with the Android
+  target, runs `npm ci` at the root, and deletes four files `npm ci` brings
+  that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
+  7's native `tsc`, react-scan's Astro compiler and the bundle visualizer's
+  source-map WebAssembly. None of them runs in the build; the frontend built
+  without them, and the scan counted 0 with them gone (fdroidserver 2.4.5, on
+  2026-10-06). `rm -f` rather than `scandelete`, because a `scandelete` entry
+  that no longer matches fails the build, while a file that moves or leaves is
+  nothing to `rm -f`; a newly flagged file still fails the scan.
+- **`build`** sources Cargo's environment and exports `KARASU_NO_SELF_UPDATE`,
+  `KARASU_UNSIGNED` and the path remap in the same command list as the build,
+  because fdroidserver runs every phase in a shell of its own. It stands a link
+  to the build server's `gradle` in for the Gradle wrapper, which fdroidserver
+  deletes from every Gradle project before building and which
+  `tauri android build` calls, then builds the arm64 APK.
+- **No `gradle:` key.** With `output:` set the build method is raw, so
+  fdroidserver takes the APK `tauri android build` wrote instead of running its
+  own `assembleRelease` across every Rust target in a fresh shell.
+- **`UpdateCheckData` and `VercodeOperation`** read the version code from
+  `COMMIT_NUMBER` plus the 1,000,000 base `build.gradle.kts` adds and the name
+  from `FULL_VERSION` in `src-tauri/src/commands/update.rs`; F-Droid's build
+  refuses an APK whose name or code differs from the recipe's.
+- **`NonFreeNet`**: Karasu depends on AniList, a proprietary network service.
+  Jellyfin is free software and adds nothing.
+
+## What only F-Droid's build server can show
+
+Checked locally: `fdroid lint` and `fdroid rewritemeta` (clean against
+fdroiddata's categories and anti-features), the update check applied to
+`update.rs` (`1000806` / `1.40.1.806` for that commit), `npm ci` under Node
+22.23.3 and the frontend build without the four files, and the scan. Not
+checked, because only the build server runs it: the `sudo` steps on its Debian,
+the `gradle` link standing in for the wrapper (that `gradle` is on the build
+user's `PATH` there is derived, not seen), and the whole Android build. The
+merge request's CI is that check; run `fdroid rewritemeta dev.kyu.karasu` and
+`fdroid lint dev.kyu.karasu` on the filled file in an fdroiddata checkout before
+opening it, and expect no diff.
 
 ## What to know before the first build
 
