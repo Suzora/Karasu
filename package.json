@@ -1,7 +1,7 @@
 {
   "name": "karasu",
   "private": true,
-  "version": "1.37.6",
+  "version": "1.37.7",
   "type": "module",
   "author": "Kyu",
   "license": "AGPL-3.0-or-later",
@@ -59,7 +59,6 @@
     "d3-shape": "^3.2.0",
     "i18next": "^26.4.2",
     "lucide-react": "^1.48.0",
-    "motion": "13.4.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.15",

@@ -37,7 +37,7 @@ export const RULES = {
   "outline-removed": "outline-none with no focus style beside it",
   "class-fragment": "a class built from a template fragment, which Tailwind cannot see",
   "icon-size": "an icon size off the icon scale",
-  "library-boundary": "a UI or motion library imported outside its wrapper",
+  "library-boundary": "a UI library imported outside its wrapper",
   "parse-error": "the file did not parse, so nothing in it was checked",
 };
 
@@ -49,7 +49,6 @@ const SPINNER = "src/components/ui/spinner.tsx";
 /** The one module each library may be imported from; everything else goes through it. */
 const LIBRARY_HOMES = [
   { test: (m) => m === "@base-ui/react" || m.startsWith("@base-ui/react/"), home: (p) => p.startsWith("src/components/ui/") },
-  { test: (m) => m === "motion" || m.startsWith("motion/") || m === "framer-motion", home: (p) => p === "src/app/motion.tsx" || p === "src/app/motionFeatures.ts" },
 ];
 
 const COLOUR_PREFIX =

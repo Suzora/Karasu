@@ -45,8 +45,8 @@ and in the browser and scrobbles your AniList progress automatically.
 
 ```
 src/
-  app/               App.tsx, main.tsx, index.css — the entry — plus motion.tsx
-                     and motionFeatures.ts, the one door to Motion
+  app/               App.tsx, main.tsx, index.css — the entry — plus lazyRoute.tsx,
+                     the pages one click away that load on idle
   api/               AniList GraphQL client, queries, types, franchise, library,
                      social (the whole profile/follow/forum surface);
                      bindings.ts is GENERATED from the Rust command signatures
@@ -96,7 +96,8 @@ src/
                      useGridRoving, useSyncStatus, useManualSync,
                      usePullToSync, useActionRunner, useCachedMedia,
                      useDetectionMedia, useDetectionDrag, useElementSize,
-                     usePointerSwipe, useTabSwipe, useSettingLanding)
+                     usePointerSwipe, useTabSwipe, useSettingLanding,
+                     useFlickDismiss)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
                      key parity across the two files
   lib/               pure logic + its *.test.ts — the place testable code goes
@@ -1815,7 +1816,7 @@ define (read from `index.css`'s `--color-*` names, so `ink-200` is caught and
 renders nothing); Tailwind's own palette; broad transitions; `animate-spin`
 outside the spinner; `outline-none` with no focus style beside it or on a
 `focus-within:` wrapper; a class cut at a template `${}`; icons off the
-14/16/20/32 scale; and Base UI or Motion imported outside their wrappers.
+14/16/20/32 scale; and Base UI imported outside its wrappers.
 `scripts/style-baseline.json` is a ratchet, not a licence: `--check` fails when
 a count rises above it *and* when it falls below, so the commit that removes
 drift also runs `--tighten` and the room cannot be spent again. `--record`
@@ -2112,7 +2113,7 @@ shape, and the question that follows them.
   only ever have an entrance. The hook holds the node for the exit and reports
   `leaving`; keep emitting `data-overlay` while it does. What Base UI draws
   (menus, the popover, the tooltip, sheets) exits through its own
-  `data-closed` / `data-ending-style`, and the toast through `MotionPresence`.
+  `data-closed` / `data-ending-style`, and the toast through `usePresentValue`.
 - **Motion that CSS cannot see must ask `lib/motion.ts`.** The reduce-motion
   rules in `index.css` are `!important` overrides on animation and transition
   properties — they do nothing to a View Transition, a scroll handler, a WAAPI

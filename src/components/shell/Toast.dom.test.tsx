@@ -51,4 +51,28 @@ describe("Toast", () => {
     fireEvent.click(await screen.findByRole("button", { name: "common.dismiss" }));
     await waitFor(() => expect(screen.queryByText("Failed", { selector: "span" })).toBeNull());
   });
+
+  it("goes with a flick downwards and stays for a short drag, without pressing what the finger lifts over", async () => {
+    const run = vi.fn();
+    render(<Toast />);
+    act(() => showToast({ kind: "success", text: "Saved", action: { label: "Undo", run } }));
+    const undo = screen.getByRole("button", { name: "Undo" });
+    const frame = undo.parentElement!.parentElement!;
+
+    fireEvent.pointerDown(undo, { pointerId: 1, pointerType: "touch", clientY: 100 });
+    fireEvent.pointerMove(undo, { pointerId: 1, pointerType: "touch", clientY: 110 });
+    // Held back while dragged: ten pixels of travel move it six.
+    expect(frame.style.transform).toBe("translateY(6px)");
+    fireEvent.pointerUp(undo, { pointerId: 1, pointerType: "touch", clientY: 110 });
+    fireEvent.click(undo);
+    expect(run).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+    expect(frame.style.transform).toBe("");
+
+    fireEvent.pointerDown(undo, { pointerId: 2, pointerType: "touch", clientY: 100 });
+    fireEvent.pointerMove(undo, { pointerId: 2, pointerType: "touch", clientY: 160 });
+    fireEvent.pointerUp(undo, { pointerId: 2, pointerType: "touch", clientY: 160 });
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
+    expect(run).not.toHaveBeenCalled();
+  });
 });

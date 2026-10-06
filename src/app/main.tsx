@@ -13,7 +13,6 @@ import i18n from "i18next";
 import { initLanguage } from "@/i18n";
 // The @font-face rules are hand-written in index.css; the @fontsource stylesheets are deliberately not imported.
 import "./index.css";
-import { MotionProvider } from "./motion";
 
 // Apply the saved theme before the first paint to avoid a flash; the OS accent arrives a beat later, if chosen.
 if (isTauri) setSystemAccentProvider(systemAccent);
@@ -69,9 +68,7 @@ function render() {
         <HashRouter>
           {/* The last resort, for a throw in the shell itself; the boundary in App wraps only the routed pane. */}
           <ErrorBoundary standalone>
-            <MotionProvider>
-              <App />
-            </MotionProvider>
+            <App />
           </ErrorBoundary>
         </HashRouter>
         {QueryDevtools && (

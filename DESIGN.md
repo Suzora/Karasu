@@ -227,7 +227,7 @@ states. The style audit holds every icon to these four.
 | Token | Motion |
 |---|---|
 | `settle` | down from above, no bounce; the bird landing |
-| `rise-in` | up from the bottom edge on the soft spring: the bulk bar, the detection window, rows added to a feed or a list; sheets rise through `sheet-popup` and the toast through Motion |
+| `rise-in` | up from the bottom edge on the soft spring: the bulk bar, the detection window, the toast, rows added to a feed or a list; sheets rise through `sheet-popup` |
 | `pop-in` | scale from .97 on the soft spring: menus, popovers |
 | `fade-in` | opacity only |
 | `spring-in` | dialogs, on the soft spring: a slight overshoot that settles |
@@ -240,9 +240,8 @@ states. The style audit holds every icon to these four.
 **Rules.**
 
 - React unmounts before CSS can animate, so an exit goes through `usePresence`
-  for a hand-rolled node, through `MotionPresence` for a Motion-driven one, or
-  through Base UI's `data-closed` / `data-ending-style` inside the `ui/`
-  wrappers. Never through `transition-behavior: allow-discrete`, which WebKit
+  (or `usePresentValue`) for a hand-rolled node, or through Base UI's
+  `data-closed` / `data-ending-style` inside the `ui/` wrappers. Never through `transition-behavior: allow-discrete`, which WebKit
   lacks for overlays.
 - Motion that CSS cannot see must ask `lib/motion` first: a View Transition,
   a scroll handler, a WAAPI call or a timer.
@@ -370,7 +369,7 @@ no row here, add the primitive first.
 | a modal sheet from the bottom | `Sheet`, on Base UI's drawer: swipe, dim, Escape and back all close it; `tall` reaches to just under the top whatever it holds, for a list that is read rather than picked from |
 | a section that folds open | `Disclosure`; a custom trigger pairs with `DisclosurePanel`; never in a virtual row, whose remount would replay the growth |
 | a write receipt | `showToast`; one at a time, held while hovered or focused, longer with an action |
-| anything moved by Motion | `m` and `MotionPresence` from `app/motion.tsx`, which with its lazy feature set `app/motionFeatures.ts` is the only place `motion` is imported |
+| something a finger flicks away | `useFlickDismiss` (the toast): follows a downward drag at 60 %, dismisses past 40 px or 400 px/s, springs back otherwise, and swallows the click its release fires |
 | a dialog | `Modal`: `size` from `sm` to `2xl`, `description` and `icon` in the header, `footer` pinned under a body that scrolls; `alert` for a question that interrupts (`alertdialog`, over other dialogs, answered by its buttons with the harmless one first); `bare` for a full-screen view such as the cover; `dismissable={false}` while something runs that must not be left half done. Escape closes only the dialog holding focus |
 | keeping an overlay alive through its exit | `Presence`, `PresenceIf` |
 | a wait with no shape | `Loader`; a known shape is `Skeleton`, built from `Shimmer`, which a quick load never shows |
@@ -409,8 +408,7 @@ four things before it lands:
 | `lucide-react` | shipped | icons |
 | `class-variance-authority`, `clsx`, `tailwind-merge` | shipped | variant classes, `cn` |
 | `d3-array`, `d3-scale`, `d3-shape` | shipped | chart maths only; the renderer is ours |
-| `@base-ui/react` 1.8.0, pinned | shipped: `ui/menu` (the context menu), `ui/sheet`, the dropdown of `ui/popover`, `ui/tooltip` | menu and context menu (typeahead, safe submenu, long press), the one swipeable sheet, flip-aware dropdown positioning. Always controlled, so `useBackClose` and `data-overlay` keep working; wrapped under `ui/` only. The menu cost 40 KiB gzipped in the startup script, the drawer 12 more and the popover 2.5, since it shares Floating UI with the menu. Select and ScrollArea insert a `<style>` and stay unused, for the reason the Motion row gives |
-| `motion` 13.4.4, pinned (`LazyMotion` + `m`) | shipped: `app/motion.tsx`, first in the toast | velocity after a swipe, sliding indicators, list enter and leave. `MotionConfig reducedMotion` follows the app's switch and the system's. `AnimateView`, `animateView` and `AnimatePresence`'s `popLayout` are banned: they inject a `<style>` without a nonce, which the CSP lets through only while `index.html` carries no inline style for Tauri to hash, a condition `tokens.test.ts` guards and the app must not lean on. That is why `MotionPresence` offers only `sync` and `wait`. 17 KiB gzipped in the startup script, and the full feature set, drag and layout included, is a 27 KiB chunk loaded after the first paint |
+| `@base-ui/react` 1.8.0, pinned | shipped: `ui/menu` (the context menu), `ui/sheet`, the dropdown of `ui/popover`, `ui/tooltip` | menu and context menu (typeahead, safe submenu, long press), the one swipeable sheet, flip-aware dropdown positioning. Always controlled, so `useBackClose` and `data-overlay` keep working; wrapped under `ui/` only. The menu cost 40 KiB gzipped in the startup script, the drawer 12 more and the popover 2.5, since it shares Floating UI with the menu. Select and ScrollArea insert a `<style>` and stay unused: a `<style>` without a nonce passes the CSP only while `index.html` carries no inline style for Tauri to hash, a condition `tokens.test.ts` guards and the app must not lean on |
 
 Considered and declined on 2026-09-25:
 
@@ -427,7 +425,11 @@ Considered and declined on 2026-09-25:
 - **tw-animate-css.** A second motion vocabulary.
 - **GSAP.** Licence terms beside an AGPL project, and an imperative timeline
   model.
-- **React Spring.** Nothing Motion lacks.
+- **React Spring.** A spring library for one toast, the same reason Motion went.
+- **Motion.** Approved on 2026-09-25 behind a budget, removed on 2026-10-06:
+  its one user was the toast's entrance, exit and flick, which CSS keyframes
+  and `useFlickDismiss` now do. It cost 17.6 KiB gzipped at start and a
+  27 KiB chunk after it.
 
 ## Enforcement
 
@@ -765,3 +767,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   after the tracking card, and C, removable chips). Each row is a link to the
   title and a cross; muting itself lives in the context menu and the long-press
   sheet of a title being watched, since that is where the noise is noticed.
+- **2026-10-06:** Motion leaves the app, decided by the maintainer as part of
+  "optimise what can be optimised". The toast keeps its look: it rises on the
+  soft spring (`rise-in`), leaves on `rise-out`, and goes with a downward
+  flick through `useFlickDismiss`. Replacing one toast with the next now
+  swaps at once with the new one's entrance, where Motion waited for the old
+  one's exit.

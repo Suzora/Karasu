@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 2c7ff0f -->
+<!-- generated-through: 338b44e -->
 
 ### Fixed
 
@@ -91,6 +91,7 @@ tag time is then optional rather than load-bearing.
 - Browser detection now recognises Bilibili, shows Disney+ and Prime Video titles as playing (series only, no episode updates), and no longer claims Netflix, whose tab never names the episode.
 - The app's code loads at start in a few larger pieces instead of seventy-five small ones, and about 20 KiB smaller.
 - The detail, search and season pages load after the first paint, which makes the start about 33 KiB lighter.
+- The app's code is about 44 KiB smaller after dropping the animation library the notification toast used; the toast looks and behaves as before.
 
 ## 1.32.0 — 2026-10-03
 

@@ -1,14 +1,12 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, CloudUpload, TriangleAlert, X } from "lucide-react";
 import { useToast, type Toast as ToastData } from "@/stores/toast";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
-import { MotionPresence, m } from "@/app/motion";
+import { usePresentValue } from "@/hooks/usePresence";
+import { useFlickDismiss } from "@/hooks/useFlickDismiss";
 import { cn } from "@/lib/utils";
-
-/** How far down, or how fast, a toast must be flicked before letting go dismisses it. */
-const FLICK_PX = 40;
-const FLICK_SPEED = 400;
 
 /** The write receipt, bottom-centre: arrives on the soft spring, leaves quickly, and goes with a flick downwards. */
 export default function Toast() {
@@ -17,7 +15,14 @@ export default function Toast() {
   const dismiss = useToast((s) => s.dismiss);
   const pause = useToast((s) => s.pause);
   const resume = useToast((s) => s.resume);
+  const shown = usePresentValue(toast);
+  const flick = useFlickDismiss(dismiss);
   const spoken = toast ? [toast.text, toast.detail].filter(Boolean).join(". ") : "";
+
+  const id = toast?.id;
+  const { reset } = flick;
+  // A new receipt starts where receipts belong, even if the last one was flicked away mid-drag.
+  useEffect(() => reset(), [id, reset]);
 
   return (
     <>
@@ -26,19 +31,19 @@ export default function Toast() {
         {spoken}
       </div>
 
-      <MotionPresence mode="wait">
-        {toast && (
-          <m.div
-            key={toast.id}
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", duration: 0.44, bounce: 0.22 } }}
-            exit={{ opacity: 0, y: 8, transition: { duration: 0.12, ease: [0.4, 0, 1, 1] } }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.6 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > FLICK_PX || info.velocity.y > FLICK_SPEED) dismiss();
-            }}
+      {shown.value && (
+        <div
+          {...flick.handlers}
+          style={flick.style}
+          className={cn(
+            // `--shell-bottom` lifts this clear of the phone shell's bottom bar; on desktop it is 0px and nothing moves.
+            "pointer-events-auto fixed bottom-[calc(1.25rem+var(--shell-bottom,0px))] left-1/2 z-50",
+            // The centring is `translate`, so the drag's `transform` here and the keyframes' inside never fight it.
+            "max-w-[calc(100vw-4rem)] -translate-x-1/2 touch-none",
+          )}
+        >
+          <div
+            key={shown.value.id}
             onPointerEnter={pause}
             onPointerLeave={resume}
             onFocus={pause}
@@ -46,20 +51,18 @@ export default function Toast() {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) resume();
             }}
             className={cn(
-              // `--shell-bottom` lifts this clear of the phone shell's bottom bar; on desktop it is 0px and nothing moves.
-              "panel-wash panel-top pointer-events-auto fixed bottom-[calc(1.25rem+var(--shell-bottom,0px))] left-1/2 z-50 flex",
-              // The centring is `translate`, which Motion's transform leaves alone.
-              "max-w-[calc(100vw-4rem)] -translate-x-1/2 touch-none items-center gap-3",
+              "panel-wash panel-top flex items-center gap-3",
               "rounded-panel border border-hair bg-surface-900 py-2.5 pl-3 pr-2.5 shadow-float",
+              shown.leaving ? "animate-rise-out" : "animate-rise-in",
             )}
           >
-            <ToastBody toast={toast} onAction={dismiss} />
+            <ToastBody toast={shown.value} onAction={dismiss} />
             <IconButton variant="ghost" size="sm" onClick={dismiss} aria-label={t("common.dismiss")}>
               <X className="size-3.5" />
             </IconButton>
-          </m.div>
-        )}
-      </MotionPresence>
+          </div>
+        </div>
+      )}
     </>
   );
 }
