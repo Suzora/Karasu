@@ -8,11 +8,14 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 806;
+pub const COMMIT_NUMBER: u32 = 807;
 
-/// The full four-part display version; the semver core comes from the crate version.
+/// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
+pub const FULL_VERSION: &str = "1.40.2.807";
+
+/// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {
-    format!("{}.{}", env!("CARGO_PKG_VERSION"), COMMIT_NUMBER)
+    FULL_VERSION.to_string()
 }
 
 /// The running four-part version, shown in the About window.
@@ -286,6 +289,12 @@ pub fn clear_stale_update_notice(db: &crate::db::Db) {
 
 #[cfg(test)]
 mod tests {
+    /// The literal F-Droid's update check reads must be the version the crate and the counter make.
+    #[test]
+    fn the_spelt_out_version_is_the_crate_version_and_the_counter() {
+        assert_eq!(super::FULL_VERSION, format!("{}.{}", env!("CARGO_PKG_VERSION"), super::COMMIT_NUMBER));
+    }
+
     use super::{can_install, check_due, display_version, version_gt, version_parts};
 
     /// One day in milliseconds, the throttle the checks below exercise.

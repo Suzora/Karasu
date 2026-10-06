@@ -25,10 +25,10 @@ Flathub and F-Droid are submitted with the next Stable, whose date is not
 set (maintainer, 2026-10-05). What stands between the tree and the two
 requests, each detailed in its `packaging/*/SUBMISSION.md`:
 
-- **The F-Droid recipe's open questions:** the computed version code
-  (`UpdateCheckData` and `VercodeOperation`), the prebuilt native binaries
-  `npm ci` brings in, a Node at least as new as `engines.node`, and the
-  `NonFreeNet` label to expect.
+- **F-Droid's own build of the recipe.** The update check, the Node pin, the
+  scanner's four deletions and the `NonFreeNet` label are settled and linted
+  locally; only F-Droid's build server, after the submission, runs the whole
+  recipe.
 
 ## After v1.32.0
 

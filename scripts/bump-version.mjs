@@ -38,6 +38,7 @@ const JSON_VERSION = new RegExp(`"version":\\s*"${SEMVER}"`);
 const TOML_VERSION = new RegExp(`^version = "${SEMVER}"`, "m");
 const LOCK_VERSION = new RegExp(`(name = "karasu"\\r?\\nversion = )"${SEMVER}"`);
 const COMMIT_NUMBER = /COMMIT_NUMBER: u32 = (\d+);/;
+const FULL_VERSION = new RegExp(`FULL_VERSION: &str = "(${SEMVER}\\.\\d+)";`);
 
 function fail(message) {
   console.error(`bump-version: ${message}`);
@@ -55,6 +56,19 @@ function plan(path, pattern, replacement) {
     fail(`replacing ${pattern} in ${relative(ROOT, path)} changed nothing`);
   }
   return { path, before, after };
+}
+
+/** Both replacements in commands/update.rs as one write, since two plans on one file would each undo the other. */
+function planCommands(core, commit) {
+  const before = readFileSync(COMMANDS_RS, "utf8");
+  for (const pattern of [COMMIT_NUMBER, FULL_VERSION]) {
+    if (!pattern.test(before)) fail(`no ${pattern} in ${relative(ROOT, COMMANDS_RS)}`);
+  }
+  const after = before
+    .replace(COMMIT_NUMBER, () => `COMMIT_NUMBER: u32 = ${commit};`)
+    .replace(FULL_VERSION, () => `FULL_VERSION: &str = "${core}.${commit}";`);
+  if (after === before) fail(`replacing the version in ${relative(ROOT, COMMANDS_RS)} changed nothing`);
+  return { path: COMMANDS_RS, before, after };
 }
 
 /** Writes every planned change or none, restoring on a mid-sequence failure so the five files never disagree. */
@@ -138,6 +152,11 @@ if (args.includes("--check")) {
   else if (conf[1] !== current.core)
     problems.push(`tauri.conf.json says ${conf[1]}, package.json says ${current.core}`);
 
+  const full = readFileSync(COMMANDS_RS, "utf8").match(FULL_VERSION);
+  if (!full) problems.push("could not read FULL_VERSION from commands/update.rs");
+  else if (full[1] !== `${current.core}.${current.commit}`)
+    problems.push(`FULL_VERSION says ${full[1]}, the files say ${current.core}.${current.commit}`);
+
   const lock = readFileSync(CARGO_LOCK, "utf8");
   if (!lock.includes(`name = "karasu"`) || !new RegExp(`name = "karasu"\\r?\\nversion = "${current.core.replace(/\./g, "\\.")}"`).test(lock)) {
     problems.push(`Cargo.lock does not carry ${current.core} for the karasu package`);
@@ -180,7 +199,7 @@ writeAll([
   plan(TAURI_CONF, JSON_VERSION, () => `"version": "${core}"`),
   plan(CARGO_TOML, TOML_VERSION, () => `version = "${core}"`),
   plan(CARGO_LOCK, LOCK_VERSION, (_match, prefix) => `${prefix}"${core}"`),
-  plan(COMMANDS_RS, COMMIT_NUMBER, () => `COMMIT_NUMBER: u32 = ${commit};`),
+  planCommands(core, commit),
 ]);
 
 console.error(

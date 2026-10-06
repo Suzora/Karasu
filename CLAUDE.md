@@ -603,8 +603,11 @@ Four-part scheme **`MAJOR.MINOR.PATCH.COMMIT#`**:
 
 The three manifests (`package.json`, `src-tauri/Cargo.toml`,
 `src-tauri/tauri.conf.json`) carry the `MAJOR.MINOR.PATCH` semver core. The 4th
-segment lives in `COMMIT_NUMBER` in `src-tauri/src/commands/update.rs`;
-`app_version()` returns the full `MAJOR.MINOR.PATCH.COMMIT#` string, which the
+segment lives in `COMMIT_NUMBER` in `src-tauri/src/commands/update.rs`, and
+`FULL_VERSION` beside it spells all four segments out once, for F-Droid's
+update check, which can match one string but cannot add two numbers (a test
+holds it to the crate version and the counter, and `bump-version --check` to
+the files); `app_version()` returns that full `MAJOR.MINOR.PATCH.COMMIT#` string, which the
 About window always displays. **Bump the appropriate segment and the
 `COMMIT_NUMBER` on every commit** — via `scripts/bump-version.mjs`, which also
 keeps `Cargo.lock` in step; see "The commit loop" below. The update check
@@ -1788,7 +1791,18 @@ listing F-Droid reads at the tag. The recipe sets two build-time switches:
 `KARASU_NO_SELF_UPDATE` (`self_update_disabled` in `commands/update.rs`;
 F-Droid forbids self-updating apps, so the check and the install both stand
 down) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an unsigned release
-instead of falling back to debug signing). **F-Droid signs its own build,
+instead of falling back to debug signing). Its update check reads the tags
+(`UpdateCheckData`: the code from `COMMIT_NUMBER` plus the 1,000,000 base
+through `VercodeOperation`, the name from `FULL_VERSION`), since F-Droid's
+build refuses an APK whose version name or code differs from the recipe's by
+a character. Node 22 comes from nodejs.org pinned by its sha256, because
+`engines.node` asks for it and Debian ships older. Run over the tree after
+`npm ci` as `fdroid build` does after `init`, fdroidserver 2.4.5's scanner
+flagged four files on 2026-10-06, all tooling the build never runs (a
+Playwright codec, TypeScript 7's native `tsc`, react-scan's Astro compiler and
+the visualizer's source-map), and the frontend built without them, so the
+recipe's `scandelete` names exactly those; a dependency bump can add one, and
+the scanner says which. **F-Droid signs its own build,
 decided by the maintainer on 2026-10-03**, so the recipe carries no
 `AllowedAPKSigningKeys` and the F-Droid and GitHub installs do not update over
 each other. The reason is the first switch: it is read with `option_env!`, so
