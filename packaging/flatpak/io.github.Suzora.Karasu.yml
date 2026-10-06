@@ -1,7 +1,7 @@
 # Flatpak manifest for Karasu, built from source; scripts/release/flatpak-manifest.ps1 fills the source and the vendored sources.
 id: io.github.Suzora.Karasu
 runtime: org.gnome.Platform
-runtime-version: "50"
+runtime-version: "51"
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable

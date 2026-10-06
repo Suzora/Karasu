@@ -1727,7 +1727,7 @@ the submissions themselves are the maintainer's. **Flatpak**, since
 2026-10-06 built from source under the Flathub id `io.github.Suzora.Karasu`
 (a Flathub id names a domain the developer controls; Karasu's own identifier
 stays `dev.kyu.karasu`): `packaging/flatpak/io.github.Suzora.Karasu.yml` is
-the manifest (GNOME 50 with the rust-stable and node22 SDK extensions, the
+the manifest (GNOME 51 with the rust-stable and node22 SDK extensions, the
 AppIndicator library from flathub/shared-modules, then `npm ci --offline`,
 `npm run build` and `cargo --offline build --release --locked --features
 tauri/custom-protocol`, which is what `tauri build` passes and no CLI is
@@ -1744,7 +1744,7 @@ with backslashes when it ran natively, and the build then failed on
 `flatpak-node\setup_sdk_node_headers.sh`. The `Flatpak` workflow (dispatch,
 input `tag`, and `release.yml` starts it for every Stable tag) validates the
 metainfo with `appstreamcli --pedantic`, lints the manifest and the built
-repository with `flatpak-builder-lint`, and builds the bundle in the GNOME 50
+repository with `flatpak-builder-lint`, and builds the bundle in the GNOME 51
 builder image. The `finish-args` are each a feature — StatusNotifier for the
 tray, `org.mpris.MediaPlayer2.*` for the media-session pass,
 `org.freedesktop.secrets` for the token, `org.freedesktop.Notifications` for
@@ -1769,16 +1769,21 @@ delivers the updates, and the Updates card is hidden
 (`PlatformInfo.storeUpdates`).
 Built and linted in WSL on 2026-10-06 (Ubuntu 26.04, flatpak 1.16.6,
 flatpak-builder 1.4.8, and once more with Flathub's own `org.flatpak.Builder`):
-the manifest lint reports only the `file://` source a local build uses and
-GNOME 51 being available; the repository lint passes with only that same
-GNOME 51 note once the build ran with
+the manifest lint reports only the `file://` source a local build uses (and,
+on GNOME 50, that 51 was out); the repository lint passes once the build ran with
 `--mirror-screenshots-url=https://dl.flathub.org/media/ --compose-url-policy=full`
 and the screenshots were committed to the repository, while without the policy
 the compose left the media paths relative and two appstream rules failed (the
 workflow's builder action passes both, so CI needs no exception);
 `appstreamcli --pedantic`
 passes with one pedantic note on the upper-case id, and that build is the first
-place the Linux-only Rust ever compiled outside CI. Started under WSLg the same
+place the Linux-only Rust ever compiled outside CI. The move to GNOME 51 (on
+freedesktop 26.08) came the same evening at the maintainer's word, "if
+compatible and functional": its runtime still carries `webkit2gtk-4.1`,
+`javascriptcoregtk-4.1`, GTK 3 and libsoup 3 (seen in the installed runtime,
+and in gnome-build-meta's gnome-51 `sdk-platform.bst`), the shared
+AppIndicator module built on 26.08, both lints came back clean with no runtime
+note left, and the WSLg checks below all held on 51 too. Started under WSLg the same
 day, the window and its WebKit process were alive after 25 s, the bus name was
 `io.github.Suzora.Karasu.SingleInstance`, a second start handed over and
 exited within a second, the tray icon file lay in

@@ -18,7 +18,7 @@ release into `packaging/flatpak/out/`:
 
 The `Flatpak` workflow runs that script, validates the metainfo with
 `appstreamcli --pedantic`, lints the manifest and the built repository with
-`flatpak-builder-lint` and builds the bundle on a GNOME 50 builder. A local
+`flatpak-builder-lint` and builds the bundle on a GNOME 51 builder. A local
 build that should pass the repository lint needs
 `--mirror-screenshots-url=https://dl.flathub.org/media/ --compose-url-policy=full`
 and the mirrored screenshots committed to the repository
