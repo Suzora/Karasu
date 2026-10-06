@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { lazy, Suspense, useId, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import {
   useInfiniteQuery,
@@ -39,11 +39,8 @@ import {
   type ReviewPage,
   type ReviewRow,
 } from "@/api/social";
-import { AreaChart } from "@/components/stats/AreaChart";
 import { Avatar, UserLockup } from "@/components/ui/user-lockup";
 import { Markdown } from "@/components/social/Markdown";
-import { ReviewComposerModal } from "@/components/overlays/ReviewComposerModal";
-import CoverViewer from "@/components/overlays/CoverViewer";
 import { Presence } from "@/components/ui/presence";
 import { usePresence } from "@/hooks/usePresence";
 import { relTimeFromSeconds } from "@/lib/relTime";
@@ -83,6 +80,13 @@ import { RichText } from "@/components/RichText";
 import { ScoreColumns, StatusBar } from "@/components/stats/panels";
 
 /** The phone's square actions, the height of the status button beside them. */
+// Shown only after a click, so their code (the chart's d3, the composer's editor) loads with that click.
+const AreaChart = lazy(() => import("@/components/stats/AreaChart").then((m) => ({ default: m.AreaChart })));
+const ReviewComposerModal = lazy(() =>
+  import("@/components/overlays/ReviewComposerModal").then((m) => ({ default: m.ReviewComposerModal })),
+);
+const CoverViewer = lazy(() => import("@/components/overlays/CoverViewer"));
+
 const SQUARE = "size-11 rounded-panel border border-surface-700 bg-surface-900 text-ink-300 hover:border-surface-600 hover:text-ink-100";
 
 export default function AnimeDetail() {
@@ -231,12 +235,14 @@ export default function AnimeDetail() {
             )}
           </div>
           {coverViewer.mounted && (
-            <CoverViewer
-              src={coverSrc}
-              alt={title}
-              leaving={coverViewer.leaving}
-              onClose={() => setCoverOpen(false)}
-            />
+            <Suspense fallback={null}>
+              <CoverViewer
+                src={coverSrc}
+                alt={title}
+                leaving={coverViewer.leaving}
+                onClose={() => setCoverOpen(false)}
+              />
+            </Suspense>
           )}
           <div className={frame.heading}>
             <h1 className={cn("text-heading text-ink-100", isNativeLine(data.title, title) && "font-brand-jp")}>
@@ -733,12 +739,14 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
       {/* Presence, not PresenceIf: the boolean variant would hand the child a nulled existing for the length of the exit. */}
       <Presence value={composer}>
         {(c, leaving) => (
-          <ReviewComposerModal
-            mediaId={mediaId}
-            existing={c.existing}
-            onClose={() => setComposer(null)}
-            leaving={leaving}
-          />
+          <Suspense fallback={null}>
+            <ReviewComposerModal
+              mediaId={mediaId}
+              existing={c.existing}
+              onClose={() => setComposer(null)}
+              leaving={leaving}
+            />
+          </Suspense>
         )}
       </Presence>
     </Card>
@@ -877,7 +885,9 @@ function TrendSection({ mediaId }: { mediaId: number }) {
           ) : (
             <>
               <p className="mb-2 text-2xs text-ink-600">{t("detail.trendHint")}</p>
-              <AreaChart data={points} />
+              <Suspense fallback={<Shimmer className="h-24 w-full rounded-control" />}>
+                <AreaChart data={points} />
+              </Suspense>
             </>
           ))}
       </Disclosure>

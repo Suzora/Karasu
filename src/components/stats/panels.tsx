@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
-import { TONES } from "@/components/stats/Charts";
+import { TONES } from "@/components/stats/tones";
 import { compactCount } from "@/lib/format";
 import { distributionColumns } from "@/lib/score";
 import { cn } from "@/lib/utils";
