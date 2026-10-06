@@ -1,19 +1,19 @@
 {
   "rule": "Each budget was set 3 % over the larger of the two build targets' measurement when it was last raised, rounded up to a KiB; measured is the latest reading, and raising a budget needs its reason in the commit.",
   "measured": {
-    "date": "2026-10-05",
-    "target": "safari15, the Linux and Android build, which is the larger since Base UI",
+    "date": "2026-10-06",
+    "target": "safari15, the Linux and Android build, which is the larger in all four",
     "bytes": {
-      "initialJs": 414827,
-      "initialCss": 18118,
-      "largestLazy": 27918,
-      "totalJs": 558979
+      "initialJs": 323950,
+      "initialCss": 17941,
+      "largestLazy": 27683,
+      "totalJs": 519206
     }
   },
   "budget": {
-    "initialJs": 427008,
+    "initialJs": 333824,
     "initialCss": 18432,
-    "largestLazy": 29696,
-    "totalJs": 576512
+    "largestLazy": 28672,
+    "totalJs": 535552
   }
 }

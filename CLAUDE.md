@@ -745,11 +745,13 @@ version files agree), the **site**'s typecheck,
 (`scripts/bundle-budget.mjs`: a fresh `vite build`, then four gzipped figures —
 what the window waits for, the stylesheet, the largest lazy chunk, all the
 script — against `scripts/bundle-budget.json`, each set 3 % over the larger of
-the two build targets' measurement when it was last raised; on 2026-10-05 the
-Linux target read 405.1, 17.7, 27.3 and 545.9 KiB against budgets of 417, 18,
-29 and 563, the first raised on 2026-10-04 for the detail skeleton and the last
-on 2026-10-05 for the title language, and a raise names its reason in the
-commit) — then
+the two build targets' measurement when it was last set; on 2026-10-06 the
+Linux target, the larger in all four, read 316.4, 17.5, 27.0 and 507.0 KiB, and
+three budgets came down to 326, 28 and 523 after the startup work of that week
+(no top-level await, the pages one click away loaded on idle, Motion replaced
+by CSS, entities decoded by the browser) took the window's wait from 405.1 KiB.
+The stylesheet's stays at 18, since 3 % over its reading rounds up past it. A
+raise names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
 with warnings denied, **cargo deny** (advisories, licences, bans, sources
