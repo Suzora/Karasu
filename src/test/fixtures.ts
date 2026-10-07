@@ -89,6 +89,7 @@ export function idleScrobble(over: Partial<ScrobbleState> = {}): ScrobbleState {
     updateAtMs: null,
     armedAtMs: null,
     yieldingTo: null,
+    asks: false,
     ...over,
   };
 }

@@ -57,6 +57,8 @@ export interface ScrobbleState {
   armedAtMs: number | null;
   /** The Karasu a `yielding` session waits for; null in every other phase. */
   yieldingTo: { platform: "desktop" | "mobile"; device: string } | null;
+  /** Whether the due point asks before writing, so the countdown says it will ask rather than update. */
+  asks: boolean;
 }
 
 interface NowPlayingStore {
@@ -74,6 +76,7 @@ const IDLE: ScrobbleState = {
   updateAtMs: null,
   armedAtMs: null,
   yieldingTo: null,
+  asks: false,
 };
 
 let initialized = false;

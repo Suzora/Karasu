@@ -38,12 +38,21 @@ const BROWSERS: &[&str] = &[
     "helium.exe",
 ];
 
+/// Whether a window's process is one of the browsers whose tabs Karasu reads.
+pub(crate) fn is_browser(process: &str) -> bool {
+    BROWSERS.contains(&process)
+}
+
 /// Browser window titles end with the browser name — strip it.
 const BROWSER_SUFFIXES: &[&str] = &[
     " - Google Chrome",
+    " — Mozilla Firefox Private Browsing",
+    " — Mozilla Firefox Privater Modus",
     " — Mozilla Firefox",
     " - Mozilla Firefox",
     " - Microsoft\u{200b} Edge",
+    // German and French Edge join the browser's name with an en dash.
+    " – Microsoft\u{200b} Edge",
     " - Microsoft Edge",
     " - Brave",
     " - Opera",
@@ -220,16 +229,25 @@ pub fn match_site(title: &str) -> Option<SiteTitle> {
     None
 }
 
-/// Manga reading sites: same mechanics as streaming, but the title carries a chapter number.
+/// Official manga readers: same mechanics as streaming, but the title carries a chapter number.
 const MANGA_MARKERS: &[(&str, &[&str])] = &[
-    ("MangaDex", &[" - MangaDex", " – MangaDex"]),
     ("MANGA Plus", &[" - MANGA Plus by SHUEISHA", " | MANGA Plus", " - MANGA Plus"]),
-    ("Comick", &[" - Comick", " | Comick"]),
-    ("Bato.To", &[" - Bato.To"]),
-    ("Bato.to", &[" - Bato.to"]),
-    ("MangaFire", &[" - MangaFire"]),
-    ("Asura Scans", &[" - Asura Scans"]),
 ];
+
+/// The tab title without an official reader's suffix, or None unless it ends in one; a post naming the reader is no tab.
+fn strip_manga_site(title: &str) -> Option<String> {
+    let title = super::browser::without_tab_count(title.trim_end());
+    MANGA_MARKERS
+        .iter()
+        .flat_map(|(_, suffixes)| suffixes.iter())
+        .find_map(|s| title.strip_suffix(s))
+        .map(|rest| rest.trim().to_string())
+}
+
+/// Whether a tab title ends in one of the readers above, whose own rule decides it.
+pub(crate) fn names_manga_site(title: &str) -> bool {
+    strip_manga_site(title).is_some()
+}
 
 /// Extracts the file name from a known player's window when the title looks like a video file.
 pub fn match_player(process: &str, title: &str) -> Option<String> {
@@ -261,7 +279,7 @@ pub fn match_player(process: &str, title: &str) -> Option<String> {
     None
 }
 
-fn strip_browser_suffix(title: &str) -> Option<String> {
+pub(crate) fn strip_browser_suffix(title: &str) -> Option<String> {
     let mut media = title.to_string();
     for suffix in BROWSER_SUFFIXES {
         if let Some(stripped) = media.strip_suffix(suffix) {
@@ -286,31 +304,14 @@ pub fn match_streaming(process: &str, title: &str) -> Option<String> {
     parser::parse(&site.media).episode_marked.then_some(site.media)
 }
 
-/// Detects manga reading in browser tabs (MangaDex and friends).
+/// Detects manga reading on an official reader's tab; a chapter anywhere else is `browser::chapter_tab`'s.
 pub fn match_manga(process: &str, title: &str) -> Option<String> {
     if !BROWSERS.contains(&process) {
         return None;
     }
-    let mut media = strip_browser_suffix(title)?;
-
-    let (_, site_suffixes) = MANGA_MARKERS
-        .iter()
-        .find(|(marker, _)| media.contains(marker))?;
-
-    for suffix in *site_suffixes {
-        if let Some(stripped) = media.strip_suffix(suffix) {
-            media = stripped.to_string();
-            break;
-        }
-    }
-    let media = media.trim();
-
+    let media = strip_manga_site(&strip_browser_suffix(title)?)?;
     // Only accept when a chapter number is recognizable
-    if crate::playback::recognition::parser::parse_manga(media).episode.is_some() {
-        Some(media.to_string())
-    } else {
-        None
-    }
+    crate::playback::recognition::parser::parse_manga(&media).episode.is_some().then_some(media)
 }
 
 #[cfg(test)]
@@ -320,8 +321,8 @@ mod tests {
     #[test]
     fn player_mpv_with_suffix() {
         assert_eq!(
-            match_player("mpv.exe", "[SubsPlease] Sousou no Frieren - 28 (1080p).mkv - mpv"),
-            Some("[SubsPlease] Sousou no Frieren - 28 (1080p).mkv".to_string())
+            match_player("mpv.exe", "[Group] Sousou no Frieren - 28 (1080p).mkv - mpv"),
+            Some("[Group] Sousou no Frieren - 28 (1080p).mkv".to_string())
         );
     }
 
@@ -472,26 +473,49 @@ mod tests {
     }
 
     #[test]
-    fn manga_mangadex_chapter() {
+    fn manga_plus_chapter() {
         assert_eq!(
             match_manga(
                 "firefox.exe",
-                "Kusuriya no Hitorigoto - Ch. 45 - MangaDex — Mozilla Firefox"
+                "One Piece - Chapter 1100 - MANGA Plus by SHUEISHA — Mozilla Firefox"
             ),
-            Some("Kusuriya no Hitorigoto - Ch. 45".to_string())
+            Some("One Piece - Chapter 1100".to_string())
         );
     }
 
     #[test]
     fn manga_overview_page_ignored() {
         assert_eq!(
-            match_manga("chrome.exe", "MangaDex - Google Chrome"),
+            match_manga("chrome.exe", "MANGA Plus by SHUEISHA - Google Chrome"),
             None
         );
     }
 
     #[test]
     fn manga_non_browser_ignored() {
-        assert_eq!(match_manga("mpv.exe", "Something Ch. 4 - MangaDex"), None);
+        assert_eq!(match_manga("mpv.exe", "Something Ch. 4 - MANGA Plus"), None);
+    }
+
+    /// A post, a thread or an article that mentions the reader is not its tab, and never takes its no-questions path.
+    #[test]
+    fn a_page_that_only_mentions_the_reader_is_not_its_tab() {
+        for title in [
+            "Jujutsu Kaisen on X: \"Chapter 261 is out now on MANGA Plus\" / X — Mozilla Firefox",
+            "Kagurabachi Chapter 51 is out on MANGA Plus : r/Kagurabachi — Mozilla Firefox",
+            "One Piece Chapter 1101: Release Date, Where to Read on MANGA Plus - ExampleNews — Mozilla Firefox",
+        ] {
+            assert_eq!(match_manga("firefox.exe", title), None, "{title}");
+            assert!(!names_manga_site(&strip_browser_suffix(title).unwrap()), "{title}");
+        }
+        let edge = "One Piece - Chapter 1100 - MANGA Plus by SHUEISHA and 2 more pages - Microsoft\u{200b} Edge";
+        assert_eq!(match_manga("msedge.exe", edge), Some("One Piece - Chapter 1100".to_string()));
+    }
+
+    /// Only an official reader is a known site; a chapter elsewhere goes through the generic rule or nowhere.
+    #[test]
+    fn a_reader_karasu_does_not_name_is_not_a_known_site() {
+        let title = "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox";
+        assert_eq!(match_manga("firefox.exe", title), None);
+        assert!(!names_manga_site(title));
     }
 }

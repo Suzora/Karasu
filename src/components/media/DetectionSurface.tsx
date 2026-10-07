@@ -257,7 +257,9 @@ function ScrobbleStatus({
       return (
         <p className="text-xs text-ink-500">
           {countdown
-            ? t("nowPlaying.updateIn", { time: countdown })
+            ? scrobble.asks
+              ? t("nowPlaying.askIn", { time: countdown })
+              : t("nowPlaying.updateIn", { time: countdown })
             : t(
                 current?.mediaType === "MANGA"
                   ? "nowPlaying.reading"

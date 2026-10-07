@@ -41,8 +41,13 @@ pub struct MediaSession {
 }
 
 impl MediaSession {
-    fn is_playing(&self) -> bool {
+    pub(crate) fn is_playing(&self) -> bool {
         self.status == "playing"
+    }
+
+    /// A known music player, whose sessions are never playback whatever their titles say.
+    pub(crate) fn is_music_player(&self) -> bool {
+        MUSIC_PLAYERS.contains(&short_app_name(&self.app_id).trim_end_matches(".exe"))
     }
 
     /// Music stays out, but a "music" label yields to a title spelling out an episode unless the app is a known music player.
@@ -50,8 +55,7 @@ impl MediaSession {
         if self.playback_type != "music" {
             return true;
         }
-        let name = short_app_name(&self.app_id);
-        if MUSIC_PLAYERS.contains(&name.trim_end_matches(".exe")) {
+        if self.is_music_player() {
             return false;
         }
         let composed = compose_title(&self.artist, &self.title, &self.album);
@@ -182,6 +186,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
             media_title: name,
             streaming: false,
             manga: false,
+            generic: false,
             parsed: None,
             position_sec: None,
             duration_sec: None,
@@ -240,15 +245,43 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         // Not a local file, and the UI's "streaming" icon is the honest one for something known only through the OS.
         streaming: true,
         manga: false,
+        generic: false,
         parsed,
         position_sec: None,
         duration_sec: None,
     })
 }
 
+/// What detection made of each playing session that is not a music player, for the verbose log; rejected ones included.
+fn verdicts(sessions: &[MediaSession]) -> String {
+    let music = sessions.iter().filter(|s| s.is_playing() && s.is_music_player()).count();
+    let mut parts: Vec<String> = sessions
+        .iter()
+        .filter(|s| s.is_playing() && !s.is_music_player())
+        .map(|s| {
+            let composed = compose_title(&s.artist, &s.title, &s.album);
+            let site = if s.site().is_some() { "a known site" } else { "no known site" };
+            let episode = if crate::playback::recognition::parser::parse(&composed).episode_marked {
+                "an episode spelled out"
+            } else {
+                "no episode spelled out"
+            };
+            let verdict = if s.is_watchable() { "considered" } else { "dropped as music" };
+            format!("{} {}: {composed:?}, {site}, {episode}, {verdict}", s.app_id, s.playback_type)
+        })
+        .collect();
+    if music > 0 {
+        parts.push(format!("{music} music player(s) left out"));
+    }
+    if parts.is_empty() {
+        "nothing playing".to_string()
+    } else {
+        parts.join("; ")
+    }
+}
+
 /// The best session that yields something; one `playback_from` rejects falls through instead of ending the sweep.
-pub fn detect() -> Option<Playback> {
-    let sessions = sessions();
+pub fn detect(sessions: &[MediaSession]) -> Option<Playback> {
     // What the desktop publishes, through `debug_changed` since this runs on every poll; the log outlives the diagnostic.
     crate::logging::debug_changed(
         "session",
@@ -266,8 +299,8 @@ pub fn detect() -> Option<Playback> {
                 .join(", ")
         ),
     );
-    let found = watchable(&sessions).find_map(playback_from);
-    found
+    crate::logging::debug_changed("session", "verdict", verdicts(sessions));
+    watchable(sessions).find_map(playback_from)
 }
 
 /// What the platform reports, or why it could not be asked; the diagnostic must tell "no session" from "no service".
@@ -340,6 +373,22 @@ mod tests {
         assert_eq!(compose_title("", "Episode 5", ""), "Episode 5");
         assert_eq!(compose_title("Frieren", "", ""), "Frieren");
         assert_eq!(compose_title("  ", "  ", "  "), "");
+    }
+
+    /// A browser's music-typed session with no episode spelled out is the case the verbose log has to explain.
+    #[test]
+    fn the_verdict_says_why_a_browser_session_was_dropped() {
+        let mut tab = session("", "The Hero's Party", "music", "playing");
+        tab.app_id = "308046B0AF4A39CB".into();
+        let mut song = session("Some Band", "Some Song", "music", "playing");
+        song.app_id = "SpotifyAB.SpotifyMusic_zpdnekdrzrea0".into();
+        let line = verdicts(&[tab, song, session("Frieren", "Episode 5", "video", "paused")]);
+        assert_eq!(
+            line,
+            "308046B0AF4A39CB music: \"The Hero's Party\", no known site, no episode spelled out, dropped as music; \
+             1 music player(s) left out"
+        );
+        assert_eq!(verdicts(&[]), "nothing playing");
     }
 
     #[test]
@@ -556,8 +605,8 @@ mod tests {
     #[test]
     fn a_file_url_yields_the_release_name() {
         assert_eq!(
-            local_file_name("file:///srv/anime/%5BSubsPlease%5D%20Frieren%20-%2005.mkv").unwrap(),
-            "[SubsPlease] Frieren - 05.mkv"
+            local_file_name("file:///srv/anime/%5BGroup%5D%20Frieren%20-%2005.mkv").unwrap(),
+            "[Group] Frieren - 05.mkv"
         );
         // Multi-byte UTF-8 survives the decode.
         assert_eq!(

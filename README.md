@@ -28,9 +28,11 @@
 
 ## What is Karasu?
 
-Karasu watches your list for you. Play an episode in your video player, read a
-chapter in your browser, and Karasu recognizes it and updates your AniList
-progress automatically — no buttons to press. It lives in your system tray
+Karasu watches your list for you. Play an episode in your video player, and
+Karasu recognizes it and updates your AniList progress automatically — no
+buttons to press. Read a chapter in your browser, and it recognizes that too,
+asking once before it counts a chapter from a site it does not name. It lives
+in your system tray
 where your desktop has one,
 speaks English and German, and is built as a small native app with Tauri, React
 and Rust — for Windows, Linux and, as a sideloaded APK, Android, where the same
@@ -115,7 +117,10 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
   session, so a pause defers the update rather than faking a watch
 - An opt-in **mpv IPC** source — point Karasu at mpv's JSON IPC socket and it
   reads the real file path and the live position instead of a window title
-- Manga reading detection (MangaDex, MANGA Plus, Comick, Bato, MangaFire, Asura Scans)
+- Manga reading detection on Windows: a chapter on MANGA Plus, and on any other
+  site a chapter of a manga you are reading, in the tab a browser window shows —
+  that one at most two chapters past your progress, and always confirmed before
+  it is written
 - **Media-session detection** (SMTC on Windows, MPRIS on Linux) for players
   that report to the system media controls instead of writing the title into
   their window — Jellyfin Media Player, Plex and browser video

@@ -258,7 +258,14 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      overrules the subject), ratelimit-probe.mjs (re-measures
                      the shape of AniList's rate window — stepped, see the
                      notes — one unauthenticated request per sample, needs
-                     real egress to graphql.anilist.co), phone-measure.ps1
+                     real egress to graphql.anilist.co), browser-measure.mjs
+                     with browser-measure-core.mjs (what a Firefox-family
+                     browser tells the desktop while it plays: media
+                     sessions, its windows on Windows, and the session file
+                     of every profile found, listing only the tabs that hold
+                     a playing session's title, hosts and brands redacted;
+                     the core is tested in `src/lib/browserMeasure.test.ts`),
+                     phone-measure.ps1
                      (the adb side of the Android tracking-service
                      measurement: service state, standby bucket, Doze, the
                      notification job, the Kotlin logcat tags, and polls per
@@ -348,6 +355,26 @@ Two more, decided by the maintainer in August 2026:
   is the user's own files; how they got there is not the app's business, and
   nothing in Karasu may track, fetch, or point at torrents or release feeds.
   This closes the classic Taiga feature deliberately.
+- **Naming an unofficial streaming or reading site, anywhere.** Decided by the
+  maintainer on 2026-10-07: browser detection is **site-neutral**. It works
+  through mechanisms that do not name a site (the media session linked to
+  the tab that plays it, the playing tab's URL, the session file), and no
+  unofficial site appears in code, tests, fixtures, docs, the website, the
+  changelog or a commit message. Measurements from such sites are anonymised
+  before they are shared (`browser-measure.mjs --redact`). The unofficial
+  manga readers left `profiles.rs` the same day, including the one that
+  hosts fan translations ("everything unofficial goes"); MANGA Plus is the
+  one reader still named, and a chapter anywhere else goes through the
+  generic rule below. Release groups go the same way, decided the same day:
+  a release name in a test, a fixture or an example carries `[Group]` (and
+  `[Other-Group]` beside it), never a real group's name.
+- **A browser extension or a native-messaging host for detection.** Also
+  decided on 2026-10-07: Karasu reads only what the system and the browser
+  already publish — media sessions, window titles and, opt-in, the browser's
+  own session file. Every tracker that knows the playing tab otherwise
+  (PreMiD, MAL-Sync, WebNowPlaying, KDE's browser integration) ships an
+  extension; Taiga's UI Automation reader is the one exception, and it wakes
+  the browser's accessibility engine for the whole browser session.
 
 **The log is a deliberate exception to the first of those, decided by the
 maintainer.** With verbose logging on, `karasu.log` records what detection saw —
@@ -922,7 +949,16 @@ DRI3/GBM path; a Linux graphics report still needs the reporter's
 `coredumpctl info`. A red smoke test in `release.yml` publishes Windows alone
 (the Linux download is `continue-on-error`), and the Nightly's prune step then
 drops the old Linux files until the next green build. An image that cannot be
-pulled or installed into is a warning, not a failure. Tauri stopped forcing X11
+pulled or installed into is a warning, not a failure, and installing has one
+budget per image across every attempt (`-InstallSeconds`, three minutes), so a
+crawling mirror ends in that warning instead of the step's twelve-minute
+timeout. Measured on 2026-10-07: a plain `ubuntu:26.04` took 189 s for
+`apt-get update` and 358 s for the install, two PR runs timed out before the
+AppImage ever started while Fedora passed in under two minutes, and a normal
+install takes well under one. The script ends in an explicit `exit 0`:
+GitHub's `pwsh` step wrapper exits with the last native `$LASTEXITCODE`, so
+the first run that ever reached the warning (the same evening) went red on
+docker's leftover 100. Tauri stopped forcing X11
 with CLI 2.12; drop the library list once it ships
 `bundle.linux.appimage.excludeLibraries` (tauri-apps/tauri#15662). The `.deb`, the
 `.rpm` and the Flatpak link against the host's libraries and never had the
@@ -1626,6 +1662,82 @@ async update the real code makes after an await warns instead.
   appends its dub list (`… : Teufelsblut - streaming - DF, OmdU, … - ADN`),
   which the profile cuts. A site is named by an affix that strips, never by a
   word inside the title — "ADN" sits inside "MADNESS".
+- **Firefox and its forks tell the desktop less than the tab shows, and the
+  verbose log says what was dropped.** Read from Mozilla's source on
+  2026-10-07: the browser publishes one media session, for the tab that last
+  started playing; on Windows its SMTC entry is always typed *Music*, carries
+  only title and artist and an install-hash app id; on Linux its MPRIS entry
+  carries `xesam:url`, the playing tab's page URL (Firefox 132 on, absent in
+  private windows). A site that sets its own metadata often names only the
+  episode there, while its tab names the series. So with verbose logging on
+  the `verdict` line names every playing session that is not a known music
+  player — rejected ones included, which is what detection saw — and the
+  `browser_tabs` line, written when nothing was recognised, counts the
+  browser windows and names only those whose title holds the session's own,
+  compared word for word in the matcher's form (`browser::relation`), never
+  the rest of what is open. `scripts/browser-measure.mjs` takes the same
+  measurement from outside the app, session files included.
+- **A chapter on a site Karasu does not name is taken only for a manga being
+  read, and always asks.** Since 2026-10-07, when the unofficial readers
+  left, MANGA Plus is the one reader named, and only by the suffix its tab
+  ends in (`strip_manga_site`): a post or a thread that merely mentions it
+  would otherwise take the official path, which never asks. Any other tab
+  goes to `browser::chapter_tab`, which reads the tab each browser window
+  shows when its title spells a chapter with its word (`parser::spelled_chapter`: "Ch.
+  45", "Chapter", "Kapitel" — never a bare or `#` number) and is not a page
+  about chapters (`off_topic`): no off-topic word in English or German
+  (discussion, wiki, review, spoilers, Diskussion …), no phrase like
+  "release date" or "where to read", no search engine or video site as a
+  segment after the first (a browser profile's name can follow it), no
+  forum thread and no post on X. Words that real series also carry (theory, news, leaks,
+  analysis, reaction, `[DISC]` …) refuse a tab outside the series guess
+  (`off_topic_beside`), and inside it unless a title of the matched entry
+  carries them too (`label_beyond_entry`, checked in `chapter_tab_refusal`),
+  because "Dysfunctional Family Theory" is a series while "Chapter 261
+  Theories" is a video and "One Piece Leaks - Chapter 1101" a leak page.
+  Five review rounds that day measured why each rule exists: the query a
+  reader types to find the next chapter is exactly progress + 1. Edge's
+  "and N more pages" (German "und N weitere Seiten", read out of Edge's
+  locale files, whose German title also ends in an en dash) is cut before
+  anything is read (`without_tab_count`), and a Firefox private window's
+  suffix, English or German (read from Mozilla's `browser.ftl`), is a
+  browser suffix like the rest.
+  The series is one deterministic guess,
+  because it is the correction key: the raw text before the chapter word
+  unless it holds only position words or the verb ("Extra", "Vol. TBD",
+  "Band 3", "Read"), else
+  the nearest segment before it that names a series, else the one after,
+  cut at ` - `, ` | ` and their dashes, without a leading "Read", any
+  bracket, a volume or a trailing "Manga"/"Manhwa"; a bracket stands for
+  the series ("[Oshi no Ko]") only once nothing before the chapter word
+  names one without brackets, and then a segment that is only a bracket
+  comes before a tag in the chapter's own segment, or a scan group's tag
+  would win. A season or a part stays in the
+  guess, "Staffel" re-spelt "Season" and the number set as `season`,
+  because AniList keeps some as entries of their own (Ascendance of a
+  Bookworm's parts): cutting it matched Part 3 against Part 4, while kept,
+  a separate entry matches exactly and a single entry, for a season,
+  through the matcher's season-stripped variant (a part has none, so a
+  short name with "Part 2" can miss a single entry). The chapter tabs are the sweep's last
+  rung (`chapter_tabs`, every browser window front first), after the media
+  sessions and a paused mpv, and the loop counts them as nothing while an
+  episode's session is still alive (`holds_chapter_tabs`: anime, not yet
+  written, queued or cancelled, and not blocked in a way nothing may
+  override), so reading in another window never ends a paused episode's
+  session; the hold ends with that session's pause grace.
+  `now_from` keeps the first tab `build_now_playing` accepts: it matches
+  Reading and Rereading entries only (`match_pool`) and drops a tab, card
+  and all, unless one matched and the chapter is at most two past its
+  progress and inside its known length (`generic_refusal`). A user's
+  correction is their word and skips those gates; clearing it applies them
+  again (`requeue_match`), and a drop there makes the next tick judge every
+  chapter tab afresh (`REJUDGE`). The session is `generic`, so `cautious`
+  makes it ask whatever the settings say and never lets its gap block lift
+  by itself; the scrobble event's `asks` (the confirm setting as `cautious`
+  leaves it, re-read every tick) makes the card count down to asking, here
+  and for any session with "Ask before updating" on. A drop is logged once per change of the tab titles, never per
+  tick, and nothing is re-judged until a title changes, so a manga marked
+  Reading while its tab is open is picked up at the next chapter.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

@@ -38,7 +38,7 @@ const SOURCES = {
   Players: ["mpv", "VLC", "MPC-HC", "MPC-BE", "PotPlayer", "SMPlayer"],
   Browsers: ["Chrome", "Firefox", "Edge", "Brave", "Opera", "Vivaldi", "Zen", "LibreWolf", "Waterfox", "Helium"],
   "Streaming sites": ["Bilibili", "ADN"],
-  "Manga sites": ["MangaDex", "MANGA Plus", "Comick", "Bato.to", "MangaFire", "Asura Scans"],
+  "Manga sites": ["MANGA Plus", "Any site, for what you are reading (asks first)"],
   Servers: ["Jellyfin"],
 } as const;
 
@@ -48,7 +48,7 @@ export function Scrobbling() {
       id="how-it-works"
       eyebrow="How it works"
       title="From play to updated, without you."
-      lede="Six steps, all of them Karasu's. The only one you take is the first."
+      lede="Six steps, all of them Karasu's. The only one you take is the first — and for a chapter from a site Karasu does not name, one confirmation."
     >
       <div className="mt-12">
         <FlowDiagram steps={STEPS} />

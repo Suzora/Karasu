@@ -67,7 +67,7 @@ p{margin:26px 0 0;font-size:26px;line-height:1.4;color:rgba(238,241,246,.62)}
   <div class="copy">
     <div class="eyebrow">Free · open source · built for AniList</div>
     <h1>A modern anime &amp; manga tracker, built exclusively for AniList.</h1>
-    <p>Karasu watches what you play and read and keeps your AniList progress in sync — no buttons to press. Windows · Linux · Android.</p>
+    <p>Karasu watches what you play and read and keeps your AniList progress in sync — an episode with no buttons to press, a chapter with one at most. Windows · Linux · Android.</p>
   </div>
   <div class="foot"><img src="${mark}" alt=""><span class="word">KARASU</span><span class="rule"></span><span class="url">suzora.github.io/Karasu</span></div>
 </div></body></html>`;

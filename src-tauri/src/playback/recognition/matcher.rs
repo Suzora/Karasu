@@ -247,7 +247,7 @@ mod tests {
 
     #[test]
     fn exact_romaji_match() {
-        let parsed = parse("[SubsPlease] Sousou no Frieren - 28 (1080p).mkv");
+        let parsed = parse("[Group] Sousou no Frieren - 28 (1080p).mkv");
         let m = best_match(&parsed, &candidates()).unwrap();
         assert_eq!(m.media_id, 154587);
         assert_eq!(m.score, 1.0);
@@ -263,7 +263,7 @@ mod tests {
     #[test]
     fn second_season_matches_correct_entry() {
         let parsed =
-            parse("[Erai-raws] Kusuriya no Hitorigoto 2nd Season - 05 [1080p].mkv");
+            parse("[Other-Group] Kusuriya no Hitorigoto 2nd Season - 05 [1080p].mkv");
         let m = best_match(&parsed, &candidates()).unwrap();
         assert_eq!(m.media_id, 166531);
     }
@@ -346,9 +346,9 @@ mod tests {
         let candidates = candidates();
         let prepared = prepare(&candidates);
         for name in [
-            "[SubsPlease] Sousou no Frieren - 28 (1080p).mkv",
+            "[Group] Sousou no Frieren - 28 (1080p).mkv",
             "Frieren: Beyond Journey's End Season 1 Ep 28",
-            "[Erai-raws] Kusuriya no Hitorigoto 2nd Season - 05 [1080p].mkv",
+            "[Other-Group] Kusuriya no Hitorigoto 2nd Season - 05 [1080p].mkv",
             "Sousou no Frieren (2023) - 28.mkv",
             "Totally Different Show - 05.mkv",
             "One Piece - 1071.mkv",

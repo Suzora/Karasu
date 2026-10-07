@@ -21,7 +21,7 @@ const ANSWERS = [
   },
   {
     title: "It asks if you want it to.",
-    text: "Turn on the confirmation toast and every update waits for one click on the desktop.",
+    text: "Turn on the confirmation toast and every update waits for one click on the desktop. A chapter from a site Karasu does not name always waits for one.",
   },
 ];
 
@@ -31,7 +31,7 @@ export function Problem() {
       id="features"
       eyebrow="The problem"
       title="Keeping a list current is a chore. Karasu does the chore."
-      lede="Tracking is five small steps you repeat for every episode and every chapter. Karasu turns them into none."
+      lede="Tracking is five small steps you repeat for every episode and every chapter. Karasu turns them into none — or, for a chapter from a site it does not name, one confirmation."
     >
       <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-12">
         <Reveal className="inset-well rounded-panel p-6">

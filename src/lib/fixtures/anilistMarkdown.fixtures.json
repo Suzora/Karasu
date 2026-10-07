@@ -19,8 +19,9 @@
       "kind": "comment",
       "id": 3242081,
       "note": "a mention, a score line, img300(…)",
-      "raw": "@akuma15\n\n8.5/10 \n\nimg300(https://static.mfcdn.nl/6ba6/i/1/7a/d088edcb6df7738da33affa71bf56ea5.jpg)",
-      "html": "<p><a target='_blank' href='https://anilist.co/user/akuma15'>@akuma15</a></p>\n<p>8.5/10 </p>\n<img width='300' src='https://static.mfcdn.nl/6ba6/i/1/7a/d088edcb6df7738da33affa71bf56ea5.jpg'>"
+      "neutralImages": true,
+      "raw": "@akuma15\n\n8.5/10 \n\nimg300(https://example.com/image.jpg)",
+      "html": "<p><a target='_blank' href='https://anilist.co/user/akuma15'>@akuma15</a></p>\n<p>8.5/10 </p>\n<img width='300' src='https://example.com/image.jpg'>"
     },
     {
       "kind": "text",

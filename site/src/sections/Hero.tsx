@@ -21,7 +21,7 @@ export function Hero() {
           </h1>
           <p className="mt-5 max-w-lg text-lede text-ink-300">
             Karasu watches what you play and read and keeps your AniList progress in sync —
-            no buttons to press.
+            an episode with no buttons to press, a chapter with one at most.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href={LINKS.latest} size="lg">

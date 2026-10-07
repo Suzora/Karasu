@@ -999,6 +999,7 @@ pub fn playback_from_session(session: &serde_json::Value) -> Option<Playback> {
         },
         streaming: true,
         manga: false,
+        generic: false,
         parsed: Some(Parsed {
             title: title.to_string(),
             episode,

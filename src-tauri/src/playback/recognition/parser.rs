@@ -210,6 +210,13 @@ fn chapter_regexes() -> &'static [Regex; 3] {
     })
 }
 
+/// Where a chapter spelled out with its word ("Ch. 45", "Chapter", "Kapitel") starts and its number; never a bare number.
+pub fn spelled_chapter(input: &str) -> Option<(usize, u32)> {
+    let caps = chapter_regexes()[0].captures(input)?;
+    let number = caps.get(1)?.as_str().parse().ok()?;
+    Some((caps.get(0)?.start(), number))
+}
+
 /// Parses a manga title from a browser tab; the chapter number is carried in the `episode` field.
 pub fn parse_manga(input: &str) -> Parsed {
     let mut work = input.trim().to_string();
@@ -266,15 +273,15 @@ mod tests {
 
     #[test]
     fn classic_fansub() {
-        let r = p("[SubsPlease] Sousou no Frieren - 28 (1080p) [ABCD1234].mkv");
+        let r = p("[Group] Sousou no Frieren - 28 (1080p) [ABCD1234].mkv");
         assert_eq!(r.title, "Sousou no Frieren");
         assert_eq!(r.episode, Some(28));
-        assert_eq!(r.release_group.as_deref(), Some("SubsPlease"));
+        assert_eq!(r.release_group.as_deref(), Some("Group"));
     }
 
     #[test]
     fn second_season_release() {
-        let r = p("[Erai-raws] Kusuriya no Hitorigoto 2nd Season - 05 [1080p][Multiple Subtitle].mkv");
+        let r = p("[Other-Group] Kusuriya no Hitorigoto 2nd Season - 05 [1080p][Multiple Subtitle].mkv");
         assert_eq!(r.title, "Kusuriya no Hitorigoto 2nd Season");
         assert_eq!(r.episode, Some(5));
         assert_eq!(r.season, Some(2));
@@ -402,7 +409,7 @@ mod tests {
 
     #[test]
     fn no_episode_name_without_a_tail() {
-        assert_eq!(p("[SubsPlease] Frieren - 05 (1080p) [ABCD1234].mkv").episode_title, None);
+        assert_eq!(p("[Group] Frieren - 05 (1080p) [ABCD1234].mkv").episode_title, None);
         let r = p("Show - 05v2 [720p].mkv");
         assert_eq!(r.episode, Some(5));
         assert_eq!(r.episode_title, None);
@@ -446,8 +453,19 @@ mod tests {
 
     #[test]
     fn manga_no_chapter() {
-        let r = parse_manga("MangaDex Homepage");
+        let r = parse_manga("ExampleReader Homepage");
         assert_eq!(r.episode, None);
+    }
+
+    #[test]
+    fn only_the_chapter_word_spells_a_chapter() {
+        assert_eq!(spelled_chapter("Kusuriya no Hitorigoto - Ch. 45"), Some((25, 45)));
+        assert_eq!(spelled_chapter("Berserk Kapitel 380"), Some((8, 380)));
+        assert_eq!(spelled_chapter("Kusuriya no Hitorigoto - 45"), None);
+        assert_eq!(spelled_chapter("Fix the crash · Issue #45"), None);
+        assert_eq!(spelled_chapter("Chapters of a history"), None);
+        assert_eq!(spelled_chapter("[Oshi no Ko] Chapter 120"), Some((13, 120)));
+        assert_eq!(spelled_chapter("Chapter ４５"), None, "a number it cannot read is no chapter");
     }
 
     /// Thousands of inputs a run: nothing panics, the numbers stay inside their digit counts, and a plain name survives.

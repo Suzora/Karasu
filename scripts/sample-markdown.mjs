@@ -22,7 +22,8 @@ const SAMPLES = [
     note: "one-line centred rows, bare <a> art, &plus;, two favicons inside links (one an ICO)",
   },
   { kind: "comment", id: 3151776, note: "a mention, then img220(…) on a line of its own" },
-  { kind: "comment", id: 3242081, note: "a mention, a score line, img300(…)" },
+  // Its image sits on a host this repository may not name, so the sampler swaps it for a neutral one.
+  { kind: "comment", id: 3242081, note: "a mention, a score line, img300(…)", neutralImages: true },
   {
     kind: "text",
     id: 1154088020,
@@ -115,11 +116,25 @@ async function viaRig(query, variables) {
   return value.data;
 }
 
+/** Where a sample's images point once `neutralImages` has swapped them out. */
+const NEUTRAL_IMAGE = "https://example.com/image.jpg";
+
+/** Swaps every `imgN(…)` URL for the neutral one in the markdown and in AniList's HTML alike, so the two still agree. */
+function neutralImages(raw, html) {
+  const urls = new Set([...raw.matchAll(/img\d*\((https?:\/\/[^)\s]+)\)/gi)].map((m) => m[1]));
+  for (const url of urls) {
+    raw = raw.split(url).join(NEUTRAL_IMAGE);
+    html = html.split(url).join(NEUTRAL_IMAGE);
+  }
+  return { raw, html };
+}
+
 const send = process.argv.includes("--rig") ? viaRig : direct;
 const samples = [];
 for (const s of SAMPLES) {
   const data = await send(QUERIES[s.kind], { id: s.id });
-  const { raw, html } = pick(s.kind, s.id, data);
+  const picked = pick(s.kind, s.id, data);
+  const { raw, html } = s.neutralImages ? neutralImages(picked.raw, picked.html) : picked;
   samples.push({ ...s, raw, html });
   console.log(`${s.kind} ${s.id}: ${raw.length} chars raw, ${html.length} as HTML`);
 }
