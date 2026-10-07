@@ -102,3 +102,5 @@ if ($failed.Count -gt 0) {
     throw "The AppImage did not stay up on: $($failed -join ', ')"
 }
 Write-Output "smoke-tested $($appimage.Name) on X11 and Wayland on $tested of $($Images.Count) image(s) for $Seconds s"
+# A warned image leaves docker's exit code behind, and the runner's pwsh wrapper would exit with it.
+exit 0

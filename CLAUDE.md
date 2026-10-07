@@ -955,7 +955,10 @@ crawling mirror ends in that warning instead of the step's twelve-minute
 timeout. Measured on 2026-10-07: a plain `ubuntu:26.04` took 189 s for
 `apt-get update` and 358 s for the install, two PR runs timed out before the
 AppImage ever started while Fedora passed in under two minutes, and a normal
-install takes well under one. Tauri stopped forcing X11
+install takes well under one. The script ends in an explicit `exit 0`:
+GitHub's `pwsh` step wrapper exits with the last native `$LASTEXITCODE`, so
+the first run that ever reached the warning (the same evening) went red on
+docker's leftover 100. Tauri stopped forcing X11
 with CLI 2.12; drop the library list once it ships
 `bundle.linux.appimage.excludeLibraries` (tauri-apps/tauri#15662). The `.deb`, the
 `.rpm` and the Flatpak link against the host's libraries and never had the
