@@ -74,18 +74,19 @@ export interface RawSiteNotification {
   thread?: { id?: number | null; title?: string | null } | null;
   staff?: { id?: number | null; name?: { full?: string | null } | null } | null;
   character?: { id?: number | null; name?: { full?: string | null } | null } | null;
-  /** An activity notification's activity; private mail has no fragment, so it arrives as a bare typename. */
-  activity?: {
-    __typename?: string;
-    id?: number | null;
-    status?: string | null;
-    progress?: string | null;
-    text?: string | null;
-    user?: { id?: number | null; name?: string | null } | null;
-    media?: (RawSiteNotification["media"] & { coverImage?: { medium?: string | null } | null }) | null;
-  } | null;
   /** A forum notification's comment, its text only. */
   comment?: { id?: number | null; comment?: string | null } | null;
+}
+
+/** One activity of the subjects request, fetched by a row's `activityId`; private mail is not in its type_in. */
+export interface RawNotifActivity {
+  __typename?: string;
+  id?: number | null;
+  status?: string | null;
+  progress?: string | null;
+  text?: string | null;
+  user?: { id?: number | null; name?: string | null } | null;
+  media?: (RawSiteNotification["media"] & { coverImage?: { medium?: string | null } | null }) | null;
 }
 
 /** What an activity or forum row is about; for a reply AniList sends the activity replied to, never the reply. */
@@ -152,14 +153,13 @@ const quotable = (text: string | null | undefined): string | null => {
   return trimmed && renderPlain(trimmed) ? trimmed : null;
 };
 
-/** The subject by its own typename only, so private mail, a deleted post or an unforeseen shape names nothing. */
-function subjectOf(raw: RawSiteNotification, kind: SiteNotifKind): NotifSubject | null {
+/** The subject by the fetched activity's own typename only, so private mail, a deleted post or an odd shape names nothing. */
+function subjectOf(raw: RawSiteNotification, kind: SiteNotifKind, activity: RawNotifActivity | undefined): NotifSubject | null {
   if (COMMENT_KINDS.has(kind)) {
     const text = quotable(raw.comment?.comment);
     return text ? { kind: "comment", text } : null;
   }
   if (!ACTIVITY_KINDS.has(kind)) return null;
-  const activity = raw.activity;
   const owner = { ownerId: activity?.user?.id ?? null, ownerName: activity?.user?.name ?? null };
   if (activity?.__typename === "ListActivity") {
     const t = activity.media?.title;
@@ -201,8 +201,30 @@ export function visibleSubject(
   return { ...subject, ownerName, title: displayTitle(subject.media.title, lang) };
 }
 
-/** One notification, or null for anything the bell does not render. */
-export function normalizeSiteNotification(raw: RawSiteNotification | null): SiteNotifRow | null {
+/** The activity ids a page's subjects request asks for: activity rows only, each once, within one `id_in`. */
+export function subjectActivityIds(raws: readonly (RawSiteNotification | null)[]): number[] {
+  const ids = new Set<number>();
+  for (const raw of raws) {
+    const kind = raw?.__typename ? KIND_BY_TYPENAME[raw.__typename] : undefined;
+    if (kind && ACTIVITY_KINDS.has(kind) && typeof raw?.activityId === "number") ids.add(raw.activityId);
+  }
+  return [...ids].slice(0, 50);
+}
+
+/** The subjects answer keyed by id; AniList may order it as it likes and leaves out what is gone. */
+export function activitiesById(list: readonly (RawNotifActivity | null)[]): Map<number, RawNotifActivity> {
+  const byId = new Map<number, RawNotifActivity>();
+  for (const activity of list) if (typeof activity?.id === "number") byId.set(activity.id, activity);
+  return byId;
+}
+
+const NO_ACTIVITIES: ReadonlyMap<number, RawNotifActivity> = new Map();
+
+/** One notification, or null for anything the bell does not render; `activities` is the page's subjects answer. */
+export function normalizeSiteNotification(
+  raw: RawSiteNotification | null,
+  activities: ReadonlyMap<number, RawNotifActivity> = NO_ACTIVITIES,
+): SiteNotifRow | null {
   const kind = raw?.__typename ? KIND_BY_TYPENAME[raw.__typename] : undefined;
   if (!raw || kind === undefined || raw.id == null) return null;
 
@@ -267,6 +289,6 @@ export function normalizeSiteNotification(raw: RawSiteNotification | null): Site
       ? { isAdult: raw.media.isAdult ?? null, genres: raw.media.genres ?? null }
       : null,
     activityId: raw.activityId ?? null,
-    subject: subjectOf(raw, kind),
+    subject: subjectOf(raw, kind, raw.activityId != null ? activities.get(raw.activityId) : undefined),
   };
 }

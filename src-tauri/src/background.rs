@@ -9,8 +9,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::alerts::site::{
-    announcement, job_verdict, JobVerdict, INTERVAL_KEY, INTERVAL_MAX, INTERVAL_MIN, LAST_CHECK_KEY,
-    SITE_QUERY, SITE_QUERY_PLAIN,
+    announcement, attach_subject, job_verdict, subject_wanted, JobVerdict, INTERVAL_KEY, INTERVAL_MAX,
+    INTERVAL_MIN, LAST_CHECK_KEY, SITE_QUERY, SITE_QUERY_PLAIN, SITE_SUBJECT_QUERY,
 };
 use crate::db::Db;
 
@@ -83,13 +83,13 @@ fn check(env: &mut JNIEnv, context: &JObject) -> Result<String, String> {
         .enable_all()
         .build()
         .map_err(|e| format!("runtime: {e}"))?;
-    let (status, body) = ask(&rt, &db, &token, SITE_QUERY)?;
+    let (status, body) = ask(&rt, &db, &token, SITE_QUERY, serde_json::json!({}))?;
     let body = match job_verdict(status, &body) {
         JobVerdict::Answer => body,
         JobVerdict::Stop => return Err(format!("HTTP {status}")),
-        // The same one fallback the live app makes, so a subject AniList cannot serve still leaves a count.
+        // The same one fallback the live app makes, so a detailed answer AniList refuses still leaves a count.
         JobVerdict::Plain => {
-            let (status, body) = ask(&rt, &db, &token, SITE_QUERY_PLAIN)?;
+            let (status, body) = ask(&rt, &db, &token, SITE_QUERY_PLAIN, serde_json::json!({}))?;
             if job_verdict(status, &body) != JobVerdict::Answer {
                 return Err(format!("HTTP {status}"));
             }
@@ -99,7 +99,17 @@ fn check(env: &mut JNIEnv, context: &JObject) -> Result<String, String> {
 
     let _ = db.kv_set(LAST_CHECK_KEY, &now_ms().to_string());
 
-    let Some((title, body)) = announcement(&db, body.get("data").unwrap_or(&serde_json::Value::Null)) else {
+    let mut data = body.get("data").cloned().unwrap_or(serde_json::Value::Null);
+    // The caption's title, asked apart as the live app asks for it; anything short of an answer drops the caption alone.
+    if let Some(id) = subject_wanted(&db, &data) {
+        if let Ok((status, answer)) = ask(&rt, &db, &token, SITE_SUBJECT_QUERY, serde_json::json!({ "ids": [id] })) {
+            if job_verdict(status, &answer) == JobVerdict::Answer {
+                attach_subject(&mut data, answer.get("data").unwrap_or(&serde_json::Value::Null));
+            }
+        }
+    }
+
+    let Some((title, body)) = announcement(&db, &data) else {
         return Ok(String::new());
     };
     Ok(serde_json::json!({ "title": title, "body": body }).to_string())
@@ -111,6 +121,7 @@ fn ask(
     db: &Db,
     token: &str,
     query: &str,
+    variables: serde_json::Value,
 ) -> Result<(u16, serde_json::Value), String> {
     rt.block_on(async {
         let client = crate::net::client_builder()
@@ -121,7 +132,7 @@ fn ask(
             .post("https://graphql.anilist.co")
             .bearer_auth(token)
             .header("User-Agent", concat!("Karasu/", env!("CARGO_PKG_VERSION")))
-            .json(&serde_json::json!({ "query": query }))
+            .json(&serde_json::json!({ "query": query, "variables": variables }))
             .send()
             .await
             .map_err(|e| format!("send: {e}"))?;

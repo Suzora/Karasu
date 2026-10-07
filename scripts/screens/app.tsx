@@ -408,6 +408,28 @@ let release = () => {};
 const held = new Promise<void>((resolve) => (release = resolve));
 (window as unknown as { __release: () => void }).__release = () => release();
 
+/** The bell's subjects as the request by id answers them; the notifications carry only their ids, as AniList's do. */
+function bellActivities() {
+  const me = { id: 1, name: "Kyusetzu" };
+  const mikan = { id: 11, name: "Mikan" };
+  const about = (i: number) => {
+    const m = media(i, false);
+    return { id: m.id, title: m.title, isAdult: false, genres: m.genres, coverImage: { medium: m.coverImage.large } };
+  };
+  const listed = (id: number, owner: typeof me, status: string, progress: string | null, m: ReturnType<typeof about>) =>
+    ({ __typename: "ListActivity", id, status, progress, user: owner, media: m });
+  const posted = (id: number, owner: typeof me, text: string) => ({ __typename: "TextActivity", id, text, user: owner });
+  return [
+    listed(5101, me, "watched episode", "1 - 3", about(1)),
+    posted(5102, me, "Endlich Zeit für **Sparks of Tomorrow** gefunden. Kyoto Animation in Bestform!"),
+    listed(5001, mikan, "watched episode", "7", about(0)),
+    posted(5103, me, "Finale gesehen, und ~!der Schluss!~ kam völlig unerwartet."),
+    posted(5002, mikan, "Folge 7 war __unfassbar__ schön, und wer schaut diese Saison mit? ~!Das Ende!~ hat mich erwischt."),
+    // An explicit title, whose line the content filter hides while the row stays.
+    listed(5104, me, "completed", null, { id: 3001, title: { romaji: "Tsukiyo no Kagerou", english: null, native: "月夜の陽炎" }, isAdult: true, genres: ["Drama"], coverImage: { medium: cover(9) } }),
+  ];
+}
+
 /** Answers a passthrough query by the root field it asks for; anything else gets an empty but well-formed page. */
 function answerQuery(query: string, variables: Record<string, unknown> | null) {
   const q = query.replace(/\s+/g, " ");
@@ -420,30 +442,22 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     const airing = REAL.map((r, i) => ({ id: 70 + i, episode: r.next, airingAt: now + 3600 * (5 + i * 20), timeUntilAiring: 3600 * (5 + i * 20), mediaId: r.id, media: media(i, false) }));
     return { Page: { pageInfo: { hasNextPage: false, total: 3 }, airingSchedules: airing } };
   }
-  // The bell's AniList half: grouped likes, replies with their subjects, a follow, an episode and a thread reply.
+  // The bell's AniList half: grouped likes, replies, a follow, an episode and a thread reply; subjects come by id.
   if (/resetNotificationCount/.test(q)) {
     const user = (id: number, name: string) => ({ id, name });
-    const me = user(1, "Kyusetzu");
-    const about = (i: number) => {
-      const m = media(i, false);
-      return { id: m.id, title: m.title, isAdult: false, genres: m.genres, coverImage: { medium: m.coverImage.large } };
-    };
-    const listed = (id: number, owner: typeof me, status: string, progress: string | null, m: ReturnType<typeof about>) =>
-      ({ __typename: "ListActivity", id, status, progress, user: owner, media: m });
-    const posted = (id: number, owner: typeof me, text: string) => ({ __typename: "TextActivity", id, text, user: owner });
     const notifications = [
       // Two likes from one person, on an own list entry and an own post, which group under one row.
-      { __typename: "ActivityLikeNotification", id: 901, createdAt: now - 600, activityId: 5101, user: user(11, "Mikan"), activity: listed(5101, me, "watched episode", "1 - 3", about(1)) },
-      { __typename: "ActivityLikeNotification", id: 902, createdAt: now - 1500, activityId: 5102, user: user(11, "Mikan"), activity: posted(5102, me, "Endlich Zeit für **Sparks of Tomorrow** gefunden. Kyoto Animation in Bestform!") },
+      { __typename: "ActivityLikeNotification", id: 901, createdAt: now - 600, activityId: 5101, user: user(11, "Mikan") },
+      { __typename: "ActivityLikeNotification", id: 902, createdAt: now - 1500, activityId: 5102, user: user(11, "Mikan") },
       // A lone activity row on someone else's activity, whose actor's name is a link beside the row's own press.
-      { __typename: "ActivityReplySubscribedNotification", id: 906, createdAt: now - 3000, activityId: 5001, user: user(12, "Hoshi"), activity: listed(5001, user(11, "Mikan"), "watched episode", "7", about(0)) },
+      { __typename: "ActivityReplySubscribedNotification", id: 906, createdAt: now - 3000, activityId: 5001, user: user(12, "Hoshi") },
       // A reply on an own post, whose spoiler the bell must name and never show.
-      { __typename: "ActivityReplyNotification", id: 907, createdAt: now - 4200, activityId: 5103, user: user(13, "TsubameNoYume"), activity: posted(5103, me, "Finale gesehen, und ~!der Schluss!~ kam völlig unerwartet.") },
+      { __typename: "ActivityReplyNotification", id: 907, createdAt: now - 4200, activityId: 5103, user: user(13, "TsubameNoYume") },
       // A like on a reply, whose subject is the activity the reply was on.
-      { __typename: "ActivityReplyLikeNotification", id: 909, createdAt: now - 5400, activityId: 5002, user: user(12, "Hoshi"), activity: posted(5002, user(11, "Mikan"), "Folge 7 war __unfassbar__ schön, und wer schaut diese Saison mit? ~!Das Ende!~ hat mich erwischt.") },
+      { __typename: "ActivityReplyLikeNotification", id: 909, createdAt: now - 5400, activityId: 5002, user: user(12, "Hoshi") },
       { __typename: "FollowingNotification", id: 903, createdAt: now - 7200, user: user(12, "Hoshi") },
-      // An explicit title, whose line the content filter hides while the row stays.
-      { __typename: "ActivityLikeNotification", id: 908, createdAt: now - 9000, activityId: 5104, user: user(13, "TsubameNoYume"), activity: listed(5104, me, "completed", null, { id: 3001, title: { romaji: "Tsukiyo no Kagerou", english: null, native: "月夜の陽炎" }, isAdult: true, genres: ["Drama"], coverImage: { medium: cover(9) } }) },
+      // A like on an explicit title, whose line the content filter hides while the row stays.
+      { __typename: "ActivityLikeNotification", id: 908, createdAt: now - 9000, activityId: 5104, user: user(13, "TsubameNoYume") },
       { __typename: "AiringNotification", id: 904, createdAt: now - 100_000, episode: REAL[1].next - 1, media: { id: REAL[1].id, title: { romaji: REAL[1].title, english: REAL[1].title, native: null }, isAdult: false, genres: [] } },
       { __typename: "ThreadCommentReplyNotification", id: 905, createdAt: now - 260_000, commentId: 1, user: user(13, "Tsubame"), thread: { id: 44, title: "Frühjahr 2026: eure Favoriten" }, comment: { id: 1, comment: "Frieren, ganz klar. ~!Folge 28!~ hat mich fertiggemacht, und die Musik erst." } },
     ];
@@ -459,6 +473,10 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
   const pageOf = (rows: Record<string, unknown>) => ({ Page: { pageInfo: { hasNextPage: true, total: 5000, currentPage: 1, lastPage: 200 }, ...rows } });
   if (/activityReplies\s*\(/.test(q)) return pageOf({ activityReplies: REPLIES });
   if (/\bActivity\s*\(\s*id/.test(q)) return { Activity: ACTIVITIES.find((a) => a.id === Number(variables?.id)) ?? ACTIVITIES[1] };
+  if (/activities\s*\(\s*id_in/.test(q)) {
+    const ids = new Set((variables?.ids as number[]) ?? []);
+    return { Page: { activities: bellActivities().filter((a) => ids.has(a.id)) } };
+  }
   if (/activities\s*\(/.test(q)) {
     const own = variables?.userId != null ? ACTIVITIES.filter((a) => a.user.id === Number(variables.userId)) : ACTIVITIES;
     return pageOf({ activities: own });

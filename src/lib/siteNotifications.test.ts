@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  activitiesById,
   normalizeSiteNotification,
+  subjectActivityIds,
   visibleSubject,
   type NotifSubject,
+  type RawNotifActivity,
   type RawSiteNotification,
 } from "./siteNotifications";
 
@@ -208,19 +211,22 @@ const FRIEREN = {
   genres: ["Adventure"],
 };
 
-/** A like on an activity, the subject being whatever `activity` arrived as. */
-const liked = (activity: RawSiteNotification["activity"]): RawSiteNotification => ({
+/** A like on activity 300, as the notification query sends it: the id alone. */
+const LIKE: RawSiteNotification = {
   __typename: "ActivityLikeNotification",
   id: 20,
   createdAt: 5,
   activityId: 300,
   user: { id: 7, name: "Mikan" },
-  activity,
-});
+};
 
-const listActivity = (status: string, progress: string | null, owner = { id: 1, name: "Kyusetzu" }) => ({
+/** The like normalized with `activity` as the subjects answer for its id, or with nothing answered for it. */
+const liked = (activity: RawNotifActivity | null) =>
+  normalizeSiteNotification(LIKE, new Map(activity ? [[300, activity]] : []));
+
+const listActivity = (status: string, progress: string | null, owner = { id: 1, name: "Kyusetzu" }, id = 300) => ({
   __typename: "ListActivity",
-  id: 300,
+  id,
   status,
   progress,
   user: owner,
@@ -229,7 +235,7 @@ const listActivity = (status: string, progress: string | null, owner = { id: 1, 
 
 describe("a notification's subject", () => {
   it("names a list activity by its verb, its progress and its title", () => {
-    expect(normalizeSiteNotification(liked(listActivity("watched episode", "7")))?.subject).toEqual({
+    expect(liked(listActivity("watched episode", "7"))?.subject).toEqual({
       kind: "list",
       ownerId: 1,
       ownerName: "Kyusetzu",
@@ -249,32 +255,32 @@ describe("a notification's subject", () => {
   it("carries the smallest cover with a list subject, and none where AniList sent none", () => {
     const cover = "https://s4.anilist.co/file/anilistcdn/media/anime/cover/small/bx42.jpg";
     const withCover = { ...listActivity("completed", null), media: { ...FRIEREN, coverImage: { medium: cover } } };
-    expect(normalizeSiteNotification(liked(withCover))?.subject).toMatchObject({ kind: "list", cover });
-    expect(normalizeSiteNotification(liked(listActivity("completed", null)))?.subject).toMatchObject({ cover: null });
+    expect(liked(withCover)?.subject).toMatchObject({ kind: "list", cover });
+    expect(liked(listActivity("completed", null))?.subject).toMatchObject({ cover: null });
   });
 
   /** An image or a video becomes a chip, which a quote leaves out, so a post of nothing else would quote nothing. */
   it("names nothing for a post that is only images or videos", () => {
     const text = "img220(https://i.imgur.com/a.png)\nyoutube(https://youtu.be/x)";
     const post = { __typename: "TextActivity", id: 302, text, user: { id: 5, name: "Hoshi" } };
-    expect(normalizeSiteNotification(liked(post))?.subject).toBeNull();
+    expect(liked(post)?.subject).toBeNull();
   });
 
   /** AniList writes these in English only; an unknown one becomes no verb, and the line then shows the title alone. */
   it("keeps a status it does not know as no verb rather than AniList's own words", () => {
-    const subject = normalizeSiteNotification(liked(listActivity("binged", null)))?.subject;
+    const subject = liked(listActivity("binged", null))?.subject;
     expect(subject).toMatchObject({ kind: "list", verb: null, progress: null, title: "Frieren" });
   });
 
   it("quotes a text activity and a forum comment, trimmed, and names nothing for an empty one", () => {
     const text = { __typename: "TextActivity", id: 301, text: "  Finally done. ~!It ends well!~ ", user: { id: 5, name: "Hoshi" } };
-    expect(normalizeSiteNotification(liked(text))?.subject).toEqual({
+    expect(liked(text)?.subject).toEqual({
       kind: "text",
       ownerId: 5,
       ownerName: "Hoshi",
       text: "Finally done. ~!It ends well!~",
     });
-    expect(normalizeSiteNotification(liked({ ...text, text: "   " }))?.subject).toBeNull();
+    expect(liked({ ...text, text: "   " })?.subject).toBeNull();
     const comment = (body: string | null): RawSiteNotification => ({
       __typename: "ThreadCommentReplyNotification",
       id: 21,
@@ -288,22 +294,35 @@ describe("a notification's subject", () => {
     expect(normalizeSiteNotification(comment(null))?.subject).toBeNull();
   });
 
-  /** A reply on private mail sends a MessageActivity; it has no fragment, and even text that reached us names nothing. */
+  /** The subjects query leaves MESSAGE out of its type_in; should private mail reach the map anyway, it still names nothing. */
   it("names nothing for private mail, even when text arrives with it", () => {
-    const row = normalizeSiteNotification(liked({ __typename: "MessageActivity", id: 9, text: "secret", user: { id: 3, name: "x" } }));
+    const row = liked({ __typename: "MessageActivity", id: 300, text: "secret", user: { id: 3, name: "x" } });
     expect(row?.subject).toBeNull();
     expect(row?.target).toBe("/activity/300");
   });
 
-  it("leaves the row exactly as it was when the activity is gone", () => {
-    const gone = normalizeSiteNotification(liked(null));
-    expect(gone).toEqual(normalizeSiteNotification({ ...liked(null), activity: undefined }));
+  /** Deleted, private or a failed request: the answer then lacks the id, and the row must read as if none was asked. */
+  it("leaves the row exactly as it was when the answer lacks its activity", () => {
+    const gone = liked(null);
+    expect(gone).toEqual(normalizeSiteNotification(LIKE));
+    expect(gone).toEqual(normalizeSiteNotification(LIKE, activitiesById([listActivity("completed", null, undefined, 301)])));
     expect(gone?.subject).toBeNull();
+  });
+
+  /** AniList answers a nested list activity with null media and user, so a subject is never read off the row itself. */
+  it("ignores an activity nested on the notification, where AniList leaves its media and user null", () => {
+    const nested = { ...LIKE, activity: { __typename: "ListActivity", id: 300, status: "completed", progress: null, user: null, media: null } };
+    expect(normalizeSiteNotification(nested as RawSiteNotification)?.subject).toBeNull();
+    const post = { ...LIKE, activity: { __typename: "TextActivity", id: 300, text: "Finally done.", user: null } };
+    expect(normalizeSiteNotification(post as RawSiteNotification)?.subject).toBeNull();
+    expect(normalizeSiteNotification(post as RawSiteNotification, activitiesById([listActivity("completed", null, undefined, 301)]))?.subject).toBeNull();
+    const joined = normalizeSiteNotification(nested as RawSiteNotification, activitiesById([listActivity("completed", null)]));
+    expect(joined?.subject).toMatchObject({ kind: "list", title: "Frieren", ownerName: "Kyusetzu" });
   });
 
   /** The row filter, the lead line and the airing group key read the row's own media, which the subject must not become. */
   it("never moves the lead line, the target or the row's filter fields onto the subject's title", () => {
-    const row = normalizeSiteNotification(liked(listActivity("completed", null)));
+    const row = liked(listActivity("completed", null));
     expect(row).toMatchObject({ title: "Mikan", mediaTitle: null, mediaId: null, media: null, target: "/activity/300" });
   });
 
@@ -320,8 +339,44 @@ describe("a notification's subject", () => {
   });
 });
 
+describe("the subjects request's ids and answer", () => {
+  const row = (__typename: string, activityId: number | null): RawSiteNotification => ({ __typename, id: 1, createdAt: 1, activityId });
+
+  it("asks for each activity row's id once, and for nothing else", () => {
+    const ids = subjectActivityIds([
+      row("ActivityLikeNotification", 300),
+      row("ActivityLikeNotification", 300),
+      row("ActivityReplyNotification", 301),
+      row("ActivityReplyLikeNotification", 302),
+      row("ActivityMentionNotification", 303),
+      row("ActivityReplySubscribedNotification", 304),
+      row("ActivityLikeNotification", null),
+      row("AiringNotification", 305),
+      row("ThreadCommentReplyNotification", 306),
+      null,
+    ]);
+    expect(ids).toEqual([300, 301, 302, 303, 304]);
+  });
+
+  /** Private mail's own notification is outside the bell's types, so its activity id is never even sent. */
+  it("never asks for the activity of private mail or of a kind it does not know", () => {
+    expect(subjectActivityIds([row("ActivityMessageNotification", 9), row("SomethingNewNotification", 10)])).toEqual([]);
+  });
+
+  it("stays within one id_in", () => {
+    const many = Array.from({ length: 60 }, (_, i) => row("ActivityLikeNotification", 1000 + i));
+    expect(subjectActivityIds(many)).toHaveLength(50);
+  });
+
+  it("keys the answer by id, whatever its order, and skips what has none", () => {
+    const byId = activitiesById([listActivity("completed", null, undefined, 302), null, { __typename: "TextActivity" }, listActivity("dropped", null)]);
+    expect([...byId.keys()]).toEqual([302, 300]);
+    expect(byId.get(300)?.status).toBe("dropped");
+  });
+});
+
 describe("visibleSubject", () => {
-  const list = normalizeSiteNotification(liked(listActivity("completed", null, { id: 5, name: "Hoshi" })))!
+  const list = liked(listActivity("completed", null, { id: 5, name: "Hoshi" }))!
     .subject as Extract<NotifSubject, { kind: "list" }>;
   const withMedia = (over: Partial<typeof list.media>) => ({ ...list, media: { ...list.media, ...over } });
 

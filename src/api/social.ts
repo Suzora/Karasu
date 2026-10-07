@@ -2,7 +2,10 @@ import { gql, TTL } from "./anilist";
 import { isOffline, isRateLimited, isTokenRejected } from "@/lib/apiError";
 import type { Media, MediaType } from "./types";
 import {
+  activitiesById,
   normalizeSiteNotification,
+  subjectActivityIds,
+  type RawNotifActivity,
   type RawSiteNotification,
   type SiteNotifRow,
 } from "@/lib/siteNotifications";
@@ -1206,18 +1209,11 @@ const SITE_NOTIF_TYPES = `
       MEDIA_DATA_CHANGE, MEDIA_MERGE, MEDIA_DELETION, MEDIA_SUBMISSION_UPDATE,
       STAFF_SUBMISSION_UPDATE, CHARACTER_SUBMISSION_UPDATE`;
 
-/** What every activity notification carries, its subject aside. */
+/** What every activity notification carries; its subject comes by `activityId`, since nested a list activity has no media. */
 const ACTIVITY_NOTIF = `id createdAt activityId user { id name }`;
 
 /** What every forum comment notification carries, its comment aside. */
 const COMMENT_NOTIF = `id createdAt commentId user { id name } thread { id title }`;
-
-/** An activity notification's subject; no MessageActivity fragment, so private mail arrives as a bare `__typename`. */
-const NOTIF_ACTIVITY = `activity {
-        __typename
-        ... on ListActivity { id status progress user { id name } media { id title { romaji english native } isAdult genres coverImage { medium } } }
-        ... on TextActivity { id text user { id name } }
-      }`;
 
 /** A forum notification's comment, its text only; `childComments` is a raw tree many times the size. */
 const NOTIF_COMMENT = `comment { id comment }`;
@@ -1235,7 +1231,7 @@ const SITE_NOTIF_OTHERS = `
       ... on StaffSubmissionUpdateNotification { id createdAt status staff { id name { full } } }
       ... on CharacterSubmissionUpdateNotification { id createdAt status character { id name { full } } }`;
 
-/** The bell's site view, with what each activity or forum row is about; the plain query is its fallback. */
+/** The bell's site view with each forum row's comment; activity subjects come from `NOTIF_SUBJECTS_QUERY`. */
 export const SITE_NOTIFICATIONS_QUERY = `
 query ($page: Int, $reset: Boolean) {
   Page(page: $page, perPage: 15) {
@@ -1244,11 +1240,11 @@ query ($page: Int, $reset: Boolean) {
     ]) {
       __typename
       ${SITE_NOTIF_OTHERS}
-      ... on ActivityMentionNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
-      ... on ActivityReplyNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
-      ... on ActivityReplySubscribedNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
-      ... on ActivityLikeNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
-      ... on ActivityReplyLikeNotification { ${ACTIVITY_NOTIF} ${NOTIF_ACTIVITY} }
+      ... on ActivityMentionNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplyNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplySubscribedNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityLikeNotification { ${ACTIVITY_NOTIF} }
+      ... on ActivityReplyLikeNotification { ${ACTIVITY_NOTIF} }
       ... on ThreadCommentMentionNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
       ... on ThreadCommentReplyNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
       ... on ThreadCommentSubscribedNotification { ${COMMENT_NOTIF} ${NOTIF_COMMENT} }
@@ -1257,7 +1253,7 @@ query ($page: Int, $reset: Boolean) {
   }
 }`;
 
-/** The same rows without their subjects, for when one deleted activity or comment fails the detailed answer. */
+/** The same rows without their comments, for when one that errors fails the detailed answer. */
 export const SITE_NOTIFICATIONS_PLAIN_QUERY = `
 query ($page: Int, $reset: Boolean) {
   Page(page: $page, perPage: 15) {
@@ -1279,6 +1275,18 @@ query ($page: Int, $reset: Boolean) {
   }
 }`;
 
+/** The bell's activity subjects by id; MESSAGE is not in type_in and has no fragment, so private mail names nothing. */
+export const NOTIF_SUBJECTS_QUERY = `
+query ($ids: [Int]) {
+  Page(perPage: 50) {
+    activities(id_in: $ids, type_in: [TEXT, ANIME_LIST, MANGA_LIST]) {
+      __typename
+      ... on ListActivity { id status progress user { id name } media { id title { romaji english native } isAdult genres coverImage { medium } } }
+      ... on TextActivity { id text user { id name } }
+    }
+  }
+}`;
+
 export interface SiteNotifPage {
   pageInfo: PageInfo;
   rows: SiteNotifRow[];
@@ -1293,6 +1301,31 @@ type SiteNotifAnswer = {
   Page: { pageInfo: PageInfo; notifications: (RawSiteNotification | null)[] | null };
 };
 
+type SubjectsAnswer = { Page: { activities: (RawNotifActivity | null)[] | null } | null };
+
+/** How long a page waits for its subjects; the limiter can hold a request far longer than rows already in hand should. */
+const SUBJECTS_WAIT_MS = 3000;
+
+/** The page's activities by id, in one request; a failed, empty or slow answer leaves its rows without subjects. */
+async function notifSubjects(raws: (RawSiteNotification | null)[]): Promise<Map<number, RawNotifActivity>> {
+  const ids = subjectActivityIds(raws);
+  if (ids.length === 0) return new Map();
+  // Page 1 has already spent AniList's unread count, so a subject that cannot come must not cost the rows that did.
+  const answer = gql<SubjectsAnswer>(NOTIF_SUBJECTS_QUERY, { ids }, { source: "siteNotifSubjects" }).then(
+    (data) => activitiesById(data.Page?.activities ?? []),
+    () => new Map<number, RawNotifActivity>(),
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<Map<number, RawNotifActivity>>((resolve) => {
+    timer = setTimeout(() => resolve(new Map()), SUBJECTS_WAIT_MS);
+  });
+  try {
+    return await Promise.race([answer, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** `reset` is AniList's own mark-seen and belongs on the first page only; later pages are history, not news. */
 export async function siteNotifications(page: number, reset: boolean): Promise<SiteNotifPage> {
   let data: SiteNotifAnswer;
@@ -1300,14 +1333,14 @@ export async function siteNotifications(page: number, reset: boolean): Promise<S
     data = await gql<SiteNotifAnswer>(SITE_NOTIFICATIONS_QUERY, { page, reset }, { source: "siteNotifs" });
   } catch (e) {
     if (!wantsPlain(e)) throw e;
-    // Its own source, so "Requests by source" shows how often a subject sank the detailed answer.
+    // Its own source, so "Requests by source" shows how often a comment sank the detailed answer.
     data = await gql<SiteNotifAnswer>(SITE_NOTIFICATIONS_PLAIN_QUERY, { page, reset }, { source: "siteNotifsPlain" });
   }
+  const raws = data.Page.notifications ?? [];
+  const activities = await notifSubjects(raws);
   return {
     pageInfo: data.Page.pageInfo,
-    rows: (data.Page.notifications ?? [])
-      .map(normalizeSiteNotification)
-      .filter((r): r is SiteNotifRow => r !== null),
+    rows: raws.map((raw) => normalizeSiteNotification(raw, activities)).filter((r): r is SiteNotifRow => r !== null),
   };
 }
 

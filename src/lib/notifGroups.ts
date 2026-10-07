@@ -154,12 +154,12 @@ export function groupSubjects(group: NotifGroup, max = 3): { subjects: NotifSubj
   const seen = new Set<number>();
   const subjects: NotifSubject[] = [];
   for (const n of group.items) {
-    if (n.activityId != null) {
-      if (seen.has(n.activityId)) continue;
-      seen.add(n.activityId);
-    }
+    if (n.activityId != null && seen.has(n.activityId)) continue;
     const subject = n.site?.subject;
-    if (subject && subjects.length < max) subjects.push(subject);
+    if (!subject) continue;
+    // An id is spent only by a row that names it, so an older page can supply a subject a newer page's request lost.
+    if (n.activityId != null) seen.add(n.activityId);
+    if (subjects.length < max) subjects.push(subject);
   }
   return { subjects, more: Math.max(0, group.label.n - subjects.length) };
 }

@@ -189,6 +189,16 @@ describe("groupSubjects", () => {
     expect(groupSubjects(group)).toEqual({ subjects: [said("b")], more: 1 });
   });
 
+  /** Each page asks for its own subjects, so the newer row of one activity can lack what an older page's row has. */
+  it("takes an activity's subject from an older row when the newer one came without it", () => {
+    const [group] = buildGroups([
+      liked(1, 3 * HOUR, 100, null),
+      liked(2, 2 * HOUR, 101, said("b")),
+      liked(3, 1 * HOUR, 100, said("a")),
+    ]);
+    expect(groupSubjects(group)).toEqual({ subjects: [said("b"), said("a")], more: 0 });
+  });
+
   it("names nothing for a row standing alone or for an airing group", () => {
     const [lone] = buildGroups([liked(1, HOUR, 100, said("a"))]);
     expect(groupSubjects(lone)).toEqual({ subjects: [], more: 0 });

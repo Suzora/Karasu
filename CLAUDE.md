@@ -391,7 +391,10 @@ What is *not* carved out, and these are the load-bearing half of the exception:
   last month" screen built from either is the thing being refused.
 - **`MessageActivity` is never rendered.** It is private mail between two users,
   and it is excluded three ways — absent from `type_in`, given no inline
-  fragment, and normalised to null with a test that says so.
+  fragment, and normalised to null with a test that says so. The bell's and
+  the toast's requests for activities by id repeat all three: no `MESSAGE` in
+  their `type_in`, no fragment, and a reader (`subjectOf`, `caption`) that
+  names nothing for any other typename.
 - **Paging is user-initiated by design.** A feed that fetches on scroll spends a
   ~30/min budget shared with the scrobbler and the alert passes without anyone
   asking it to, and the limiter cannot see a burst it has not sent. Every page
@@ -493,8 +496,9 @@ evict it: `cache_patch_entry` and `cache_forget_entry_id` both call
 `query_cache_forget_media`, so a reopened detail can never show a stale
 entry the list no longer has. `switch_identity` clears the whole table,
 and `setup` prunes rows older than a week. Never cached, by omission from
-the allowlist: feeds, activities, replies, threads, comments,
-notifications, favourites, search, and every mutation. The list itself is
+the allowlist: feeds, activities (the bell's `siteNotifSubjects` among
+them), replies, threads, comments, notifications, favourites, search, and
+every mutation. The list itself is
 not here — it has its own 15-minute window in `fetch_media_list` (below).
 
 **AniList has two name spaces for a custom list, and only one is writable.**
@@ -1062,7 +1066,11 @@ async update the real code makes after an await warns instead.
 - **`npm test` already means `vitest run`.** `npm test -- --run` is redundant.
 - **Validate AniList fields live before wiring them**, per the convention below,
   with `node scripts/anilist-query.mjs <CONST> '<variables-json>'`. It reads the
-  constant off disk, so it checks the query the app actually ships.
+  constant off disk, so it checks the query the app actually ships. It runs
+  signed out, so for a Viewer-scoped query it proves the query parses and
+  nothing more: a nested relation that resolves null on every row passes it.
+  Read a signed-in answer, with `--raw`'s eye for the values, before trusting
+  one — see the note on activities nested under a notification.
 - **Control characters in source must be written as an escape and then
   verified.** An editing tool can emit a literal control byte where `\u0000`
   was intended; the file then reads back looking correct while every subsequent
@@ -1394,6 +1402,28 @@ async update the real code makes after an await warns instead.
   out as if it were a root of its own. Each "Load more" therefore draws one
   row that belongs inside another; `lib/comments` degrades gracefully, and
   this is the datum an upstream report needs.
+- **A list activity nested under a notification resolves its scalars and
+  neither its media nor its user.** Measured on 2026-10-07 with the
+  maintainer's token (read-only, `reset: false`): on 13 of 13 activity
+  notifications the nested `ListActivity` came back with `__typename`, `id`
+  and `status` filled and `media` and `user` null; a nested `TextActivity`'s
+  `text` (its `user` was not checked) and a nested `ThreadComment`'s
+  `comment` were filled. The twelve activities those rows named, asked for by
+  id — `Page(perPage: 50) { activities(id_in:, type_in: [TEXT, ANIME_LIST,
+  MANGA_LIST]) }` — all came back with `media` (title, `isAdult`, genres,
+  cover) and `user` filled, and `isFollowing` made no difference; an id that
+  does not exist simply drops out of that answer, HTTP 200 and no error. So
+  the bell from 1.34.0.782 and the toast's caption from 1.35.0.783, both
+  until 1.40.7.812, drew no list subject and never had a title, and nothing
+  said so: the schema accepts the relation, the query script runs signed
+  out, and every fixture — the vitest suites', the Rust tests' and the
+  screens harness's — filled in the relations AniList does not send. The
+  bell and the toast now ask for the activities by id (their two Conventions
+  notes), and a test on each side pins that a nested activity with null
+  relations names nothing. Only the nested `__typename` is still read, by the
+  toast, to ask for a list activity alone. Whether a
+  `MESSAGE` id is kept out by `type_in` could not be measured signed out (no
+  public message activity answered); the fragment and the reader guard it.
 - **Never round-trip source text through `encode("utf-8").decode("unicode_escape")`.**
   A script inserting i18n keys did, over text Python had already decoded, and
   every em-dash, arrow and umlaut came back a byte at a time as latin-1 —
@@ -2213,26 +2243,54 @@ shape, and the question that follows them.
   with AniList's smallest cover, a post or a comment as a quote through
   `renderPlain`, its spoilers named and never shown. A reply notification
   carries the activity replied to and never the reply, which is why a liked
-  reply reads "liked your reply to" over the parent. `NOTIF_ACTIVITY` has no
-  `MessageActivity` fragment, so a reply on private mail arrives as a bare
-  `__typename` and `subjectOf` names nothing — the exclusion's fourth guard.
+  reply reads "liked your reply to" over the parent. A forum row's comment
+  rides on the notification (`NOTIF_COMMENT`); an activity does not, since
+  nested there a list activity's `media` and `user` resolve null (see the
+  notes). So the
+  notification queries carry `activityId` alone, and `siteNotifications`
+  asks for the page's activities by id in one more request,
+  `NOTIF_SUBJECTS_QUERY` under the source `siteNotifSubjects`, made only when
+  the page holds an activity row and inside the page's own fetch, so a row
+  and its subject arrive together. `subjectOf` reads the activity by the
+  row's `activityId`; one the answer lacks names nothing and keeps the row,
+  and a failed subjects request leaves the page's rows without subjects
+  rather than failing them — page 1 has already spent AniList's count — and
+  is never retried. So does one that has not answered within
+  `SUBJECTS_WAIT_MS`, because the limiter can pace a request or sit out a
+  `Retry-After` far longer than rows already in hand should wait; a late
+  answer is dropped. Within one group, `groupSubjects` takes an activity's
+  subject from whichever row has it, since each page asks for its own. `MESSAGE` is absent from that `type_in` and the request
+  has no `MessageActivity` fragment, so a reply on private mail names
+  nothing — the exclusion's fourth guard. A page with an activity row costs
+  two requests, three when the detailed answer is refused, "Load more"
+  included; the trim to one retained page on close keeps a reopen at two.
   The subject's title lives only in `subject.media`, never in `row.media`,
   so the row filter, the lead line and the airing group key do not move; a
   filtered title takes the subject away and never the row, whose unread dot
   is positional, and the viewer's own name is never written in front of the
   viewer's own activity. When AniList refuses the detailed answer for any
-  reason but the token, the budget or the connection — a subject that
+  reason but the token, the budget or the connection — a comment that
   errors is the case it guards — `siteNotifications` asks once more with
   `SITE_NOTIFICATIONS_PLAIN_QUERY` under its own source, `siteNotifsPlain`,
-  so "Requests by source" says how often; that fallback is the query's one
-  retry, and only a lost connection gets another. Neither source is ever
-  added to `CACHEABLE`.
+  so "Requests by source" says how often; the plain answer still carries
+  `activityId`, so it loses the comments alone. That fallback is the
+  query's one retry, and only a lost connection gets another. None of the
+  three sources is ever added to `CACHEABLE`.
 - **The system notification names the newest AniList notification and never
   quotes anyone.** `alerts/site.rs` asks, for the newest row only, for the
   names that word it — the actor, a thread's title, a title with its filter
-  fields, a list activity's status and progress — and never for `text`,
-  `comment`, `context` or `reason`, because a lock screen shows the toast to
-  anyone; a test pins both queries to that. `describe` words it in the user's
+  fields — and never for `text`, `comment`, `context` or `reason`, because a
+  lock screen shows the toast to anyone; a test pins every query to that. A
+  like or a reply carries `activityId` and its activity's `__typename` alone,
+  since nested there a list activity's `media` resolves null (see the notes);
+  only once `subject_wanted` says that row is about a list activity and
+  about to be announced does the check ask for it by id,
+  `SITE_SUBJECT_QUERY` (`type_in: [ANIME_LIST, MANGA_LIST]`, status,
+  progress and the title with its filter fields, source `siteSubject`), and
+  `attach_subject` puts it where `describe` reads it. That peek reads the
+  cursor through `should_announce` and never moves it. A failed or empty
+  answer drops the caption, keeps the sentence and is never retried, nor
+  answered with the plain query. `describe` words it in the user's
   language (`i18n.rs`, one `(De, …)` line per arm, so typos never reads the
   German) and title language. A caption rides only on a like or a reply,
   the two kinds AniList sends about the viewer's own activity, and only for
@@ -2246,13 +2304,16 @@ shape, and the question that follows them.
   `alerts/airing.rs` skips a muted title without writing its `aired:` key but
   still wakes for it and still asks about it, so the checkpoint passes its
   episode and an unmute has no aired window to replay. The desktop pass and
-  Android's job both end in `announcement`, so the two cannot word it
-  differently, and the job reads its raw answer through `job_verdict`. A
-  refused detailed answer earns one plain retry under the source `sitePlain`
-  — never for a token, a rate limit or a lost connection — and the job writes
-  a 429's `Retry-After` into `rate_state` (`retry_after_secs`), so the live
-  app's limiter waits it out at its next start instead of spending the next
-  request into the wall.
+  Android's job both ask for the caption's activity the same way and both
+  end in `announcement`, so the two cannot word it differently, and the job
+  reads each raw answer through `job_verdict`. A refused detailed answer
+  earns one plain retry under the source `sitePlain` — never for a token, a
+  rate limit or a lost connection — and the job writes a 429's `Retry-After`
+  into `rate_state` (`retry_after_secs`), so the live app's limiter waits it
+  out at its next start instead of spending the next request into the wall.
+  A check therefore costs one request, two when the newest is a due like or
+  reply on a list entry or the detailed answer is refused, and never three:
+  the plain answer carries no `activityId`. `siteSubject` stays out of `CACHEABLE` like every activity.
 - **A thread can land on one comment.** `/thread/:id?comment=<id>` rides the
   same uncapped `ThreadComment(id:)` tree route as the newest-jump — one
   request at any thread size, including comments past the 5,000-entry paging

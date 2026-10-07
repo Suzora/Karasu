@@ -33,7 +33,7 @@ pub fn interval_min(db: &Db) -> i64 {
     }
 }
 
-/// The one request, with what the newest row needs to be named; never any text a person wrote, and no reset.
+/// The check's request, with what the newest row needs to be named; never any text a person wrote, and no reset.
 pub(crate) const SITE_QUERY: &str = "
 query {
   Viewer { unreadNotificationCount }
@@ -49,9 +49,9 @@ query {
       ... on AiringNotification { id episode media { id title { romaji english native } isAdult genres } }
       ... on FollowingNotification { id user { name } }
       ... on ActivityMentionNotification { id user { name } }
-      ... on ActivityReplyNotification { id user { name } activity { __typename ... on ListActivity { status progress media { title { romaji english native } isAdult genres } } } }
+      ... on ActivityReplyNotification { id user { name } activityId activity { __typename } }
       ... on ActivityReplySubscribedNotification { id user { name } }
-      ... on ActivityLikeNotification { id user { name } activity { __typename ... on ListActivity { status progress media { title { romaji english native } isAdult genres } } } }
+      ... on ActivityLikeNotification { id user { name } activityId activity { __typename } }
       ... on ActivityReplyLikeNotification { id user { name } }
       ... on ThreadCommentMentionNotification { id user { name } thread { title } }
       ... on ThreadCommentReplyNotification { id user { name } thread { title } }
@@ -105,6 +105,17 @@ query {
   }
 }";
 
+/// The caption's list activity by id, since a nested one's media resolves null; its id, status, progress and title.
+pub(crate) const SITE_SUBJECT_QUERY: &str = "
+query ($ids: [Int]) {
+  Page(page: 1, perPage: 1) {
+    activities(id_in: $ids, type_in: [ANIME_LIST, MANGA_LIST]) {
+      __typename
+      ... on ListActivity { id status progress media { title { romaji english native } isAdult genres } }
+    }
+  }
+}";
+
 /// How long a failed check waits: neither the tick rate nor the whole configured interval.
 const RETRY_AFTER_FAILURE_MS: i64 = 5 * 60_000;
 
@@ -147,7 +158,7 @@ async fn check(app: &AppHandle) {
         }
         other => other,
     };
-    let data = match answer {
+    let mut data = match answer {
         Ok(d) => d,
         Err(e) => {
             // Once per transition, not per tick — the debug_changed lesson.
@@ -168,6 +179,14 @@ async fn check(app: &AppHandle) {
         &crate::alerts::notify::now_ms().to_string(),
     );
 
+    // Only for a row about to be toasted, and a failure costs the caption alone, never the toast or a plain retry.
+    if let Some(id) = subject_wanted(&db, &data) {
+        match api.query_from("siteSubject", Some(&token), SITE_SUBJECT_QUERY, json!({ "ids": [id] })).await {
+            Ok(answer) => attach_subject(&mut data, &answer),
+            Err(e) => crate::logging::debug_changed("site", "subject", format!("caption request failed: {e:?}")),
+        }
+    }
+
     if let Some((title, body)) = announcement(&db, &data) {
         crate::alerts::notify::notify_toast_text(app, "site", &title, &body);
     }
@@ -186,6 +205,40 @@ pub(crate) fn wants_plain(e: &ApiError) -> bool {
 pub(crate) fn should_announce(seen: Option<i64>, newest: i64, unread: i64, advanced: bool) -> bool {
     // A first fetch ever only writes the baseline.
     matches!(seen, Some(s) if newest > s && unread > 0 && advanced)
+}
+
+/// The list activity a due like or reply is captioned with, for the subject request; reads the cursor, never moves it.
+pub(crate) fn subject_wanted(db: &Db, data: &Value) -> Option<i64> {
+    let newest = data.pointer("/Page/notifications/0")?;
+    let kind = newest.get("__typename").and_then(Value::as_str)?;
+    if kind != "ActivityLikeNotification" && kind != "ActivityReplyNotification" {
+        return None;
+    }
+    // The nested typename does resolve, and a post or private mail has no caption to ask for.
+    if newest.pointer("/activity/__typename").and_then(Value::as_str) != Some("ListActivity") {
+        return None;
+    }
+    // A plain answer names nobody, so `describe` would count instead and the caption would go unread.
+    newest.pointer("/user/name").and_then(Value::as_str).filter(|n| !n.trim().is_empty())?;
+    let activity = newest.get("activityId").and_then(Value::as_i64)?;
+    let id = newest.get("id").and_then(Value::as_i64)?;
+    let unread = data.pointer("/Viewer/unreadNotificationCount").and_then(Value::as_i64).unwrap_or(0);
+    let seen = db.kv_get(SEEN_KEY).and_then(|s| s.parse::<i64>().ok());
+    should_announce(seen, id, unread, seen.is_some_and(|s| id > s)).then_some(activity)
+}
+
+/// Puts the subject request's list activity on the newest row, where `describe` reads it, when it is that row's own.
+pub(crate) fn attach_subject(data: &mut Value, answer: &Value) {
+    let Some(activity) = answer.pointer("/Page/activities/0") else {
+        return;
+    };
+    let Some(newest) = data.pointer_mut("/Page/notifications/0").and_then(Value::as_object_mut) else {
+        return;
+    };
+    let own = activity.get("id").and_then(Value::as_i64).is_some_and(|id| newest.get("activityId").and_then(Value::as_i64) == Some(id));
+    if own {
+        newest.insert("activity".into(), activity.clone());
+    }
 }
 
 /// Whether the airing watcher already toasted this episode, so the summary counts it rather than naming it twice.
@@ -286,7 +339,7 @@ impl Wording<'_> {
         (self.level == "off" && !self.hide_adult).then(|| title.to_string())
     }
 
-    /// The viewer's own list activity as a caption, when AniList sent one Karasu can word and may name.
+    /// The viewer's own list activity as a caption, when the subject request found one Karasu can word and may name.
     fn caption(&self, activity: Option<&Value>) -> Option<String> {
         let activity = activity?;
         if activity.get("__typename").and_then(Value::as_str) != Some("ListActivity") {
@@ -472,24 +525,40 @@ mod tests {
     /// A background pass must never mark the user's site feed seen.
     #[test]
     fn the_query_never_resets_the_unread_count() {
-        assert!(!SITE_QUERY.contains("resetNotificationCount"));
-        assert!(!SITE_QUERY_PLAIN.contains("resetNotificationCount"));
+        for query in [SITE_QUERY, SITE_QUERY_PLAIN, SITE_SUBJECT_QUERY] {
+            assert!(!query.contains("resetNotificationCount"));
+        }
     }
 
     /// Private mail stays excluded, the same way it is everywhere else.
     #[test]
     fn message_notifications_are_absent_twice_over() {
-        for query in [SITE_QUERY, SITE_QUERY_PLAIN] {
+        for query in [SITE_QUERY, SITE_QUERY_PLAIN, SITE_SUBJECT_QUERY] {
             assert!(!query.contains("ACTIVITY_MESSAGE"));
             assert!(!query.contains("ActivityMessageNotification"));
             assert!(!query.contains("MessageActivity"));
+            assert!(!query.split(|c: char| !c.is_ascii_alphanumeric() && c != '_').any(|w| w == "MESSAGE"));
         }
+    }
+
+    /// Nested under a notification an activity's media resolves null, so the title comes by id and never from there.
+    #[test]
+    fn a_caption_comes_by_id_and_list_activities_alone() {
+        assert!(SITE_QUERY.contains("ActivityLikeNotification { id user { name } activityId activity { __typename } }"));
+        assert!(SITE_QUERY.contains("ActivityReplyNotification { id user { name } activityId activity { __typename } }"));
+        // The nested activity is asked for its typename and nothing else, so no media can be read where it resolves null.
+        assert_eq!(SITE_QUERY.matches("activity {").count(), SITE_QUERY.matches("activity { __typename }").count());
+        assert!(!SITE_QUERY_PLAIN.contains("activityId"));
+        assert!(SITE_SUBJECT_QUERY.contains("activities(id_in: $ids, type_in: [ANIME_LIST, MANGA_LIST])"));
+        assert!(SITE_SUBJECT_QUERY.contains(
+            "... on ListActivity { id status progress media { title { romaji english native } isAdult genres } }"
+        ));
     }
 
     /// A lock screen shows the toast to anyone, so no post, comment or reason is asked for; a thread's title is its name.
     #[test]
-    fn neither_query_asks_for_a_post_a_comment_or_anilists_own_sentences() {
-        for query in [SITE_QUERY, SITE_QUERY_PLAIN] {
+    fn no_query_asks_for_a_post_a_comment_or_anilists_own_sentences() {
+        for query in [SITE_QUERY, SITE_QUERY_PLAIN, SITE_SUBJECT_QUERY] {
             for field in ["text", "comment", "context", "reason", "TextActivity", "childComments"] {
                 let word = query
                     .split(|c: char| !c.is_ascii_alphanumeric() && c != '_')
@@ -516,13 +585,20 @@ mod tests {
         })
     }
 
+    /// A like as `describe` sees it once `attach_subject` has put the fetched activity on it.
     fn liked(status: &str, progress: Option<&str>, media: Value) -> Value {
         json!({
             "__typename": "ActivityLikeNotification",
             "id": 9,
             "user": { "name": "Mikan" },
-            "activity": { "__typename": "ListActivity", "status": status, "progress": progress, "media": media },
+            "activityId": 300,
+            "activity": { "__typename": "ListActivity", "id": 300, "status": status, "progress": progress, "media": media },
         })
+    }
+
+    /// The subject request's answer for activity `id`.
+    fn subject(id: i64, status: &str, media: Value) -> Value {
+        json!({ "Page": { "activities": [{ "__typename": "ListActivity", "id": id, "status": status, "progress": null, "media": media }] } })
     }
 
     #[test]
@@ -543,6 +619,18 @@ mod tests {
         assert_eq!(en(liked("watched episode", None, frieren(false))).as_deref(), Some("Mikan liked your activity"));
         let text = json!({ "__typename": "ActivityLikeNotification", "id": 9, "user": { "name": "Mikan" }, "activity": { "__typename": "TextActivity" } });
         assert_eq!(en(text).as_deref(), Some("Mikan liked your activity"));
+    }
+
+    /// The shape AniList answers a nested activity with: its status, and neither its media nor its owner.
+    #[test]
+    fn an_activity_nested_as_anilist_sends_it_drops_only_the_caption() {
+        let nested = json!({
+            "__typename": "ActivityLikeNotification",
+            "id": 9,
+            "user": { "name": "Mikan" },
+            "activity": { "__typename": "ListActivity", "id": 300, "status": "completed", "progress": null, "user": null, "media": null },
+        });
+        assert_eq!(en(nested).as_deref(), Some("Mikan liked your activity"));
     }
 
     /// The filter hides a title everywhere, and with the blur on an explicit one too, since a lock screen cannot blur.
@@ -654,6 +742,65 @@ mod tests {
         assert!(announcement(&db, &answer(next, 1)).unwrap().1.contains("Frieren"));
     }
 
+    /// A like as `SITE_QUERY` answers it: the id of its list activity and that activity's typename alone.
+    fn bare_like(id: i64) -> Value {
+        json!({
+            "__typename": "ActivityLikeNotification",
+            "id": id,
+            "user": { "name": "Mikan" },
+            "activityId": 300,
+            "activity": { "__typename": "ListActivity" },
+        })
+    }
+
+    /// The subject request is spent only on a row the toast will name, and asking never moves the cursor.
+    #[test]
+    fn only_a_due_like_or_reply_asks_for_its_activity() {
+        let db = mem();
+        assert_eq!(subject_wanted(&db, &answer(bare_like(10), 2)), None, "a first check only writes the baseline");
+        db.kv_set(SEEN_KEY, "9").unwrap();
+        assert_eq!(subject_wanted(&db, &answer(bare_like(10), 2)), Some(300));
+        let mut reply = bare_like(10);
+        reply["__typename"] = json!("ActivityReplyNotification");
+        assert_eq!(subject_wanted(&db, &answer(reply, 2)), Some(300));
+        assert_eq!(db.kv_get(SEEN_KEY).as_deref(), Some("9"), "the cursor is announcement's to move");
+        assert_eq!(subject_wanted(&db, &answer(bare_like(9), 2)), None, "already seen");
+        assert_eq!(subject_wanted(&db, &answer(bare_like(10), 0)), None, "read in the bell");
+        for typename in ["ActivityReplySubscribedNotification", "ActivityReplyLikeNotification", "ActivityMentionNotification"] {
+            let mut n = bare_like(10);
+            n["__typename"] = json!(typename);
+            assert_eq!(subject_wanted(&db, &answer(n, 2)), None, "{typename}");
+        }
+        let plain = json!({ "__typename": "ActivityLikeNotification", "id": 10 });
+        assert_eq!(subject_wanted(&db, &answer(plain, 2)), None, "a plain answer names nobody");
+        for typename in [json!("TextActivity"), json!("MessageActivity"), Value::Null] {
+            let mut n = bare_like(10);
+            n["activity"]["__typename"] = typename.clone();
+            assert_eq!(subject_wanted(&db, &answer(n, 2)), None, "{typename}");
+        }
+        let mut gone = bare_like(10);
+        gone["activity"] = Value::Null;
+        assert_eq!(subject_wanted(&db, &answer(gone, 2)), None, "a deleted activity");
+        let mut no_activity = bare_like(10);
+        no_activity.as_object_mut().unwrap().remove("activityId");
+        assert_eq!(subject_wanted(&db, &answer(no_activity, 2)), None);
+    }
+
+    #[test]
+    fn the_fetched_activity_captions_its_own_row_and_no_other() {
+        let db = mem();
+        db.kv_set(SEEN_KEY, "9").unwrap();
+        db.kv_set("content_filter", "off").unwrap();
+        db.kv_set("blur_adult", "0").unwrap();
+        let mut data = answer(bare_like(10), 1);
+        attach_subject(&mut data, &subject(301, "completed", frieren(false)));
+        attach_subject(&mut data, &json!({ "Page": { "activities": [] } }));
+        let bare = json!({ "__typename": "ListActivity" });
+        assert_eq!(data.pointer("/Page/notifications/0/activity"), Some(&bare), "another activity, or none, attaches nothing");
+        attach_subject(&mut data, &subject(300, "completed", frieren(false)));
+        assert_eq!(announcement(&db, &data).unwrap().1, "Mikan liked your activity: Completed Frieren");
+    }
+
     #[test]
     fn only_a_refusal_that_another_request_could_outlive_earns_the_plain_one() {
         assert!(wants_plain(&ApiError::Api("Not Found.".into())));
@@ -674,5 +821,6 @@ mod tests {
         assert_eq!(job_verdict(404, &json!({ "errors": [{ "message": "Not Found." }], "data": null })), JobVerdict::Plain);
         assert_eq!(job_verdict(500, &Value::Null), JobVerdict::Plain);
         assert_eq!(job_verdict(200, &json!({ "data": null })), JobVerdict::Plain);
+        assert_eq!(job_verdict(200, &json!({ "data": { "Page": { "activities": [] } } })), JobVerdict::Answer);
     }
 }
