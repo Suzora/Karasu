@@ -210,9 +210,11 @@ fn chapter_regexes() -> &'static [Regex; 3] {
     })
 }
 
-/// Whether the text spells a chapter out with its word ("Ch. 45", "Chapter 45", "Kapitel 45"), not a bare or "#" number.
-pub fn spells_chapter(input: &str) -> bool {
-    chapter_regexes()[0].is_match(input)
+/// Where a chapter spelled out with its word ("Ch. 45", "Chapter", "Kapitel") starts and its number; never a bare number.
+pub fn spelled_chapter(input: &str) -> Option<(usize, u32)> {
+    let caps = chapter_regexes()[0].captures(input)?;
+    let number = caps.get(1)?.as_str().parse().ok()?;
+    Some((caps.get(0)?.start(), number))
 }
 
 /// Parses a manga title from a browser tab; the chapter number is carried in the `episode` field.
@@ -457,11 +459,13 @@ mod tests {
 
     #[test]
     fn only_the_chapter_word_spells_a_chapter() {
-        assert!(spells_chapter("Kusuriya no Hitorigoto - Ch. 45"));
-        assert!(spells_chapter("Berserk Kapitel 380"));
-        assert!(!spells_chapter("Kusuriya no Hitorigoto - 45"));
-        assert!(!spells_chapter("Fix the crash · Issue #45"));
-        assert!(!spells_chapter("Chapters of a history"));
+        assert_eq!(spelled_chapter("Kusuriya no Hitorigoto - Ch. 45"), Some((25, 45)));
+        assert_eq!(spelled_chapter("Berserk Kapitel 380"), Some((8, 380)));
+        assert_eq!(spelled_chapter("Kusuriya no Hitorigoto - 45"), None);
+        assert_eq!(spelled_chapter("Fix the crash · Issue #45"), None);
+        assert_eq!(spelled_chapter("Chapters of a history"), None);
+        assert_eq!(spelled_chapter("[Oshi no Ko] Chapter 120"), Some((13, 120)));
+        assert_eq!(spelled_chapter("Chapter ４５"), None, "a number it cannot read is no chapter");
     }
 
     /// Thousands of inputs a run: nothing panics, the numbers stay inside their digit counts, and a plain name survives.

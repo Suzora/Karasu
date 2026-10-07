@@ -7,7 +7,7 @@ export interface Faq {
 export const FAQ: Faq[] = [
   {
     q: "What is Karasu?",
-    a: "A desktop and Android app that keeps your AniList anime and manga list. It notices what you are playing or reading and updates your progress on AniList by itself, and it gives that list a fast local interface with statistics, notifications and the social pages.",
+    a: "A desktop and Android app that keeps your AniList anime and manga list. It notices what you are playing or reading and updates your progress on AniList by itself, asking once first for a chapter from a site it does not name, and it gives that list a fast local interface with statistics, notifications and the social pages.",
   },
   {
     q: "Is it free?",

@@ -600,6 +600,16 @@ fn build_now_playing(
     })
 }
 
+/// Set when undoing a correction dropped a chapter tab, so the next tick judges every chapter tab again.
+static REJUDGE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Whether an episode's session still waits out its pause grace, which reading in another window must not end.
+fn holds_chapter_tabs(session: Option<&Session>) -> bool {
+    session.is_some_and(|s| {
+        s.media_type == "ANIME" && !matches!(s.phase, Phase::Updated | Phase::Queued | Phase::Cancelled)
+    })
+}
+
 /// What the loop compares between ticks: the winning source's title, or every chapter tab's, so a change is rejudged.
 fn sweep_key(sweep: &detection::Sweep) -> Option<(String, String)> {
     match &sweep.found {
@@ -1064,6 +1074,8 @@ pub fn requeue_match(app: &AppHandle) {
             crate::tray_set_now_playing(app, None);
             *app.state::<ScrobbleSession>().0.guard() = None;
             emit_session(app, None);
+            // Another chapter tab may be one being read, and the loop's key has not changed to say so.
+            REJUDGE.store(true, std::sync::atomic::Ordering::Relaxed);
             return;
         }
     }
@@ -1224,7 +1236,19 @@ pub fn spawn(app: AppHandle) {
             // The tick re-reads what it decides on: the service is wanted only while all three of these hold.
             assert_tracking_service(&app, tracking_on && jellyfin.is_some() && background_wanted);
             let heartbeat_cfg = jellyfin.clone();
-            let sweep = detection::detect_playback(media_detection, jellyfin, mpv).await;
+            let mut sweep = detection::detect_playback(media_detection, jellyfin, mpv).await;
+            // A chapter tab counts as nothing while an episode's session still waits out its pause grace.
+            if sweep.found.is_none() && !sweep.chapter_tabs.is_empty() {
+                let hold = holds_chapter_tabs(app.state::<ScrobbleSession>().0.guard().as_ref());
+                crate::logging::debug_changed(
+                    "detect",
+                    "chapter_hold",
+                    if hold { "chapter tabs wait for the episode's session" } else { "chapter tabs judged" },
+                );
+                if hold {
+                    sweep.chapter_tabs.clear();
+                }
+            }
             // Announce this instance to the other Karasus, but only while it tracks a Jellyfin playback and would write.
             if let (Some(cfg), Some(p)) = (heartbeat_cfg.as_ref(), sweep.found.as_ref()) {
                 if tracking_on && p.process.starts_with("jellyfin (") {
@@ -1232,6 +1256,9 @@ pub fn spawn(app: AppHandle) {
                 }
             }
             let raw = sweep_key(&sweep);
+            if REJUDGE.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                last_raw = None;
+            }
 
             // Patch the position every tick of the same title, or the deadline check judges the start position forever.
             if raw == last_raw {
@@ -1475,7 +1502,7 @@ mod tests {
     use super::{
         applies_to, armed_now, auto_arm, block_reason, build_now_playing, cached_user_id,
         candidates_from_cache, cautious, defer_for_peer, detection_override, generic_refusal,
-        grace_spent, match_pool, now_from, position_due, resolve_match, respelled, season_key,
+        grace_spent, holds_chapter_tabs, match_pool, now_from, position_due, resolve_match, respelled, season_key,
         service_transition, shift_episode, sweep_key, threshold, would_regress, BlockReason, Db,
         NowPlaying,
         Phase, Session, YieldTarget, DEFAULT_THRESHOLD, EMPTY_TICK_GRACE, GAP_GRACE,
@@ -2032,6 +2059,42 @@ mod tests {
         let np = now_from(&reading_db(), &[], sweep).expect("the one being read");
         assert_eq!((np.media_id, np.episode), (Some(1), Some(45)));
         assert_eq!(sweep_key(&crate::playback::detection::Sweep::default()), None);
+    }
+
+    /// Reading in another window waits until a paused episode's session is written, cancelled or past its grace.
+    #[test]
+    fn a_live_episode_session_holds_the_chapter_tabs() {
+        assert!(holds_chapter_tabs(Some(&session(1, 5))));
+        for phase in [Phase::Updated, Phase::Queued, Phase::Cancelled] {
+            assert!(!holds_chapter_tabs(Some(&Session { phase, ..session(1, 5) })));
+        }
+        let reading = Session { media_type: "MANGA".into(), ..session(1, 45) };
+        assert!(!holds_chapter_tabs(Some(&reading)), "a chapter does not hold the next chapter");
+        assert!(!holds_chapter_tabs(None));
+    }
+
+    /// AniList keeps some parts and seasons as entries of their own, so the marker in the tab must pick the right one.
+    #[test]
+    fn a_part_or_season_in_the_tab_picks_its_own_entry() {
+        let entry = |id: i64, part: u32, progress: u32| {
+            serde_json::json!({ "mediaId": id, "progress": progress, "status": "CURRENT", "media": {
+                "title": { "romaji": "Honzuki no Gekokujou", "english": "Ascendance of a Bookworm" },
+                "synonyms": [format!("Ascendance of a Bookworm Part {part}")], "chapters": null } })
+        };
+        for order in [[entry(3, 3, 44), entry(4, 4, 30)], [entry(4, 4, 30), entry(3, 3, 44)]] {
+            let db = crate::db::tests::mem_db();
+            db.kv_set("anilist_viewer", r#"{"id": 6421433, "name": "Kyusetzu"}"#).unwrap();
+            let lists = serde_json::json!([{ "isCustomList": false, "entries": order }]);
+            db.cache_list(6421433, "MANGA", &lists.to_string()).unwrap();
+            let part3 = build_now_playing(&db, &[], chapter_tab("Ascendance of a Bookworm Part 3", 45)).unwrap();
+            assert_eq!(part3.media_id, Some(3));
+            let part4 = build_now_playing(&db, &[], chapter_tab("Ascendance of a Bookworm Part 4", 31)).unwrap();
+            assert_eq!(part4.media_id, Some(4));
+        }
+        // A season the list keeps in one entry still finds it, and the season it names does not block the session.
+        let np = build_now_playing(&reading_db(), &[], chapter_tab("Kusuriya no Hitorigoto Season 2", 45)).unwrap();
+        assert_eq!((np.media_id, np.season), (Some(1), Some(2)));
+        assert_eq!(block_reason(&np, 45, 44), None);
     }
 
     #[test]

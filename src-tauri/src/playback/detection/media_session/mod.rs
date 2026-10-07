@@ -132,11 +132,6 @@ fn watchable<'a>(sessions: &'a [MediaSession]) -> impl Iterator<Item = &'a Media
         )
 }
 
-/// Whether a session that would be watched is only paused, which still outranks a chapter tab.
-pub(crate) fn paused_watchable(sessions: &[MediaSession]) -> bool {
-    sessions.iter().any(|s| s.status == "paused" && s.is_watchable())
-}
-
 /// The best playing non-music session; only the tests take one at a time, since `detect` needs the whole ordering.
 #[cfg(test)]
 fn pick(sessions: &[MediaSession]) -> Option<&MediaSession> {
@@ -646,16 +641,5 @@ mod tests {
         assert_eq!(p.process, "jellyfinmediaplayer.exe");
         assert!(p.streaming);
         assert!(!p.manga);
-    }
-
-    /// A paused video holds back the chapter tabs; a paused song, or a browser session typed music, does not.
-    #[test]
-    fn only_a_paused_session_that_would_be_watched_holds_the_chapter_tabs() {
-        assert!(paused_watchable(&[session("Frieren", "Episode 5", "video", "paused")]));
-        assert!(!paused_watchable(&[session("Frieren", "Episode 5", "video", "playing")]));
-        assert!(!paused_watchable(&[browser_session("The Hero's Party", "music", "paused")]));
-        let mut song = session("Artist", "Song", "music", "paused");
-        song.app_id = "SpotifyAB.SpotifyMusic_zpdnekdrzrea0".into();
-        assert!(!paused_watchable(&[song]));
     }
 }
