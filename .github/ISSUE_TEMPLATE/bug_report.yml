@@ -87,7 +87,7 @@ body:
         be reproduced without the literal string. Settings → Detection shows
         what Karasu currently sees.
       placeholder: |
-        1. Play `[SubsPlease] Frieren - 05 (1080p) [A1B2C3D4].mkv` in mpv
+        1. Play `[Group] Frieren - 05 (1080p) [A1B2C3D4].mkv` in mpv
         2. Wait for the scrobble countdown
         3. Nothing happens
     validations:

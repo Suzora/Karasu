@@ -365,7 +365,9 @@ Two more, decided by the maintainer in August 2026:
   manga readers left `profiles.rs` the same day, including the one that
   hosts fan translations ("everything unofficial goes"); MANGA Plus is the
   one reader still named, and a chapter anywhere else goes through the
-  generic rule below.
+  generic rule below. Release groups go the same way, decided the same day:
+  a release name in a test, a fixture or an example carries `[Group]` (and
+  `[Other-Group]` beside it), never a real group's name.
 - **A browser extension or a native-messaging host for detection.** Also
   decided on 2026-10-07: Karasu reads only what the system and the browser
   already publish — media sessions, window titles and, opt-in, the browser's

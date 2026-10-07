@@ -466,7 +466,7 @@ mod tests {
     #[test]
     fn ordinary_release_names_and_paths_survive() {
         for sample in [
-            r"C:\Users\Kyu\Videos\[SubsPlease] Frieren - 05 (1080p) [A1B2C3D4].mkv",
+            r"C:\Users\Kyu\Videos\[Group] Frieren - 05 (1080p) [A1B2C3D4].mkv",
             "/home/kyu/Anime/Frieren.Beyond.Journeys.End.S01E05.1080p.WEB-DL.mkv",
             "org.mpris.MediaPlayer2.mpv.instance1234",
             "no tray icon (the desktop has no AppIndicator library)",

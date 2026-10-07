@@ -273,15 +273,15 @@ mod tests {
 
     #[test]
     fn classic_fansub() {
-        let r = p("[SubsPlease] Sousou no Frieren - 28 (1080p) [ABCD1234].mkv");
+        let r = p("[Group] Sousou no Frieren - 28 (1080p) [ABCD1234].mkv");
         assert_eq!(r.title, "Sousou no Frieren");
         assert_eq!(r.episode, Some(28));
-        assert_eq!(r.release_group.as_deref(), Some("SubsPlease"));
+        assert_eq!(r.release_group.as_deref(), Some("Group"));
     }
 
     #[test]
     fn second_season_release() {
-        let r = p("[Erai-raws] Kusuriya no Hitorigoto 2nd Season - 05 [1080p][Multiple Subtitle].mkv");
+        let r = p("[Other-Group] Kusuriya no Hitorigoto 2nd Season - 05 [1080p][Multiple Subtitle].mkv");
         assert_eq!(r.title, "Kusuriya no Hitorigoto 2nd Season");
         assert_eq!(r.episode, Some(5));
         assert_eq!(r.season, Some(2));
@@ -409,7 +409,7 @@ mod tests {
 
     #[test]
     fn no_episode_name_without_a_tail() {
-        assert_eq!(p("[SubsPlease] Frieren - 05 (1080p) [ABCD1234].mkv").episode_title, None);
+        assert_eq!(p("[Group] Frieren - 05 (1080p) [ABCD1234].mkv").episode_title, None);
         let r = p("Show - 05v2 [720p].mkv");
         assert_eq!(r.episode, Some(5));
         assert_eq!(r.episode_title, None);

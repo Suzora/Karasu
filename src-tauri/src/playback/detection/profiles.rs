@@ -321,8 +321,8 @@ mod tests {
     #[test]
     fn player_mpv_with_suffix() {
         assert_eq!(
-            match_player("mpv.exe", "[SubsPlease] Sousou no Frieren - 28 (1080p).mkv - mpv"),
-            Some("[SubsPlease] Sousou no Frieren - 28 (1080p).mkv".to_string())
+            match_player("mpv.exe", "[Group] Sousou no Frieren - 28 (1080p).mkv - mpv"),
+            Some("[Group] Sousou no Frieren - 28 (1080p).mkv".to_string())
         );
     }
 

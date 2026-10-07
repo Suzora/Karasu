@@ -605,8 +605,8 @@ mod tests {
     #[test]
     fn a_file_url_yields_the_release_name() {
         assert_eq!(
-            local_file_name("file:///srv/anime/%5BSubsPlease%5D%20Frieren%20-%2005.mkv").unwrap(),
-            "[SubsPlease] Frieren - 05.mkv"
+            local_file_name("file:///srv/anime/%5BGroup%5D%20Frieren%20-%2005.mkv").unwrap(),
+            "[Group] Frieren - 05.mkv"
         );
         // Multi-byte UTF-8 survives the decode.
         assert_eq!(

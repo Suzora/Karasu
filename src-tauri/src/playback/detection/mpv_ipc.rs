@@ -203,7 +203,7 @@ mod tests {
             &[
                 r#"{"event":"property-change"}"#,
                 r#"{"data":"Frieren - 05","request_id":1,"error":"success"}"#,
-                r#"{"data":"D:\\anime\\[SubsPlease] Frieren - 05.mkv","request_id":2,"error":"success"}"#,
+                r#"{"data":"D:\\anime\\[Group] Frieren - 05.mkv","request_id":2,"error":"success"}"#,
                 "not json at all",
                 r#"{"data":774.3,"request_id":3,"error":"success"}"#,
                 r#"{"data":1420.0,"request_id":4,"error":"success"}"#,
@@ -230,13 +230,13 @@ mod tests {
     fn the_file_name_beats_the_composed_title_and_a_url_does_not() {
         let local = MpvState {
             media_title: Some("Frieren – episode five".into()),
-            path: Some(r"D:\anime\[SubsPlease] Frieren - 05.mkv".into()),
+            path: Some(r"D:\anime\[Group] Frieren - 05.mkv".into()),
             position_sec: Some(10),
             duration_sec: Some(1420),
             paused: false,
         };
         let p = playback_from_state(&local).unwrap();
-        assert_eq!(p.media_title, "[SubsPlease] Frieren - 05.mkv");
+        assert_eq!(p.media_title, "[Group] Frieren - 05.mkv");
         assert_eq!(p.position_sec, Some(10));
 
         let streamed = MpvState {

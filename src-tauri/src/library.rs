@@ -1200,7 +1200,7 @@ mod tests {
     #[test]
     fn matches_release_filename_to_episode() {
         let candidates = frieren();
-        let name = "[SubsPlease] Sousou no Frieren - 13 (1080p) [ABCD1234].mkv";
+        let name = "[Group] Sousou no Frieren - 13 (1080p) [ABCD1234].mkv";
         let parsed = parser::parse(name);
         assert_eq!(parsed.episode, Some(13));
         let m = matcher::best_match(&parsed, &candidates).expect("should match");
@@ -1255,9 +1255,9 @@ mod tests {
     #[test]
     fn indexes_a_season_folder_by_episode() {
         let files = paths(&[
-            "[SubsPlease] Sousou no Frieren - 13 (1080p) [ABCD1234].mkv",
-            "[SubsPlease] Sousou no Frieren - 14 (1080p) [BCDE2345].mkv",
-            "[SubsPlease] Sousou no Frieren - 15 (1080p) [CDEF3456].mkv",
+            "[Group] Sousou no Frieren - 13 (1080p) [ABCD1234].mkv",
+            "[Group] Sousou no Frieren - 14 (1080p) [BCDE2345].mkv",
+            "[Group] Sousou no Frieren - 15 (1080p) [CDEF3456].mkv",
         ]);
         let index = indexed(&files, &frieren()).by_media;
 
@@ -1273,7 +1273,7 @@ mod tests {
     #[test]
     fn repeated_and_unmatched_titles_are_handled_once() {
         let mut files = paths(&["Totally Unrelated Show - 01.mkv", "Totally Unrelated Show - 02.mkv"]);
-        files.extend(paths(&["[SubsPlease] Sousou no Frieren - 13 (1080p) [A].mkv"]));
+        files.extend(paths(&["[Group] Sousou no Frieren - 13 (1080p) [A].mkv"]));
 
         let data = indexed(&files, &frieren());
         // The unmatched series contributes nothing to the index…
@@ -1527,7 +1527,7 @@ mod tests {
     /// Proves the match confidence rides along with the index, since the screen says "exact" or "best guess" from it.
     #[test]
     fn the_index_carries_its_match_confidence() {
-        let files = paths(&["[SubsPlease] Sousou no Frieren - 13 (1080p) [A].mkv"]);
+        let files = paths(&["[Group] Sousou no Frieren - 13 (1080p) [A].mkv"]);
         let data = indexed(&files, &frieren());
         assert!(data.by_media.contains_key(&154587));
         let row = &data.summary[0];
@@ -1541,8 +1541,8 @@ mod tests {
     #[test]
     fn the_first_path_wins_for_a_duplicate_episode() {
         let files = vec![
-            "/a/[SubsPlease] Sousou no Frieren - 13 (1080p) [A].mkv".to_string(),
-            "/b/[SubsPlease] Sousou no Frieren - 13 (720p) [B].mkv".to_string(),
+            "/a/[Group] Sousou no Frieren - 13 (1080p) [A].mkv".to_string(),
+            "/b/[Group] Sousou no Frieren - 13 (720p) [B].mkv".to_string(),
         ];
         let index = indexed(&files, &frieren()).by_media;
         assert_eq!(index[&154587][&13], files[0]);
@@ -1574,7 +1574,7 @@ mod tests {
     #[test]
     fn a_correction_moves_only_its_own_files() {
         let mut files = paths(&["[Group] Totally Unrelated Show - 01.mkv"]);
-        files.extend(paths(&["[SubsPlease] Sousou no Frieren - 13 (1080p) [A].mkv"]));
+        files.extend(paths(&["[Group] Sousou no Frieren - 13 (1080p) [A].mkv"]));
 
         let plain = indexed(&files, &frieren());
         let key = (plain.unmatched[0].title.clone(), plain.unmatched[0].season);
@@ -1590,7 +1590,7 @@ mod tests {
     #[test]
     fn each_source_says_whether_it_is_the_corrected_one() {
         let files = paths(&[
-            "[SubsPlease] Sousou no Frieren - 13 (1080p) [A].mkv",
+            "[Group] Sousou no Frieren - 13 (1080p) [A].mkv",
             "[Group] Totally Unrelated Show - 01.mkv",
         ]);
         let plain = indexed(&files, &frieren());
@@ -1644,7 +1644,7 @@ mod hydrate_cost {
         let names: Vec<String> = (1..=20_000)
             .map(|i| {
                 format!(
-                    "[SubsPlease] Some Long Show Title S{}  - {:02} (1080p) [A1B2C3D4].mkv",
+                    "[Group] Some Long Show Title S{}  - {:02} (1080p) [A1B2C3D4].mkv",
                     (i % 4) + 1,
                     i % 24 + 1
                 )
