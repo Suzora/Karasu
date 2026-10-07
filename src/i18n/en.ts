@@ -1276,6 +1276,7 @@ export const en = {
     heading: "Now playing · {{process}}",
     headingManga: "Now reading · {{process}}",
     updateIn: "Progress will update in {{time}}",
+    askIn: "Will ask in {{time}}",
     watching: "Watching …",
     reading: "Reading …",
     confirmPrompt: "Mark episode {{n}} as watched?",

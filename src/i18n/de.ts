@@ -1286,6 +1286,7 @@ export const de: typeof en = {
     heading: "Läuft gerade · {{process}}",
     headingManga: "Wird gelesen · {{process}}",
     updateIn: "Fortschritt wird in {{time}} aktualisiert",
+    askIn: "Wird in {{time}} nachgefragt",
     watching: "Wird geschaut …",
     reading: "Wird gelesen …",
     confirmPrompt: "Episode {{n}} als gesehen markieren?",

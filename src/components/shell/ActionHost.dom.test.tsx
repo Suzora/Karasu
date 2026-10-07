@@ -71,6 +71,7 @@ function detectionEvent(): void {
         updateAtMs: null,
         armedAtMs: null,
         yieldingTo: null,
+        asks: false,
       },
     });
   });

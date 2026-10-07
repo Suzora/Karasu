@@ -1730,7 +1730,9 @@ async update the real code makes after an await warns instead.
   again (`requeue_match`), and a drop there makes the next tick judge every
   chapter tab afresh (`REJUDGE`). The session is `generic`, so `cautious`
   makes it ask whatever the settings say and never lets its gap block lift
-  by itself. A drop is logged once per change of the tab titles, never per
+  by itself; the scrobble event's `asks` (the confirm setting as `cautious`
+  leaves it, re-read every tick) makes the card count down to asking, here
+  and for any session with "Ask before updating" on. A drop is logged once per change of the tab titles, never per
   tick, and nothing is re-judged until a title changes, so a manga marked
   Reading while its tab is open is picked up at the next chapter.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's

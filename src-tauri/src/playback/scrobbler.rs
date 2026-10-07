@@ -176,6 +176,8 @@ pub struct Session {
     pub phase: Phase,
     /// Consecutive empty polls; a pause looks like a stop, so the session is held rather than dropped.
     pub missed_ticks: u32,
+    /// Whether the due point asks before writing: the confirm setting as `cautious` leaves it, re-read every tick.
+    pub asks: bool,
 }
 
 /// Running scrobble session (shared between the loop and commands).
@@ -206,6 +208,8 @@ struct ScrobbleEvent {
     /// The Karasu a `yielding` session waits for; `None` in every other phase.
     #[serde(rename = "yieldingTo")]
     yielding_to: Option<YieldTarget>,
+    /// Whether the due point asks rather than writes, so the countdown does not promise an update.
+    asks: bool,
 }
 
 /// Whether the card is shown this session's deadline and its arming stamp; an unarmed block has no epoch to leak.
@@ -216,8 +220,9 @@ fn counting_down(s: &Session) -> bool {
     )
 }
 
-fn emit_session(app: &AppHandle, session: Option<&Session>) {
-    let event = match session {
+/// What the card is told about a session, or about none.
+fn scrobble_event(session: Option<&Session>) -> ScrobbleEvent {
+    match session {
         None => ScrobbleEvent {
             phase: "idle".into(),
             reason: None,
@@ -227,6 +232,7 @@ fn emit_session(app: &AppHandle, session: Option<&Session>) {
             update_at_ms: None,
             armed_at_ms: None,
             yielding_to: None,
+            asks: false,
         },
         Some(s) => ScrobbleEvent {
             phase: match &s.phase {
@@ -257,9 +263,13 @@ fn emit_session(app: &AppHandle, session: Option<&Session>) {
                 Phase::Yielding(target) => Some(target.clone()),
                 _ => None,
             },
+            asks: s.asks,
         },
-    };
-    let _ = app.emit("scrobble-state", &event);
+    }
+}
+
+fn emit_session(app: &AppHandle, session: Option<&Session>) {
+    let _ = app.emit("scrobble-state", &scrobble_event(session));
 }
 
 fn cached_user_id(db: &Db) -> Option<i64> {
@@ -1370,6 +1380,7 @@ async fn drive_session(app: &AppHandle) {
                         armed_at_epoch_ms: armed_in.map(|_| epoch_ms_in(Duration::ZERO)),
                         phase,
                         missed_ticks: 0,
+                        asks: settings.confirm,
                     };
                     // The `Blocked` reasons are the most-asked "why didn't it scrobble", so they reach disk.
                     crate::logging::debug(
@@ -1388,6 +1399,11 @@ async fn drive_session(app: &AppHandle) {
                     let session = guard.as_mut().unwrap();
                     // Playing again (or still), so the pause grace starts over.
                     session.missed_ticks = 0;
+                    // A changed setting reaches the card within a tick; otherwise the event goes out only on a phase change.
+                    if session.asks != settings.confirm {
+                        session.asks = settings.confirm;
+                        emit_session(app, Some(session));
+                    }
                     // `enabled` is re-read here, not just at `auto_arm`, so switching tracking off disarms a waiting session.
                     let armed = armed_now(
                         settings.enabled,
@@ -1525,7 +1541,8 @@ mod tests {
     use super::{
         applies_to, armed_now, auto_arm, block_reason, build_now_playing, cached_user_id,
         candidates_from_cache, cautious, defer_for_peer, detection_override, generic_refusal,
-        grace_spent, holds_chapter_tabs, match_pool, now_from, position_due, resolve_match, respelled, season_key,
+        grace_spent, holds_chapter_tabs, match_pool, now_from, position_due, resolve_match, respelled, scrobble_event,
+        season_key,
         service_transition, shift_episode, sweep_key, threshold, would_regress, BlockReason, Db,
         NowPlaying,
         Phase, Session, YieldTarget, DEFAULT_THRESHOLD, EMPTY_TICK_GRACE, GAP_GRACE,
@@ -1747,6 +1764,7 @@ mod tests {
             armed_at_epoch_ms: None,
             phase: Phase::Watching,
             missed_ticks: 0,
+            asks: false,
         }
     }
 
@@ -2007,6 +2025,15 @@ mod tests {
         let gap = Phase::Blocked(BlockReason::EpisodeGap { episode: 46, progress: 44 });
         assert_eq!(auto_arm(generic.enabled, generic.gap_auto, &gap, GAP_GRACE), None);
         assert!(!armed_now(generic.enabled, generic.gap_auto, &gap, true));
+    }
+
+    /// The card hears that a session will ask, so its countdown never promises a write that waits for a click.
+    #[test]
+    fn a_session_that_will_ask_tells_the_card() {
+        let asking = Session { asks: true, ..session(1, 5) };
+        assert_eq!(serde_json::to_value(scrobble_event(Some(&asking))).unwrap()["asks"], true);
+        assert!(!scrobble_event(Some(&session(1, 5))).asks, "a session that writes by itself says so");
+        assert!(!scrobble_event(None).asks, "nothing asks while idle");
     }
 
     #[test]

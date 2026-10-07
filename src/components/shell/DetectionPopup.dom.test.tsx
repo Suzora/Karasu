@@ -83,6 +83,19 @@ describe("DetectionPopup", () => {
     expect(screen.getByText(/Asteroid Blues/)).toBeInTheDocument();
   });
 
+  it("counts down to asking, not to updating, when the session will ask first", () => {
+    const now = Date.now();
+    const watching = idleScrobble({ phase: "watching", mediaId: 1, episode: 5, armedAtMs: now, updateAtMs: now + 90_000 });
+    useNowPlaying.setState({ current: PLAYING, scrobble: { ...watching, asks: true } });
+    const first = renderWithProviders(<DetectionPopup />);
+    expect(screen.getByText(/nowPlaying\.askIn/)).toBeInTheDocument();
+    expect(screen.queryByText(/nowPlaying\.updateIn/)).not.toBeInTheDocument();
+    first.unmount();
+    useNowPlaying.setState({ current: PLAYING, scrobble: watching });
+    renderWithProviders(<DetectionPopup />);
+    expect(screen.getByText(/nowPlaying\.updateIn/)).toBeInTheDocument();
+  });
+
   it("spells the season only when the source carried one, and chapters for manga", () => {
     playing({ ...PLAYING, season: 2 });
     const first = renderWithProviders(<DetectionPopup />);

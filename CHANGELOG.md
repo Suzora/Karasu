@@ -100,6 +100,7 @@ tag time is then optional rather than load-bearing.
 - A store build (Flathub, F-Droid) no longer offers an update check; the store delivers its updates.
 - With verbose logging on, the log says why a playing media session was not recognised, and which browser windows hold its title.
 - Manga detection names only official readers, and a chapter on any other site is recognised for a manga you are reading, always with a confirmation.
+- When Karasu will ask before updating ("Ask before updating" on, or a chapter from a site it does not name), the now-playing card counts down to asking instead of promising an update.
 
 ## 1.32.0 — 2026-10-03
 
