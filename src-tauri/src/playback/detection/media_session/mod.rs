@@ -186,6 +186,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
             media_title: name,
             streaming: false,
             manga: false,
+            generic: false,
             parsed: None,
             position_sec: None,
             duration_sec: None,
@@ -244,6 +245,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         // Not a local file, and the UI's "streaming" icon is the honest one for something known only through the OS.
         streaming: true,
         manga: false,
+        generic: false,
         parsed,
         position_sec: None,
         duration_sec: None,

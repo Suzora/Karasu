@@ -361,8 +361,11 @@ Two more, decided by the maintainer in August 2026:
   the tab that plays it, the playing tab's URL, the session file), and no
   unofficial site appears in code, tests, fixtures, docs, the website, the
   changelog or a commit message. Measurements from such sites are anonymised
-  before they are shared (`browser-measure.mjs --redact`). The manga readers
-  `profiles.rs` still names leave in a change of their own.
+  before they are shared (`browser-measure.mjs --redact`). The unofficial
+  manga readers left `profiles.rs` the same day, including the one that
+  hosts fan translations ("everything unofficial goes"); MANGA Plus is the
+  one reader still named, and a chapter anywhere else goes through the
+  generic rule below.
 - **A browser extension or a native-messaging host for detection.** Also
   decided on 2026-10-07: Karasu reads only what the system and the browser
   already publish — media sessions, window titles and, opt-in, the browser's
@@ -1663,6 +1666,26 @@ async update the real code makes after an await warns instead.
   compared word for word in the matcher's form (`browser::relation`), never
   the rest of what is open. `scripts/browser-measure.mjs` takes the same
   measurement from outside the app, session files included.
+- **A chapter on a site Karasu does not name is taken only for a manga being
+  read, and always asks.** Since 2026-10-07, when the unofficial readers
+  left, `browser::chapter_tab` reads any browser window whose title spells a
+  chapter with its word (`parser::spells_chapter`: "Ch. 45", "Chapter",
+  "Kapitel" — never a bare or `#` number) and holds no off-topic word
+  (discussion, wiki, review, spoilers …). The series is one deterministic
+  guess, because it is the correction key: the text before the chapter word,
+  else the segment before it, else the one after, cut at ` - `, ` | ` and
+  their dashes, without a leading "Read", brackets, a volume or a trailing
+  "Manga"/"Manhwa". It is the sweep's last rung (`detect_chapter_tab`),
+  after the media sessions and a paused mpv, and only the first such window
+  in z-order is read. `build_now_playing` then matches it against Reading
+  and Rereading entries only (`match_pool`) and drops it, card and all,
+  unless one matched and the chapter is at most two past its progress and
+  inside its known length (`generic_refusal`); a user's correction is their
+  word and skips those gates. The session is `generic`, so `cautious` makes
+  it ask whatever the settings say and never lets its gap block lift by
+  itself. A drop is logged once per title, never per tick, and the card is
+  not re-judged until the title changes, so a manga marked Reading while
+  its tab is open is picked up at the next chapter.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

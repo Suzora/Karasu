@@ -74,6 +74,9 @@ pub struct NowPlaying {
     /// List status of the matched entry when detection started.
     #[serde(skip)]
     pub list_status: String,
+    /// Detected by a site-neutral rule, so its session always asks and never lifts a gap block by itself.
+    #[serde(skip)]
+    pub generic: bool,
 }
 
 /// Currently detected playback, shared by commands and the scrobbler.
@@ -377,6 +380,51 @@ pub(crate) fn shift_episode(episode: u32, offset: i32) -> u32 {
     shifted.clamp(1, u32::MAX as i64) as u32
 }
 
+/// The candidates a detection may match: the whole list, or for a generic one only what is being read.
+fn match_pool(candidates: &[matcher::Candidate], generic: bool) -> std::borrow::Cow<'_, [matcher::Candidate]> {
+    if !generic {
+        return std::borrow::Cow::Borrowed(candidates);
+    }
+    std::borrow::Cow::Owned(
+        candidates
+            .iter()
+            .filter(|c| c.status == "CURRENT" || c.status == "REPEATING")
+            .cloned()
+            .collect(),
+    )
+}
+
+/// Why a generic chapter tab is left alone, or None to take it: a manga being read, at most two past its progress.
+fn generic_refusal(
+    matched: bool,
+    chapter: Option<u32>,
+    progress: Option<u32>,
+    total: Option<u32>,
+) -> Option<&'static str> {
+    let Some(chapter) = chapter else {
+        return Some("no chapter");
+    };
+    if !matched {
+        return Some("no manga you are reading matches it");
+    }
+    if chapter > progress.unwrap_or(0).saturating_add(2) {
+        return Some("more than two chapters past your progress");
+    }
+    if total.is_some_and(|t| chapter > t) {
+        return Some("past the manga's last chapter");
+    }
+    None
+}
+
+/// A generic detection's settings: it always asks, and a gap block it raised never lifts itself.
+fn cautious(mut settings: crate::commands::ScrobbleSettings, generic: bool) -> crate::commands::ScrobbleSettings {
+    if generic {
+        settings.confirm = true;
+        settings.gap_auto = false;
+    }
+    settings
+}
+
 /// What `resolve_match` found; a struct rather than a tuple, because six positional fields is a puzzle.
 struct Resolved {
     title: Option<String>,
@@ -413,11 +461,12 @@ fn resolve_match(
     }
 }
 
+/// What is playing as the card shows it; None only for a generic tab that names nothing being read.
 fn build_now_playing(
     db: &Db,
     rules: &[relations::Rule],
     playback: detection::Playback,
-) -> NowPlaying {
+) -> Option<NowPlaying> {
     let media_type = if playback.manga { "MANGA" } else { "ANIME" };
     // A source that knows the series supplies the parse; re-parsing could lose its episode or invent one.
     let parsed = match playback.parsed.clone() {
@@ -426,6 +475,7 @@ fn build_now_playing(
         None => parser::parse(&playback.media_title),
     };
     let candidates = candidates_from_cache(db, media_type);
+    let pool = match_pool(&candidates, playback.generic);
 
     // The user's own answer comes before the fuzzy sweep, the same precedence `index_files` gives the scanner.
     let forced = detection_override(db, &parsed.title, parsed.season, media_type);
@@ -448,7 +498,7 @@ fn build_now_playing(
 
     let matched = match &forced {
         Some(o) => Some(matcher::Match { media_id: o.media_id, score: 1.0 }),
-        None => matcher::best_match(&parsed, &candidates),
+        None => matcher::best_match(&parsed, &pool),
     };
 
     // Logged here while the score exists, not in the matcher, where a line per scanned file would rotate the log.
@@ -458,11 +508,11 @@ fn build_now_playing(
             Some(m) => format!(
                 "{:?} → {:?} ep {:?} matched #{} score {:.2} of {} candidates",
                 playback.media_title, parsed.title, parsed.episode, m.media_id,
-                m.score, candidates.len()
+                m.score, pool.len()
             ),
             None => format!(
                 "{:?} → {:?} ep {:?} matched nothing among {} candidates",
-                playback.media_title, parsed.title, parsed.episode, candidates.len()
+                playback.media_title, parsed.title, parsed.episode, pool.len()
             ),
         },
     );
@@ -515,7 +565,18 @@ fn build_now_playing(
         ),
     };
 
-    NowPlaying {
+    // The user's correction is their word on the series, so only an uncorrected generic tab has to earn its place.
+    if playback.generic && forced.is_none() {
+        if let Some(why) = generic_refusal(media_id.is_some(), episode, resolved.progress, resolved.total) {
+            crate::logging::debug(
+                "recognize",
+                format!("chapter tab {:?} ch {episode:?} left alone: {why}", parsed.title),
+            );
+            return None;
+        }
+    }
+
+    Some(NowPlaying {
         process: playback.process,
         streaming: playback.streaming,
         media_type: media_type.to_string(),
@@ -535,7 +596,8 @@ fn build_now_playing(
         position_sec: playback.position_sec,
         duration_sec: playback.duration_sec,
         list_status: resolved.status,
-    }
+        generic: playback.generic,
+    })
 }
 
 /// The grace an episode-gap block can earn its way past by simply continuing to watch.
@@ -904,6 +966,7 @@ pub fn requeue_match(app: &AppHandle) {
     let parsed_title;
     let season;
     let source_episode;
+    let generic;
     {
         let state = app.state::<PlaybackState>();
         let guard = state.0.guard();
@@ -911,6 +974,7 @@ pub fn requeue_match(app: &AppHandle) {
         media_type = np.media_type.clone();
         parsed_title = np.parsed_title.clone();
         season = np.season;
+        generic = np.generic;
         // The number the source gave, never the resolved one: re-resolving a shifted episode would move it again.
         source_episode = np.source_episode;
     }
@@ -935,7 +999,7 @@ pub fn requeue_match(app: &AppHandle) {
                 release_group: None,
                 episode_title: None,
             },
-            &candidates,
+            &match_pool(&candidates, generic),
         )
         .map(|m| m.media_id),
     };
@@ -1158,7 +1222,7 @@ pub fn spawn(app: AppHandle) {
                     let db = app.state::<Db>();
                     let rules = app.state::<Relations>();
                     let rules = rules.0.read().unwrap().clone();
-                    playback.map(|p| build_now_playing(&db, &rules, p))
+                    playback.and_then(|p| build_now_playing(&db, &rules, p))
                 };
                 *app.state::<PlaybackState>().0.guard() = now.clone();
                 let _ = app.emit("now-playing", &now);
@@ -1185,7 +1249,8 @@ async fn drive_session(app: &AppHandle) {
     let now_playing = app.state::<PlaybackState>().0.guard().clone();
     let settings = {
         let db = app.state::<Db>();
-        crate::commands::read_scrobble_settings(&db)
+        let generic = now_playing.as_ref().is_some_and(|np| np.generic);
+        cautious(crate::commands::read_scrobble_settings(&db), generic)
     };
 
     // Phase decision under the lock, the update itself afterwards; no await while holding the mutex.
@@ -1373,10 +1438,10 @@ async fn drive_session(app: &AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::{
-        applies_to, armed_now, auto_arm, block_reason, cached_user_id, candidates_from_cache,
-        defer_for_peer, detection_override, grace_spent, position_due, resolve_match, respelled,
-        season_key, service_transition, shift_episode, threshold, would_regress, BlockReason, Db,
-        NowPlaying,
+        applies_to, armed_now, auto_arm, block_reason, build_now_playing, cached_user_id,
+        candidates_from_cache, cautious, defer_for_peer, detection_override, generic_refusal,
+        grace_spent, match_pool, position_due, resolve_match, respelled, season_key,
+        service_transition, shift_episode, threshold, would_regress, BlockReason, Db, NowPlaying,
         Phase, Session, YieldTarget, DEFAULT_THRESHOLD, EMPTY_TICK_GRACE, GAP_GRACE,
         HIDDEN_POLL_INTERVAL, MANGA_THRESHOLD, POLL_INTERVAL, SERVICE_RETRY, YIELD_GRACE,
     };
@@ -1404,6 +1469,7 @@ mod tests {
             position_sec: None,
             duration_sec: None,
             list_status: "CURRENT".into(),
+            generic: false,
         }
     }
 
@@ -1839,5 +1905,91 @@ mod tests {
 
         let c = &candidates_from_cache(&db, "ANIME")[0];
         assert_eq!(c.titles, vec!["Sousou no Frieren", "Frieren: Beyond Journey's End", "葬送のフリーレン"]);
+    }
+
+    fn quiet_settings() -> crate::commands::ScrobbleSettings {
+        crate::commands::ScrobbleSettings { enabled: true, confirm: false, delay_min: 0, gap_auto: true }
+    }
+
+    /// A tab on a site Karasu does not know asks whatever the settings say, and its gap block never lifts by itself.
+    #[test]
+    fn a_generic_detection_always_asks_and_never_lifts_a_gap_block() {
+        let generic = cautious(quiet_settings(), true);
+        assert!(generic.enabled && generic.confirm && !generic.gap_auto);
+        let known = cautious(quiet_settings(), false);
+        assert!(!known.confirm && known.gap_auto, "a known source keeps the user's settings");
+        let gap = Phase::Blocked(BlockReason::EpisodeGap { episode: 46, progress: 44 });
+        assert_eq!(auto_arm(generic.enabled, generic.gap_auto, &gap, GAP_GRACE), None);
+        assert!(!armed_now(generic.enabled, generic.gap_auto, &gap, true));
+    }
+
+    #[test]
+    fn a_generic_chapter_is_taken_only_near_the_progress_of_a_manga_being_read() {
+        assert_eq!(generic_refusal(true, Some(45), Some(44), Some(100)), None);
+        assert_eq!(generic_refusal(true, Some(46), Some(44), None), None, "one skipped is still shown, as a gap");
+        assert!(generic_refusal(true, Some(47), Some(44), None).is_some(), "a jump is not reading");
+        assert!(generic_refusal(false, Some(45), None, None).is_some(), "nothing being read matched");
+        assert!(generic_refusal(true, Some(101), Some(100), Some(100)).is_some(), "past the last chapter");
+        assert!(generic_refusal(true, None, Some(44), None).is_some());
+    }
+
+    /// A manga list with one series being read at chapter 44 and one only planned.
+    fn reading_db() -> Db {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id": 6421433, "name": "Kyusetzu"}"#).unwrap();
+        let lists = serde_json::json!([{ "isCustomList": false, "entries": [
+            { "mediaId": 1, "progress": 44, "status": "CURRENT", "media": {
+                "title": { "romaji": "Kusuriya no Hitorigoto" }, "chapters": null } },
+            { "mediaId": 2, "progress": 0, "status": "PLANNING", "media": {
+                "title": { "romaji": "One Piece" }, "chapters": null } }
+        ] }]);
+        db.cache_list(6421433, "MANGA", &lists.to_string()).unwrap();
+        db
+    }
+
+    fn chapter_tab(series: &str, chapter: u32) -> crate::playback::detection::Playback {
+        let window = crate::playback::detection::WindowInfo {
+            process: "firefox.exe".into(),
+            title: format!("{series} - Ch. {chapter} - ExampleReader — Mozilla Firefox"),
+        };
+        crate::playback::detection::detect_chapter_tab(&[window]).expect("a chapter tab")
+    }
+
+    #[test]
+    fn a_chapter_tab_of_a_series_being_read_is_detected() {
+        let np = build_now_playing(&reading_db(), &[], chapter_tab("Kusuriya no Hitorigoto", 45)).unwrap();
+        assert_eq!((np.media_id, np.episode, np.progress), (Some(1), Some(45), Some(44)));
+        assert_eq!(np.media_type, "MANGA");
+        assert!(np.generic);
+    }
+
+    #[test]
+    fn a_chapter_page_of_an_unrelated_series_is_not() {
+        let db = reading_db();
+        assert_eq!(build_now_playing(&db, &[], chapter_tab("One Piece", 1)), None, "planned, not being read");
+        assert_eq!(build_now_playing(&db, &[], chapter_tab("Berserk", 380)), None, "not on the list");
+    }
+
+    #[test]
+    fn a_jump_past_the_next_chapters_is_not_detected() {
+        let db = reading_db();
+        assert_eq!(build_now_playing(&db, &[], chapter_tab("Kusuriya no Hitorigoto", 47)), None);
+        assert!(build_now_playing(&db, &[], chapter_tab("Kusuriya no Hitorigoto", 46)).is_some());
+    }
+
+    #[test]
+    fn a_correction_takes_a_chapter_tab_past_the_gates() {
+        let db = reading_db();
+        db.detection_override_set("One Piece", -1, "MANGA", 2, "One Piece", 0).unwrap();
+        let np = build_now_playing(&db, &[], chapter_tab("One Piece", 1100)).unwrap();
+        assert_eq!((np.media_id, np.overridden, np.generic), (Some(2), true, true));
+    }
+
+    #[test]
+    fn only_a_generic_detection_is_held_to_what_is_being_read() {
+        let all = candidates_from_cache(&reading_db(), "MANGA");
+        assert_eq!(match_pool(&all, false).len(), 2);
+        let reading: Vec<i64> = match_pool(&all, true).iter().map(|c| c.media_id).collect();
+        assert_eq!(reading, vec![1]);
     }
 }

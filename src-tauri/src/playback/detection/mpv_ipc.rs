@@ -103,6 +103,7 @@ pub(crate) fn playback_from_state(state: &MpvState) -> Option<Playback> {
         media_title: title,
         streaming: false,
         manga: false,
+        generic: false,
         parsed: None,
         position_sec: state.position_sec,
         duration_sec: state.duration_sec,

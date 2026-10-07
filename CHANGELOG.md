@@ -99,6 +99,7 @@ tag time is then optional rather than load-bearing.
 - The app's code is about 44 KiB smaller after dropping the animation library the notification toast used; the toast looks and behaves as before.
 - A store build (Flathub, F-Droid) no longer offers an update check; the store delivers its updates.
 - With verbose logging on, the log says why a playing media session was not recognised, and which browser windows hold its title.
+- Manga detection names only official readers, and a chapter on any other site is recognised for a manga you are reading, always with a confirmation.
 
 ## 1.32.0 — 2026-10-03
 

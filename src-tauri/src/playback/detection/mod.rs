@@ -40,6 +40,9 @@ pub struct Playback {
     pub streaming: bool,
     /// true if this is manga reading (chapters instead of episodes)
     pub manga: bool,
+    /// Found by a site-neutral rule rather than a known player or site, so the scrobbler always asks before it writes.
+    #[serde(skip)]
+    pub generic: bool,
     /// Set when the source already knows the series, so the parser is skipped: Jellyfin's API and series-only sites.
     pub parsed: Option<crate::playback::recognition::parser::Parsed>,
     /// Playback position in seconds when the source reports one; a window title never does, so the wall clock steps in.
@@ -132,6 +135,7 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 media_title: media,
                 streaming: false,
                 manga: false,
+                generic: false,
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
@@ -148,6 +152,7 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 media_title: media,
                 streaming: true,
                 manga: false,
+                generic: false,
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
@@ -162,6 +167,7 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 media_title: media,
                 streaming: true,
                 manga: true,
+                generic: false,
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
@@ -171,7 +177,24 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
     None
 }
 
-/// Full sweep, most-knowing source first: playing mpv IPC, Jellyfin, window titles, media sessions, then a paused mpv.
+/// The first browser window on a chapter at a site with no rule of its own; kept only for a manga being read.
+pub fn detect_chapter_tab(windows: &[WindowInfo]) -> Option<Playback> {
+    windows.iter().find_map(|w| {
+        let (media_title, parsed) = browser::match_chapter_tab(&w.process, &w.title)?;
+        Some(Playback {
+            process: w.process.clone(),
+            media_title,
+            streaming: true,
+            manga: true,
+            generic: true,
+            parsed: Some(parsed),
+            position_sec: None,
+            duration_sec: None,
+        })
+    })
+}
+
+/// Full sweep, most-knowing source first: playing mpv IPC, Jellyfin, windows, media sessions, a paused mpv, a chapter tab.
 pub async fn detect_playback(
     media_detection: bool,
     jellyfin: Option<jellyfin::JellyfinConfig>,
@@ -194,15 +217,16 @@ pub async fn detect_playback(
         }
     }
     // Blocking Win32/WinRT and D-Bus work; keep it off the runtime's worker thread.
-    let found = tokio::task::spawn_blocking(move || {
+    let (found, chapter) = tokio::task::spawn_blocking(move || {
         // Said at each rung rather than once afterwards: `Playback` carries no source field, so nothing later knows which won.
         let windows = enumerate_windows();
         if let Some(p) = detect_windows_in(&windows) {
             crate::logging::debug_changed("detect", "source", format!("window title: {:?}", p.media_title));
-            return Some(p);
+            return (Some(p), None);
         }
+        // Read here, where the windows are, and used last: of every rung it knows the least.
         if !media_detection {
-            return None;
+            return (None, detect_chapter_tab(&windows));
         }
         let sessions = media_session::sessions();
         let found = media_session::detect(&sessions);
@@ -214,12 +238,13 @@ pub async fn detect_playback(
                 browser::unlinked_line(&sessions, &windows).unwrap_or_else(|| "no playing session left unrecognised".into()),
             ),
         }
-        found
+        let chapter = if found.is_none() { detect_chapter_tab(&windows) } else { None };
+        (found, chapter)
     })
     .await
-    .unwrap_or(None);
+    .unwrap_or((None, None));
 
-    // Nothing live anywhere: a paused pipe is still what is on this machine.
+    // Nothing live anywhere: a paused pipe is still what is on this machine, and a chapter tab comes after even that.
     if found.is_none() {
         if let Some(p) = &paused_mpv {
             crate::logging::debug_changed(
@@ -227,9 +252,39 @@ pub async fn detect_playback(
                 "source",
                 format!("mpv ipc (paused): {:?}", p.media_title),
             );
+        } else if let Some(p) = &chapter {
+            crate::logging::debug_changed("detect", "source", format!("chapter tab: {:?}", p.media_title));
         }
     }
-    found.or(paused_mpv)
+    found.or(paused_mpv).or(chapter)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn window(process: &str, title: &str) -> WindowInfo {
+        WindowInfo { process: process.into(), title: title.into() }
+    }
+
+    #[test]
+    fn a_chapter_tab_is_a_generic_manga_reading() {
+        let windows = [
+            window("explorer.exe", "Kusuriya no Hitorigoto - Ch. 45"),
+            window("firefox.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox"),
+        ];
+        let p = detect_chapter_tab(&windows).unwrap();
+        assert_eq!(p.process, "firefox.exe");
+        assert!(p.manga && p.generic && p.streaming);
+        let parsed = p.parsed.unwrap();
+        assert_eq!((parsed.title.as_str(), parsed.episode), ("Kusuriya no Hitorigoto", Some(45)));
+    }
+
+    #[test]
+    fn the_windows_rung_never_answers_with_a_chapter_tab() {
+        let windows = [window("firefox.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox")];
+        assert_eq!(detect_windows_in(&windows), None);
+    }
 }
 
 /// Manual live tests: run one with `--ignored --nocapture` and a player or a browser playing to print what it sees.

@@ -115,7 +115,9 @@ same set the [website](https://suzora.github.io/Karasu/) shows at full size.
   session, so a pause defers the update rather than faking a watch
 - An opt-in **mpv IPC** source — point Karasu at mpv's JSON IPC socket and it
   reads the real file path and the live position instead of a window title
-- Manga reading detection (MangaDex, MANGA Plus, Comick, Bato, MangaFire, Asura Scans)
+- Manga reading detection on Windows: a chapter on MANGA Plus, or a chapter of a
+  manga you are reading open in any browser tab — at most two chapters past your
+  progress, and always confirmed before it is written
 - **Media-session detection** (SMTC on Windows, MPRIS on Linux) for players
   that report to the system media controls instead of writing the title into
   their window — Jellyfin Media Player, Plex and browser video

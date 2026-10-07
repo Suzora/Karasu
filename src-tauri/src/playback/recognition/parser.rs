@@ -210,6 +210,11 @@ fn chapter_regexes() -> &'static [Regex; 3] {
     })
 }
 
+/// Whether the text spells a chapter out with its word ("Ch. 45", "Chapter 45", "Kapitel 45"), not a bare or "#" number.
+pub fn spells_chapter(input: &str) -> bool {
+    chapter_regexes()[0].is_match(input)
+}
+
 /// Parses a manga title from a browser tab; the chapter number is carried in the `episode` field.
 pub fn parse_manga(input: &str) -> Parsed {
     let mut work = input.trim().to_string();
@@ -446,8 +451,17 @@ mod tests {
 
     #[test]
     fn manga_no_chapter() {
-        let r = parse_manga("MangaDex Homepage");
+        let r = parse_manga("ExampleReader Homepage");
         assert_eq!(r.episode, None);
+    }
+
+    #[test]
+    fn only_the_chapter_word_spells_a_chapter() {
+        assert!(spells_chapter("Kusuriya no Hitorigoto - Ch. 45"));
+        assert!(spells_chapter("Berserk Kapitel 380"));
+        assert!(!spells_chapter("Kusuriya no Hitorigoto - 45"));
+        assert!(!spells_chapter("Fix the crash · Issue #45"));
+        assert!(!spells_chapter("Chapters of a history"));
     }
 
     /// Thousands of inputs a run: nothing panics, the numbers stay inside their digit counts, and a plain name survives.

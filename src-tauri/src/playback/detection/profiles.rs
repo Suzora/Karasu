@@ -225,16 +225,15 @@ pub fn match_site(title: &str) -> Option<SiteTitle> {
     None
 }
 
-/// Manga reading sites: same mechanics as streaming, but the title carries a chapter number.
+/// Official manga readers: same mechanics as streaming, but the title carries a chapter number.
 const MANGA_MARKERS: &[(&str, &[&str])] = &[
-    ("MangaDex", &[" - MangaDex", " – MangaDex"]),
     ("MANGA Plus", &[" - MANGA Plus by SHUEISHA", " | MANGA Plus", " - MANGA Plus"]),
-    ("Comick", &[" - Comick", " | Comick"]),
-    ("Bato.To", &[" - Bato.To"]),
-    ("Bato.to", &[" - Bato.to"]),
-    ("MangaFire", &[" - MangaFire"]),
-    ("Asura Scans", &[" - Asura Scans"]),
 ];
+
+/// Whether a tab title names one of the readers above, whose own rule decides it.
+pub(crate) fn names_manga_site(title: &str) -> bool {
+    MANGA_MARKERS.iter().any(|(marker, _)| title.contains(marker))
+}
 
 /// Extracts the file name from a known player's window when the title looks like a video file.
 pub fn match_player(process: &str, title: &str) -> Option<String> {
@@ -266,7 +265,7 @@ pub fn match_player(process: &str, title: &str) -> Option<String> {
     None
 }
 
-fn strip_browser_suffix(title: &str) -> Option<String> {
+pub(crate) fn strip_browser_suffix(title: &str) -> Option<String> {
     let mut media = title.to_string();
     for suffix in BROWSER_SUFFIXES {
         if let Some(stripped) = media.strip_suffix(suffix) {
@@ -291,7 +290,7 @@ pub fn match_streaming(process: &str, title: &str) -> Option<String> {
     parser::parse(&site.media).episode_marked.then_some(site.media)
 }
 
-/// Detects manga reading in browser tabs (MangaDex and friends).
+/// Detects manga reading on an official reader's tab; a chapter anywhere else is `browser::chapter_tab`'s.
 pub fn match_manga(process: &str, title: &str) -> Option<String> {
     if !BROWSERS.contains(&process) {
         return None;
@@ -477,26 +476,34 @@ mod tests {
     }
 
     #[test]
-    fn manga_mangadex_chapter() {
+    fn manga_plus_chapter() {
         assert_eq!(
             match_manga(
                 "firefox.exe",
-                "Kusuriya no Hitorigoto - Ch. 45 - MangaDex — Mozilla Firefox"
+                "One Piece - Chapter 1100 - MANGA Plus by SHUEISHA — Mozilla Firefox"
             ),
-            Some("Kusuriya no Hitorigoto - Ch. 45".to_string())
+            Some("One Piece - Chapter 1100".to_string())
         );
     }
 
     #[test]
     fn manga_overview_page_ignored() {
         assert_eq!(
-            match_manga("chrome.exe", "MangaDex - Google Chrome"),
+            match_manga("chrome.exe", "MANGA Plus by SHUEISHA - Google Chrome"),
             None
         );
     }
 
     #[test]
     fn manga_non_browser_ignored() {
-        assert_eq!(match_manga("mpv.exe", "Something Ch. 4 - MangaDex"), None);
+        assert_eq!(match_manga("mpv.exe", "Something Ch. 4 - MANGA Plus"), None);
+    }
+
+    /// Only an official reader is a known site; a chapter elsewhere goes through the generic rule or nowhere.
+    #[test]
+    fn a_reader_karasu_does_not_name_is_not_a_known_site() {
+        let title = "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox";
+        assert_eq!(match_manga("firefox.exe", title), None);
+        assert!(!names_manga_site(title));
     }
 }
