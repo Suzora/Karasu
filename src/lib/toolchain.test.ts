@@ -24,6 +24,16 @@ describe("the Rust toolchain pin", () => {
     }
   });
 
+  it("comes with clippy in every job that runs it", () => {
+    for (const [file, text] of Object.entries(WORKFLOWS)) {
+      const jobs = text.split(/\n(?= {2}[\w-]+:\r?\n)/).filter((j) => j.includes("cargo clippy"));
+      for (const job of jobs) {
+        const setup = job.split(/\n(?=\s*- (?:name|uses):)/).find((s) => s.includes("dtolnay/rust-toolchain@"));
+        expect(setup, `${file}: a job runs clippy without installing it`).toMatch(/components:.*\bclippy\b/);
+      }
+    }
+  });
+
   it("is what the F-Droid recipe asks rustup for", () => {
     expect(RECIPE["/packaging/fdroid/dev.kyu.karasu.yml"]).toContain(`--default-toolchain ${pin}`);
   });
