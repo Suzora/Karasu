@@ -1668,8 +1668,11 @@ async update the real code makes after an await warns instead.
   measurement from outside the app, session files included.
 - **A chapter on a site Karasu does not name is taken only for a manga being
   read, and always asks.** Since 2026-10-07, when the unofficial readers
-  left, `browser::chapter_tab` reads the tab each browser window shows when
-  its title spells a chapter with its word (`parser::spelled_chapter`: "Ch.
+  left, MANGA Plus is the one reader named, and only by the suffix its tab
+  ends in (`strip_manga_site`): a post or a thread that merely mentions it
+  would otherwise take the official path, which never asks. Any other tab
+  goes to `browser::chapter_tab`, which reads the tab each browser window
+  shows when its title spells a chapter with its word (`parser::spelled_chapter`: "Ch.
   45", "Chapter", "Kapitel" — never a bare or `#` number) and is not a page
   about chapters (`off_topic`): no off-topic word in English or German
   (discussion, wiki, review, spoilers, Diskussion …), no phrase like
@@ -1696,7 +1699,9 @@ async update the real code makes after an await warns instead.
   cut at ` - `, ` | ` and their dashes, without a leading "Read", any
   bracket, a volume or a trailing "Manga"/"Manhwa"; a bracket stands for
   the series ("[Oshi no Ko]") only once nothing before the chapter word
-  names one without it, or a scan group's tag would. A season or a part stays in the
+  names one without brackets, and then a segment that is only a bracket
+  comes before a tag in the chapter's own segment, or a scan group's tag
+  would win. A season or a part stays in the
   guess, "Staffel" re-spelt "Season" and the number set as `season`,
   because AniList keeps some as entries of their own (Ascendance of a
   Bookworm's parts): cutting it matched Part 3 against Part 4, while kept,

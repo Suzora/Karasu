@@ -96,7 +96,7 @@ const POSITION_WORDS: &[&str] = &[
 const SEGMENT_SEPARATORS: &[&str] = &[" - ", " – ", " — ", " | ", " · "];
 
 /// The tab title without Edge's count of the window's other tabs, which changes whenever one opens or closes.
-fn without_tab_count(title: &str) -> String {
+pub(crate) fn without_tab_count(title: &str) -> String {
     static RE: OnceLock<Regex> = OnceLock::new();
     // Edge's own wording in the two languages the app ships, read out of its locale files.
     let re = RE.get_or_init(|| {
@@ -223,8 +223,8 @@ pub(crate) fn chapter_tab(title: &str) -> Option<Parsed> {
     // A bracket stands for the series ("[Oshi no Ko]") only once nothing before the chapter names one without it.
     let candidates = std::iter::once((own, false))
         .chain(parts[..at].iter().rev().map(|p| (p.as_str(), false)))
-        .chain(std::iter::once((own, true)))
         .chain(parts[..at].iter().rev().map(|p| (p.as_str(), true)))
+        .chain(std::iter::once((own, true)))
         .chain(parts.get(at + 1).map(|p| (p.as_str(), true)));
     let mut marker: Option<String> = None;
     let mut series: Option<String> = None;
@@ -405,6 +405,8 @@ mod tests {
         assert_eq!(series("one piece kapitel 1101 - Suche / X"), None);
         assert_eq!(series("Jujutsu Kaisen on X: \"Chapter 261 is out now\" / X"), None);
         assert_eq!(series("One Piece auf X: „Kapitel 1101 ist da!“ / X - Persönlich"), None);
+        let mention = "Jujutsu Kaisen on X: \"Chapter 261 is out now on MANGA Plus\" / X — Mozilla Firefox";
+        assert_eq!(match_chapter_tab("firefox.exe", mention), None);
         assert_eq!(series("Jujutsu Kaisen Chapter 261 Leaked - ExampleVideos"), None);
         assert_eq!(series("One Piece Chapter 1101 Delayed - ExampleNews"), None);
         assert_eq!(series("Jujutsu Kaisen Chapter 261: Release Time, Where To Read & What To Expect - ExampleNews"), None);
@@ -494,6 +496,10 @@ mod tests {
         assert_eq!(tagged, Some(("Kusuriya no Hitorigoto".into(), Some(45))));
         let own_segment = series("Kusuriya no Hitorigoto - [ExampleScans] - Ch. 45 - ExampleReader");
         assert_eq!(own_segment, Some(("Kusuriya no Hitorigoto".into(), Some(45))));
+        // The series' own bracket before the chapter's segment beats a tag inside that segment.
+        assert_eq!(series("[Oshi no Ko] - [ExampleScans] Ch. 120 - ExampleReader"), oshi);
+        assert_eq!(series("[Oshi no Ko] - Vol. 16 (EN) Ch. 120 - ExampleReader"), oshi);
+        assert_eq!(series("[Oshi no Ko] - (Official) Ch. 120 - ExampleReader"), oshi);
     }
 
     #[test]

@@ -234,9 +234,19 @@ const MANGA_MARKERS: &[(&str, &[&str])] = &[
     ("MANGA Plus", &[" - MANGA Plus by SHUEISHA", " | MANGA Plus", " - MANGA Plus"]),
 ];
 
-/// Whether a tab title names one of the readers above, whose own rule decides it.
+/// The tab title without an official reader's suffix, or None unless it ends in one; a post naming the reader is no tab.
+fn strip_manga_site(title: &str) -> Option<String> {
+    let title = super::browser::without_tab_count(title.trim_end());
+    MANGA_MARKERS
+        .iter()
+        .flat_map(|(_, suffixes)| suffixes.iter())
+        .find_map(|s| title.strip_suffix(s))
+        .map(|rest| rest.trim().to_string())
+}
+
+/// Whether a tab title ends in one of the readers above, whose own rule decides it.
 pub(crate) fn names_manga_site(title: &str) -> bool {
-    MANGA_MARKERS.iter().any(|(marker, _)| title.contains(marker))
+    strip_manga_site(title).is_some()
 }
 
 /// Extracts the file name from a known player's window when the title looks like a video file.
@@ -299,26 +309,9 @@ pub fn match_manga(process: &str, title: &str) -> Option<String> {
     if !BROWSERS.contains(&process) {
         return None;
     }
-    let mut media = strip_browser_suffix(title)?;
-
-    let (_, site_suffixes) = MANGA_MARKERS
-        .iter()
-        .find(|(marker, _)| media.contains(marker))?;
-
-    for suffix in *site_suffixes {
-        if let Some(stripped) = media.strip_suffix(suffix) {
-            media = stripped.to_string();
-            break;
-        }
-    }
-    let media = media.trim();
-
+    let media = strip_manga_site(&strip_browser_suffix(title)?)?;
     // Only accept when a chapter number is recognizable
-    if crate::playback::recognition::parser::parse_manga(media).episode.is_some() {
-        Some(media.to_string())
-    } else {
-        None
-    }
+    crate::playback::recognition::parser::parse_manga(&media).episode.is_some().then_some(media)
 }
 
 #[cfg(test)]
@@ -501,6 +494,21 @@ mod tests {
     #[test]
     fn manga_non_browser_ignored() {
         assert_eq!(match_manga("mpv.exe", "Something Ch. 4 - MANGA Plus"), None);
+    }
+
+    /// A post, a thread or an article that mentions the reader is not its tab, and never takes its no-questions path.
+    #[test]
+    fn a_page_that_only_mentions_the_reader_is_not_its_tab() {
+        for title in [
+            "Jujutsu Kaisen on X: \"Chapter 261 is out now on MANGA Plus\" / X — Mozilla Firefox",
+            "Kagurabachi Chapter 51 is out on MANGA Plus : r/Kagurabachi — Mozilla Firefox",
+            "One Piece Chapter 1101: Release Date, Where to Read on MANGA Plus - ExampleNews — Mozilla Firefox",
+        ] {
+            assert_eq!(match_manga("firefox.exe", title), None, "{title}");
+            assert!(!names_manga_site(&strip_browser_suffix(title).unwrap()), "{title}");
+        }
+        let edge = "One Piece - Chapter 1100 - MANGA Plus by SHUEISHA and 2 more pages - Microsoft\u{200b} Edge";
+        assert_eq!(match_manga("msedge.exe", edge), Some("One Piece - Chapter 1100".to_string()));
     }
 
     /// Only an official reader is a known site; a chapter elsewhere goes through the generic rule or nowhere.
