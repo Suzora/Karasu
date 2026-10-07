@@ -119,18 +119,31 @@ pub(super) fn process_name(pid: u32) -> Option<String> {
     }
 }
 
-/// Scans visible windows for anime playback or manga reading; the media-session pass is async and runs after this.
-pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
+/// One sweep's answer: the source that won, or when none did, every chapter tab front first for the scrobbler to judge.
+#[derive(Debug, Default)]
+pub struct Sweep {
+    pub found: Option<Playback>,
+    pub chapter_tabs: Vec<Playback>,
+}
+
+/// Scans visible windows for playback or reading: what it found, and whether it passed a known player or site as paused.
+fn windows_rung(windows: &[WindowInfo]) -> (Option<Playback>, bool) {
     // A COM round trip, so it runs at most once a sweep and only once a window has matched; empty suppresses nothing.
     let mut playing: Option<audio::PlayStates> = None;
-    let mut paused = |process: &str| audio::is_paused(playing.get_or_insert_with(audio::play_states), process);
+    scan_windows(windows, |process| audio::is_paused(playing.get_or_insert_with(audio::play_states), process))
+}
+
+/// The window rung with its pause check handed in, so a test can pause a player without an audio session.
+fn scan_windows(windows: &[WindowInfo], mut paused: impl FnMut(&str) -> bool) -> (Option<Playback>, bool) {
+    let mut held = false;
     // Local players take precedence over browser detection
     for w in windows {
         if let Some(media) = profiles::match_player(&w.process, &w.title) {
             if paused(&w.process) {
+                held = true;
                 continue;
             }
-            return Some(Playback {
+            return (Some(Playback {
                 process: w.process.clone(),
                 media_title: media,
                 streaming: false,
@@ -139,15 +152,16 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
-            });
+            }), held);
         }
     }
     for w in windows {
         if let Some(media) = profiles::match_streaming(&w.process, &w.title) {
             if paused(&w.process) {
+                held = true;
                 continue;
             }
-            return Some(Playback {
+            return (Some(Playback {
                 process: w.process.clone(),
                 media_title: media,
                 streaming: true,
@@ -156,13 +170,13 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
-            });
+            }), held);
         }
     }
     // No pause check on the manga rung: a reader tab makes no sound, so its process reads Inactive whenever nothing plays.
     for w in windows {
         if let Some(media) = profiles::match_manga(&w.process, &w.title) {
-            return Some(Playback {
+            return (Some(Playback {
                 process: w.process.clone(),
                 media_title: media,
                 streaming: true,
@@ -171,41 +185,53 @@ pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
-            });
+            }), held);
         }
     }
-    None
+    (None, held)
 }
 
-/// The first browser window on a chapter at a site with no rule of its own; kept only for a manga being read.
-pub fn detect_chapter_tab(windows: &[WindowInfo]) -> Option<Playback> {
-    windows.iter().find_map(|w| {
-        let (media_title, parsed) = browser::match_chapter_tab(&w.process, &w.title)?;
-        Some(Playback {
-            process: w.process.clone(),
-            media_title,
-            streaming: true,
-            manga: true,
-            generic: true,
-            parsed: Some(parsed),
-            position_sec: None,
-            duration_sec: None,
+/// Every browser window on a chapter at a site with no rule of its own, front first; kept only for a manga being read.
+pub fn chapter_tabs(windows: &[WindowInfo]) -> Vec<Playback> {
+    windows
+        .iter()
+        .filter_map(|w| {
+            let (media_title, parsed) = browser::match_chapter_tab(&w.process, &w.title)?;
+            Some(Playback {
+                process: w.process.clone(),
+                media_title,
+                streaming: true,
+                manga: true,
+                generic: true,
+                parsed: Some(parsed),
+                position_sec: None,
+                duration_sec: None,
+            })
         })
-    })
+        .collect()
 }
 
-/// Full sweep, most-knowing source first: playing mpv IPC, Jellyfin, windows, media sessions, a paused mpv, a chapter tab.
+/// The last rung, unless a player or session was only paused: a pause outranks a chapter tab, as a paused mpv does.
+fn last_rung(held: bool, windows: &[WindowInfo]) -> Vec<Playback> {
+    if held {
+        Vec::new()
+    } else {
+        chapter_tabs(windows)
+    }
+}
+
+/// Full sweep, most-knowing source first: playing mpv IPC, Jellyfin, windows, media sessions, a paused mpv, chapter tabs.
 pub async fn detect_playback(
     media_detection: bool,
     jellyfin: Option<jellyfin::JellyfinConfig>,
     mpv: Option<mpv_ipc::MpvConfig>,
-) -> Option<Playback> {
+) -> Sweep {
     let mut paused_mpv: Option<Playback> = None;
     if let Some(cfg) = mpv {
         if let Some((p, paused)) = mpv_ipc::detect(&cfg).await {
             if !paused {
                 crate::logging::debug_changed("detect", "source", format!("mpv ipc: {:?}", p.media_title));
-                return Some(p);
+                return Sweep { found: Some(p), ..Sweep::default() };
             }
             paused_mpv = Some(p);
         }
@@ -213,20 +239,21 @@ pub async fn detect_playback(
     if let Some(cfg) = jellyfin {
         if let Some(p) = jellyfin::detect(&cfg).await {
             crate::logging::debug_changed("detect", "source", format!("jellyfin: {:?}", p.media_title));
-            return Some(p);
+            return Sweep { found: Some(p), ..Sweep::default() };
         }
     }
     // Blocking Win32/WinRT and D-Bus work; keep it off the runtime's worker thread.
-    let (found, chapter) = tokio::task::spawn_blocking(move || {
+    let (found, tabs) = tokio::task::spawn_blocking(move || {
         // Said at each rung rather than once afterwards: `Playback` carries no source field, so nothing later knows which won.
         let windows = enumerate_windows();
-        if let Some(p) = detect_windows_in(&windows) {
+        let (found, held) = windows_rung(&windows);
+        if let Some(p) = found {
             crate::logging::debug_changed("detect", "source", format!("window title: {:?}", p.media_title));
-            return (Some(p), None);
+            return (Some(p), Vec::new());
         }
-        // Read here, where the windows are, and used last: of every rung it knows the least.
+        // Read here, where the windows are, and used last: of every rung the chapter tab knows the least.
         if !media_detection {
-            return (None, detect_chapter_tab(&windows));
+            return (None, last_rung(held, &windows));
         }
         let sessions = media_session::sessions();
         let found = media_session::detect(&sessions);
@@ -238,13 +265,16 @@ pub async fn detect_playback(
                 browser::unlinked_line(&sessions, &windows).unwrap_or_else(|| "no playing session left unrecognised".into()),
             ),
         }
-        let chapter = if found.is_none() { detect_chapter_tab(&windows) } else { None };
-        (found, chapter)
+        let tabs = match found {
+            Some(_) => Vec::new(),
+            None => last_rung(held || media_session::paused_watchable(&sessions), &windows),
+        };
+        (found, tabs)
     })
     .await
-    .unwrap_or((None, None));
+    .unwrap_or_default();
 
-    // Nothing live anywhere: a paused pipe is still what is on this machine, and a chapter tab comes after even that.
+    // Nothing live anywhere: a paused pipe is still what is on this machine, and the chapter tabs come after even that.
     if found.is_none() {
         if let Some(p) = &paused_mpv {
             crate::logging::debug_changed(
@@ -252,11 +282,13 @@ pub async fn detect_playback(
                 "source",
                 format!("mpv ipc (paused): {:?}", p.media_title),
             );
-        } else if let Some(p) = &chapter {
-            crate::logging::debug_changed("detect", "source", format!("chapter tab: {:?}", p.media_title));
+        } else if !tabs.is_empty() {
+            crate::logging::debug_changed("detect", "source", format!("{} chapter tab(s)", tabs.len()));
         }
     }
-    found.or(paused_mpv).or(chapter)
+    let found = found.or(paused_mpv);
+    let chapter_tabs = if found.is_none() { tabs } else { Vec::new() };
+    Sweep { found, chapter_tabs }
 }
 
 #[cfg(test)]
@@ -273,17 +305,45 @@ mod tests {
             window("explorer.exe", "Kusuriya no Hitorigoto - Ch. 45"),
             window("firefox.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox"),
         ];
-        let p = detect_chapter_tab(&windows).unwrap();
+        let tabs = chapter_tabs(&windows);
+        assert_eq!(tabs.len(), 1);
+        let p = &tabs[0];
         assert_eq!(p.process, "firefox.exe");
         assert!(p.manga && p.generic && p.streaming);
-        let parsed = p.parsed.unwrap();
+        let parsed = p.parsed.as_ref().unwrap();
         assert_eq!((parsed.title.as_str(), parsed.episode), ("Kusuriya no Hitorigoto", Some(45)));
+    }
+
+    #[test]
+    fn every_chapter_window_is_offered_front_first() {
+        let windows = [
+            window("firefox.exe", "Berserk - Ch. 380 - ExampleReader — Mozilla Firefox"),
+            window("zen.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Zen Browser"),
+        ];
+        let titles: Vec<String> = chapter_tabs(&windows).into_iter().map(|p| p.parsed.unwrap().title).collect();
+        assert_eq!(titles, vec!["Berserk", "Kusuriya no Hitorigoto"]);
+    }
+
+    /// A paused player still outranks a chapter tab, or reading in a window behind it would replace the paused episode.
+    #[test]
+    fn a_paused_player_holds_back_every_chapter_tab() {
+        let windows = [
+            window("vlc.exe", "[Group] Sousou no Frieren - 05.mkv - VLC media player"),
+            window("firefox.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox"),
+        ];
+        let (found, held) = scan_windows(&windows, |_| true);
+        assert!(found.is_none() && held);
+        assert!(last_rung(held, &windows).is_empty());
+        let (found, held) = scan_windows(&windows, |_| false);
+        assert_eq!(found.map(|p| p.process), Some("vlc.exe".to_string()));
+        assert!(!held);
+        assert_eq!(last_rung(false, &windows).len(), 1);
     }
 
     #[test]
     fn the_windows_rung_never_answers_with_a_chapter_tab() {
         let windows = [window("firefox.exe", "Kusuriya no Hitorigoto - Ch. 45 - ExampleReader — Mozilla Firefox")];
-        assert_eq!(detect_windows_in(&windows), None);
+        assert_eq!(scan_windows(&windows, |_| false), (None, false));
     }
 }
 
@@ -296,7 +356,7 @@ mod live_tests {
         for w in super::enumerate_windows() {
             println!("FENSTER: {} | {}", w.process, w.title);
         }
-        println!("ERKANNT: {:?}", super::detect_windows_in(&super::enumerate_windows()));
+        println!("ERKANNT: {:?}", super::windows_rung(&super::enumerate_windows()));
     }
 
     /// The browser half of a measurement: which browser windows hold the title of each playing media session.

@@ -89,7 +89,7 @@ const ROWS: Row[] = [
     id: "manga",
     eyebrow: "Manga",
     title: "Manga, counted the way AniList counts it.",
-    text: "Chapters and volumes both, with a continue-reading row on the overview. On Windows, a chapter of a manga you are reading, open in any browser tab, is recognised like an episode, and Karasu asks before it counts it.",
+    text: "Chapters and volumes both, with a continue-reading row on the overview. On Windows, a chapter on MANGA Plus is recognised like an episode. On any other site, a chapter of a manga you are reading is recognised in the tab a browser window shows, and Karasu asks before it counts it.",
     media: <Screenshot shot={shot("manga-grid")} />,
   },
   {

@@ -1668,24 +1668,34 @@ async update the real code makes after an await warns instead.
   measurement from outside the app, session files included.
 - **A chapter on a site Karasu does not name is taken only for a manga being
   read, and always asks.** Since 2026-10-07, when the unofficial readers
-  left, `browser::chapter_tab` reads any browser window whose title spells a
-  chapter with its word (`parser::spells_chapter`: "Ch. 45", "Chapter",
-  "Kapitel" — never a bare or `#` number) and holds no off-topic word
-  (discussion, wiki, review, spoilers …). The series is one deterministic
-  guess, because it is the correction key: the text before the chapter word,
-  else the segment before it, else the one after, cut at ` - `, ` | ` and
-  their dashes, without a leading "Read", brackets, a volume or a trailing
-  "Manga"/"Manhwa". It is the sweep's last rung (`detect_chapter_tab`),
-  after the media sessions and a paused mpv, and only the first such window
-  in z-order is read. `build_now_playing` then matches it against Reading
-  and Rereading entries only (`match_pool`) and drops it, card and all,
+  left, `browser::chapter_tab` reads the tab each browser window shows when
+  its title spells a chapter with its word (`parser::spells_chapter`: "Ch.
+  45", "Chapter", "Kapitel" — never a bare or `#` number) and is not a page
+  about chapters (`off_topic`): no English or German off-topic word
+  (discussion, `[DISC]`, wiki, review, spoilers, leaks, Diskussion …), no
+  "release date", and no search engine's, video site's or forum thread's
+  title shape. The review that added those last ones measured why: the query
+  a reader types to find the next chapter is exactly progress + 1. The series
+  is one deterministic guess, because it is the correction key: the text
+  before the chapter word unless it holds only position words ("Season 2",
+  "Extra", "Vol. TBD"), else the segment before it, else the one after, cut
+  at ` - `, ` | ` and their dashes, without a leading "Read", any bracket, a
+  volume, a season or a trailing "Manga"/"Manhwa". The chapter tabs are the
+  sweep's last rung (`chapter_tabs`, every browser window front first),
+  after the media sessions and a paused mpv, and they are held back entirely
+  while a known player, a known site or a watchable session is only paused
+  (`last_rung`, `media_session::paused_watchable`), or reading in a window
+  behind a paused episode would end that episode's session. `now_from` keeps
+  the first tab `build_now_playing` accepts: it matches Reading and
+  Rereading entries only (`match_pool`) and drops a tab, card and all,
   unless one matched and the chapter is at most two past its progress and
-  inside its known length (`generic_refusal`); a user's correction is their
-  word and skips those gates. The session is `generic`, so `cautious` makes
-  it ask whatever the settings say and never lets its gap block lift by
-  itself. A drop is logged once per title, never per tick, and the card is
-  not re-judged until the title changes, so a manga marked Reading while
-  its tab is open is picked up at the next chapter.
+  inside its known length (`generic_refusal`). A user's correction is their
+  word and skips those gates, and clearing it applies them again
+  (`requeue_match`). The session is `generic`, so `cautious` makes it ask
+  whatever the settings say and never lets its gap block lift by itself. A
+  drop is logged once per change of the tab titles, never per tick, and
+  nothing is re-judged until a title changes, so a manga marked Reading
+  while its tab is open is picked up at the next chapter.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

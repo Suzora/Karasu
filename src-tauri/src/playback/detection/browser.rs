@@ -63,9 +63,46 @@ pub(crate) fn unlinked_line(sessions: &[MediaSession], windows: &[WindowInfo]) -
 
 /// Words that mark a page about a series rather than a chapter of it, so a tab holding one is never reading.
 const OFF_TOPIC_WORDS: &[&str] = &[
-    "analysis", "discussion", "explained", "prediction", "predictions", "reaction", "recap", "review", "reviews",
-    "spoiler", "spoilers", "summary", "trailer", "wiki",
+    "analysis", "breakdown", "countdown", "disc", "discussion", "explained", "leak", "leaks", "news", "prediction",
+    "predictions", "reaction", "recap", "reddit", "review", "reviews", "spoiler", "spoilers", "summary", "theories",
+    "theory", "trailer", "wiki",
+    // The German twins, since the chapter word itself is also read in German.
+    "analyse", "diskussion", "erklärt", "erklärung", "erscheinungsdatum", "reaktion", "rezension", "theorie",
+    "theorien", "vorhersage", "vorhersagen", "zusammenfassung",
 ];
+
+/// Phrases with the same meaning whose words alone are innocent, compared in the matcher's form.
+const OFF_TOPIC_PHRASES: &[&str] = &["release date"];
+
+/// How a search engine, a video site or a forum thread ends its tab title: a page that finds or talks about a chapter.
+const NOT_A_READER: &[&str] = &[
+    " - Google Search", " - Google Suche", " - Google-Suche", " - Search", " - Bing", " at DuckDuckGo",
+    " - DuckDuckGo", " - Ecosia", " - Brave Search", " - Startpage", " - Kagi Search", " - Qwant", " - YouTube",
+];
+
+/// Words that say where in a series a chapter sits, so text made only of them is no series at all.
+const POSITION_WORDS: &[&str] = &[
+    "bonus", "epilogue", "extra", "omake", "prologue", "side", "special", "story", "tba", "tbd", "vol", "volume",
+];
+
+/// Whether a tab is a page about chapters rather than one: a search, a video, a forum thread, or an off-topic word.
+fn off_topic(title: &str) -> bool {
+    let title = title.trim();
+    if NOT_A_READER.iter().any(|end| title.ends_with(end)) || title.contains(" : r/") {
+        return true;
+    }
+    let norm = normalize(title);
+    let padded = format!(" {norm} ");
+    norm.split(' ').any(|w| OFF_TOPIC_WORDS.contains(&w))
+        || OFF_TOPIC_PHRASES.iter().any(|p| padded.contains(&format!(" {p} ")))
+}
+
+/// Whether a guess holds nothing but position words and numbers ("Season 2", "Extra", "Vol. TBD").
+fn only_position(guess: &str) -> bool {
+    normalize(guess).split(' ').filter(|w| !w.is_empty()).all(|w| {
+        w.chars().all(char::is_numeric) || MARKER_WORDS.contains(&w) || POSITION_WORDS.contains(&w)
+    })
+}
 
 /// What a tab title puts between the series, the chapter and the site's own name.
 const SEGMENT_SEPARATORS: &[&str] = &[" - ", " – ", " — ", " | ", " · "];
@@ -79,27 +116,33 @@ fn segments(title: &str) -> Vec<String> {
     joined.split('\u{1f}').map(str::trim).filter(|s| !s.is_empty()).map(str::to_string).collect()
 }
 
-/// A series guess without what sites wrap around it: a leading "Read", brackets, a volume, a trailing "Manga" or kin.
+/// The punctuation a site leaves around a series guess.
+fn trim_separators(s: &str) -> &str {
+    s.trim_matches(|c: char| c.is_whitespace() || matches!(c, '-' | '–' | '—' | ':' | ',' | '|'))
+}
+
+/// A series guess without what sites wrap around it: "Read", brackets, a volume or season, a trailing "Manga" or kin.
 fn clean_series(guess: &str) -> String {
-    static RE: OnceLock<[Regex; 4]> = OnceLock::new();
+    static RE: OnceLock<[Regex; 5]> = OnceLock::new();
     let res = RE.get_or_init(|| {
         [
             Regex::new(r"(?i)^\s*read(?:ing)?\s+").unwrap(),
             Regex::new(r"\s*[\[(][^\])]*[\])]").unwrap(),
-            Regex::new(r"(?i)[\s,:\-–—]*\bvol(?:ume)?\.?\s*\d+(?:\.\d+)?\s*$").unwrap(),
+            Regex::new(r"(?i)[\s,:\-–—]*\bvol(?:ume)?\.?\s*(?:\d+(?:\.\d+)?|tb[ad]|\?+)[\s,:\-–—]*$").unwrap(),
+            Regex::new(r"(?i)[\s,:\-–—]*\b(?:season|staffel|part)\s*\d+[\s,:\-–—]*$").unwrap(),
             Regex::new(r"(?i)\s+(?:manga|manhwa|manhua|webtoon)\s*$").unwrap(),
         ]
     });
-    let mut out = guess.to_string();
+    let mut out = trim_separators(guess).to_string();
     for re in res {
-        out = re.replace(&out, "").to_string();
+        out = re.replace_all(&out, "").to_string();
     }
-    out.trim_matches(|c: char| c.is_whitespace() || matches!(c, '-' | '–' | '—' | ':' | ',' | '|')).to_string()
+    trim_separators(&out).to_string()
 }
 
 /// A chapter open in a tab on any site: one deterministic series guess and the chapter, or None for anything else.
 pub(crate) fn chapter_tab(title: &str) -> Option<Parsed> {
-    if normalize(title).split(' ').any(|w| OFF_TOPIC_WORDS.contains(&w)) {
+    if off_topic(title) {
         return None;
     }
     let parts = segments(title);
@@ -107,14 +150,15 @@ pub(crate) fn chapter_tab(title: &str) -> Option<Parsed> {
     let parsed = parser::parse_manga(&parts[at]);
     let chapter = parsed.episode?;
     // The text before the chapter word, else the segment before it, else the one after; never a chapter's own name.
+    let names = |s: &str| s.chars().any(char::is_alphabetic) && !only_position(s);
     let own = clean_series(&parsed.title);
-    let series = if own.chars().any(char::is_alphabetic) {
+    let series = if names(&own) {
         own
     } else {
         let beside = if at > 0 { parts.get(at - 1) } else { parts.get(at + 1) };
         clean_series(beside?)
     };
-    if !series.chars().any(char::is_alphabetic) {
+    if !names(&series) {
         return None;
     }
     Some(Parsed {
@@ -252,6 +296,39 @@ mod tests {
         assert_eq!(series("Kusuriya no Hitorigoto Chapter 45 Discussion - ExampleForum"), None);
         assert_eq!(series("Chapter 45 | Kusuriya no Hitorigoto Wiki | ExampleWiki"), None);
         assert_eq!(series("Kusuriya no Hitorigoto Chapter 45 Spoilers - ExampleForum"), None);
+        assert_eq!(series("[DISC] Kusuriya no Hitorigoto - Chapter 45 : r/manga"), None);
+        assert_eq!(series("One Piece Kapitel 1100 Diskussion - ExampleForum"), None);
+        assert_eq!(series("One Piece Chapter 1100 Release Date and Time | ExampleNews"), None);
+        assert_eq!(series("Jujutsu Kaisen Chapter 261 LEAKS - ExampleVideos"), None);
+        assert_eq!(series("Chainsaw Man Chapter 181 Full Breakdown & Theories - ExampleVideos"), None);
+    }
+
+    /// The query a reader types to find the next chapter is exactly the one the progress gate lets through.
+    #[test]
+    fn a_search_or_a_video_about_a_chapter_is_not_reading_it() {
+        assert_eq!(series("one piece chapter 1100 - Google Search"), None);
+        assert_eq!(series("jujutsu kaisen kapitel 261 - Google Suche"), None);
+        assert_eq!(series("kagurabachi chapter 51 at DuckDuckGo"), None);
+        assert_eq!(series("kagurabachi chapter 51 - Search"), None);
+        assert_eq!(series("kagurabachi chapter 51 - YouTube"), None);
+    }
+
+    /// A position word before the chapter is no series, so the guess comes from beside it and holds across chapters.
+    #[test]
+    fn a_season_extra_or_volume_marker_is_not_the_series() {
+        let expected = Some(("Kusuriya no Hitorigoto".into(), Some(45)));
+        assert_eq!(series("Kusuriya no Hitorigoto - Season 2 Chapter 45 - ExampleReader"), expected);
+        assert_eq!(series("Kusuriya no Hitorigoto - Extra Chapter 45 - ExampleReader"), expected);
+        assert_eq!(series("Vol. TBD Ch. 45 - Kusuriya no Hitorigoto - ExampleReader"), expected);
+        assert_eq!(series("Kusuriya no Hitorigoto Vol. 3, Ch. 45 - ExampleReader"), expected);
+        assert_eq!(series("Kusuriya no Hitorigoto Season 2 Chapter 45 - ExampleReader"), expected);
+        assert_eq!(series("Berserk - Vol. 41, Ch. 364 - ExampleReader"), Some(("Berserk".into(), Some(364))));
+    }
+
+    #[test]
+    fn every_bracket_leaves_the_guess() {
+        let expected = Some(("Kusuriya no Hitorigoto".into(), Some(45)));
+        assert_eq!(series("(3) [Official] Kusuriya no Hitorigoto - Ch. 45 - ExampleReader"), expected);
     }
 
     #[test]

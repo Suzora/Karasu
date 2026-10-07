@@ -527,7 +527,7 @@ export const en = {
     tagline: "Anime & manga tracker for AniList",
     version: "Version {{version}}",
     description:
-      "Karasu is a desktop tracker for your AniList anime and manga. It detects what you watch in your player or browser and what you read on manga sites, updates your progress automatically, plays the next episode from your local library, and shows your activity on Discord — all from your PC.",
+      "Karasu is a desktop tracker for your AniList anime and manga. It detects what you watch in your player or browser and what you read in your browser, updates your progress automatically (asking first for a chapter from a site it does not name), plays the next episode from your local library, and shows your activity on Discord — all from your PC.",
     updates: "Updates",
     checkUpdates: "Check for updates",
     storeUpdates: "This copy came from a store, Flathub or F-Droid, which delivers its updates; there is nothing to check here.",

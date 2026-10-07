@@ -36,8 +36,9 @@ nd = "nd"
 PNGs = "PNGs"
 
 [default.extend-words]
-# Anime seasons come in cours; ADN is a streaming service; unparseable and mis-click are spellings, not slips.
+# Anime seasons come in cours; ADN is a streaming service; Suche is German; unparseable and mis-click are spellings.
 cours = "cours"
 ADN = "ADN"
+Suche = "Suche"
 unparseable = "unparseable"
 mis = "mis"

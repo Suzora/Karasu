@@ -600,6 +600,28 @@ fn build_now_playing(
     })
 }
 
+/// What the loop compares between ticks: the winning source's title, or every chapter tab's, so a change is rejudged.
+fn sweep_key(sweep: &detection::Sweep) -> Option<(String, String)> {
+    match &sweep.found {
+        Some(p) => Some((p.process.clone(), p.media_title.clone())),
+        None if sweep.chapter_tabs.is_empty() => None,
+        None => {
+            let titles: Vec<String> =
+                sweep.chapter_tabs.iter().map(|p| format!("{}: {}", p.process, p.media_title)).collect();
+            Some(("chapter tabs".into(), titles.join("\n")))
+        }
+    }
+}
+
+/// What is playing for a sweep: the winning source, else the front-most chapter tab of a manga being read.
+fn now_from(db: &Db, rules: &[relations::Rule], sweep: detection::Sweep) -> Option<NowPlaying> {
+    match sweep.found {
+        Some(p) => build_now_playing(db, rules, p),
+        // An unrelated chapter page in front must not hide one being read behind it.
+        None => sweep.chapter_tabs.into_iter().find_map(|p| build_now_playing(db, rules, p)),
+    }
+}
+
 /// The grace an episode-gap block can earn its way past by simply continuing to watch.
 const GAP_GRACE: Duration = Duration::from_secs(5 * 60);
 
@@ -1031,6 +1053,21 @@ pub fn requeue_match(app: &AppHandle) {
         )
     });
 
+    // Without a correction a chapter tab is held to the same gates as at detection, or "undo" would keep a card it drops.
+    if generic && forced.is_none() {
+        let (progress, total) = resolved.as_ref().map_or((None, None), |(_, r)| (r.progress, r.total));
+        if let Some(why) = generic_refusal(resolved.is_some(), episode, progress, total) {
+            crate::logging::debug("recognize", format!("chapter tab {parsed_title:?} ch {episode:?} left alone: {why}"));
+            *app.state::<PlaybackState>().0.guard() = None;
+            let _ = app.emit("now-playing", &None::<NowPlaying>);
+            crate::discord::sync(app, None);
+            crate::tray_set_now_playing(app, None);
+            *app.state::<ScrobbleSession>().0.guard() = None;
+            emit_session(app, None);
+            return;
+        }
+    }
+
     // Patch under the lock, then release it before telling anyone; `discord::sync` takes the session lock itself.
     let patched = {
         let state = app.state::<PlaybackState>();
@@ -1187,20 +1224,18 @@ pub fn spawn(app: AppHandle) {
             // The tick re-reads what it decides on: the service is wanted only while all three of these hold.
             assert_tracking_service(&app, tracking_on && jellyfin.is_some() && background_wanted);
             let heartbeat_cfg = jellyfin.clone();
-            let playback = detection::detect_playback(media_detection, jellyfin, mpv).await;
+            let sweep = detection::detect_playback(media_detection, jellyfin, mpv).await;
             // Announce this instance to the other Karasus, but only while it tracks a Jellyfin playback and would write.
-            if let (Some(cfg), Some(p)) = (heartbeat_cfg.as_ref(), playback.as_ref()) {
+            if let (Some(cfg), Some(p)) = (heartbeat_cfg.as_ref(), sweep.found.as_ref()) {
                 if tracking_on && p.process.starts_with("jellyfin (") {
                     detection::jellyfin::heartbeat(cfg).await;
                 }
             }
-            let raw = playback
-                .as_ref()
-                .map(|p| (p.process.clone(), p.media_title.clone()));
+            let raw = sweep_key(&sweep);
 
             // Patch the position every tick of the same title, or the deadline check judges the start position forever.
             if raw == last_raw {
-                if let Some(p) = playback.as_ref() {
+                if let Some(p) = sweep.found.as_ref() {
                     let state = app.state::<PlaybackState>();
                     let mut guard = state.0.guard();
                     if let Some(np) = guard.as_mut() {
@@ -1222,7 +1257,7 @@ pub fn spawn(app: AppHandle) {
                     let db = app.state::<Db>();
                     let rules = app.state::<Relations>();
                     let rules = rules.0.read().unwrap().clone();
-                    playback.and_then(|p| build_now_playing(&db, &rules, p))
+                    now_from(&db, &rules, sweep)
                 };
                 *app.state::<PlaybackState>().0.guard() = now.clone();
                 let _ = app.emit("now-playing", &now);
@@ -1440,8 +1475,9 @@ mod tests {
     use super::{
         applies_to, armed_now, auto_arm, block_reason, build_now_playing, cached_user_id,
         candidates_from_cache, cautious, defer_for_peer, detection_override, generic_refusal,
-        grace_spent, match_pool, position_due, resolve_match, respelled, season_key,
-        service_transition, shift_episode, threshold, would_regress, BlockReason, Db, NowPlaying,
+        grace_spent, match_pool, now_from, position_due, resolve_match, respelled, season_key,
+        service_transition, shift_episode, sweep_key, threshold, would_regress, BlockReason, Db,
+        NowPlaying,
         Phase, Session, YieldTarget, DEFAULT_THRESHOLD, EMPTY_TICK_GRACE, GAP_GRACE,
         HIDDEN_POLL_INTERVAL, MANGA_THRESHOLD, POLL_INTERVAL, SERVICE_RETRY, YIELD_GRACE,
     };
@@ -1952,7 +1988,7 @@ mod tests {
             process: "firefox.exe".into(),
             title: format!("{series} - Ch. {chapter} - ExampleReader — Mozilla Firefox"),
         };
-        crate::playback::detection::detect_chapter_tab(&[window]).expect("a chapter tab")
+        crate::playback::detection::chapter_tabs(&[window]).into_iter().next().expect("a chapter tab")
     }
 
     #[test]
@@ -1983,6 +2019,19 @@ mod tests {
         db.detection_override_set("One Piece", -1, "MANGA", 2, "One Piece", 0).unwrap();
         let np = build_now_playing(&db, &[], chapter_tab("One Piece", 1100)).unwrap();
         assert_eq!((np.media_id, np.overridden, np.generic), (Some(2), true, true));
+    }
+
+    #[test]
+    fn an_unrelated_chapter_page_in_front_does_not_hide_one_being_read() {
+        let sweep = crate::playback::detection::Sweep {
+            found: None,
+            chapter_tabs: vec![chapter_tab("Berserk", 380), chapter_tab("Kusuriya no Hitorigoto", 45)],
+        };
+        let key = sweep_key(&sweep).expect("chapter tabs are a key");
+        assert!(key.1.contains("Berserk") && key.1.contains("Kusuriya"), "{key:?}");
+        let np = now_from(&reading_db(), &[], sweep).expect("the one being read");
+        assert_eq!((np.media_id, np.episode), (Some(1), Some(45)));
+        assert_eq!(sweep_key(&crate::playback::detection::Sweep::default()), None);
     }
 
     #[test]
