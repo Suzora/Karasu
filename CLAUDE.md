@@ -1673,15 +1673,22 @@ async update the real code makes after an await warns instead.
   45", "Chapter", "Kapitel" — never a bare or `#` number) and is not a page
   about chapters (`off_topic`): no off-topic word in English or German
   (discussion, wiki, review, spoilers, Diskussion …), no phrase like
-  "release date" or "where to read", no search engine or video site as the
-  last segment, no forum thread. Words that real series also carry (theory,
-  news, countdown, leaks, `[DISC]` …) refuse a tab only outside the series
-  guess (`off_topic_beside`), because "Dysfunctional Family Theory" is a
-  series and "Chapter 261 Theories" is a video. Two review rounds that day
-  measured why each rule exists: the query a reader types to find the next
-  chapter is exactly progress + 1. The series is one deterministic guess,
+  "release date" or "where to read", no search engine or video site as a
+  segment after the first (a browser profile's name can follow it), no
+  forum thread. Words that real series also carry (theory, news, leaks,
+  analysis, reaction, `[DISC]` …) refuse a tab outside the series guess
+  (`off_topic_beside`), and inside it unless a title of the matched entry
+  carries them too (`label_beyond_entry`, checked in `chapter_tab_refusal`),
+  because "Dysfunctional Family Theory" is a series while "Chapter 261
+  Theories" is a video and "One Piece Leaks - Chapter 1101" a leak page.
+  Three review rounds that day measured why each rule exists: the query a
+  reader types to find the next chapter is exactly progress + 1. Edge's
+  "and N more pages" is cut before anything is read (`without_tab_count`),
+  and a Firefox private window's suffix is a browser suffix like the rest.
+  The series is one deterministic guess,
   because it is the correction key: the raw text before the chapter word
-  unless it holds only position words ("Extra", "Vol. TBD", "Band 3"), else
+  unless it holds only position words or the verb ("Extra", "Vol. TBD",
+  "Band 3", "Read"), else
   the nearest segment before it that names a series, else the one after,
   cut at ` - `, ` | ` and their dashes, without a leading "Read", any
   bracket (unless the bracket is the whole name, as in "[Oshi no Ko]"), a
@@ -1694,8 +1701,9 @@ async update the real code makes after an await warns instead.
   rung (`chapter_tabs`, every browser window front first), after the media
   sessions and a paused mpv, and the loop counts them as nothing while an
   episode's session is still alive (`holds_chapter_tabs`: anime, not yet
-  written, queued or cancelled), so reading in another window never ends a
-  paused episode's session; the hold ends with that session's pause grace.
+  written, queued or cancelled, and not blocked in a way nothing may
+  override), so reading in another window never ends a paused episode's
+  session; the hold ends with that session's pause grace.
   `now_from` keeps the first tab `build_now_playing` accepts: it matches
   Reading and Rereading entries only (`match_pool`) and drops a tab, card
   and all, unless one matched and the chapter is at most two past its

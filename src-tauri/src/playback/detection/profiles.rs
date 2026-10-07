@@ -46,6 +46,7 @@ pub(crate) fn is_browser(process: &str) -> bool {
 /// Browser window titles end with the browser name — strip it.
 const BROWSER_SUFFIXES: &[&str] = &[
     " - Google Chrome",
+    " — Mozilla Firefox Private Browsing",
     " — Mozilla Firefox",
     " - Mozilla Firefox",
     " - Microsoft\u{200b} Edge",

@@ -39,7 +39,7 @@ export const FAQ: Faq[] = [
   },
   {
     q: "Does it update my AniList progress automatically?",
-    a: "Yes, once an episode has played for two thirds of its length by default — or for the minutes you set, or after you confirm a toast, if you prefer to be asked. Progress only ever moves forward, and Karasu re-reads your list right before it writes.",
+    a: "Yes, once an episode has played for two thirds of its length by default — or for the minutes you set, or after you confirm a toast, if you prefer to be asked. A chapter from a site Karasu does not name always asks first. Progress only ever moves forward, and Karasu re-reads your list right before it writes.",
   },
   {
     q: "Is Karasu affiliated with AniList?",

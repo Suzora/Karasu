@@ -416,6 +416,21 @@ fn generic_refusal(
     None
 }
 
+/// Why a chapter tab without a correction is left alone: the gates, or a label in its guess the entry does not carry.
+fn chapter_tab_refusal(
+    series: &str,
+    entry: Option<&matcher::Candidate>,
+    chapter: Option<u32>,
+    progress: Option<u32>,
+    total: Option<u32>,
+) -> Option<&'static str> {
+    generic_refusal(entry.is_some(), chapter, progress, total).or_else(|| {
+        entry
+            .filter(|c| detection::browser::label_beyond_entry(series, &c.titles))
+            .map(|_| "a word in the tab that the manga's titles do not carry")
+    })
+}
+
 /// A generic detection's settings: it always asks, and a gap block it raised never lifts itself.
 fn cautious(mut settings: crate::commands::ScrobbleSettings, generic: bool) -> crate::commands::ScrobbleSettings {
     if generic {
@@ -567,7 +582,8 @@ fn build_now_playing(
 
     // The user's correction is their word on the series, so only an uncorrected generic tab has to earn its place.
     if playback.generic && forced.is_none() {
-        if let Some(why) = generic_refusal(media_id.is_some(), episode, resolved.progress, resolved.total) {
+        let entry = media_id.and_then(|id| candidates.iter().find(|c| c.media_id == id));
+        if let Some(why) = chapter_tab_refusal(&parsed.title, entry, episode, resolved.progress, resolved.total) {
             crate::logging::debug(
                 "recognize",
                 format!("chapter tab {:?} ch {episode:?} left alone: {why}", parsed.title),
@@ -606,7 +622,13 @@ static REJUDGE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::n
 /// Whether an episode's session still waits out its pause grace, which reading in another window must not end.
 fn holds_chapter_tabs(session: Option<&Session>) -> bool {
     session.is_some_and(|s| {
-        s.media_type == "ANIME" && !matches!(s.phase, Phase::Updated | Phase::Queued | Phase::Cancelled)
+        s.media_type == "ANIME"
+            && match &s.phase {
+                Phase::Updated | Phase::Queued | Phase::Cancelled => false,
+                // A block nothing may override protects no write, so it keeps no reader waiting.
+                Phase::Blocked(reason) => reason.forceable(),
+                _ => true,
+            }
     })
 }
 
@@ -1066,7 +1088,8 @@ pub fn requeue_match(app: &AppHandle) {
     // Without a correction a chapter tab is held to the same gates as at detection, or "undo" would keep a card it drops.
     if generic && forced.is_none() {
         let (progress, total) = resolved.as_ref().map_or((None, None), |(_, r)| (r.progress, r.total));
-        if let Some(why) = generic_refusal(resolved.is_some(), episode, progress, total) {
+        let entry = picked.and_then(|id| candidates.iter().find(|c| c.media_id == id));
+        if let Some(why) = chapter_tab_refusal(&parsed_title, entry, episode, progress, total) {
             crate::logging::debug("recognize", format!("chapter tab {parsed_title:?} ch {episode:?} left alone: {why}"));
             *app.state::<PlaybackState>().0.guard() = None;
             let _ = app.emit("now-playing", &None::<NowPlaying>);
@@ -2068,6 +2091,10 @@ mod tests {
         for phase in [Phase::Updated, Phase::Queued, Phase::Cancelled] {
             assert!(!holds_chapter_tabs(Some(&Session { phase, ..session(1, 5) })));
         }
+        let watched = Phase::Blocked(BlockReason::AlreadyWatched { episode: 5, progress: 7 });
+        assert!(!holds_chapter_tabs(Some(&Session { phase: watched, ..session(1, 5) })));
+        let gap = Phase::Blocked(BlockReason::EpisodeGap { episode: 9, progress: 7 });
+        assert!(holds_chapter_tabs(Some(&Session { phase: gap, ..session(1, 9) })));
         let reading = Session { media_type: "MANGA".into(), ..session(1, 45) };
         assert!(!holds_chapter_tabs(Some(&reading)), "a chapter does not hold the next chapter");
         assert!(!holds_chapter_tabs(None));
@@ -2095,6 +2122,25 @@ mod tests {
         let np = build_now_playing(&reading_db(), &[], chapter_tab("Kusuriya no Hitorigoto Season 2", 45)).unwrap();
         assert_eq!((np.media_id, np.season), (Some(1), Some(2)));
         assert_eq!(block_reason(&np, 45, 44), None);
+    }
+
+    /// A label in front of the chapter word lands in the guess; only the matched entry can say it is no part of a name.
+    #[test]
+    fn a_label_the_entry_does_not_carry_is_no_series() {
+        let db = reading_db();
+        let leaks = |title: &str| crate::playback::detection::chapter_tabs(&[crate::playback::detection::WindowInfo {
+            process: "firefox.exe".into(),
+            title: title.into(),
+        }]);
+        let tab = leaks("Kusuriya no Hitorigoto Leaks - Chapter 45 - ExampleSite — Mozilla Firefox").pop().unwrap();
+        assert_eq!(build_now_playing(&db, &[], tab), None);
+        let theory = serde_json::json!([{ "isCustomList": false, "entries": [
+            { "mediaId": 5, "progress": 29, "status": "CURRENT", "media": {
+                "title": { "english": "Dysfunctional Family Theory" }, "chapters": null } }
+        ] }]);
+        db.cache_list(6421433, "MANGA", &theory.to_string()).unwrap();
+        let tab = leaks("Dysfunctional Family Theory - Ch. 30 - ExampleReader — Mozilla Firefox").pop().unwrap();
+        assert_eq!(build_now_playing(&db, &[], tab).and_then(|np| np.media_id), Some(5));
     }
 
     #[test]
