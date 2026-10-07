@@ -24,6 +24,7 @@
     ]
   },
   "ignoreBinaries": [
-    "typos"
+    "typos",
+    "busctl"
   ]
 }

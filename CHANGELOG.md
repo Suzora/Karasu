@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 97121a4 -->
+<!-- generated-through: 25f550e -->
 
 ### Fixed
 
@@ -98,6 +98,7 @@ tag time is then optional rather than load-bearing.
 - The detail, search and season pages load after the first paint, which makes the start about 33 KiB lighter.
 - The app's code is about 44 KiB smaller after dropping the animation library the notification toast used; the toast looks and behaves as before.
 - A store build (Flathub, F-Droid) no longer offers an update check; the store delivers its updates.
+- With verbose logging on, the log says why a playing media session was not recognised, and which browser windows hold its title.
 
 ## 1.32.0 — 2026-10-03
 

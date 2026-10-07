@@ -88,5 +88,10 @@
     "file": "scripts/screens.mjs",
     "startsWith": "Renders the real app, shell included, over a mocked backend",
     "reason": "usage block: one invocation per line"
+  },
+  {
+    "file": "scripts/browser-measure.mjs",
+    "startsWith": "Captures what a Firefox-family browser",
+    "reason": "usage block: one invocation per line"
   }
 ]

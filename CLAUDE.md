@@ -258,7 +258,14 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      overrules the subject), ratelimit-probe.mjs (re-measures
                      the shape of AniList's rate window — stepped, see the
                      notes — one unauthenticated request per sample, needs
-                     real egress to graphql.anilist.co), phone-measure.ps1
+                     real egress to graphql.anilist.co), browser-measure.mjs
+                     with browser-measure-core.mjs (what a Firefox-family
+                     browser tells the desktop while it plays: media
+                     sessions, its windows on Windows, and the session file
+                     of every profile found, listing only the tabs that hold
+                     a playing session's title, hosts and brands redacted;
+                     the core is tested in `src/lib/browserMeasure.test.ts`),
+                     phone-measure.ps1
                      (the adb side of the Android tracking-service
                      measurement: service state, standby bucket, Doze, the
                      notification job, the Kotlin logcat tags, and polls per
@@ -348,6 +355,21 @@ Two more, decided by the maintainer in August 2026:
   is the user's own files; how they got there is not the app's business, and
   nothing in Karasu may track, fetch, or point at torrents or release feeds.
   This closes the classic Taiga feature deliberately.
+- **Naming an unofficial streaming or reading site, anywhere.** Decided by the
+  maintainer on 2026-10-07: browser detection is **site-neutral**. It works
+  through mechanisms that do not name a site (the media session linked to
+  the tab that plays it, the playing tab's URL, the session file), and no
+  unofficial site appears in code, tests, fixtures, docs, the website, the
+  changelog or a commit message. Measurements from such sites are anonymised
+  before they are shared (`browser-measure.mjs --redact`). The manga readers
+  `profiles.rs` still names leave in a change of their own.
+- **A browser extension or a native-messaging host for detection.** Also
+  decided on 2026-10-07: Karasu reads only what the system and the browser
+  already publish — media sessions, window titles and, opt-in, the browser's
+  own session file. Every tracker that knows the playing tab otherwise
+  (PreMiD, MAL-Sync, WebNowPlaying, KDE's browser integration) ships an
+  extension; Taiga's UI Automation reader is the one exception, and it wakes
+  the browser's accessibility engine for the whole browser session.
 
 **The log is a deliberate exception to the first of those, decided by the
 maintainer.** With verbose logging on, `karasu.log` records what detection saw —
@@ -1626,6 +1648,21 @@ async update the real code makes after an await warns instead.
   appends its dub list (`… : Teufelsblut - streaming - DF, OmdU, … - ADN`),
   which the profile cuts. A site is named by an affix that strips, never by a
   word inside the title — "ADN" sits inside "MADNESS".
+- **Firefox and its forks tell the desktop less than the tab shows, and the
+  verbose log says what was dropped.** Read from Mozilla's source on
+  2026-10-07: the browser publishes one media session, for the tab that last
+  started playing; on Windows its SMTC entry is always typed *Music*, carries
+  only title and artist and an install-hash app id; on Linux its MPRIS entry
+  carries `xesam:url`, the playing tab's page URL (Firefox 132 on, absent in
+  private windows). A site that sets its own metadata often names only the
+  episode there, while its tab names the series. So with verbose logging on
+  the `verdict` line names every playing session that is not a known music
+  player — rejected ones included, which is what detection saw — and the
+  `browser_tabs` line, written when nothing was recognised, counts the
+  browser windows and names only those whose title holds the session's own,
+  compared word for word in the matcher's form (`browser::relation`), never
+  the rest of what is open. `scripts/browser-measure.mjs` takes the same
+  measurement from outside the app, session files included.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

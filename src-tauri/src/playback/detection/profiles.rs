@@ -38,6 +38,11 @@ const BROWSERS: &[&str] = &[
     "helium.exe",
 ];
 
+/// Whether a window's process is one of the browsers whose tabs Karasu reads.
+pub(crate) fn is_browser(process: &str) -> bool {
+    BROWSERS.contains(&process)
+}
+
 /// Browser window titles end with the browser name — strip it.
 const BROWSER_SUFFIXES: &[&str] = &[
     " - Google Chrome",

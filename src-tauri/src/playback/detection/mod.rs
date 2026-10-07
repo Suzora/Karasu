@@ -1,6 +1,7 @@
 //! Detection of running media playback via visible windows, Karasu's counterpart to Taiga's Anisthesia.
 
 pub mod audio;
+pub(crate) mod browser;
 pub mod discovery;
 pub mod jellyfin;
 pub mod media_session;
@@ -116,13 +117,12 @@ pub(super) fn process_name(pid: u32) -> Option<String> {
 }
 
 /// Scans visible windows for anime playback or manga reading; the media-session pass is async and runs after this.
-pub fn detect_windows() -> Option<Playback> {
-    let windows = enumerate_windows();
+pub fn detect_windows_in(windows: &[WindowInfo]) -> Option<Playback> {
     // A COM round trip, so it runs at most once a sweep and only once a window has matched; empty suppresses nothing.
     let mut playing: Option<audio::PlayStates> = None;
     let mut paused = |process: &str| audio::is_paused(playing.get_or_insert_with(audio::play_states), process);
     // Local players take precedence over browser detection
-    for w in &windows {
+    for w in windows {
         if let Some(media) = profiles::match_player(&w.process, &w.title) {
             if paused(&w.process) {
                 continue;
@@ -138,7 +138,7 @@ pub fn detect_windows() -> Option<Playback> {
             });
         }
     }
-    for w in &windows {
+    for w in windows {
         if let Some(media) = profiles::match_streaming(&w.process, &w.title) {
             if paused(&w.process) {
                 continue;
@@ -155,7 +155,7 @@ pub fn detect_windows() -> Option<Playback> {
         }
     }
     // No pause check on the manga rung: a reader tab makes no sound, so its process reads Inactive whenever nothing plays.
-    for w in &windows {
+    for w in windows {
         if let Some(media) = profiles::match_manga(&w.process, &w.title) {
             return Some(Playback {
                 process: w.process.clone(),
@@ -196,16 +196,23 @@ pub async fn detect_playback(
     // Blocking Win32/WinRT and D-Bus work; keep it off the runtime's worker thread.
     let found = tokio::task::spawn_blocking(move || {
         // Said at each rung rather than once afterwards: `Playback` carries no source field, so nothing later knows which won.
-        if let Some(p) = detect_windows() {
+        let windows = enumerate_windows();
+        if let Some(p) = detect_windows_in(&windows) {
             crate::logging::debug_changed("detect", "source", format!("window title: {:?}", p.media_title));
             return Some(p);
         }
         if !media_detection {
             return None;
         }
-        let found = media_session::detect();
-        if let Some(p) = &found {
-            crate::logging::debug_changed("detect", "source", format!("media session: {:?}", p.media_title));
+        let sessions = media_session::sessions();
+        let found = media_session::detect(&sessions);
+        match &found {
+            Some(p) => crate::logging::debug_changed("detect", "source", format!("media session: {:?}", p.media_title)),
+            None => crate::logging::debug_changed(
+                "detect",
+                "browser_tabs",
+                browser::unlinked_line(&sessions, &windows).unwrap_or_else(|| "no playing session left unrecognised".into()),
+            ),
         }
         found
     })
@@ -225,7 +232,7 @@ pub async fn detect_playback(
     found.or(paused_mpv)
 }
 
-/// Manual live test: run `live_detect` with `--ignored --nocapture` and a player open to print the windows and the result.
+/// Manual live tests: run one with `--ignored --nocapture` and a player or a browser playing to print what it sees.
 #[cfg(test)]
 mod live_tests {
     #[test]
@@ -234,6 +241,21 @@ mod live_tests {
         for w in super::enumerate_windows() {
             println!("FENSTER: {} | {}", w.process, w.title);
         }
-        println!("ERKANNT: {:?}", super::detect_windows());
+        println!("ERKANNT: {:?}", super::detect_windows_in(&super::enumerate_windows()));
+    }
+
+    /// The browser half of a measurement: which browser windows hold the title of each playing media session.
+    #[test]
+    #[ignore]
+    fn live_browser_windows() {
+        let windows = super::enumerate_windows();
+        let sessions = super::media_session::sessions();
+        for w in windows.iter().filter(|w| super::profiles::is_browser(&w.process)) {
+            println!("BROWSER: {} | {}", w.process, w.title);
+        }
+        for s in &sessions {
+            println!("SESSION: {} {}/{} | {:?} | {:?} | url {:?}", s.app_id, s.playback_type, s.status, s.title, s.artist, s.url);
+        }
+        println!("LINK: {:?}", super::browser::unlinked_line(&sessions, &windows));
     }
 }
