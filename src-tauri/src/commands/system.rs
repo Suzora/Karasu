@@ -1,5 +1,6 @@
 use crate::db::Db;
 use crate::sync::LockExt;
+use std::ffi::OsStr;
 use tauri::{AppHandle, Manager, State};
 
 // Siblings in the same module tree; `mod.rs` re-exports all of it, so every command keeps its old path.
@@ -181,6 +182,14 @@ pub struct PlatformInfo {
     pub flatpak: bool,
     /// Built for a store that delivers its own updates, so there is no update check to offer.
     pub store_updates: bool,
+    /// Whether the WebView can draw a View Transition; WebKitGTK without GPU compositing crashes on one.
+    pub view_transitions: bool,
+}
+
+/// Whether WebKitGTK composites on the GPU: it reads either switch as off whenever it is set to anything but `0`.
+pub(crate) fn webkit_composites(dmabuf_off: Option<&OsStr>, compositing_off: Option<&OsStr>) -> bool {
+    let set = |v: Option<&OsStr>| v.is_some_and(|v| v.to_str() != Some("0"));
+    !set(dmabuf_off) && !set(compositing_off)
 }
 
 #[tauri::command]
@@ -192,6 +201,12 @@ pub fn platform_info() -> PlatformInfo {
         app_image: crate::portable::running_from_appimage(),
         flatpak: crate::portable::flatpak_id().is_some(),
         store_updates: crate::commands::self_update_disabled(),
+        // Read after `avoid_blank_webkit_window` has set its default, so the answer matches the renderer WebKit chose.
+        view_transitions: !cfg!(target_os = "linux")
+            || webkit_composites(
+                std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").as_deref(),
+                std::env::var_os("WEBKIT_DISABLE_COMPOSITING_MODE").as_deref(),
+            ),
     }
 }
 
@@ -797,8 +812,22 @@ pub fn mark_all_notifications_read(app: AppHandle, db: State<'_, Db>) -> Result<
 mod tests {
     use super::{
         close_hides_window, describe_database, hex_from_rgb, hex_from_unit, normalize_ui_zoom,
-        UI_ZOOM_DEFAULT, UI_ZOOM_MAX, UI_ZOOM_MIN,
+        webkit_composites, UI_ZOOM_DEFAULT, UI_ZOOM_MAX, UI_ZOOM_MIN,
     };
+    use std::ffi::OsStr;
+
+    /// WebKit turns compositing off for any value but `0`, the empty string included; the transition gate must agree.
+    #[test]
+    fn webkit_composites_unless_a_switch_is_set_to_anything_but_zero() {
+        let v = |s: &'static str| Some(OsStr::new(s));
+        assert!(webkit_composites(None, None));
+        assert!(webkit_composites(v("0"), v("0")));
+        assert!(!webkit_composites(v("1"), None));
+        assert!(!webkit_composites(v(""), None));
+        assert!(!webkit_composites(v("false"), None));
+        assert!(!webkit_composites(None, v("1")));
+        assert!(!webkit_composites(v("0"), v("1")));
+    }
 
     /// A stored zoom is clamped and a missing one is the default, since it is applied before the first paint.
     #[test]

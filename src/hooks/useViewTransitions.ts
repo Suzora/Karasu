@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { prefersReducedMotion } from "@/lib/motion";
+import { canViewTransition, usePlatform } from "@/stores/platform";
 
 /** Marks the cover that should morph into the detail hero. */
 export const HERO_ATTR = "data-hero-cover";
@@ -42,6 +43,8 @@ export function useViewTransitions(routeReady: (to: string) => boolean = () => t
 
       // With motion off this must not intercept at all, so check the setting before taking the click over.
       if (prefersReducedMotion()) return;
+      // Read at the click, not at mount: the platform answers after the first render.
+      if (!canViewTransition(usePlatform.getState().info)) return;
       // A page whose chunk is not in yet would snapshot an empty pane, so that first visit navigates plainly.
       if (!routeReady(to)) return;
 

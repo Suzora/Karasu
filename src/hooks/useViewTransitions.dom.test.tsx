@@ -1,9 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router";
 import { useViewTransitions } from "./useViewTransitions";
 import { renderWithProviders } from "@/test/render";
+import { usePlatform, type PlatformInfo } from "@/stores/platform";
+
+// Inside the app, which is the only place the platform's answer gates anything.
+vi.mock("@/api/anilist", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/anilist")>()),
+  isTauri: true,
+}));
+
+const platform = (viewTransitions: boolean): PlatformInfo => ({
+  os: "linux",
+  appImage: true,
+  flatpak: false,
+  storeUpdates: false,
+  viewTransitions,
+});
 
 function Links() {
   useViewTransitions();
@@ -32,11 +47,13 @@ const start = vi.fn((update: () => Promise<void> | void) => {
 
 beforeEach(() => {
   Object.defineProperty(document, "startViewTransition", { value: start, configurable: true });
+  usePlatform.setState({ info: platform(true) });
 });
 afterEach(() => {
   updates = [];
   start.mockClear();
   Reflect.deleteProperty(document, "startViewTransition");
+  usePlatform.setState({ info: null });
 });
 
 /** The document-level click hook that wraps in-app navigation in a View Transition. */
@@ -57,5 +74,22 @@ describe("useViewTransitions", () => {
     await user.click(screen.getByText("plain"));
     expect(updates).toHaveLength(1);
     expect(await updates[0]).toBe("/user/plain");
+  });
+
+  /** WebKitGTK without GPU compositing crashes the web process on `startViewTransition`, so the router navigates alone. */
+  it("leaves the click to the router where the WebView cannot draw a transition", () => {
+    usePlatform.setState({ info: platform(false) });
+    renderWithProviders(<Links />);
+    // Not cancelled: the click stays the router's, as it is with Reduce motion on.
+    expect(fireEvent.click(screen.getByText("plain"))).toBe(true);
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it("leaves the click to the router until the platform has answered", () => {
+    usePlatform.setState({ info: null });
+    renderWithProviders(<Links />);
+    // Not cancelled: the click stays the router's, as it is with Reduce motion on.
+    expect(fireEvent.click(screen.getByText("plain"))).toBe(true);
+    expect(start).not.toHaveBeenCalled();
   });
 });
