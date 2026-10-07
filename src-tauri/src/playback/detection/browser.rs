@@ -72,8 +72,8 @@ const OFF_TOPIC_WORDS: &[&str] = &[
 
 /// Off-topic words that real series also carry in their names, so they count only where the series does not.
 const TITLE_WORDS: &[&str] = &[
-    "analyse", "analysis", "breakdown", "countdown", "disc", "leak", "leaks", "news", "reaction", "reaktion",
-    "theories", "theorie", "theorien", "theory",
+    "analyse", "analysis", "breakdown", "countdown", "delay", "delayed", "disc", "leak", "leaked", "leaks", "news",
+    "reaction", "reactions", "reaktion", "theories", "theorie", "theorien", "theory",
 ];
 
 /// Phrases with the same meaning whose words alone are innocent, compared in the matcher's form.
@@ -82,8 +82,8 @@ const OFF_TOPIC_PHRASES: &[&str] = &["release date", "release time", "where to r
 /// The last segment of a search engine's or a video site's tab title: a page that finds a chapter, not one.
 const NOT_A_READER: &[&str] = &[
     "Google Search", "Google Suche", "Google-Suche", "Search", "Suchen", "Bing", "DuckDuckGo", "Ecosia",
-    "Brave Search", "Startpage", "Kagi Search", "Qwant", "Qwant Search", "YouTube", "TikTok", "Dailymotion",
-    "Vimeo",
+    "Brave Search", "Startpage", "Kagi Search", "Qwant", "Qwant Search", "Search / X", "Suche / X", "YouTube",
+    "TikTok", "Dailymotion", "Vimeo",
 ];
 
 /// Words that say where in a series a chapter sits, so text made only of them is no series at all.
@@ -98,7 +98,10 @@ const SEGMENT_SEPARATORS: &[&str] = &[" - ", " – ", " — ", " | ", " · "];
 /// The tab title without Edge's count of the window's other tabs, which changes whenever one opens or closes.
 fn without_tab_count(title: &str) -> String {
     static RE: OnceLock<Regex> = OnceLock::new();
-    let re = RE.get_or_init(|| Regex::new(r"(?i)\s+and \d+ more pages?(\s+-\s+|$)").unwrap());
+    // Edge's own wording in the two languages the app ships, read out of its locale files.
+    let re = RE.get_or_init(|| {
+        Regex::new(r"(?i)\s+(?:and \d+ more pages?|und \d+ weitere Seiten?)(\s+[-–]\s+|$)").unwrap()
+    });
     re.replace(title, "$1").into_owned()
 }
 
@@ -176,7 +179,7 @@ fn trim_separators(s: &str) -> &str {
 }
 
 /// A series guess without what sites wrap around it: "Read", brackets, a volume, a trailing "Manga" or kin.
-fn clean_series(guess: &str) -> String {
+fn clean_series(guess: &str, unwrap: bool) -> String {
     static RE: OnceLock<[Regex; 4]> = OnceLock::new();
     let [read, brackets, volume, kind] = RE.get_or_init(|| {
         [
@@ -193,7 +196,7 @@ fn clean_series(guess: &str) -> String {
     };
     let out = read.replace(trim_separators(guess), "").to_string();
     let dropped = tail(&brackets.replace_all(&out, ""));
-    if dropped.chars().any(char::is_alphabetic) {
+    if !unwrap || dropped.chars().any(char::is_alphabetic) {
         return dropped;
     }
     // A series whose name is itself a bracket ("[Oshi no Ko]") keeps the bracket's words rather than losing them all.
@@ -212,13 +215,16 @@ pub(crate) fn chapter_tab(title: &str) -> Option<Parsed> {
     let (at, (start, chapter)) = parts.iter().enumerate().find_map(|(i, p)| Some((i, parser::spelled_chapter(p)?)))?;
     let names = |s: &str| s.chars().any(char::is_alphabetic) && !only_position(s);
     // The text before the chapter word, else the nearest segment before it that names one, else the one after.
-    let candidates = std::iter::once(&parts[at][..start])
-        .chain(parts[..at].iter().rev().map(String::as_str))
-        .chain(parts.get(at + 1).map(String::as_str));
+    let own = &parts[at][..start];
+    let candidates = std::iter::once((own, false))
+        .chain(parts[..at].iter().rev().map(|p| (p.as_str(), true)))
+        // A bracket in front of the chapter is a series only when nothing before it names one ("[Oshi no Ko]").
+        .chain(std::iter::once((own, true)))
+        .chain(parts.get(at + 1).map(|p| (p.as_str(), true)));
     let mut marker: Option<String> = None;
     let mut series: Option<String> = None;
-    for raw in candidates {
-        let guess = clean_series(raw);
+    for (raw, unwrap) in candidates {
+        let guess = clean_series(raw, unwrap);
         if names(&guess) {
             series = Some(guess);
             break;
@@ -251,13 +257,13 @@ pub(crate) fn match_chapter_tab(process: &str, title: &str) -> Option<(String, P
     if !profiles::is_browser(process) {
         return None;
     }
-    let media = profiles::strip_browser_suffix(title)?;
+    let media = without_tab_count(profiles::strip_browser_suffix(title)?.trim());
     // A known site's rule decides its own tabs, including the ones it turned down.
     if profiles::match_site(&media).is_some() || profiles::names_manga_site(&media) {
         return None;
     }
     let parsed = chapter_tab(&media)?;
-    Some((without_tab_count(media.trim()), parsed))
+    Some((media, parsed))
 }
 
 #[cfg(test)]
@@ -390,6 +396,10 @@ mod tests {
         assert_eq!(series("one piece kapitel 1100 – Qwant Search"), None);
         assert_eq!(series("kagurabachi chapter 51 - YouTube"), None);
         assert_eq!(series("Jujutsu Kaisen chapter 262 is peak #jjk | TikTok"), None);
+        assert_eq!(series("one piece chapter 1101 - Search / X"), None);
+        assert_eq!(series("one piece kapitel 1101 - Suche / X"), None);
+        assert_eq!(series("Jujutsu Kaisen Chapter 261 Leaked - ExampleVideos"), None);
+        assert_eq!(series("One Piece Chapter 1101 Delayed - ExampleNews"), None);
         assert_eq!(series("Jujutsu Kaisen Chapter 261: Release Time, Where To Read & What To Expect - ExampleNews"), None);
     }
 
@@ -404,6 +414,11 @@ mod tests {
         let edge = "Chapter 46 | Kusuriya no Hitorigoto and 4 more pages - Personal - Microsoft\u{200b} Edge";
         let (media, parsed) = match_chapter_tab("msedge.exe", edge).unwrap();
         assert_eq!((media.as_str(), parsed.title.as_str()), ("Chapter 46 | Kusuriya no Hitorigoto - Personal", "Kusuriya no Hitorigoto"));
+        assert_eq!(series("one piece kapitel 1101 - Suchen und 3 weitere Seiten - Persönlich"), None);
+        assert_eq!(series("kagurabachi chapter 51 - YouTube und 1 weitere Seite - Persönlich"), None);
+        let german = "Chapter 46 | Kusuriya no Hitorigoto und 4 weitere Seiten - Persönlich – Microsoft\u{200b} Edge";
+        let (media, parsed) = match_chapter_tab("msedge.exe", german).unwrap();
+        assert_eq!((media.as_str(), parsed.title.as_str()), ("Chapter 46 | Kusuriya no Hitorigoto - Persönlich", "Kusuriya no Hitorigoto"));
     }
 
     /// Words a page about chapters uses are also in real series names, where they must not refuse the series.
@@ -467,6 +482,9 @@ mod tests {
         assert_eq!(series("Ch. 120 - [Oshi no Ko] - ExampleReader"), oshi);
         assert_eq!(series("[Oshi no Ko] Vol. 16 Chapter 120 - ExampleReader"), oshi);
         assert_eq!(series("[Oshi no Ko] Manga Chapter 120 - ExampleReader"), oshi);
+        // A scan group's tag beside the volume is no series while the segment before names one.
+        let tagged = series("Kusuriya no Hitorigoto - [ExampleScans] Vol. 9 Ch. 45 - ExampleReader");
+        assert_eq!(tagged, Some(("Kusuriya no Hitorigoto".into(), Some(45))));
     }
 
     #[test]

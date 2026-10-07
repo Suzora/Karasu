@@ -1683,16 +1683,19 @@ async update the real code makes after an await warns instead.
   Theories" is a video and "One Piece Leaks - Chapter 1101" a leak page.
   Three review rounds that day measured why each rule exists: the query a
   reader types to find the next chapter is exactly progress + 1. Edge's
-  "and N more pages" is cut before anything is read (`without_tab_count`),
-  and a Firefox private window's suffix is a browser suffix like the rest.
+  "and N more pages" (German "und N weitere Seiten", read out of Edge's
+  locale files, whose German title also ends in an en dash) is cut before
+  anything is read (`without_tab_count`), and a Firefox private window's
+  suffix is a browser suffix like the rest.
   The series is one deterministic guess,
   because it is the correction key: the raw text before the chapter word
   unless it holds only position words or the verb ("Extra", "Vol. TBD",
   "Band 3", "Read"), else
   the nearest segment before it that names a series, else the one after,
   cut at ` - `, ` | ` and their dashes, without a leading "Read", any
-  bracket (unless the bracket is the whole name, as in "[Oshi no Ko]"), a
-  volume or a trailing "Manga"/"Manhwa". A season or a part stays in the
+  bracket, a volume or a trailing "Manga"/"Manhwa"; a bracket in front of
+  the chapter word becomes the series ("[Oshi no Ko]") only when no segment
+  before it names one, or a scan group's tag would. A season or a part stays in the
   guess, "Staffel" re-spelt "Season" and the number set as `season`,
   because AniList keeps some as entries of their own (Ascendance of a
   Bookworm's parts): cutting it matched Part 3 against Part 4, while kept,

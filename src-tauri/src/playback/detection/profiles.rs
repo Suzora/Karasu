@@ -50,6 +50,8 @@ const BROWSER_SUFFIXES: &[&str] = &[
     " — Mozilla Firefox",
     " - Mozilla Firefox",
     " - Microsoft\u{200b} Edge",
+    // German and French Edge join the browser's name with an en dash.
+    " – Microsoft\u{200b} Edge",
     " - Microsoft Edge",
     " - Brave",
     " - Opera",
