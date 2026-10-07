@@ -123,6 +123,10 @@ fn off_topic(title: &str, parts: &[String]) -> bool {
     if title.contains(" at DuckDuckGo") || title.contains(" : r/") {
         return true;
     }
+    // A post on X, where an account named after the series announces exactly the next chapter.
+    if parts.iter().any(|p| p.ends_with(" / X")) || title.contains(" on X: ") || title.contains(" auf X: ") {
+        return true;
+    }
     let padded = format!(" {} ", normalize(title));
     padded.split(' ').any(|w| OFF_TOPIC_WORDS.contains(&w))
         || OFF_TOPIC_PHRASES.iter().any(|p| padded.contains(&format!(" {p} ")))
@@ -216,10 +220,11 @@ pub(crate) fn chapter_tab(title: &str) -> Option<Parsed> {
     let names = |s: &str| s.chars().any(char::is_alphabetic) && !only_position(s);
     // The text before the chapter word, else the nearest segment before it that names one, else the one after.
     let own = &parts[at][..start];
+    // A bracket stands for the series ("[Oshi no Ko]") only once nothing before the chapter names one without it.
     let candidates = std::iter::once((own, false))
-        .chain(parts[..at].iter().rev().map(|p| (p.as_str(), true)))
-        // A bracket in front of the chapter is a series only when nothing before it names one ("[Oshi no Ko]").
+        .chain(parts[..at].iter().rev().map(|p| (p.as_str(), false)))
         .chain(std::iter::once((own, true)))
+        .chain(parts[..at].iter().rev().map(|p| (p.as_str(), true)))
         .chain(parts.get(at + 1).map(|p| (p.as_str(), true)));
     let mut marker: Option<String> = None;
     let mut series: Option<String> = None;
@@ -398,6 +403,8 @@ mod tests {
         assert_eq!(series("Jujutsu Kaisen chapter 262 is peak #jjk | TikTok"), None);
         assert_eq!(series("one piece chapter 1101 - Search / X"), None);
         assert_eq!(series("one piece kapitel 1101 - Suche / X"), None);
+        assert_eq!(series("Jujutsu Kaisen on X: \"Chapter 261 is out now\" / X"), None);
+        assert_eq!(series("One Piece auf X: „Kapitel 1101 ist da!“ / X - Persönlich"), None);
         assert_eq!(series("Jujutsu Kaisen Chapter 261 Leaked - ExampleVideos"), None);
         assert_eq!(series("One Piece Chapter 1101 Delayed - ExampleNews"), None);
         assert_eq!(series("Jujutsu Kaisen Chapter 261: Release Time, Where To Read & What To Expect - ExampleNews"), None);
@@ -485,6 +492,8 @@ mod tests {
         // A scan group's tag beside the volume is no series while the segment before names one.
         let tagged = series("Kusuriya no Hitorigoto - [ExampleScans] Vol. 9 Ch. 45 - ExampleReader");
         assert_eq!(tagged, Some(("Kusuriya no Hitorigoto".into(), Some(45))));
+        let own_segment = series("Kusuriya no Hitorigoto - [ExampleScans] - Ch. 45 - ExampleReader");
+        assert_eq!(own_segment, Some(("Kusuriya no Hitorigoto".into(), Some(45))));
     }
 
     #[test]

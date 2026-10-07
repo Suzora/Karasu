@@ -47,6 +47,7 @@ pub(crate) fn is_browser(process: &str) -> bool {
 const BROWSER_SUFFIXES: &[&str] = &[
     " - Google Chrome",
     " — Mozilla Firefox Private Browsing",
+    " — Mozilla Firefox Privater Modus",
     " — Mozilla Firefox",
     " - Mozilla Firefox",
     " - Microsoft\u{200b} Edge",

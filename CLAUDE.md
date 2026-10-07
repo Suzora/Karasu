@@ -1675,32 +1675,34 @@ async update the real code makes after an await warns instead.
   (discussion, wiki, review, spoilers, Diskussion …), no phrase like
   "release date" or "where to read", no search engine or video site as a
   segment after the first (a browser profile's name can follow it), no
-  forum thread. Words that real series also carry (theory, news, leaks,
+  forum thread and no post on X. Words that real series also carry (theory, news, leaks,
   analysis, reaction, `[DISC]` …) refuse a tab outside the series guess
   (`off_topic_beside`), and inside it unless a title of the matched entry
   carries them too (`label_beyond_entry`, checked in `chapter_tab_refusal`),
   because "Dysfunctional Family Theory" is a series while "Chapter 261
   Theories" is a video and "One Piece Leaks - Chapter 1101" a leak page.
-  Three review rounds that day measured why each rule exists: the query a
+  Five review rounds that day measured why each rule exists: the query a
   reader types to find the next chapter is exactly progress + 1. Edge's
   "and N more pages" (German "und N weitere Seiten", read out of Edge's
   locale files, whose German title also ends in an en dash) is cut before
   anything is read (`without_tab_count`), and a Firefox private window's
-  suffix is a browser suffix like the rest.
+  suffix, English or German (read from Mozilla's `browser.ftl`), is a
+  browser suffix like the rest.
   The series is one deterministic guess,
   because it is the correction key: the raw text before the chapter word
   unless it holds only position words or the verb ("Extra", "Vol. TBD",
   "Band 3", "Read"), else
   the nearest segment before it that names a series, else the one after,
   cut at ` - `, ` | ` and their dashes, without a leading "Read", any
-  bracket, a volume or a trailing "Manga"/"Manhwa"; a bracket in front of
-  the chapter word becomes the series ("[Oshi no Ko]") only when no segment
-  before it names one, or a scan group's tag would. A season or a part stays in the
+  bracket, a volume or a trailing "Manga"/"Manhwa"; a bracket stands for
+  the series ("[Oshi no Ko]") only once nothing before the chapter word
+  names one without it, or a scan group's tag would. A season or a part stays in the
   guess, "Staffel" re-spelt "Season" and the number set as `season`,
   because AniList keeps some as entries of their own (Ascendance of a
   Bookworm's parts): cutting it matched Part 3 against Part 4, while kept,
-  a separate entry matches exactly and a single entry through the
-  matcher's season-stripped variant. The chapter tabs are the sweep's last
+  a separate entry matches exactly and a single entry, for a season,
+  through the matcher's season-stripped variant (a part has none, so a
+  short name with "Part 2" can miss a single entry). The chapter tabs are the sweep's last
   rung (`chapter_tabs`, every browser window front first), after the media
   sessions and a paused mpv, and the loop counts them as nothing while an
   episode's session is still alive (`holds_chapter_tabs`: anime, not yet
