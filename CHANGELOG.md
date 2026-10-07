@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0cca6ba -->
+<!-- generated-through: 97121a4 -->
 
 ### Fixed
 
@@ -79,6 +79,7 @@ tag time is then optional rather than load-bearing.
 - A custom-list membership you just saved no longer snaps back when the list screen is reopened soon after.
 - Opening a title from a cover moves the cover into the detail page again instead of only fading.
 - A bulk edit on the manga list no longer reverts on screen until the next sync.
+- On Linux, clicking a sidebar link no longer freezes or closes the window; page changes there switch without the cross-fade.
 
 ### Added
 

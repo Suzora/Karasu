@@ -11,6 +11,8 @@ export interface PlatformInfo {
   flatpak: boolean;
   /** Built for a store (Flathub, F-Droid) that delivers the updates, so the app neither checks nor offers one. */
   storeUpdates: boolean;
+  /** Whether the WebView can draw a View Transition; WebKitGTK without GPU compositing crashes on one. */
+  viewTransitions: boolean;
 }
 
 interface PlatformState {
@@ -31,3 +33,6 @@ export const isLinux = (info: PlatformInfo | null) => info?.os === "linux";
 
 /** True only when we know it is Android: the capability key, never the width key `usePhoneShell` answers. */
 export const isAndroid = (info: PlatformInfo | null) => info?.os === "android";
+
+/** Whether a View Transition may start: in the app only once Rust has said the WebView can draw one, never as a guess. */
+export const canViewTransition = (info: PlatformInfo | null) => !isTauri || info?.viewTransitions === true;

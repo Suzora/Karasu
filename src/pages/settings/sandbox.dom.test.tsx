@@ -33,7 +33,7 @@ import { MpvSection } from "./DetectionPane";
 afterEach(() => usePlatform.setState({ info: null }));
 
 function mount(flatpak: boolean) {
-  usePlatform.setState({ info: { os: "linux", appImage: false, flatpak, storeUpdates: flatpak } });
+  usePlatform.setState({ info: { os: "linux", appImage: false, flatpak, storeUpdates: flatpak, viewTransitions: false } });
   return renderWithProviders(
     <>
       <SystemSection />

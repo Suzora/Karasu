@@ -1107,6 +1107,24 @@ async update the real code makes after an await warns instead.
   in WebKitGTK; the capability grants `clipboard-manager:allow-write-text` and
   nothing else of the plugin. The two callers are the action runner's copy
   selection and the diagnostics copy.
+- **WebKitGTK crashes on a View Transition when it does not composite on the
+  GPU, and Karasu turns that off by default.** `avoid_blank_webkit_window` in
+  `lib.rs` sets `WEBKIT_DISABLE_DMABUF_RENDERER=1` unless the user chose, and
+  WebKit reads that switch, like `WEBKIT_DISABLE_COMPOSITING_MODE`, as off for
+  any value but `0`, the empty string included. Measured on 2026-10-07 with
+  MiniBrowser on WebKitGTK 2.52.6 under Xvfb: a page calling
+  `document.startViewTransition` segfaulted on every run with either switch
+  set (`1`, empty, `false`) and finished with neither or with `0`, and the
+  same page without the call ran in every mode. #54 (Fedora 44, KDE Wayland,
+  Intel plus NVIDIA) was that crash on a sidebar click: an abort in
+  `FrameRenderer::graphicsLayerFactory()` under the system WebKitGTK 2.52.5,
+  a SIGSEGV under the bundled one, and Reduce motion, which skips the call,
+  cured it. So `platform_info` answers `viewTransitions` through
+  `webkit_composites`, and `useViewTransitions` leaves the click to the router
+  unless that answer is in and true; on Linux a page change is plain, as under
+  Reduce motion. Dropping the DMA-BUF default would bring the transitions and
+  GPU compositing back, at the price the default exists to avoid (a blank
+  window on some drivers); that wants a measurement on real GPUs, not a guess.
 - **Android gets two plugins of its own, and the battery plugin was
   rejected.** `attach_mobile` in `lib.rs` (a cfg pair on `target_os =
   "android"`, with the crates in the Android dependency table so no desktop

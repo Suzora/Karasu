@@ -668,6 +668,8 @@ export type PlatformInfo = {
 	flatpak: boolean,
 	/**  Built for a store that delivers its own updates, so there is no update check to offer. */
 	storeUpdates: boolean,
+	/**  Whether the WebView can draw a View Transition; WebKitGTK without GPU compositing crashes on one. */
+	viewTransitions: boolean,
 };
 
 export type PortableStatus = {
