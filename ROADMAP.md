@@ -48,6 +48,29 @@ maintainer's. Each says which, so none of them reads as unstarted work.
 
 **Needs a user, or a decision already made:**
 
+- **Browser detection's measurements, in every browser** — the maintainer's
+  own task, taken up actively (2026-10-07), and the rest of browser detection
+  waits on them: linking a playing media session to its tab, reading the
+  series and episode from the tab's URL, the position and duration a session
+  reports, the opt-in read of the browser's session file, and the Settings
+  row that shows all of it. Run `node scripts/browser-measure.mjs --redact <brand>` in
+  every browser Karasu might meet, on Windows and on Linux: Firefox,
+  Waterfox, Zen, LibreWolf, Floorp, Chrome, Chromium, Edge, Brave, Vivaldi,
+  Opera, Opera GX and Helium. For each, eleven scenarios: playing in the tab
+  in front, fullscreen, another tab brought in front while it plays,
+  picture-in-picture, the next episode by a click, the next one by autoplay
+  after four idle minutes, two browsers open at once, the series' own page
+  open in another window, a private window, a YouTube video in the same
+  browser, and split view or workspaces where the browser has them. Each run
+  answers six questions: whether the window title holds the session's title,
+  whether a site fills artist and album, whether the URL names the series and
+  the episode, whether it changes per episode, whether position and duration
+  arrive, and whether the browser keeps its tabs in a session file Karasu can
+  read. Before the Chromium family can be measured the script needs widening:
+  it reads every media session already, but lists windows and reads session
+  files for the Firefox family alone (`FAMILY`), and a Chromium browser keeps
+  its tabs in its own `Sessions/` format. Raw output never enters the
+  repository; CLAUDE.md records only the anonymised shapes.
 - **User-installed CAs on Android** — the webpki-roots trade documented in
   `net.rs`. Revisit only if a user with such a setup actually asks.
 - **`MediaSessionManager` detection on Android** — moot while the app is
