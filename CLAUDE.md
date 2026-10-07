@@ -947,7 +947,13 @@ DRI3/GBM path; a Linux graphics report still needs the reporter's
 `coredumpctl info`. A red smoke test in `release.yml` publishes Windows alone
 (the Linux download is `continue-on-error`), and the Nightly's prune step then
 drops the old Linux files until the next green build. An image that cannot be
-pulled or installed into is a warning, not a failure. Tauri stopped forcing X11
+pulled or installed into is a warning, not a failure, and installing has one
+budget per image across every attempt (`-InstallSeconds`, three minutes), so a
+crawling mirror ends in that warning instead of the step's twelve-minute
+timeout. Measured on 2026-10-07: a plain `ubuntu:26.04` took 189 s for
+`apt-get update` and 358 s for the install, two PR runs timed out before the
+AppImage ever started while Fedora passed in under two minutes, and a normal
+install takes well under one. Tauri stopped forcing X11
 with CLI 2.12; drop the library list once it ships
 `bundle.linux.appimage.excludeLibraries` (tauri-apps/tauri#15662). The `.deb`, the
 `.rpm` and the Flatpak link against the host's libraries and never had the

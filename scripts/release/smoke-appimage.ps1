@@ -3,6 +3,7 @@
 param(
     [string[]]$Images = @("registry.fedoraproject.org/fedora:44", "mirror.gcr.io/library/ubuntu:26.04"),
     [int]$Seconds = 25,
+    [int]$InstallSeconds = 180,  # per image across every attempt, so a crawling mirror warns instead of timing the step out
     [string[]]$DockerArgs = @()
 )
 
@@ -25,7 +26,10 @@ if (-not $appimage) {
 # Unpacked as root with its stored modes, run as a user on X11 and then Wayland; exit 100 is the setup failing.
 $payload = @'
 set -u
-for i in 1 2 3; do sh -c "$INSTALL" > /tmp/install.log 2>&1 && break; [ "$i" = 3 ] && { tail -20 /tmp/install.log; exit 100; }; sleep 10; done
+end=$(( $(date +%s) + INSTALL_SECONDS ))
+until timeout $(( end - $(date +%s) )) sh -c "$INSTALL" > /tmp/install.log 2>&1; do
+  [ $(( end - $(date +%s) )) -gt 20 ] || { tail -20 /tmp/install.log; exit 100; }; sleep 10
+done
 cd /tmp && unsquashfs -n -d squashfs-root -o "$(/appimage/"$APPIMAGE_NAME" --appimage-offset)" /appimage/"$APPIMAGE_NAME" > /dev/null || exit 1
 missing=0
 for f in $(find squashfs-root/usr/bin squashfs-root/usr/lib -type f); do
@@ -73,6 +77,7 @@ foreach ($image in $Images) {
     $dockerRun = @("run", "--rm") + $DockerArgs + @(
         "-v", "$($bundleDir):/appimage:ro",
         "-e", "APPIMAGE_NAME=$($appimage.Name)", "-e", "SMOKE_SECONDS=$Seconds", "-e", "INSTALL=$install",
+        "-e", "INSTALL_SECONDS=$InstallSeconds",
         $image, "bash", "-c", $payload
     )
     # An image already present is used as it is; otherwise a failed pull is retried once and then only warned about.
