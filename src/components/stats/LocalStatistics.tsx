@@ -25,6 +25,7 @@ import { AreaChart } from "@/components/stats/AreaChart";
 import { Heatmap } from "@/components/stats/Heatmap";
 import { Empty } from "@/components/stats/shared";
 import { fmt } from "@/components/stats/RankedList";
+import { ErrorState } from "@/components/EmptyState";
 
 /** Statistics for the account-free profile, counted by `lib/localStats` from SQLite with no request to make. */
 export default function LocalStatistics({
@@ -40,7 +41,7 @@ export default function LocalStatistics({
   const scoreMax = scoreScale(scoreFormat).max;
 
   // `userId: 0` is what the list screens key local mode on, so this shares their cache.
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["mediaList", type, 0],
     queryFn: () => fetchMediaList(0, type),
     enabled: isTauri,
@@ -115,9 +116,7 @@ export default function LocalStatistics({
       <Segmented aria-label={t("stats.mediaTypeLabel")} segments={typeOptions} value={type} onChange={onType} />
 
       {isLoading && <Loader label={t("common.loading")} />}
-      {error && (
-        <p className="text-danger">{t("common.error", { message: String(error) })}</p>
-      )}
+      {error && <ErrorState error={error} onRetry={() => refetch()} />}
 
       {!isLoading && !error && (totals.count === 0 ? <Empty /> : (
         <div className="space-y-6">

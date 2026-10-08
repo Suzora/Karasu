@@ -1,6 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { LucideIcon } from "lucide-react";
 import KarasuMark from "@/components/KarasuMark";
+import { Button } from "@/components/ui/button";
+import { backendErrorText } from "@/lib/backendError";
 import { cn } from "@/lib/utils";
 
 /** An empty surface, said out loud; each visual differs on purpose, and only here does the corvid show itself. */
@@ -30,6 +33,68 @@ export function EmptyState({
         </p>
       )}
       {actions && <div className="mt-4 flex flex-wrap justify-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** A load that failed, in the reader's language, with one press to ask again; `inline` for a fold, a footer or a row. */
+export function ErrorState({
+  error,
+  onRetry,
+  inline = false,
+  title,
+  visual,
+  className,
+}: {
+  error: unknown;
+  /** One request the user asked for, its promise returned so the button holds until it settles; omit where none can be. */
+  onRetry?: () => unknown;
+  inline?: boolean;
+  /** The sentence around the reason, for a page that names what failed to load. */
+  title?: (reason: string) => string;
+  visual?: ReactNode;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const [pending, setPending] = useState(false);
+  const reason = backendErrorText(error, t);
+  // A failed query keeps its error while it asks again, so the button is what says a second press is not needed.
+  const retry = () => {
+    if (pending) return;
+    const out = onRetry?.();
+    if (out instanceof Promise) {
+      setPending(true);
+      void out.finally(() => setPending(false));
+    }
+  };
+  const message = title ? title(reason) : t("common.error", { message: reason });
+  if (inline) {
+    return (
+      <div role="alert" className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-danger", className)}>
+        <span className="min-w-0">{message}</span>
+        {onRetry && (
+          <Button variant="ghost" size="sm" onClick={retry} aria-disabled={pending || undefined} aria-busy={pending || undefined}>
+            {t("common.retry")}
+          </Button>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div role="alert" className={className}>
+      <EmptyState
+        // The alert reads its sentence alone; a struck id or a drawn mark is decoration to a screen reader.
+        visual={visual && <div aria-hidden="true">{visual}</div>}
+        title={message}
+        actions={
+          onRetry && (
+            // Held with aria-disabled, since a disabled button would drop keyboard focus to the page while it waits.
+            <Button variant="outline" size="control" onClick={retry} aria-disabled={pending || undefined} aria-busy={pending || undefined}>
+              {t("common.retry")}
+            </Button>
+          )
+        }
+      />
     </div>
   );
 }

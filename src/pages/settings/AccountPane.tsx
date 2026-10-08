@@ -18,6 +18,7 @@ import {
 } from "@/lib/defaultAddStatus";
 import { useAniListLogin } from "@/hooks/useAniListLogin";
 import * as api from "@/api/anilist";
+import { backendErrorText } from "@/lib/backendError";
 
 /** How the list gets written from this machine, beside the account because every platform and mode sees this pane. */
 export function DefaultsSection() {
@@ -119,7 +120,7 @@ export function AccountSection() {
       await api.setClientId(clientId);
       setClientIdSaved(true);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -135,7 +136,7 @@ export function AccountSection() {
     try {
       await openUrl(await api.loginUrl());
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -146,7 +147,7 @@ export function AccountSection() {
       await connect(token);
       setToken("");
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -246,7 +247,7 @@ export function AccountSection() {
       </div>
       {(error ?? login.error) && (
         <p className="mt-4 rounded-control bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error ?? login.error}
+          {error ?? backendErrorText(login.error, t)}
         </p>
       )}
     </Card>

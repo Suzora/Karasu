@@ -18,6 +18,7 @@ import { siteNotifications, type SiteNotifPage } from "@/api/social";
 import { buildGroups, unify, type NotifGroup, type NotifSource } from "@/lib/notifGroups";
 import { visibleSubject, type SiteNotifRow } from "@/lib/siteNotifications";
 import { isOffline } from "@/lib/apiError";
+import { backendErrorText } from "@/lib/backendError";
 import { isBlocked } from "@/lib/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -46,28 +47,28 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
   const viewerId = useAuth((s) => s.viewer?.id ?? null);
   const anilist = mode === "anilist";
   const [items, setItems] = useState<AppNotification[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<unknown>(null);
   // Which grouped rows are unfolded; reset on every open so a fresh glance starts collapsed.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const countKey = useMemo(() => ["social", "notifCount", viewerId], [viewerId]);
   const siteKey = useMemo(() => ["social", "siteNotifs", viewerId], [viewerId]);
 
   const load = useCallback(() => {
-    if (!isTauri) return;
+    if (!isTauri) return Promise.resolve();
     // Report the failure; a swallowed one renders the empty state, which reads as all caught up.
-    getNotifications()
+    return getNotifications()
       .then((rows) => {
         setItems(rows);
         setLoadError(null);
       })
-      .catch((e) => setLoadError(String(e)));
+      .catch((e: unknown) => setLoadError(e));
   }, []);
 
   // Keep the guard; outside Tauri `listen` throws during mount and the ErrorBoundary blanks the whole window.
   useEffect(() => {
     if (!isTauri) return;
-    load();
-    const un = listen("notifications-changed", () => load());
+    void load();
+    const un = listen("notifications-changed", () => void load());
     return () => {
       un.then((f) => f());
     };
@@ -135,7 +136,7 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
   const readOne = async (n: AppNotification) => {
     if (n.read) return;
     await markNotificationRead(n.id).catch(() => {});
-    load();
+    void load();
   };
 
   const readAll = async () => {
@@ -149,7 +150,7 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
     qc.setQueryData<InfiniteData<SitePage>>(siteKey, (old) =>
       old ? { ...old, pages: old.pages.map((p, i) => (i === 0 ? { ...p, unseen: 0 } : p)) } : old,
     );
-    load();
+    void load();
   };
 
   // Filtered once before grouping: a row about a blocked title is dropped, since the row itself names the title.
@@ -194,7 +195,9 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
     if (android) {
       const state = await apkUpdateState().catch(() => null);
       if (state?.status === "ready" && !state.needsInstallPermission) {
-        await apkInstall().catch((e) => showToast({ kind: "error", text: t("common.error", { message: String(e) }) }));
+        await apkInstall().catch((e) =>
+          showToast({ kind: "error", text: t("common.error", { message: backendErrorText(e, t) }) }),
+        );
       } else {
         navigate("/about");
       }
@@ -204,9 +207,13 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
       await downloadPendingUpdate();
       await installPendingUpdate();
     } catch (e) {
-      showToast({ kind: "error", text: t("common.error", { message: String(e) }) });
+      showToast({ kind: "error", text: t("common.error", { message: backendErrorText(e, t) }) });
     }
   };
+
+  // A press, never a mount: a failed next page asks for that page alone, anything else for page 1 alone, not every page.
+  const retrySite = () =>
+    site.isFetchNextPageError ? site.fetchNextPage() : qc.resetQueries({ queryKey: siteKey, exact: true });
 
   // Local twin of `openSite`, never disabled: a Karasu row can always mark itself read, and navigation is the extra.
   const openLocal = (n: AppNotification, leave: Leave) => {
@@ -237,14 +244,24 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
     });
   };
 
+  // Read here, not first in the lazy feed: the query re-renders this hook's owner only for fields its render touched.
+  const siteError = site.error;
+  const siteLoading = site.isLoading;
+  const siteNextPageFailed = site.isFetchNextPageError;
+
   return {
     anilist,
     // Whether AniList's half is in view, which the filter can take away even when an account is signed in.
     showsSite: anilist && source !== "karasu",
+    siteError,
+    siteLoading,
+    siteNextPageFailed,
     groups,
     unread,
     loadError,
+    reload: load,
     site,
+    retrySite,
     expanded,
     readAll,
     openLocal,

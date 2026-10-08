@@ -43,6 +43,7 @@ import { DotPlot } from "@/components/stats/DotPlot";
 import { AreaChart } from "@/components/stats/AreaChart";
 import { Heatmap } from "@/components/stats/Heatmap";
 import { ExternalAnchor } from "@/components/RichText";
+import { ErrorState } from "@/components/EmptyState";
 import { DayHeatmap } from "@/components/stats/DayHeatmap";
 import {
   activityHeatmap,
@@ -152,7 +153,7 @@ function StatisticsContent({
     );
 
   const scoreFormat = useScoreFormat();
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     // The format is part of the key, because a format change rescales every number the normalizer produced.
     queryKey: ["userStats", userId, scoreFormat],
     queryFn: () => userStatistics(userId, scoreFormat),
@@ -303,11 +304,7 @@ function StatisticsContent({
       {!isLoading && listFailed && (
         <p className="text-sm text-gold">{t("stats.listUnavailable")}</p>
       )}
-      {error && (
-        <p className="text-danger">
-          {t("common.error", { message: String(error) })}
-        </p>
-      )}
+      {error && <ErrorState error={error} onRetry={() => refetch()} inline={!!stats} />}
       {stats &&
         (type === "ANIME" ? (
           <AnimeView

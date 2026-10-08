@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { detailFrame } from "@/components/media/detailFrame";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { skeletonDelay } from "@/lib/motion";
@@ -25,10 +26,23 @@ export function Shimmer({
   );
 }
 
+/** A skeleton's frame: one status with a hidden caption, as `Loader` announces its own, and the blocks kept silent. */
+export function Busy({ className, children }: { className?: string; children: ReactNode }) {
+  const { t } = useTranslation();
+  return (
+    <div role="status">
+      <span className="sr-only">{t("common.loading")}</span>
+      <div className={className} aria-hidden="true">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /** A cover grid that has not loaded yet, at the real track width so nothing moves sideways when the covers arrive. */
 export function CoverGridSkeleton({ count = 12 }: { count?: number }) {
   return (
-    <div className="media-grid gap-x-4 gap-y-6" aria-hidden="true">
+    <Busy className="media-grid gap-x-4 gap-y-6">
       {Array.from({ length: count }, (_, i) => (
         <div key={i}>
           <Shimmer index={i} className="aspect-2/3 w-full rounded-control" />
@@ -37,18 +51,18 @@ export function CoverGridSkeleton({ count = 12 }: { count?: number }) {
           <Shimmer index={i} className={cn("mt-1.5 h-2", META_W[i % META_W.length])} />
         </div>
       ))}
-    </div>
+    </Busy>
   );
 }
 
 /** A section heading that hasn't arrived: the rule stays, the words don't. */
 export function HeaderSkeleton({ index = 0 }: { index?: number }) {
   return (
-    <div className="flex items-center gap-2.5" aria-hidden="true">
+    <Busy className="flex items-center gap-2.5">
       <Shimmer index={index} className="size-4 rounded-inner" />
       <Shimmer index={index} className="h-3.5 w-36" />
       <span className="section-rule" />
-    </div>
+    </Busy>
   );
 }
 
@@ -67,7 +81,7 @@ export function DetailSkeleton() {
     </div>
   );
   return (
-    <div aria-hidden="true">
+    <Busy>
       {/* A query container of its own, as on the page, so the header's height reads the same width. */}
       <div className="@container">
         <div style={frame.header}>
@@ -114,6 +128,6 @@ export function DetailSkeleton() {
           <Shimmer index={13} className="h-36 rounded-panel" />
         </div>
       </div>
-    </div>
+    </Busy>
   );
 }

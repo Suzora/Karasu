@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
 import { CONTENT_FILTER_LEVELS } from "@/lib/contentFilter";
 import { landingClass, Toggle } from "./shared";
+import { backendErrorText } from "@/lib/backendError";
 /** A three-stop slider rather than a toggle: hiding adult and hiding suggestive are different asks. */
 export function ContentSection() {
   const { t } = useTranslation();
@@ -67,7 +68,7 @@ export function ContentSection() {
               would simply snap back with no explanation. */}
           {error && (
             <p className="text-xs text-danger">
-              {t("settings.contentSaveFailed", { message: error })}
+              {t("settings.contentSaveFailed", { message: backendErrorText(error, t) })}
             </p>
           )}
         </div>

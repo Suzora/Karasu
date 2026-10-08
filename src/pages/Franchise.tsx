@@ -24,7 +24,7 @@ import { displayTitle, STATUS_ORDER, type MediaListStatus, type MediaType } from
 import BackButton from "@/components/shell/BackButton";
 import EntryEditModal from "@/components/media/LazyEntryEditModal";
 import { Presence } from "@/components/ui/presence";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { IconButton } from "@/components/ui/icon-button";
@@ -55,7 +55,7 @@ export default function Franchise() {
   // `?? 0` like every other screen: local mode keys the list under 0, so undefined hides every local entry.
   const userId = useAuth((s) => s.viewer?.id) ?? 0;
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["franchise", rootId, level],
     queryFn: () => loadFranchise(rootId, level),
     enabled: isTauri && filterReady && Number.isFinite(rootId),
@@ -149,9 +149,7 @@ export default function Franchise() {
       </header>
 
       {isLoading && <Loader label={t("common.loading")} />}
-      {error && (
-        <p className="text-danger">{t("common.error", { message: String(error) })}</p>
-      )}
+      {error && <ErrorState inline={!!data} error={error} onRetry={() => refetch()} />}
 
       {data && layout && data.nodes.length <= 1 && (
         <EmptyState visual={<PerchRule />} title={t("franchise.none")} />

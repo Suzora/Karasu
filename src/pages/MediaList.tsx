@@ -39,7 +39,7 @@ import { fuzzyScore, prepareDoc, prepareQuery, type FuzzyDoc } from "@/lib/fuzzy
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusTabs } from "@/components/ui/status-tabs";
-import { CoverOutline, EmptyState, StruckQuery } from "@/components/EmptyState";
+import { CoverOutline, EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
 import { ListMoreMenu, ListToolbar } from "@/components/list/ListToolbar";
 import { Presence, PresenceIf } from "@/components/ui/presence";
 import { VirtualGrid } from "@/components/list/VirtualGrid";
@@ -570,14 +570,12 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   }
   if (error) {
     return (
-      <div className="p-8">
-        <p className="text-danger">
-          {t("list.loadError", { message: String(error) })}
-        </p>
-        <Button className="mt-4" variant="secondary" onClick={() => refetch()}>
-          {t("common.retry")}
-        </Button>
-      </div>
+      <ErrorState
+        error={error}
+        onRetry={() => refetch()}
+        title={(reason) => t("list.loadError", { message: reason })}
+        className="p-8"
+      />
     );
   }
 

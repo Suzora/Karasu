@@ -5,6 +5,7 @@ import KarasuMark from "@/components/KarasuMark";
 import { useAniListLogin } from "@/hooks/useAniListLogin";
 import { useAuth } from "@/stores/auth";
 import { isAndroid, usePlatform } from "@/stores/platform";
+import { backendErrorText } from "@/lib/backendError";
 
 /** The first thing anyone sees: the one moment the app introduces itself, with the three steps as proof of the claim. */
 export default function FirstRun() {
@@ -61,7 +62,7 @@ export default function FirstRun() {
             <p className="mt-3 text-xs text-accent-400">{t("settings.loginWaiting")}</p>
           )}
           {login.error && !login.waiting && (
-            <p className="mt-3 text-xs text-danger">{login.error}</p>
+            <p className="mt-3 text-xs text-danger">{backendErrorText(login.error, t)}</p>
           )}
 
           <ol className="mt-8 space-y-3">

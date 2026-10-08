@@ -1,8 +1,12 @@
+import { isOffline } from "@/lib/apiError";
+
 /** Maps a backend error code to a literal `t()` per branch so `i18nKeys.test.ts` sees it; unknown text falls through. */
 export function backendErrorText(
   error: unknown,
   t: (k: string, o?: Record<string, unknown>) => string,
 ): string {
+  // A lost connection carries reqwest's own English after the prefix, which no reader needs.
+  if (isOffline(error)) return t("common.offlineError");
   const text = error instanceof Error ? error.message : String(error);
   switch (text.trim()) {
     case "jellyfin.signedOut":
@@ -24,7 +28,7 @@ export function backendErrorText(
     case "queue.busy":
       return t("receipt.syncBusy");
     case "anilist.rateLimited":
-      return t("receipt.rateLimited");
+      return t("common.rateLimited");
     // `shell/SessionExpired` is the real answer, but the code still reaches toasts and inline errors it does not cover.
     case "anilist.tokenRejected":
       return t("auth.tokenRejected");

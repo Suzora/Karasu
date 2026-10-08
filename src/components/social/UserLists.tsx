@@ -19,7 +19,7 @@ import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { Pill } from "@/components/ui/pill";
 import { Shimmer } from "@/components/Skeleton";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { statusColorVar } from "@/lib/statusColors";
 
 /** Another user's list, read-only through `CoverCell` rather than `GridCard`, with scores in the owner's format. */
@@ -132,9 +132,12 @@ export function UserLists({ user }: { user: UserProfile }) {
 
       {q.isLoading && <Shimmer className="h-40 w-full rounded-panel" />}
       {q.error != null && (
-        <p className="text-sm text-danger">
-          {t("common.error", { message: String(q.error) })}
-        </p>
+        <ErrorState
+          error={q.error}
+          visual={<PerchRule />}
+          inline={q.data != null}
+          onRetry={() => q.refetch()}
+        />
       )}
       {q.data && shown.length === 0 && (
         <EmptyState visual={<PerchRule />} title={t("social.listsEmpty")} />

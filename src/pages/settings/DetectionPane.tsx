@@ -74,7 +74,7 @@ export function ScrobbleSection() {
     setSaveError(null);
     save.catch((e) => {
       revert();
-      setSaveError(String(e));
+      setSaveError(backendErrorText(e, t));
     });
   };
 
@@ -247,7 +247,7 @@ export function MediaSessionSection() {
     } catch (e) {
       // Keep null, not []: an empty list means idle, while unreachable means the feature is down.
       setSessions(null);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -378,7 +378,7 @@ function AiringMutesList() {
           </li>
         ))}
       </ul>
-      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{backendErrorText(error, t)}</p>}
     </div>
   );
 }
@@ -415,7 +415,7 @@ export function DetectionCorrectionsSection() {
       });
       load();
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -492,7 +492,7 @@ export function MpvSection() {
       await unwrap(commands.setMpvIpc(next.enabled, next.path, next.launchPath));
     } catch (e) {
       setSettings(prev);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -857,7 +857,7 @@ function JellyfinBackgroundRows() {
     setError(null);
     setJellyfinBackground(v).catch((e) => {
       setState(previous);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     });
   };
 

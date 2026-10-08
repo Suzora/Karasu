@@ -22,7 +22,7 @@ export function OfflineDetail({
 
   if (!cached) {
     return (
-      <div className="p-8">
+      <div className="px-8 pb-8 pt-16">
         <EmptyState
           icon={WifiOff}
           title={t("detail.offlineTitle")}
@@ -63,7 +63,7 @@ function OfflineEntry({
   const atEnd = total !== null && entry.progress >= total;
 
   return (
-    <div className="mx-auto max-w-2xl p-8">
+    <div className="mx-auto max-w-2xl px-8 pb-8 pt-16">
       <p className="mb-4 flex items-center gap-2 text-sm text-ink-500">
         <WifiOff className="size-4 shrink-0" />
         {t("detail.offlineCached")}

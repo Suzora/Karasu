@@ -13,7 +13,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import type { AppNotification } from "@/api/anilist";
-import { EmptyState, TickMarks } from "@/components/EmptyState";
+import { EmptyState, ErrorState, TickMarks } from "@/components/EmptyState";
 import { Shimmer } from "@/components/Skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -425,21 +425,30 @@ export function NotifFeed({
 
   const dayLabel = (day: "today" | "earlier") => (day === "today" ? t("notif.today") : t("notif.earlier"));
 
+  // A failed later page says why above its own Load more, which asks again; the loaded rows stay where they are.
+  const pageFailed = more && n.showsSite && n.siteNextPageFailed && groups.length > 0;
+  // Either half's failure is one state, so a failed AniList half can never also read as all caught up.
+  const siteError = n.showsSite && !pageFailed ? n.siteError : null;
+  const failure = n.loadError ?? siteError;
+  const siteLoading = n.showsSite && n.siteLoading;
+  const retry = () =>
+    Promise.all([n.loadError != null ? n.reload() : null, siteError != null ? n.retrySite() : null]);
+
   return (
     <>
-      {n.loadError && (
-        <p className="px-3 py-4 text-center text-sm text-danger">{t("common.error", { message: n.loadError })}</p>
-      )}
-      {n.showsSite && n.site.error != null && (
-        <p className="px-3 py-4 text-xs text-danger">{t("common.error", { message: String(n.site.error) })}</p>
-      )}
-      {n.showsSite && n.site.isLoading && groups.length === 0 && (
+      {failure != null &&
+        (groups.length > 0 || siteLoading ? (
+          <ErrorState inline error={failure} onRetry={retry} className="px-3 py-2" />
+        ) : (
+          <ErrorState error={failure} onRetry={retry} />
+        ))}
+      {siteLoading && groups.length === 0 && (
         <div className="space-y-2 p-3">
           <Shimmer className="h-10 w-full rounded-control" />
           <Shimmer className="h-10 w-full rounded-control" />
         </div>
       )}
-      {!n.loadError && !(n.showsSite && n.site.isLoading) && groups.length === 0 && (
+      {failure == null && !siteLoading && groups.length === 0 && (
         <EmptyState visual={<TickMarks />} title={emptyTitle ?? t("notif.empty")} className="py-6" />
       )}
       {groups.length > 0 &&
@@ -453,6 +462,7 @@ export function NotifFeed({
           : list(groups))}
       {more && n.showsSite && n.site.hasNextPage && (
         <div className="border-t border-hair p-2">
+          {pageFailed && <ErrorState inline error={n.siteError} className="px-1 pb-2" />}
           <Button
             variant="ghost"
             size="sm"

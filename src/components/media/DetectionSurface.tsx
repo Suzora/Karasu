@@ -25,6 +25,7 @@ import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { cn } from "@/lib/utils";
 import { countdownFraction, ringOffset, splitRemaining } from "@/lib/countdown";
 import { canScrobbleCancel, canScrobbleNow } from "@/lib/actions";
+import { backendErrorText } from "@/lib/backendError";
 
 /** Countdown text and ring fraction; both ends come from the backend, so a mid-session mount draws where the text says. */
 function useCountdown(wait: {
@@ -403,7 +404,7 @@ export function ScrobbleActions({ playing }: { playing: NowPlaying }) {
       await fn();
       setCorrecting(null);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 

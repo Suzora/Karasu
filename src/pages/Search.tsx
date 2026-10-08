@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { backendErrorText } from "@/lib/backendError";
 
 import {
   browseMedia,
@@ -48,7 +47,7 @@ import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { usePresence } from "@/hooks/usePresence";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
-import { EmptyState, PerchRule, StruckQuery } from "@/components/EmptyState";
+import { EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/EmptyState";
 import { Pill } from "@/components/ui/pill";
 import { UserList } from "@/components/social/UserList";
 import { cardClass } from "@/components/ui/card";
@@ -196,23 +195,25 @@ export default function Search() {
     sort: term.length >= 2 ? sort : effectiveSort,
   };
 
+  // Level is keyed since filtering is server-side; genre and tag are encoded so pick order is one entry.
+  const mediaKey = [
+    "search",
+    type,
+    term,
+    encode(genre),
+    encode(tag),
+    year,
+    season,
+    format,
+    status,
+    source,
+    country,
+    filters.sort,
+    level,
+  ];
+  const queryClient = useQueryClient();
   const media = useInfiniteQuery({
-    // Level is keyed since filtering is server-side; genre and tag are encoded so pick order is one entry.
-    queryKey: [
-      "search",
-      type,
-      term,
-      encode(genre),
-      encode(tag),
-      year,
-      season,
-      format,
-      status,
-      source,
-      country,
-      filters.sort,
-      level,
-    ],
+    queryKey: mediaKey,
     queryFn: ({ pageParam }) => browseMedia(type, filters, pageParam, adultQueryArg(level)),
     initialPageParam: 1,
     getNextPageParam: (last, all) => (last.pageInfo.hasNextPage ? all.length + 1 : undefined),
@@ -439,6 +440,8 @@ export default function Search() {
         {isMediaScope(scope) && (
           <MediaResults
             error={media.error}
+            onRetry={() => queryClient.resetQueries({ queryKey: mediaKey, exact: true })}
+            nextPageFailed={media.isFetchNextPageError}
             isFetching={media.isFetching && !media.isFetchingNextPage}
             active={active}
             term={term}
@@ -501,6 +504,7 @@ function PersonSearchResults({
   term: string;
 }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const query = useInfiniteQuery({
     queryKey: ["search", kind, term],
     queryFn: ({ pageParam }) =>
@@ -527,6 +531,8 @@ function PersonSearchResults({
     <EntityResultList
       loading={query.isLoading}
       error={query.error}
+      onRetry={() => queryClient.resetQueries({ queryKey: ["search", kind, term], exact: true })}
+      nextPageFailed={query.isFetchNextPageError}
       empty={rows.length === 0}
       term={term}
       hasNextPage={query.hasNextPage === true}
@@ -547,6 +553,7 @@ function PersonSearchResults({
 
 function StudioSearchResults({ term }: { term: string }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const query = useInfiniteQuery({
     queryKey: ["search", "studio", term],
     queryFn: ({ pageParam }) => searchStudios(term, pageParam),
@@ -570,6 +577,8 @@ function StudioSearchResults({ term }: { term: string }) {
     <EntityResultList
       loading={query.isLoading}
       error={query.error}
+      onRetry={() => queryClient.resetQueries({ queryKey: ["search", "studio", term], exact: true })}
+      nextPageFailed={query.isFetchNextPageError}
       empty={rows.length === 0}
       term={term}
       hasNextPage={query.hasNextPage === true}
@@ -587,6 +596,8 @@ function StudioSearchResults({ term }: { term: string }) {
 function EntityResultList({
   loading,
   error,
+  onRetry,
+  nextPageFailed,
   empty,
   term,
   hasNextPage,
@@ -596,6 +607,9 @@ function EntityResultList({
 }: {
   loading: boolean;
   error: unknown;
+  onRetry: () => unknown;
+  /** The failure was a later page's, so the loaded rows stay and Load more is what asks again. */
+  nextPageFailed: boolean;
   empty: boolean;
   term: string;
   hasNextPage: boolean;
@@ -604,12 +618,8 @@ function EntityResultList({
   children: React.ReactNode;
 }) {
   const { t } = useTranslation();
-  if (error != null) {
-    return (
-      <p className="text-sm text-danger">
-        {t("common.error", { message: backendErrorText(error, t) })}
-      </p>
-    );
+  if (error != null && empty) {
+    return <ErrorState error={error} onRetry={onRetry} />;
   }
   if (loading) {
     return <Loader size="sm" label={t("search.searching")} />;
@@ -624,9 +634,11 @@ function EntityResultList({
   }
   return (
     <>
+      {error != null && !nextPageFailed && <ErrorState error={error} onRetry={onRetry} inline className="mb-3" />}
       <div className="space-y-2">{children}</div>
       {hasNextPage && (
         <div className="mt-3">
+          {nextPageFailed && <ErrorState error={error} inline className="mb-2" />}
           <Button
             variant="ghost"
             size="sm"
@@ -655,6 +667,8 @@ function EntityRow({ to, name, src }: { to: string; name: string; src?: string }
 
 function MediaResults({
   error,
+  onRetry,
+  nextPageFailed,
   isFetching,
   active,
   term,
@@ -666,6 +680,9 @@ function MediaResults({
   onMore,
 }: {
   error: unknown;
+  onRetry: () => unknown;
+  /** The failure was a later page's, so the loaded covers stay and Load more is what asks again. */
+  nextPageFailed: boolean;
   isFetching: boolean;
   /** Whether anything — a query or a filter — is asking for results. */
   active: boolean;
@@ -694,11 +711,13 @@ function MediaResults({
   });
   return (
     <>
-      {error != null && (
-        <p className="text-sm text-danger">
-          {/* A backend error is a stable code; `backendErrorText` turns the known ones into sentences. */}
-          {t("common.error", { message: backendErrorText(error, t) })}
-        </p>
+      {error != null && !(nextPageFailed && results.length > 0) && (
+        <ErrorState
+          error={error}
+          onRetry={onRetry}
+          inline={results.length > 0}
+          className={results.length > 0 ? "mb-3" : undefined}
+        />
       )}
       {isFetching && <Loader size="sm" label={t("search.searching")} />}
       {!isFetching && !active && (
@@ -708,7 +727,7 @@ function MediaResults({
       {!isFetching && active && (
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-3" />
       )}
-      {!isFetching && active && results.length === 0 && (
+      {!isFetching && active && error == null && results.length === 0 && (
         <EmptyState
           visual={<StruckQuery query={term || t("search.filtered")} />}
           // The query is already on screen in the visual, so the sentence underneath does not repeat it.
@@ -724,7 +743,8 @@ function MediaResults({
             ))}
           </div>
           {hasNextPage && (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex flex-col items-center gap-3">
+              {nextPageFailed && <ErrorState error={error} inline />}
               {/* Countless: `pageInfo.total` is a capped sentinel on search, so a number would be invented. */}
               <Button variant="outline" size="control" onClick={onMore} disabled={fetchingMore}>
                 {t("social.loadMorePlain")}

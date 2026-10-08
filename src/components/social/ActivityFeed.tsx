@@ -1,10 +1,10 @@
-import { useInfiniteQuery, type QueryKey } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
 import { activities, type ActivityPage } from "@/api/social";
 import { Button } from "@/components/ui/button";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
-import { Shimmer } from "@/components/Skeleton";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { cardClass } from "@/components/ui/card";
 import { normalizeActivity, type FeedItem } from "@/lib/activity";
 import { nextPageParam } from "@/lib/paging";
@@ -27,6 +27,7 @@ export function ActivityFeed({
   emptyHint?: string;
 }) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const level = useContentFilter((s) => s.level);
 
   const q = useInfiniteQuery({
@@ -40,7 +41,7 @@ export function ActivityFeed({
 
   if (q.isLoading) {
     return (
-      <div className="space-y-2" aria-hidden="true">
+      <Busy className="space-y-2">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className={cn(cardClass("flat"), "flex gap-3 p-3")}>
             <Shimmer className="aspect-2/3 w-11 rounded-inner" index={i} />
@@ -50,15 +51,7 @@ export function ActivityFeed({
             </div>
           </div>
         ))}
-      </div>
-    );
-  }
-
-  if (q.error) {
-    return (
-      <p className="text-sm text-danger">
-        {t("common.error", { message: String(q.error) })}
-      </p>
+      </Busy>
     );
   }
 
@@ -68,6 +61,17 @@ export function ActivityFeed({
     .map((raw) => normalizeActivity(raw as Parameters<typeof normalizeActivity>[0]))
     .filter((i): i is FeedItem => i !== null)
     .filter((i) => (i.kind === "list" && i.media ? !isBlocked(i.media, level) : true));
+
+  // Only when there is nothing on screen to lose — the `ThreadList` rule.
+  if (q.error && !items.length) {
+    return (
+      <ErrorState
+        error={q.error}
+        visual={<PerchRule />}
+        onRetry={() => qc.resetQueries({ queryKey, exact: true })}
+      />
+    );
+  }
 
   if (!items.length) {
     return <EmptyState visual={<PerchRule />} title={emptyTitle} hint={emptyHint} />;
@@ -85,6 +89,7 @@ export function ActivityFeed({
         </div>
       ))}
 
+      {q.error && <ErrorState error={q.error} inline className="pt-1" />}
       {q.hasNextPage && (
         <div className="pt-1">
           <Button

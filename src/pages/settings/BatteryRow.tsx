@@ -5,6 +5,7 @@ import { ExternalAnchor } from "@/components/RichText";
 import { isTauri } from "@/api/anilist";
 import { getJellyfinBackground, requestBatteryExemption, type JellyfinBackground } from "@/stores/nowPlaying";
 import { Row } from "./shared";
+import { backendErrorText } from "@/lib/backendError";
 
 /** Lists each manufacturer's own background rules, which the exemption Karasu can ask for does not lift. */
 const DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/";
@@ -39,7 +40,7 @@ export function BatteryRow({ exempt }: { exempt: boolean | null }) {
     try {
       await requestBatteryExemption();
     } catch (e) {
-      setError(t("settings.batteryFailed", { message: String(e) }));
+      setError(t("settings.batteryFailed", { message: backendErrorText(e, t) }));
     }
   };
 

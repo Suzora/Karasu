@@ -31,10 +31,12 @@ import { isBlocked, isBlockedGenre } from "@/lib/contentFilter";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Pill } from "@/components/ui/pill";
-import { EmptyState, OutlineYear } from "@/components/EmptyState";
+import { EmptyState, ErrorState, OutlineYear } from "@/components/EmptyState";
 import { Select } from "@/components/ui/select";
 import markUrl from "@/assets/karasu-mark.svg";
 import { toBase64 } from "@/lib/base64";
+import { backendErrorText } from "@/lib/backendError";
+import { showToast } from "@/stores/toast";
 import { needsJapaneseFace } from "@/lib/titleLanguage";
 
 /** Poster type and geometry are written in em, like the design, so one layout serves every crop. */
@@ -716,31 +718,39 @@ export default function Wrapped() {
   /** Renders at the chosen scale into a throwaway canvas and saves it, so no export-size canvas stays mounted. */
   const save = async () => {
     if (!stats || !heading || period === null) return;
-    const out = document.createElement("canvas");
-    // Awaited, not read from state: an export fired before the decodes landed would draw no bird and fallback glyphs.
-    await ensurePosterFonts();
-    const art = mark ?? (await loadMark());
-    drawCard(out, stats, heading, viewer?.name ?? "", t, i18n.language, preset, art, scale);
+    try {
+      const out = document.createElement("canvas");
+      // Awaited, not read from state: an export fired before the decodes landed would draw no bird and fallback glyphs.
+      await ensurePosterFonts();
+      const art = mark ?? (await loadMark());
+      drawCard(out, stats, heading, viewer?.name ?? "", t, i18n.language, preset, art, scale);
 
-    const blob = await new Promise<Blob | null>((resolve) =>
-      // Quality applies to JPEG only, and the browser default is visually lossless on flat poster art.
-      out.toBlob(resolve, format === "png" ? "image/png" : "image/jpeg", 0.92),
-    );
-    if (!blob) return;
+      const blob = await new Promise<Blob | null>((resolve) =>
+        // Quality applies to JPEG only, and the browser default is visually lossless on flat poster art.
+        out.toBlob(resolve, format === "png" ? "image/png" : "image/jpeg", 0.92),
+      );
+      if (!blob) {
+        showToast({ kind: "error", text: t("wrapped.saveFailed") });
+        return;
+      }
 
-    const suffix = scale === 1 ? "" : `@${scale}x`;
-    const slug =
-      period.kind === "year"
-        ? String(period.year)
-        : `${period.year}-${period.season.toLowerCase()}`;
-    const ok = await saveImage(
-      toBase64(new Uint8Array(await blob.arrayBuffer())),
-      `karasu-wrapped-${slug}-${presetKey}${suffix}.${format === "png" ? "png" : "jpg"}`,
-      format,
-    ).catch(() => false);
-    if (ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      const suffix = scale === 1 ? "" : `@${scale}x`;
+      const slug =
+        period.kind === "year"
+          ? String(period.year)
+          : `${period.year}-${period.season.toLowerCase()}`;
+      // A resolved `false` is the dialog cancelled, which needs no answer.
+      const ok = await saveImage(
+        toBase64(new Uint8Array(await blob.arrayBuffer())),
+        `karasu-wrapped-${slug}-${presetKey}${suffix}.${format === "png" ? "png" : "jpg"}`,
+        format,
+      );
+      if (ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch (e) {
+      showToast({ kind: "error", text: t("wrapped.saveFailed"), detail: backendErrorText(e, t) });
     }
   };
 
@@ -837,14 +847,11 @@ export default function Wrapped() {
       {loading ? (
         <Loader label={t("common.loading")} />
       ) : error ? (
-        <div>
-          <p className="text-danger">
-            {t("list.loadError", { message: String(error) })}
-          </p>
-          <Button className="mt-4" variant="secondary" onClick={() => refetch()}>
-            {t("common.retry")}
-          </Button>
-        </div>
+        <ErrorState
+          error={error}
+          onRetry={() => refetch()}
+          title={(reason) => t("list.loadError", { message: reason })}
+        />
       ) : years.length === 0 ? (
         <EmptyState visual={<OutlineYear year={new Date().getFullYear()} />} title={t("wrapped.empty")} />
       ) : (

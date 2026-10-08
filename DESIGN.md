@@ -372,9 +372,10 @@ no row here, add the primitive first.
 | something a finger flicks away | `useFlickDismiss` (the toast): follows a downward drag at 60 %, dismisses past 40 px or 400 px/s, springs back otherwise, and swallows the click its release fires |
 | a dialog | `Modal`: `size` from `sm` to `2xl`, `description` and `icon` in the header, `footer` pinned under a body that scrolls; `alert` for a question that interrupts (`alertdialog`, over other dialogs, answered by its buttons with the harmless one first); `bare` for a full-screen view such as the cover; `dismissable={false}` while something runs that must not be left half done. Escape closes only the dialog holding focus |
 | keeping an overlay alive through its exit | `Presence`, `PresenceIf` |
-| a wait with no shape | `Loader`; a known shape is `Skeleton`, built from `Shimmer`, which a quick load never shows |
+| a wait with no shape | `Loader`; a known shape is `Skeleton`, built from `Shimmer`, which a quick load never shows, inside one `Busy` (a single status with a hidden caption, the blocks silent) |
 | a busy icon (sync, refresh, install) | `Spinner` with `spinning`, the only place `animate-spin` may appear |
 | nothing to show | `EmptyState`, with a drawn `visual` or, where none fits, `icon` for a plain glyph at 32 px |
+| a load that failed | `ErrorState`: the reason in the reader's language (`backendErrorText`, never a raw backend code) and one Retry the user presses; the full form for a page, `inline` for a fold, a footer or a page whose rows are already showing; a later page that failed says why above its own Load more, which is what asks again, and the loaded rows stay |
 | a score picker | `ScoreBars` |
 | a season picker | `SeasonPicker` |
 | a user's name and face | `UserLockup` |

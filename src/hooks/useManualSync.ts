@@ -5,6 +5,7 @@ import { fetchMediaList, flushQueue } from "@/api/anilist";
 import type { MediaType } from "@/api/types";
 import { useAuth } from "@/stores/auth";
 import { showToast } from "@/stores/toast";
+import { backendErrorText } from "@/lib/backendError";
 import { acquire, isSyncing, release, subscribe } from "@/lib/syncLock";
 
 /** The whole-app sync; the lists are fetched explicitly because invalidation only refetches active observers. */
@@ -40,7 +41,7 @@ export function useManualSync() {
         predicate: (q) => q.queryKey[0] !== "mediaList",
       });
     } catch (e) {
-      showToast({ kind: "error", text: t("sync.failed"), detail: String(e) });
+      showToast({ kind: "error", text: t("sync.failed"), detail: backendErrorText(e, t) });
     } finally {
       release();
     }

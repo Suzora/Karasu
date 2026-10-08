@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Heart, MessageSquare } from "lucide-react";
 import { isTauri } from "@/api/anilist";
 import { userForumComments } from "@/api/social";
 import { Button } from "@/components/ui/button";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
-import { Shimmer } from "@/components/Skeleton";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { renderPlain } from "@/lib/anilistMarkdown";
 import { nextPageParam } from "@/lib/paging";
 import { relTimeFromSeconds } from "@/lib/relTime";
@@ -24,9 +24,11 @@ export function UserComments({
   emptyActions?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
+  const queryKey = ["social", "userComments", userId];
 
   const q = useInfiniteQuery({
-    queryKey: ["social", "userComments", userId],
+    queryKey,
     queryFn: ({ pageParam }) => userForumComments(userId, pageParam),
     initialPageParam: 1,
     getNextPageParam: (last) => nextPageParam(last.pageInfo),
@@ -36,11 +38,11 @@ export function UserComments({
 
   if (q.isLoading) {
     return (
-      <div className="space-y-2" aria-hidden="true">
+      <Busy className="space-y-2">
         {[0, 1, 2, 3].map((i) => (
           <Shimmer key={i} className="h-16 w-full rounded-panel" index={i} />
         ))}
-      </div>
+      </Busy>
     );
   }
 
@@ -53,19 +55,17 @@ export function UserComments({
   // Only when there is nothing on screen to lose — the `ThreadList` rule.
   if (q.error && !rows.length && !q.hasNextPage) {
     return (
-      <p className="text-sm text-danger">
-        {t("common.error", { message: String(q.error) })}
-      </p>
+      <ErrorState
+        error={q.error}
+        visual={<PerchRule />}
+        onRetry={() => qc.resetQueries({ queryKey, exact: true })}
+      />
     );
   }
 
   const footer = (
     <>
-      {q.error && (
-        <p className="pt-1 text-2xs text-danger">
-          {t("common.error", { message: String(q.error) })}
-        </p>
-      )}
+      {q.error && <ErrorState error={q.error} inline className="pt-1" />}
       {q.hasNextPage && (
         <div className="pt-1">
           <Button

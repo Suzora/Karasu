@@ -41,6 +41,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import KarasuMark from "@/components/KarasuMark";
 import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
+import { backendErrorText } from "@/lib/backendError";
 
 const REPO_URL = "https://github.com/Suzora/Karasu";
 const DISCORD_HANDLE = "Kyusetzu";
@@ -251,7 +252,7 @@ function ApkUpdatePanel({ tick }: { tick: number }) {
       await action();
       setState(await apkUpdateState());
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -341,7 +342,7 @@ function UpdateSection() {
       const update = await downloadPendingUpdate();
       setDownloaded(update);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setDownloading(false);
     }
@@ -361,7 +362,7 @@ function UpdateSection() {
         await startDownload();
       }
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -374,7 +375,7 @@ function UpdateSection() {
       // On success this restarts the app and never returns.
       await installPendingUpdate();
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
       setInstalling(false);
       // The backend keeps the download on a failed install, but re-read rather than assume it did.
       pendingUpdate().then(setDownloaded).catch(() => {});

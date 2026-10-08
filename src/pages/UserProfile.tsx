@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -18,10 +18,10 @@ import { UserLists } from "@/components/social/UserLists";
 import { UserCompare } from "@/components/social/UserCompare";
 import { ActivityFeed } from "@/components/social/ActivityFeed";
 import { UserThreads } from "@/components/social/UserThreads";
-import { CoverOutline, EmptyState, PerchRule, StruckQuery } from "@/components/EmptyState";
+import { CoverOutline, EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/EmptyState";
 import { isNotFound } from "@/lib/apiError";
 import { profileKey } from "@/lib/anilistUrl";
-import { Shimmer } from "@/components/Skeleton";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusTabs } from "@/components/ui/status-tabs";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,19 @@ import { isBlocked } from "@/lib/contentFilter";
 import { isSelf } from "@/lib/follows";
 import { displayTitle } from "@/api/types";
 import { cn } from "@/lib/utils";
+
+/** The loaded page's frame, so Back stands where it will stay while the profile loads or fails. */
+function Frame({ children }: { children?: ReactNode }) {
+  return (
+    <div className="pb-12">
+      {/* In flow above the banner: a no-banner profile puts the avatar where a floated button would sit. */}
+      <div className="px-8 pt-4">
+        <BackButton />
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /** Someone's AniList profile, keyed on the URL param: a name from mentions and links, an id from `siteUrl`. */
 export default function UserProfile() {
@@ -51,56 +64,64 @@ export default function UserProfile() {
     retry: false,
   });
 
-  if (loading) return null;
+  if (loading) return <Frame />;
 
   // In local mode there is no viewer to be following anyone, so say so rather than render an empty profile.
   if (mode !== "anilist") {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
-          visual={<PerchRule />}
-          title={t("social.needsAccount")}
-          hint={t("social.needsAccountHint")}
-          actions={
-            <Link to="/settings?pane=account">
-              <Button variant="secondary" size="sm">
-                {t("social.goToSettings")}
-              </Button>
-            </Link>
-          }
-        />
-      </div>
+      <Frame>
+        <div className="px-8 pt-7">
+          <EmptyState
+            visual={<PerchRule />}
+            title={t("social.needsAccount")}
+            hint={t("social.needsAccountHint")}
+            actions={
+              <Link to="/settings?pane=account">
+                <Button variant="secondary" size="sm">
+                  {t("social.goToSettings")}
+                </Button>
+              </Link>
+            }
+          />
+        </div>
+      </Frame>
     );
   }
 
-  if (profile.isLoading) return <ProfileSkeleton />;
-
-  // Only a real not-found means the user is gone; any other failure is a failure to ask (lib/apiError).
-  if (profile.error && !isNotFound(profile.error)) {
+  if (profile.isLoading) {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
-          visual={<StruckQuery query={name} />}
-          title={t("common.error", { message: String(profile.error) })}
-          actions={
-            <Button variant="outline" size="control" onClick={() => void profile.refetch()}>
-              {t("common.retry")}
-            </Button>
-          }
-        />
-      </div>
+      <Frame>
+        <ProfileSkeleton />
+      </Frame>
     );
   }
 
-  if (profile.error || !profile.data) {
+  // Only a real not-found means the user is gone; any other failure is a failure to ask, and a loaded profile stays.
+  if (profile.error && !profile.data && !isNotFound(profile.error)) {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
-          visual={<StruckQuery query={name} />}
-          title={t("social.notFound")}
-          hint={t("social.notFoundHint")}
-        />
-      </div>
+      <Frame>
+        <div className="px-8 pt-7">
+          <ErrorState
+            error={profile.error}
+            visual={<StruckQuery query={name} />}
+            onRetry={() => profile.refetch()}
+          />
+        </div>
+      </Frame>
+    );
+  }
+
+  if (!profile.data || isNotFound(profile.error)) {
+    return (
+      <Frame>
+        <div className="px-8 pt-7">
+          <EmptyState
+            visual={<StruckQuery query={name} />}
+            title={t("social.notFound")}
+            hint={t("social.notFoundHint")}
+          />
+        </div>
+      </Frame>
     );
   }
 
@@ -109,25 +130,23 @@ export default function UserProfile() {
   // A blocked profile is a real user object with everything empty; say so rather than look abandoned.
   if (user.isBlocked) {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
-          icon={Ban}
-          title={t("social.blocked", { name: user.name })}
-          hint={t("social.blockedHint")}
-        />
-      </div>
+      <Frame>
+        <div className="px-8 pt-7">
+          <EmptyState
+            icon={Ban}
+            title={t("social.blocked", { name: user.name })}
+            hint={t("social.blockedHint")}
+          />
+        </div>
+      </Frame>
     );
   }
 
   return (
-    <div className="pb-12">
-      {/* In flow above the banner: a no-banner profile puts the avatar where a floated button would sit. */}
-      <div className="px-8 pt-4">
-        <BackButton />
-      </div>
+    <Frame>
       <ProfileHeader user={user} />
       <Tabbed user={user} />
-    </div>
+    </Frame>
   );
 }
 
@@ -377,7 +396,7 @@ function Favourites({ user }: { user: UserProfileData }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="px-8 pt-7" aria-hidden="true">
+    <Busy className="px-8 pt-7">
       <div className="flex items-end gap-5">
         <Shimmer className="size-20 rounded-full" />
         <div className="flex-1 space-y-2 pb-1">
@@ -396,6 +415,6 @@ function ProfileSkeleton() {
           <Shimmer key={i} className={cn("h-3 rounded-inner", w)} index={i} />
         ))}
       </div>
-    </div>
+    </Busy>
   );
 }

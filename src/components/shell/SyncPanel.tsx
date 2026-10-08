@@ -7,6 +7,7 @@ import { CloudUpload, Hourglass, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { displayTitle, type ListResult, type QueuedEdit } from "@/api/types";
 import { cn } from "@/lib/utils";
+import { backendErrorText } from "@/lib/backendError";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import {
   isQueueField,
@@ -223,7 +224,7 @@ export default function SyncPanel({
           {/* A failed status read is a state to render, not a reason to show the reassuring empty one. */}
           {status.error != null ? (
             <p className="px-3 py-4 text-xs text-danger">
-              {t("common.error", { message: String(status.error) })}
+              {t("common.error", { message: backendErrorText(status.error, t) })}
             </p>
           ) : !data ? (
             <Loader size="sm" label={t("syncPanel.loading")} className="px-3 py-4" />

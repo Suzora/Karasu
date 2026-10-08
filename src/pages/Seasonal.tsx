@@ -24,7 +24,7 @@ import SeasonPicker from "@/components/ui/season-picker";
 import { Button } from "@/components/ui/button";
 import { adultQueryArg, isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
-import { EmptyState, TickMarks } from "@/components/EmptyState";
+import { EmptyState, ErrorState, TickMarks } from "@/components/EmptyState";
 import { SectionHeader } from "@/components/ui/section-header";
 import { flattenGroups, groupByFormat } from "@/lib/formatGroups";
 import { formatLabel } from "@/lib/format";
@@ -56,7 +56,7 @@ export default function Seasonal() {
   const level = useContentFilter((s) => s.level);
   const filterReady = useContentFilter((s) => s.ready);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["seasonal", season, year, level],
     queryFn: () => seasonalAnime(season, year, 1, adultQueryArg(level)),
     enabled: isTauri && filterReady,
@@ -113,9 +113,12 @@ export default function Seasonal() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
         {error && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(error) })}
-          </p>
+          <ErrorState
+            error={error}
+            onRetry={() => refetch()}
+            inline={groups.length > 0}
+            className={groups.length > 0 ? "mb-4" : undefined}
+          />
         )}
         {isLoading && <Loader label={t("seasonal.loading")} />}
         {!isLoading && !error && results.length === 0 && (

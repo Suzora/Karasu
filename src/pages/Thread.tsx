@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -27,9 +27,9 @@ import BackButton from "@/components/shell/BackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserLockup } from "@/components/ui/user-lockup";
-import { EmptyState, PerchRule, StruckQuery } from "@/components/EmptyState";
+import { EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/EmptyState";
 import { isNotFound } from "@/lib/apiError";
-import { Shimmer } from "@/components/Skeleton";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { Markdown } from "@/components/social/Markdown";
 import { MarkdownTextarea } from "@/components/social/MarkdownTextarea";
 import { CommentTree } from "@/components/social/CommentTree";
@@ -85,6 +85,16 @@ async function fetchNewest(
     ...(await threadComments(threadId, deepest)),
     via: jumpRoute(lastPage, replyCommentId),
   };
+}
+
+/** The loaded page's frame, so Back stands where it will stay while the thread loads or fails. */
+function Frame({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto max-w-3xl px-8 pb-12 pt-7">
+      <BackButton className="mb-4" />
+      {children}
+    </div>
+  );
 }
 
 /** One forum thread: its body, its comments, and a box to add one, at two parallel requests cold. */
@@ -393,60 +403,58 @@ export default function Thread() {
 
   if (!Number.isFinite(threadId) || threadId <= 0) {
     return (
-      <div className="px-8 pt-7">
+      <Frame>
         <EmptyState visual={<StruckQuery query={id} />} title={t("social.threadNotFound")} />
-      </div>
+      </Frame>
     );
   }
 
   if (mode !== "anilist") {
     return (
-      <div className="px-8 pt-7">
+      <Frame>
         <EmptyState
           visual={<PerchRule />}
           title={t("social.needsAccount")}
           hint={t("social.needsAccountHint")}
         />
-      </div>
+      </Frame>
     );
   }
 
   if (th.isLoading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-3 px-8 pt-7" aria-hidden="true">
-        <Shimmer className="h-6 w-2/3 rounded-inner" />
-        <Shimmer className="h-3 w-40 rounded-inner" index={1} />
-        <Shimmer className="h-24 w-full rounded-panel" index={2} />
-      </div>
+      <Frame>
+        <Busy className="space-y-3">
+          <Shimmer className="h-6 w-2/3 rounded-inner" />
+          <Shimmer className="h-3 w-40 rounded-inner" index={1} />
+          <Shimmer className="h-24 w-full rounded-panel" index={2} />
+        </Busy>
+      </Frame>
     );
   }
 
   // Only a not-found rejection means the thread is gone; any other failure is a failure to ask (lib/apiError).
-  if (th.error && !isNotFound(th.error)) {
+  if (th.error && !th.data && !isNotFound(th.error)) {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
+      <Frame>
+        <ErrorState
+          error={th.error}
           visual={<StruckQuery query={id} />}
-          title={t("common.error", { message: String(th.error) })}
-          actions={
-            <Button variant="outline" size="control" onClick={() => void th.refetch()}>
-              {t("common.retry")}
-            </Button>
-          }
+          onRetry={() => th.refetch()}
         />
-      </div>
+      </Frame>
     );
   }
 
-  if (th.error || !th.data) {
+  if (!th.data || isNotFound(th.error)) {
     return (
-      <div className="px-8 pt-7">
+      <Frame>
         <EmptyState
           visual={<StruckQuery query={id} />}
           title={t("social.threadNotFound")}
           hint={t("social.threadNotFoundHint")}
         />
-      </div>
+      </Frame>
     );
   }
 
@@ -456,8 +464,7 @@ export default function Thread() {
   const canPost = mode === "anilist" && !data.isLocked;
 
   return (
-    <div className="mx-auto max-w-3xl px-8 pb-12 pt-7">
-      <BackButton className="mb-4" />
+    <Frame>
       <header>
         <div className="flex items-start gap-2">
           {data.isLocked && <Lock className="mt-1.5 size-4 shrink-0 text-ink-600" />}
@@ -618,9 +625,7 @@ export default function Thread() {
                 <Shimmer className="h-16 w-full rounded-panel" />
               </div>
             ) : newest.error ? (
-              <p className="text-sm text-danger">
-                {t("common.error", { message: String(newest.error) })}
-              </p>
+              <ErrorState error={newest.error} inline onRetry={() => newest.refetch()} />
             ) : (
               <>
                 {/* Say so whenever the cap decided what arrived: "tree" brings a conversation, "capped" misses the newest. */}
@@ -663,7 +668,16 @@ export default function Thread() {
         ) : (
           <>
             {comments.isLoading && <Shimmer className="h-16 w-full rounded-panel" />}
-            {!comments.isLoading && flat.length === 0 && (
+            {comments.isError && flat.length === 0 && (
+              <ErrorState
+                error={comments.error}
+                inline
+                onRetry={() =>
+                  qc.resetQueries({ queryKey: ["social", "threadComments", threadId], exact: true })
+                }
+              />
+            )}
+            {!comments.isLoading && !comments.isError && flat.length === 0 && (
               <p className="text-sm text-ink-600">{t("social.noComments")}</p>
             )}
             <CommentTree
@@ -675,6 +689,9 @@ export default function Thread() {
               {replyBox}
             </CommentTree>
 
+            {comments.isFetchNextPageError && flat.length > 0 && (
+              <ErrorState error={comments.error} inline className="pt-3" />
+            )}
             {comments.hasNextPage && (
               <div className="pt-3">
                 <Button
@@ -724,6 +741,6 @@ export default function Thread() {
           />
         </form>
       )}
-    </div>
+    </Frame>
   );
 }

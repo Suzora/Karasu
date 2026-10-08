@@ -18,6 +18,7 @@ import { missingIds } from "@/lib/chunk";
 import { fuzzyScore, prepareDoc, prepareQuery } from "@/lib/fuzzy";
 import { loadDefaultAddStatus } from "@/lib/defaultAddStatus";
 import { withCompletion } from "@/lib/completion";
+import { backendErrorText } from "@/lib/backendError";
 import {
   clearLibraryMatch,
   getLibraryStatus,
@@ -284,7 +285,7 @@ function LibraryView({ userId }: { userId: number }) {
         setEditing(null);
         await Promise.all([refresh(), refetchStatus(), refetchUnmatched()]);
       } catch (e) {
-        report(typeof e === "string" ? e : t("library.correctFailed"));
+        report(typeof e === "string" ? backendErrorText(e, t) : t("library.correctFailed"));
       }
     },
     [refresh, refetchStatus, refetchUnmatched, t],
@@ -320,7 +321,7 @@ function LibraryView({ userId }: { userId: number }) {
         });
         await Promise.all([refresh(), refetchStatus(), refetchUnmatched()]);
       } catch (e) {
-        setSplitError(typeof e === "string" ? e : t("library.correctFailed"));
+        setSplitError(typeof e === "string" ? backendErrorText(e, t) : t("library.correctFailed"));
       } finally {
         setSplitPending(false);
       }
@@ -371,7 +372,7 @@ function LibraryView({ userId }: { userId: number }) {
         // The invalidate moves the row; `useListMutations` patches existing entries and a first add has none.
         await qc.invalidateQueries({ queryKey: ["mediaList", "ANIME", userId] });
       } catch (e) {
-        setError(typeof e === "string" ? e : t("library.addFailed"));
+        setError(typeof e === "string" ? backendErrorText(e, t) : t("library.addFailed"));
       }
     },
     [qc, userId, setError, t],
@@ -404,7 +405,7 @@ function LibraryView({ userId }: { userId: number }) {
       if (!picked) return;
       await setLibraryPath(picked);
     } catch (e) {
-      showToast({ kind: "error", text: t("library.folderFailed"), detail: String(e) });
+      showToast({ kind: "error", text: t("library.folderFailed"), detail: backendErrorText(e, t) });
       return;
     }
     await rescan();

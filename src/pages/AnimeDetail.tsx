@@ -8,7 +8,7 @@ import {
   type InfiniteData,
 } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { isOffline } from "@/lib/apiError";
+import { isNotFound, isOffline } from "@/lib/apiError";
 import { mediaUrl } from "@/lib/anilistUrl";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { OfflineDetail } from "@/components/media/OfflineDetail";
@@ -60,6 +60,8 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked, shouldBlur } from "@/lib/contentFilter";
 import BackButton from "@/components/shell/BackButton";
 import { DetailSkeleton, Shimmer } from "@/components/Skeleton";
+import { EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
+import { backendErrorText } from "@/lib/backendError";
 import { cn } from "@/lib/utils";
 import { characterRoleLabel } from "@/components/media/roleLabel";
 import { MediaBanner } from "@/components/media/MediaBanner";
@@ -115,22 +117,44 @@ export default function AnimeDetail() {
   /** The local list's entry, since mediaListEntry is null in local mode; keeps ListEditor from seeding over a real entry. */
   const cachedEntry = useCachedEntry(0, data?.type, mediaId);
 
+  const page = (body: ReactNode, fill = false) => (
+    <div className={cn("relative", fill && "h-full")}>
+      {/* Outside every branch, so it stands still while the page loads; off the centred column, so no gutter moves it. */}
+      <BackButton className="absolute left-6 top-3 z-10" />
+      {body}
+    </div>
+  );
+
   // A skeleton in the page's own frame rather than a line of text, so nothing moves when the data arrives.
-  if (isLoading) return <DetailSkeleton />;
-  // Offline, with no fresh answer in the query cache: OfflineDetail serves what the list cache already holds.
-  if (error && isOffline(error))
-    return <OfflineDetail mediaId={mediaId} onRetry={() => void refetch()} />;
-  if (error)
-    return (
-      <p className="p-8 text-danger">
-        {t("common.error", { message: String(error) })}
-      </p>
+  if (isLoading) return page(<DetailSkeleton />);
+  // Offline with nothing cached: OfflineDetail serves the list's copy; a failed refetch over a loaded page keeps it.
+  if (error && !data && isOffline(error))
+    return page(<OfflineDetail mediaId={mediaId} onRetry={() => refetch()} />);
+  if (error && !data && isNotFound(error))
+    return page(
+      <div className="px-8 pt-7">
+        <EmptyState
+          visual={<StruckQuery query={id ?? ""} />}
+          title={t("detail.notFound")}
+          hint={t("detail.notFoundHint")}
+        />
+      </div>,
+    );
+  if (error && !data)
+    return page(
+      <div className="px-8 pt-7">
+        <ErrorState
+          error={error}
+          onRetry={() => refetch()}
+          visual={<StruckQuery query={id ?? ""} />}
+        />
+      </div>,
     );
   if (!data) return null;
 
   // Reachable by a direct link even when filtered, so it gets an explicit reveal rather than a blank page.
   if (isBlocked(data, level) && !revealed) {
-    return (
+    return page(
       <div className="grid h-full place-items-center p-8">
         <div className="max-w-sm text-center">
           <p className="text-sm text-ink-300">{t("detail.filtered")}</p>
@@ -145,7 +169,8 @@ export default function AnimeDetail() {
             {t("detail.filteredShow")}
           </Button>
         </div>
-      </div>
+      </div>,
+      true,
     );
   }
 
@@ -187,16 +212,14 @@ export default function AnimeDetail() {
       !isBlocked(e.node, level),
   );
 
-  return (
-    <div>
+  return page(
+    <>
       {/* The query container sits here, not on the page, since containment would pin the page's fixed overlays to it. */}
       <div className="@container">
         <div className="relative" style={frame.header}>
           <MediaBanner source={banner} veiled={veiled} />
           {/* A short fade into the page, so the contained banner stays whole above it. */}
           <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface-950 to-transparent" />
-          {/* Anchored to the banner, not the centred column, or it drifts inward with the gutter on a wide display. */}
-          <BackButton className="absolute left-6 top-3 z-10" />
         </div>
       </div>
 
@@ -466,7 +489,7 @@ export default function AnimeDetail() {
           )}
         </div>
       </div>
-    </div>
+    </>,
   );
 }
 
@@ -491,9 +514,7 @@ function EpisodesSection({ mediaId }: { mediaId: number }) {
       >
         {episodes.isLoading && <Shimmer className="h-24 w-full rounded-control" />}
         {episodes.error != null && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(episodes.error) })}
-          </p>
+          <ErrorState inline error={episodes.error} onRetry={() => episodes.refetch()} />
         )}
         {episodes.data && episodes.data.length === 0 && (
           <p className="text-xs text-ink-600">{t("detail.episodesNone")}</p>
@@ -525,6 +546,7 @@ function EpisodesSection({ mediaId }: { mediaId: number }) {
 /** Cast and staff behind a fold; one request pages both lists, and the button is countless since total is a sentinel. */
 function CastSection({ mediaId }: { mediaId: number }) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const cast = useInfiniteQuery({
     queryKey: ["cast", mediaId],
@@ -548,10 +570,12 @@ function CastSection({ mediaId }: { mediaId: number }) {
         panelClassName="mt-3 space-y-5"
       >
         {cast.isLoading && <Shimmer className="h-24 w-full rounded-control" />}
-        {cast.error != null && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(cast.error) })}
-          </p>
+        {cast.error != null && !cast.isFetchNextPageError && (
+          <ErrorState
+            inline
+            error={cast.error}
+            onRetry={() => qc.resetQueries({ queryKey: ["cast", mediaId], exact: true })}
+          />
         )}
         {characters.length > 0 && (
           <div>
@@ -621,6 +645,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
             </div>
           </div>
         )}
+        {cast.isFetchNextPageError && <ErrorState inline error={cast.error} />}
         {cast.hasNextPage && (
           <Button
             variant="outline"
@@ -674,7 +699,7 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
       );
     },
     onError: (e) =>
-      showToast({ kind: "error", text: t("common.error", { message: String(e) }) }),
+      showToast({ kind: "error", text: t("common.error", { message: backendErrorText(e, t) }) }),
   });
 
   // The lookup happens on the click, not the mount; a query racing the detail page's own skips the budget check.
@@ -682,7 +707,7 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
     mutationFn: () => myReview(mediaId, viewer!.id),
     onSuccess: (mine) => setComposer({ existing: mine }),
     onError: (e) =>
-      showToast({ kind: "error", text: t("common.error", { message: String(e) }) }),
+      showToast({ kind: "error", text: t("common.error", { message: backendErrorText(e, t) }) }),
   });
 
   const rows = (revs.data?.pages ?? []).flatMap((p) => p.reviews);
@@ -696,10 +721,12 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
         panelClassName="mt-3 space-y-3"
       >
         {revs.isLoading && <Shimmer className="h-24 w-full rounded-control" />}
-        {revs.error != null && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(revs.error) })}
-          </p>
+        {revs.error != null && !revs.isFetchNextPageError && (
+          <ErrorState
+            inline
+            error={revs.error}
+            onRetry={() => qc.resetQueries({ queryKey: ["social", "reviews", mediaId], exact: true })}
+          />
         )}
         {revs.data && rows.length === 0 && (
           <p className="text-xs text-ink-600">{t("detail.reviewsNone")}</p>
@@ -713,6 +740,7 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
             onVote={(rating) => vote.mutate({ id: r.id, rating })}
           />
         ))}
+        {revs.isFetchNextPageError && <ErrorState inline error={revs.error} />}
         <div className="flex items-center gap-2">
           {revs.hasNextPage && (
             <Button
@@ -875,9 +903,7 @@ function TrendSection({ mediaId }: { mediaId: number }) {
       >
         {trends.isLoading && <Shimmer className="h-24 w-full rounded-control" />}
         {trends.error != null && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(trends.error) })}
-          </p>
+          <ErrorState inline error={trends.error} onRetry={() => trends.refetch()} />
         )}
         {trends.data &&
           (points.length < 2 ? (

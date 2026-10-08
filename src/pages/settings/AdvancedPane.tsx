@@ -202,7 +202,7 @@ export function PortableSection() {
       else await unwrap(commands.enablePortable(replace ?? null));
       setRestart(true);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
     // Either way, re-read where the data actually lives rather than assuming the switch failed cleanly.
     await commands.getPortableStatus().then(setStatus);
@@ -302,7 +302,7 @@ export function ExportSection() {
     try {
       await fn();
     } catch (e) {
-      showToast({ kind: "error", text: t("settings.exportFailed"), detail: String(e) });
+      showToast({ kind: "error", text: t("settings.exportFailed"), detail: backendErrorText(e, t) });
     } finally {
       setBusy(false);
     }
@@ -443,7 +443,7 @@ export function ImportSection() {
             : t("settings.importDone", { n: imported }),
       });
     } catch (e) {
-      showToast({ kind: "error", text: t("settings.importFailed"), detail: String(e) });
+      showToast({ kind: "error", text: t("settings.importFailed"), detail: backendErrorText(e, t) });
     } finally {
       setBusy(false);
       setProgress(null);
@@ -496,7 +496,7 @@ export function ImportSection() {
             : t("settings.importDone", { n: parsed.rows.length }),
       });
     } catch (e) {
-      showToast({ kind: "error", text: t("settings.importFailed"), detail: String(e) });
+      showToast({ kind: "error", text: t("settings.importFailed"), detail: backendErrorText(e, t) });
     } finally {
       setBusy(false);
       setProgress(null);
@@ -550,7 +550,7 @@ export function BackupSection() {
       await unwrap(commands.setBackupSettings(next.enabled, next.keep));
     } catch (e) {
       setSettings(prev);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -579,7 +579,7 @@ export function BackupSection() {
             size="sm"
             className="shrink-0"
             onClick={async () => {
-              await unwrap(commands.openBackupDir()).catch((e) => setError(String(e)));
+              await unwrap(commands.openBackupDir()).catch((e) => setError(backendErrorText(e, t)));
             }}
           >
             <FolderOpen className="size-3.5" /> {t("settings.backupOpenButton")}
@@ -668,7 +668,7 @@ export function SystemSection() {
       await unwrap(commands.setAutostart(enabled));
     } catch (e) {
       setAutostart(!enabled);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -679,7 +679,7 @@ export function SystemSection() {
       await unwrap(commands.setCloseToTray(enabled));
     } catch (e) {
       setCloseTray((prev) => (prev ? { ...prev, enabled: !enabled } : prev));
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -696,7 +696,7 @@ export function SystemSection() {
       setHotkeyDraft(next);
     } catch (e) {
       setHotkeyDraft(hotkey);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 
@@ -759,7 +759,7 @@ export function SystemSection() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => void unwrap(commands.configureGlobalHotkey()).catch((e) => setError(String(e)))}
+                onClick={() => void unwrap(commands.configureGlobalHotkey()).catch((e) => setError(backendErrorText(e, t)))}
               >
                 {t("settings.hotkeyConfigure")}
               </Button>
@@ -870,7 +870,7 @@ export function LogSection() {
     try {
       setEntries(await getLogs(200));
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -883,7 +883,7 @@ export function LogSection() {
       await setLogDebug(enabled);
     } catch (e) {
       setDebug(previous);
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 

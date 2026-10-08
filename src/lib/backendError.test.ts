@@ -26,6 +26,11 @@ describe("backendErrorText", () => {
     expect(backendErrorText("queue.busy", t)).toBe("T:receipt.syncBusy");
     // AniList's own wording is "Invalid token": English and not actionable, so it gets a translation.
     expect(backendErrorText("anilist.tokenRejected", t)).toBe("T:auth.tokenRejected");
+    // Throttled or unreachable: said in the reader's language, and never as a promise that Karasu retries by itself.
+    expect(backendErrorText("anilist.rateLimited", t)).toBe("T:common.rateLimited");
+    expect(backendErrorText(new Error("Network error: error sending request for url (https://graphql.anilist.co/)"), t)).toBe(
+      "T:common.offlineError",
+    );
   });
 
   /** Proves transport detail and an untranslated code degrade to the raw sentence, never an empty box. */

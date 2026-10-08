@@ -592,6 +592,9 @@ mockIPC((cmd, args) => {
     case "cached_media_list":
       return LISTS[type];
     case "anilist_query":
+      // Rejects as the client does when AniList cannot be reached or throttles, so the screens show their failure state.
+      if (mock === "offline") return Promise.reject("Network error: error sending request for url (https://graphql.anilist.co/)");
+      if (mock === "throttled") return Promise.reject("anilist.rateLimited");
       return answerQuery(String(a.query ?? ""), (a.variables as Record<string, unknown>) ?? null);
     case "get_notifications":
       return [

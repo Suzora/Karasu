@@ -16,21 +16,17 @@ import { useListMutations } from "@/hooks/useListMutations";
 import { canIncrement } from "@/components/list/shared";
 import { fromList } from "@/lib/calendar";
 import { SectionHeader } from "@/components/ui/section-header";
-import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import {
   EmptyState,
+  ErrorState,
   PerchRule,
   TickMarks,
 } from "@/components/EmptyState";
 import FirstRun from "@/components/shell/FirstRun";
-import {
-  CoverGridSkeleton,
-  HeaderSkeleton,
-  Shimmer,
-} from "@/components/Skeleton";
+import { Busy, CoverGridSkeleton, HeaderSkeleton, Shimmer } from "@/components/Skeleton";
 import SeasonHero from "@/components/media/SeasonHero";
 import RecommendedSection from "@/components/media/RecommendedSection";
 import { useColumnCount } from "@/hooks/useColumnCount";
@@ -106,14 +102,11 @@ function DashboardContent({ userId }: { userId: number }) {
       {isLoading ? (
         <DashboardSkeleton />
       ) : error ? (
-        <div>
-          <p className="text-danger">
-            {t("list.loadError", { message: String(error) })}
-          </p>
-          <Button className="mt-4" variant="secondary" onClick={() => refetch()}>
-            {t("common.retry")}
-          </Button>
-        </div>
+        <ErrorState
+          error={error}
+          onRetry={() => refetch()}
+          title={(reason) => t("list.loadError", { message: reason })}
+        />
       ) : (
         <>
           <ContinueStrip type="ANIME" entries={allAnime} save={save} />
@@ -166,11 +159,11 @@ function StatsSkeleton() {
   );
 }
 
-/** Stand-in for what follows the figures while the list loads, shaped like it so nothing jumps; unlabelled on purpose. */
+/** Stand-in for what follows the figures while the list loads, shaped like it so nothing jumps; one status for all of it. */
 function DashboardSkeleton() {
   const coverCols = useTheme((s) => s.coverCols);
   return (
-    <div className="space-y-9" aria-hidden="true">
+    <Busy className="space-y-9">
       <div className="space-y-4">
         <HeaderSkeleton />
         <CoverGridSkeleton count={coverCols} />
@@ -179,7 +172,7 @@ function DashboardSkeleton() {
         <PanelSkeleton index={3} />
         <PanelSkeleton index={6} />
       </div>
-    </div>
+    </Busy>
   );
 }
 

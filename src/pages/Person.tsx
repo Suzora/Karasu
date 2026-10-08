@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -15,10 +16,9 @@ import { isTauri } from "@/api/anilist";
 import BackButton from "@/components/shell/BackButton";
 import { Avatar } from "@/components/ui/user-lockup";
 import { SectionHeader } from "@/components/ui/section-header";
-import { EmptyState, StruckQuery } from "@/components/EmptyState";
+import { EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
 import { isNotFound } from "@/lib/apiError";
-import { Button } from "@/components/ui/button";
-import { Shimmer } from "@/components/Skeleton";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { Markdown } from "@/components/social/Markdown";
 import { MediaStrip } from "@/components/media/MediaStrip";
 import { FavouriteButton } from "@/components/media/FavouriteButton";
@@ -74,6 +74,16 @@ function Fact({ label, value }: { label: string; value: string | number | null |
   );
 }
 
+/** The loaded page's frame, so Back stands where it will stay while the page loads or fails. */
+function Frame({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto max-w-4xl px-8 pb-12 pt-7">
+      <BackButton className="mb-4" />
+      {children}
+    </div>
+  );
+}
+
 /** One request per page; `description` is markdown, not HTML, so it renders through `Markdown` like a bio. */
 export default function Person({ kind }: { kind: Kind }) {
   const { id = "" } = useParams();
@@ -97,16 +107,16 @@ export default function Person({ kind }: { kind: Kind }) {
 
   if (!Number.isFinite(numericId) || numericId <= 0) {
     return (
-      <div className="px-8 pt-7">
+      <Frame>
         <EmptyState visual={<StruckQuery query={id} />} title={t("person.notFound")} />
-      </div>
+      </Frame>
     );
   }
 
   if (q.isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-8 pt-7" aria-hidden="true">
-        <div className="flex gap-5">
+      <Frame>
+        <Busy className="flex gap-5">
           <Shimmer className="h-48 w-32 rounded-panel" />
           <div className="flex-1 space-y-2 pt-2">
             <Shimmer className="h-7 w-56 rounded-inner" index={1} />
@@ -114,40 +124,36 @@ export default function Person({ kind }: { kind: Kind }) {
             <Shimmer className="mt-4 h-3 w-full rounded-inner" index={3} />
             <Shimmer className="h-3 w-4/5 rounded-inner" index={4} />
           </div>
-        </div>
-      </div>
+        </Busy>
+      </Frame>
     );
   }
 
   // A disabled query is idle with no data and no error, so without this the not-found state would report a missing id.
   if (q.fetchStatus === "idle" && !q.data && !q.error) return null;
 
-  // Only a real not-found means the person is gone; any other failure is a failure to ask (lib/apiError).
-  if (q.error && !isNotFound(q.error)) {
+  // Only a real not-found means the person is gone; any other failure is a failure to ask, and a loaded page stays.
+  if (q.error && !q.data && !isNotFound(q.error)) {
     return (
-      <div className="px-8 pt-7">
-        <EmptyState
+      <Frame>
+        <ErrorState
+          error={q.error}
           visual={<StruckQuery query={id} />}
-          title={t("common.error", { message: String(q.error) })}
-          actions={
-            <Button variant="outline" size="control" onClick={() => void q.refetch()}>
-              {t("common.retry")}
-            </Button>
-          }
+          onRetry={() => q.refetch()}
         />
-      </div>
+      </Frame>
     );
   }
 
-  if (q.error || !q.data) {
+  if (!q.data || isNotFound(q.error)) {
     return (
-      <div className="px-8 pt-7">
+      <Frame>
         <EmptyState
           visual={<StruckQuery query={id} />}
           title={t("person.notFound")}
           hint={t("person.notFoundHint")}
         />
-      </div>
+      </Frame>
     );
   }
 
@@ -164,8 +170,7 @@ export default function Person({ kind }: { kind: Kind }) {
   const edges = (ch?.media ?? st?.staffMedia ?? su?.media)?.edges ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl px-8 pb-12 pt-7">
-      <BackButton className="mb-4" />
+    <Frame>
       <header className="flex flex-wrap gap-5">
         {!su && (
           <div className="w-32 shrink-0 overflow-hidden rounded-panel bg-surface-850">
@@ -284,7 +289,7 @@ export default function Person({ kind }: { kind: Kind }) {
 
       {/* A character's Japanese cast, deduplicated: the same actor across every season is one person. */}
       {ch?.media?.edges?.length ? <VoiceActors edges={ch.media.edges} /> : null}
-    </div>
+    </Frame>
   );
 }
 

@@ -255,6 +255,8 @@ export const de: typeof en = {
     skipToContent: "Zum Inhalt springen",
     loading: "Lade …",
     error: "Fehler: {{message}}",
+    offlineError: "AniList war nicht erreichbar.",
+    rateLimited: "AniList drosselt die Anfragen gerade für einen Moment.",
     episodes: "Episoden",
     chapters: "Kapitel",
     volumes: "Bände",
@@ -713,6 +715,7 @@ export const de: typeof en = {
     today: "heute",
     ep: "Ep. {{n}}",
     exportIcs: "Woche als .ics exportieren",
+    exportFailed: "Die Kalenderdatei konnte nicht gespeichert werden.",
     emptyMine: "Diese Woche läuft nichts von deinen Serien.",
     emptyMineHint: "Die Ansicht „Alles“ zeigt den kompletten Sendeplan.",
     emptyAll: "Diese Woche läuft nichts.",
@@ -780,6 +783,8 @@ export const de: typeof en = {
     typeHint: "Tippen, um Seiten, Befehle und Titel zu finden.",
   },
   detail: {
+    notFound: "Kein solcher Titel",
+    notFoundHint: "AniList hat keinen Anime oder Manga mit dieser ID.",
     offlineTitle: "Du bist offline",
     offlineHint:
       "Dieser Titel steht nicht auf deiner Liste, also ist nichts gespeichert, was sich zeigen ließe. Er lädt, sobald du wieder online bist.",
@@ -993,7 +998,6 @@ export const de: typeof en = {
     queued: "{{title}} gespeichert — wird synchronisiert",
     failedDetail: "In der Warteschlange — Karasu versucht es erneut.",
     syncBusy: "Eine Synchronisierung läuft bereits. Bitte gleich erneut versuchen.",
-    rateLimited: "AniList drosselt gerade die Anfragen. Karasu versucht es in Kürze erneut.",
     bulkSaved: "{{count}} aktualisiert",
     bulkFailed: "Massenänderung fehlgeschlagen",
     bulkPartial:
@@ -1083,6 +1087,7 @@ export const de: typeof en = {
     modeYear: "Jahr",
     modeSeason: "Saison",
     save: "Bild speichern",
+    saveFailed: "Das Bild konnte nicht gespeichert werden.",
     empty: "Noch keine abgeschlossenen Titel mit Abschlussdatum.",
     connectPrompt: "Verbinde dein AniList-Konto, um deinen Jahresrückblick zu sehen.",
     shape: "Form",
@@ -1171,7 +1176,7 @@ export const de: typeof en = {
     likeFailedDetail:
       "Es wurde nichts gesendet. Folgen und Likes werden offline nicht zwischengespeichert.",
     noReplies: "Noch keine Antworten.",
-    repliesFailed: "Antworten konnten nicht geladen werden.",
+    repliesFailed: "Antworten konnten nicht geladen werden: {{message}}",
     replyPlaceholder: "Antworten …",
     postReply: "Antworten",
     posting: "Sende …",

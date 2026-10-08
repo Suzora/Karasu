@@ -12,6 +12,8 @@ import { Disclosure } from "@/components/ui/disclosure";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shimmer } from "@/components/Skeleton";
+import { ErrorState } from "@/components/EmptyState";
+import { backendErrorText } from "@/lib/backendError";
 import { showToast } from "@/stores/toast";
 import { ExternalNote, Row, Toggle } from "./shared";
 import { BatteryRow, useBackgroundState } from "./BatteryRow";
@@ -130,7 +132,7 @@ function useViewerSettings() {
 
 export function AniListProfileSection() {
   const { t } = useTranslation();
-  const { viewer, data, isLoading } = useViewerSettings();
+  const { viewer, data, isLoading, error, refetch } = useViewerSettings();
   const save = useUpdateUser(viewer?.name);
 
   if (!viewer) return null;
@@ -143,7 +145,9 @@ export function AniListProfileSection() {
       <p className="mt-1 text-xs text-ink-600">{t("settings.alAccountHint")}</p>
 
       <div className="mt-4 space-y-3">
-        {isLoading || !options ? (
+        {error && !data ? (
+          <ErrorState inline error={error} onRetry={() => refetch()} />
+        ) : isLoading || !options ? (
           <Shimmer className="h-24 w-full rounded-control" />
         ) : (
           <>
@@ -341,7 +345,7 @@ function listActivityLabel(status: ListActivityStatus, t: (k: string) => string)
 
 export function AniListListOptionsSection() {
   const { t } = useTranslation();
-  const { viewer, data, isLoading } = useViewerSettings();
+  const { viewer, data, isLoading, error, refetch } = useViewerSettings();
   const save = useUpdateUser(viewer?.name);
 
   if (!viewer) return null;
@@ -351,7 +355,9 @@ export function AniListListOptionsSection() {
     <Card>
       <CardTitle>{t("settings.alListOptions")}</CardTitle>
       <div className="mt-3 space-y-3">
-        {isLoading || !mlo ? (
+        {error && !data ? (
+          <ErrorState inline error={error} onRetry={() => refetch()} />
+        ) : isLoading || !mlo ? (
           <Shimmer className="h-16 w-full rounded-control" />
         ) : (
           <>
@@ -444,11 +450,7 @@ export function AniListNotificationsSection() {
         panelClassName="mt-4 space-y-1"
       >
         {q.isLoading && <Shimmer className="h-40 w-full rounded-control" />}
-        {q.error && (
-          <p className="text-sm text-danger">
-            {t("common.error", { message: String(q.error) })}
-          </p>
-        )}
+        {q.error && <ErrorState inline error={q.error} onRetry={() => q.refetch()} />}
         {!q.isLoading &&
           !q.error &&
           NOTIFICATION_TYPES.map((type) => (
@@ -529,7 +531,7 @@ export function NotificationScheduleSection() {
       const refused = failure.kind === "refused";
       const detail = refused
         ? [t("settings.notifJobRefusedHint"), failure.detail].filter(Boolean).join(" · ")
-        : failure.detail;
+        : backendErrorText(e, t);
       // A phone truncates each toast line, so the short fact leads and the platform's own reason trails.
       showToast({
         kind: "error",

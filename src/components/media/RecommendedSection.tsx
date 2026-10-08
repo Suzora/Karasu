@@ -11,6 +11,7 @@ import {
 import { displayTitle, type MediaListEntry, type MediaType } from "@/api/types";
 import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked } from "@/lib/contentFilter";
+import { backendErrorText } from "@/lib/backendError";
 import {
   pickSeeds,
   rankRecommendations,
@@ -21,6 +22,7 @@ import { useAuth, useScoreFormat } from "@/stores/auth";
 import { showToast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 import MediaCard from "@/components/media/MediaCard";
+import { ErrorState } from "@/components/EmptyState";
 
 /** Below this the suggestions are too thin to be worth a section. */
 const MIN_SEEDS = 3;
@@ -58,7 +60,7 @@ export default function RecommendedSection({
     () => seeds.map((s) => s.mediaId).sort((a, b) => a - b),
     [seeds],
   );
-  const { data, error } = useQuery({
+  const { data, error, refetch } = useQuery({
     queryKey: ["recommendations", type, seedIds],
     queryFn: () => recommendationsFor(seedIds),
     enabled: seeds.length >= MIN_SEEDS,
@@ -90,9 +92,11 @@ export default function RecommendedSection({
     return (
       <section>
         <SectionHeader icon={Sparkles} title={title} />
-        <p className="mt-3 text-sm text-ink-600">
-          {t("dashboard.recommendedUnavailable")}
-        </p>
+        {error ? (
+          <ErrorState inline error={error} onRetry={() => refetch()} className="mt-3" />
+        ) : (
+          <p className="mt-3 text-sm text-ink-600">{t("dashboard.recommendedUnavailable")}</p>
+        )}
       </section>
     );
   }
@@ -151,7 +155,7 @@ function RecVote({ rec }: { rec: ScoredRecommendation }) {
       );
     } catch (e) {
       setVote(previous);
-      showToast({ kind: "error", text: t("dashboard.voteFailed"), detail: String(e) });
+      showToast({ kind: "error", text: t("dashboard.voteFailed"), detail: backendErrorText(e, t) });
     }
   };
 

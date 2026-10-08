@@ -12,6 +12,7 @@ import { displayTitle } from "@/api/types";
 import * as api from "@/api/anilist";
 import * as library from "@/api/library";
 import { Spinner } from "@/components/ui/spinner";
+import { backendErrorText } from "@/lib/backendError";
 export function LibrarySection() {
   const { t } = useTranslation();
   const refreshLibrary = useLibrary((s) => s.refresh);
@@ -35,7 +36,7 @@ export function LibrarySection() {
       await library.setLibraryPath(picked);
       setPath(picked);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
       return;
     }
     await scan();
@@ -54,7 +55,7 @@ export function LibrarySection() {
         qc.invalidateQueries({ queryKey: ["libraryUnmatched"] }),
       ]);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     } finally {
       setScanning(false);
     }
@@ -128,7 +129,7 @@ export function LibrarySplitsSection() {
         qc.invalidateQueries({ queryKey: ["libraryUnmatched"] }),
       ]);
     } catch (e) {
-      setError(String(e));
+      setError(backendErrorText(e, t));
     }
   };
 

@@ -17,10 +17,11 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusTabs, type StatusTab } from "@/components/ui/status-tabs";
 import { Avatar } from "@/components/ui/user-lockup";
-import { Shimmer } from "@/components/Skeleton";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { showToast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
+import { ErrorState } from "@/components/EmptyState";
 
 /** Reorders and removes favourites per kind; a truncated read refuses the save so a reorder never mass-unfavourites. */
 
@@ -202,12 +203,14 @@ export function FavouritesModal({
           </p>
         )}
 
-        {q.isLoading || !drafts ? (
-          <div className="space-y-1.5" aria-hidden="true">
+        {q.error && !q.data ? (
+          <ErrorState error={q.error} onRetry={() => q.refetch()} />
+        ) : q.isLoading || !drafts ? (
+          <Busy className="space-y-1.5">
             {[0, 1, 2, 3].map((i) => (
               <Shimmer key={i} className="h-10 w-full rounded-control" index={i} />
             ))}
-          </div>
+          </Busy>
         ) : rows.length === 0 ? (
           <p className="py-6 text-center text-sm text-ink-600">{t("social.favNone")}</p>
         ) : (

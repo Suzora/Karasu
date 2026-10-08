@@ -412,6 +412,56 @@ describe("notifications", () => {
     expect(screen.getByTestId("where")).toHaveTextContent("/activity/5001");
   });
 
+  /** A failed AniList half is a failure to ask, never "all read", and its Retry asks for page 1 once. */
+  it("says AniList failed rather than that everything is read, and asks again on Retry alone", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    renderWithProviders(<Notifications />);
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByText('common.error:{"message":"common.rateLimited"}')).toBeInTheDocument();
+    expect(screen.queryByText("notif.empty")).toBeNull();
+    expect(siteNotifications).toHaveBeenCalledTimes(1);
+    data.site = [follow(7, "Hoshi")];
+    await user.click(within(alert).getByRole("button", { name: "common.retry" }));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(siteNotifications).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(siteNotifications).mock.calls[1][0]).toBe(1);
+  });
+
+  /** A later page that failed keeps the loaded rows, says why beside Load more, and that button is what asks again. */
+  it("keeps the loaded rows when a later page fails, and asks for that page again from Load more", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    data.site = [follow(7, "Hoshi")];
+    data.more = [follow(8, "Mikan")];
+    renderWithProviders(<Notifications />);
+    expect(await screen.findByText("Hoshi")).toBeInTheDocument();
+    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
+    expect(screen.getByText("Hoshi")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "common.retry" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
+    expect(await screen.findByText("Mikan")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(vi.mocked(siteNotifications).mock.calls.map((c) => c[0])).toEqual([1, 2, 2]);
+  });
+
+  /** The glance's feed loads lazily, so a failure that lands before it renders must still reach it. */
+  it("shows the AniList failure in the bell's glance beside the local rows", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    data.local = [local(1, HOUR)];
+    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    renderWithProviders(<Bell />);
+    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    const panel = await screen.findByRole("dialog", { name: "notif.title" });
+    expect(await within(panel).findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
+    expect(within(panel).getByText("Local 1")).toBeInTheDocument();
+    expect(siteNotifications).toHaveBeenCalledTimes(1);
+  });
+
   it("offers no AniList paging while the filter shows only Karasu's own", async () => {
     const user = userEvent.setup({ delay: null });
     signIn();

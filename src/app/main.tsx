@@ -31,6 +31,8 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
+      // The network is Rust's: the WebView's offline flag would pause even SQLite reads, and no offline error would arrive.
+      networkMode: "always",
       // One retry, except where it cannot help: a rejected token, a missing id or a rate limit answers the same way again.
       retry: (count, error) =>
         count < 1 &&
@@ -38,6 +40,8 @@ const queryClient = new QueryClient({
         !isNotFound(error) &&
         !isRateLimited(error),
     },
+    // A save made offline must reach Rust, whose queue holds it, rather than wait paused in a page that may close.
+    mutations: { networkMode: "always" },
   },
 });
 

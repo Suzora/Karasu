@@ -23,6 +23,7 @@ import { useSocialActions } from "@/hooks/useSocialActions";
 import { useActivityPost } from "@/hooks/useActivityPost";
 import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/utils";
+import { ErrorState } from "@/components/EmptyState";
 
 /** The list-activity sentence, translated whole, with the title link in its slot. */
 function ListSentence({ item }: { item: Extract<FeedItem, { kind: "list" }> }) {
@@ -131,7 +132,13 @@ function ActivityReplies({ activityId }: { activityId: number }) {
       {q.isLoading && <Shimmer className="h-3 w-32 rounded-inner" />}
       {/* A failed fetch says nothing about the thread, so it must not fall through to "no replies yet". */}
       {q.error && (
-        <p className="text-2xs text-danger">{t("social.repliesFailed")}</p>
+        <ErrorState
+          inline
+          error={q.error}
+          title={(reason) => t("social.repliesFailed", { message: reason })}
+          onRetry={() => q.refetch()}
+          className="text-2xs"
+        />
       )}
       {q.data?.map((r) => (
         <div key={r.id} className="text-sm">

@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { useInfiniteQuery, type QueryKey } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
 import type { UserPage } from "@/api/social";
 import { Button } from "@/components/ui/button";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
-import { Shimmer } from "@/components/Skeleton";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
+import { Busy, Shimmer } from "@/components/Skeleton";
 import { cardClass } from "@/components/ui/card";
 import { fetchedCount, nextPageParam, remainingCount } from "@/lib/paging";
 import { staggerDelay } from "@/lib/motion";
@@ -35,6 +35,7 @@ export function UserList({
   countRemaining?: boolean;
 }) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
 
   // Paged by a button, never a scroll: `fetchNextPage` on a click, and no `IntersectionObserver` is ever built.
   const q = useInfiniteQuery({
@@ -49,7 +50,7 @@ export function UserList({
 
   if (q.isLoading) {
     return (
-      <div className="space-y-2" aria-hidden="true">
+      <Busy className="space-y-2">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
@@ -59,7 +60,7 @@ export function UserList({
             <Shimmer className="h-3 w-32 rounded-inner" index={i} />
           </div>
         ))}
-      </div>
+      </Busy>
     );
   }
 
@@ -67,9 +68,11 @@ export function UserList({
   // Only with nothing to show; a later page's failure must not replace the pages being read.
   if (q.error && !users.length && !q.hasNextPage) {
     return (
-      <p className="text-sm text-danger">
-        {t("common.error", { message: String(q.error) })}
-      </p>
+      <ErrorState
+        error={q.error}
+        visual={<PerchRule />}
+        onRetry={() => qc.resetQueries({ queryKey, exact: true })}
+      />
     );
   }
 
@@ -84,11 +87,7 @@ export function UserList({
   // Shared by both returns; AniList serves empty pages with more behind, so the empty state needs the button too.
   const footer = (
     <>
-      {q.error && (
-        <p className="pt-1 text-2xs text-danger">
-          {t("common.error", { message: String(q.error) })}
-        </p>
-      )}
+      {q.error && <ErrorState error={q.error} inline className="pt-1" />}
       {q.hasNextPage && (
         <div className="pt-1">
           <Button

@@ -15,7 +15,7 @@ import { useAuth, useScoreFormat } from "@/stores/auth";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
 import { Shimmer } from "@/components/Skeleton";
-import { EmptyState, PerchRule } from "@/components/EmptyState";
+import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { TileGrid } from "@/components/stats/panels";
 import { fmt } from "@/components/stats/RankedList";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -88,6 +88,7 @@ function useComparison(user: UserProfile, type: MediaType) {
     // Pending, not loading: a fetch paused offline is pending without fetching, and would otherwise draw nothing.
     loading: theirs.isPending || mine.isPending,
     error: theirs.error ?? mine.error,
+    retry: () => Promise.all([theirs.error ? theirs.refetch() : null, mine.error ? mine.refetch() : null]),
     viewerFormat,
   };
 }
@@ -98,7 +99,7 @@ export function UserCompare({ user }: { user: UserProfile }) {
   const [type, setType] = useState<MediaType>("ANIME");
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
-  const { result, loading, error, viewerFormat } = useComparison(user, type);
+  const { result, loading, error, retry, viewerFormat } = useComparison(user, type);
   const scale = scoreScale(viewerFormat);
 
   const toggle = (
@@ -111,18 +112,20 @@ export function UserCompare({ user }: { user: UserProfile }) {
     </div>
   );
 
-  const errorLine = error != null && (
-    <p className="text-sm text-danger">{t("common.error", { message: String(error) })}</p>
-  );
   // A failed refetch keeps the lists it had, so an error replaces the comparison only when there is none to show.
   if (!result) {
     return (
       <div className="space-y-4">
         {toggle}
-        {errorLine || (loading && <Shimmer className="h-40 w-full rounded-panel" />)}
+        {error != null ? (
+          <ErrorState error={error} visual={<PerchRule />} onRetry={retry} />
+        ) : (
+          loading && <Shimmer className="h-40 w-full rounded-panel" />
+        )}
       </div>
     );
   }
+  const errorLine = error != null && <ErrorState error={error} inline onRetry={retry} />;
   const c = result.comparison;
   const label = (id: number) => {
     const k = result.known.get(id);

@@ -34,8 +34,10 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
-import { EmptyState, TickMarks } from "@/components/EmptyState";
-import { Shimmer } from "@/components/Skeleton";
+import { EmptyState, ErrorState, TickMarks } from "@/components/EmptyState";
+import { Busy, Shimmer } from "@/components/Skeleton";
+import { backendErrorText } from "@/lib/backendError";
+import { showToast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 
 /** Two lenses over one week fetch: "all" is the whole schedule, "mine" is it narrowed to the list. */
@@ -171,8 +173,13 @@ export default function Calendar() {
   })}`;
 
   // Under "mine" the projection draws immediately; a failed schedule fetch only costs the aired episodes.
-  const loading = lens === "all" ? all.isLoading : list.isLoading;
-  const error = lens === "all" ? all.error : list.error;
+  const active = lens === "all" ? all : list;
+  const loading = active.isLoading;
+  const error = active.data ? null : active.error;
+  // What failed behind slots already drawn: a refresh of either, or under "mine" the schedule that adds aired episodes.
+  const behind = lens === "mine" ? (all.error ?? (list.data ? list.error : null)) : all.data ? all.error : null;
+  const retryBehind = () =>
+    Promise.all([all.error ? all.refetch() : null, lens === "mine" && list.error ? list.refetch() : null]);
 
   const [chosen, setChosen] = useState<CalendarView>(loadCalendarView);
   const scroller = useRef<HTMLDivElement>(null);
@@ -205,6 +212,8 @@ export default function Calendar() {
       `karasu-airing-${week}.ics`,
       "iCalendar",
       "ics",
+    ).catch((e: unknown) =>
+      showToast({ kind: "error", text: t("calendar.exportFailed"), detail: backendErrorText(e, t) }),
     );
 
   return (
@@ -287,14 +296,15 @@ export default function Calendar() {
 
       {/* The week grid draws only where its columns fit; the stable gutter keeps the scrollbar from flipping that. */}
       <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 [scrollbar-gutter:stable]">
+        {!error && behind != null && <ErrorState inline error={behind} onRetry={retryBehind} className="mb-3" />}
         {error ? (
-          <p className="text-sm text-danger">{t("common.error", { message: String(error) })}</p>
+          <ErrorState error={error} onRetry={() => active.refetch()} />
         ) : loading ? (
-          <div className={cn("gap-2", view === "week" ? "grid grid-cols-7" : "flex flex-col")} aria-hidden="true">
+          <Busy className={cn("gap-2", view === "week" ? "grid grid-cols-7" : "flex flex-col")}>
             {days.map((day, i) => (
               <Shimmer key={day} className={cn("rounded-panel", view === "week" ? "h-72" : "h-16")} index={i} />
             ))}
-          </div>
+          </Busy>
         ) : slots.length === 0 ? (
           <EmptyState
             visual={<TickMarks />}
