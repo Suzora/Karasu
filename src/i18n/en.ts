@@ -445,7 +445,7 @@ export const en = {
     genreTasteHint:
       "Each genre's mean beside your overall mean — where your taste actually bends.",
     legendGenreMean: "genre mean",
-    legendOverallMean: "your average",
+    legendOverallMean: "overall average",
     genres: "Genres",
     tags: "Tags",
     voiceActors: "Voice Actors",

@@ -32,6 +32,17 @@ describe("AreaChart", () => {
     expect(html(<AreaChart data={data} />)).toContain('pathLength="1"');
   });
 
+  /** Labels are drawn at their type step, so a crowded axis labels every nth point and keeps the newest. */
+  it("thins the labels where they would collide, and names every point on hover", () => {
+    const many = Array.from({ length: 40 }, (_, i) => ({ label: String(1990 + i), value: i + 10 }));
+    const markup = html(<AreaChart data={many} />);
+    const out = texts(markup);
+    expect(out).toContain("2029");
+    expect(out).not.toContain("2028");
+    expect(out.filter((t) => /^\d{4}$/.test(t))).toHaveLength(20);
+    expect(markup.match(/<title>/g) ?? []).toHaveLength(40);
+  });
+
   it("declines a single point — one dot is not a series", () => {
     expect(html(<AreaChart data={[{ label: "2024", value: 3 }]} />)).toBe("");
   });

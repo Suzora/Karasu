@@ -48,38 +48,68 @@ export function DotPlot({
                 {formatDecimal(r.mine, locale, 1)}
               </span>
             </div>
-            <svg
-              data-chart
-              className="mt-1 h-3 w-full chart-in"
-              viewBox="0 0 100 12"
-              preserveAspectRatio="none"
+            <div
+              className="relative mt-1 h-3 chart-in"
               aria-hidden="true"
               style={{ animationDelay: `${seriesDelay(i, rows.length)}ms` }}
             >
-              {/* The axis, faint, so a lone pair still reads as a position. */}
-              <line x1="3" y1="6" x2="97" y2="6" stroke="var(--color-surface-800)" strokeWidth="1" />
-              <line
-                x1={X(r.other)}
-                y1="6"
-                x2={X(r.mine)}
-                y2="6"
-                stroke="var(--color-surface-600)"
-                strokeWidth="2"
+              {/* Lines only: the stretched viewBox would draw a dot as an ellipse, so the dots are spans. */}
+              <svg
+                data-chart
+                className="absolute inset-0 size-full"
+                viewBox="0 0 100 12"
+                preserveAspectRatio="none"
+              >
+                {/* The axis, faint, so a lone pair still reads as a position. */}
+                <line
+                  x1="3"
+                  y1="6"
+                  x2="97"
+                  y2="6"
+                  stroke="var(--color-surface-800)"
+                  strokeWidth="1"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={X(r.other)}
+                  y1="6"
+                  x2={X(r.mine)}
+                  y2="6"
+                  stroke="var(--color-surface-600)"
+                  strokeWidth="2"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+              <span
+                data-keep-colors
+                className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{ left: `${X(r.other)}%`, background: "var(--color-graph-none)" }}
               />
-              <circle cx={X(r.other)} cy="6" r="3" fill="var(--color-graph-none)" />
-              <circle cx={X(r.mine)} cy="6" r="3.5" fill="var(--color-accent-400)" />
-            </svg>
+              <span
+                data-keep-colors
+                className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{ left: `${X(r.mine)}%`, background: "var(--color-accent-400)" }}
+              />
+            </div>
           </div>
         ))}
       </div>
 
       <div className="mt-3 flex items-center gap-4 text-2xs text-ink-500">
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full" style={{ background: "var(--color-accent-400)" }} />
+          <span
+            data-keep-colors
+            className="size-2 rounded-full"
+            style={{ background: "var(--color-accent-400)" }}
+          />
           {legendMine}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full" style={{ background: "var(--color-graph-none)" }} />
+          <span
+            data-keep-colors
+            className="size-2 rounded-full"
+            style={{ background: "var(--color-graph-none)" }}
+          />
           {legendOther}
         </span>
       </div>

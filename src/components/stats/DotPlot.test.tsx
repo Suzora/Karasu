@@ -27,7 +27,18 @@ describe("DotPlot", () => {
     );
     expect(markup).toContain("var(--color-accent-400)");
     expect(markup).toContain("var(--color-graph-none)");
-    expect(markup).not.toMatch(/fill="#/);
+    expect(markup).not.toMatch(/(?:fill|stroke)="#|background:#/);
+  });
+
+  /** A circle in the stretched viewBox renders as an ellipse, so the dots are round spans placed by percent. */
+  it("draws the dots as round spans at their share of the axis, not as SVG circles", () => {
+    const markup = html(
+      <DotPlot locale="en" title="t" rows={[rows[0]]} legendMine="m" legendOther="c" max={10} />,
+    );
+    expect(markup).not.toContain("<circle");
+    const dots = [...markup.matchAll(/<span[^>]*class="[^"]*rounded-full[^"]*"[^>]*style="left:([\d.]+)%/g)];
+    expect(dots.map((m) => Number(m[1]).toFixed(2))).toEqual(["61.28", "92.30"]);
+    expect(markup).toContain('vector-effect="non-scaling-stroke"');
   });
 
   it("renders nothing for an empty list", () => {

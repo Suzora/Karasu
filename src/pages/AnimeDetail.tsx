@@ -67,6 +67,7 @@ import { characterRoleLabel } from "@/components/media/roleLabel";
 import { MediaBanner } from "@/components/media/MediaBanner";
 import { detailFrame } from "@/components/media/detailFrame";
 import { bannerSource } from "@/lib/bannerSource";
+import { isListStatus, statusColorVar } from "@/lib/statusColors";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -985,6 +986,7 @@ function CommunitySection({ data }: { data: MediaDetail }) {
                   defaultValue: d.status,
                 }),
                 count: d.amount,
+                color: isListStatus(d.status) ? statusColorVar(d.status) : undefined,
               }))}
             />
           )}

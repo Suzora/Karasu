@@ -2,13 +2,17 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { HISTORY_LEVELS, type DayHeatmap as DayHeatmapData } from "@/lib/localStats";
 import { seriesDelay } from "@/lib/motion";
 
-/** One opacity per AniList `level`; bucketing by `amount` locally would disagree with the website. */
-const ALPHAS = [0.14, 0.32, 0.5, 0.7, 0.92];
+/** One accent share per AniList `level`; bucketing by `amount` locally would disagree with the website. */
+const SHARES = [14, 32, 50, 70, 92];
 
-/** AniList's level to an opacity. Anything unexpected lands at the bottom. */
-function alphaFor(level: number): number {
+/** A share of the accent over the empty day's fill, so the lowest level is still a step above no activity. */
+const shade = (share: number) =>
+  `color-mix(in oklab, rgb(var(--accent-rgb)) ${share}%, var(--color-surface-800))`;
+
+/** AniList's level to its shade. Anything unexpected lands at the bottom. */
+function shadeFor(level: number): string {
   const i = HISTORY_LEVELS.indexOf(level as (typeof HISTORY_LEVELS)[number]);
-  return ALPHAS[i === -1 ? 0 : i];
+  return shade(SHARES[i === -1 ? 0 : i]);
 }
 
 /** AniList's activity history, one cell per day and weeks as columns; deliberately not a mode of `Heatmap`. */
@@ -94,7 +98,7 @@ export function DayHeatmap({
                     }
                     style={
                       cell && cell.level > 0
-                        ? { background: `rgba(var(--accent-rgb), ${alphaFor(cell.level)})` }
+                        ? { background: shadeFor(cell.level) }
                         : undefined
                     }
                   />
@@ -110,12 +114,13 @@ export function DayHeatmap({
         <span className="text-2xs text-ink-600">{rangeLabel}</span>
         <span className="flex items-center gap-1 text-2xs text-ink-600">
           {legendLess}
-          {ALPHAS.map((a) => (
+          <span data-keep-colors className="size-3 rounded-mark bg-surface-800" />
+          {SHARES.map((share) => (
             <span
-              key={a}
+              key={share}
               data-keep-colors
               className="size-3 rounded-mark"
-              style={{ background: `rgba(var(--accent-rgb), ${a})` }}
+              style={{ background: shade(share) }}
             />
           ))}
           {legendMore}

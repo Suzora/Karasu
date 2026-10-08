@@ -447,7 +447,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     genreTasteHint:
       "Der Schnitt jedes Genres neben deinem Gesamtschnitt — wo dein Geschmack wirklich ausschlägt.",
     legendGenreMean: "Genre-Schnitt",
-    legendOverallMean: "dein Schnitt",
+    legendOverallMean: "Gesamtschnitt",
     genres: "Genres",
     tags: "Tags",
     voiceActors: "Sprecher",

@@ -57,7 +57,11 @@ import {
 } from "@/lib/localStats";
 import { RankedList, fmt, scoreText } from "@/components/stats/RankedList";
 import LocalStatistics from "@/components/stats/LocalStatistics";
-import { formatDecimal, formatSigned } from "@/lib/format";
+import { formatDecimal, formatLabel, formatSigned } from "@/lib/format";
+import { isListStatus, statusColorVar } from "@/lib/statusColors";
+import { inkOn } from "@/components/stats/tones";
+import { useTheme } from "@/stores/theme";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { cn } from "@/lib/utils";
 /** Five themed tabs shared by both media types; the ranked lists live inside two of them, not one each. */
 const CATEGORIES: Category[] = ["overview", "ratings", "years", "genresTags", "people"];
@@ -221,7 +225,9 @@ function StatisticsContent({
     [dayHeatmap, localEntries],
   );
   const seasons = useMemo(() => seasonalHistory(localEntries), [localEntries]);
+  const statusColors = useTheme((s) => s.statusColors);
 
+  // Counted by the raw format, labelled in the reader's language only once the counts are settled.
   const breakdown = useMemo<Slice[]>(() => {
     const byStatus = new Map<MediaListStatus, Map<string, number>>();
     for (const group of typeList?.lists ?? []) {
@@ -229,7 +235,7 @@ function StatisticsContent({
       for (const e of group.entries) {
         if (isBlocked(e.media, level)) continue;
         const formats = byStatus.get(e.status) ?? new Map<string, number>();
-        const key = e.media.format ?? "?";
+        const key = e.media.format ?? "";
         formats.set(key, (formats.get(key) ?? 0) + 1);
         byStatus.set(e.status, formats);
       }
@@ -239,10 +245,12 @@ function StatisticsContent({
       return {
         label: t(`status.${type}.${st}`),
         value: formats.reduce((sum, [, n]) => sum + n, 0),
-        children: formats.map(([label, value]) => ({ label, value })),
+        color: statusColorVar(st),
+        ink: inkOn(statusColors[st]),
+        children: formats.map(([key, value]) => ({ key, label: formatLabel(key, t) || "?", value })),
       };
     });
-  }, [typeList, level, t, type]);
+  }, [typeList, level, t, type, statusColors]);
 
   // One tab bar for both media types now, so switching type keeps the tab.
   const activeCategory = category;
@@ -257,6 +265,7 @@ function StatisticsContent({
   }));
 
   const stats = data?.statistics;
+  const phone = usePhoneShell();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-8 2xl:max-w-none 3xl:max-w-[130rem]">
@@ -266,8 +275,9 @@ function StatisticsContent({
         <div className="min-w-0 flex-1">
           {/* The same lockup the two list screens use: title, then its Japanese form a shade back. */}
           <div className="flex items-baseline gap-2.5">
-            <h1 className="text-xl">{t("stats.title")}</h1>
-            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
+            <h1 className="text-title">{t("stats.title")}</h1>
+            {/* Hidden on a phone, whose one row belongs to the avatar, the title and Wrapped. */}
+            <span className="hidden whitespace-nowrap font-brand-jp text-ui tracking-lockup text-ink-600 sm:inline">
               統計
             </span>
           </div>
@@ -279,9 +289,20 @@ function StatisticsContent({
             {name} <ExternalLink className="size-3.5" />
           </ExternalAnchor>
         </div>
-        <Link to="/wrapped" className={buttonClass("secondary", "sm")}>
-          <Sparkles className="size-3.5" aria-hidden="true" /> {t("wrapped.title")}
-        </Link>
+        {phone ? (
+          <Link
+            to="/wrapped"
+            aria-label={t("wrapped.title")}
+            title={t("wrapped.title")}
+            className={buttonClass("ghost", "iconControl")}
+          >
+            <Sparkles className="size-4" aria-hidden="true" />
+          </Link>
+        ) : (
+          <Link to="/wrapped" className={buttonClass("secondary", "sm")}>
+            <Sparkles className="size-3.5" aria-hidden="true" /> {t("wrapped.title")}
+          </Link>
+        )}
       </header>
 
       <div className="space-y-3">
@@ -677,7 +698,7 @@ function RatingsView({
           title={t("stats.meanByFormat")}
           hint={t("stats.meanByFormatHint")}
           domain={scoreMax}
-          rows={meanRows(stats.formats, (d) => d.format ?? "?")}
+          rows={meanRows(stats.formats, (d) => formatLabel(d.format, t) || "?")}
         />
         <GradientBars
           title={t("stats.meanByStatus")}
@@ -866,17 +887,16 @@ function OverviewCharts({
     .filter((d) => d.length)
     .sort((a, b) => parseInt(a.length ?? "0", 10) - parseInt(b.length ?? "0", 10));
   const countries = [...stats.countries].filter((d) => d.country);
-  // The sunburst's outer ring needs its own key on its own card to be readable at all.
+  // The sunburst's outer ring needs its own key on its own card; summed by raw format, so a label never splits one.
   const formatsInBreakdown = useMemo(() => {
-    const totals = new Map<string, number>();
+    const totals = new Map<string, { label: string; value: number }>();
     for (const group of breakdown) {
       for (const kid of group.children ?? []) {
-        totals.set(kid.label, (totals.get(kid.label) ?? 0) + kid.value);
+        const key = kid.key ?? kid.label;
+        totals.set(key, { label: kid.label, value: (totals.get(key)?.value ?? 0) + kid.value });
       }
     }
-    return [...totals]
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, value]) => ({ label, value }));
+    return [...totals].sort((a, b) => b[1].value - a[1].value).map(([key, f]) => ({ key, ...f }));
   }, [breakdown]);
   // Keep the cards stretched as flex columns; `items-start` leaves ragged gaps between the panels instead.
   return (
@@ -887,11 +907,12 @@ function OverviewCharts({
         data={stats.statuses.map((d) => ({
           label: t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }),
           count: d.count,
+          color: isListStatus(d.status) ? statusColorVar(d.status) : undefined,
         }))}
       />
       <DistributionCard locale={i18n.language}
         title={t("stats.formats")}
-        data={stats.formats.map((d) => ({ label: d.format ?? "?", count: d.count }))}
+        data={stats.formats.map((d) => ({ label: formatLabel(d.format, t) || "?", count: d.count }))}
       />
       {/* The year series live on the Years tab; two homes for one chart is how they drift apart. */}
 
@@ -906,7 +927,7 @@ function OverviewCharts({
             </div>
             <div className="min-w-36 flex-1 space-y-3">
               <ToneLegend locale={i18n.language}
-                items={breakdown.map((b) => ({ label: b.label, value: b.value }))}
+                items={breakdown.map((b) => ({ label: b.label, value: b.value, color: b.color }))}
               />
               {/* The outer ring's key, so its formats are readable without hovering. */}
               {formatsInBreakdown.length > 0 && (
@@ -916,7 +937,7 @@ function OverviewCharts({
                   </p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
                     {formatsInBreakdown.map((f) => (
-                      <span key={f.label} className="text-2xs text-ink-500">
+                      <span key={f.key} className="text-2xs text-ink-500">
                         {f.label}
                         <span className="ml-1 tabular-nums text-ink-300">{f.value.toLocaleString(i18n.language)}</span>
                       </span>

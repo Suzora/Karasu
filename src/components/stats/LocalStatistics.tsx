@@ -26,7 +26,10 @@ import { Heatmap } from "@/components/stats/Heatmap";
 import { Empty } from "@/components/stats/shared";
 import { fmt } from "@/components/stats/RankedList";
 import { ErrorState } from "@/components/EmptyState";
-import { formatDecimal } from "@/lib/format";
+import { formatDecimal, formatLabel } from "@/lib/format";
+import { statusColorVar } from "@/lib/statusColors";
+import { inkOn } from "@/components/stats/tones";
+import { useTheme } from "@/stores/theme";
 
 /** Statistics for the account-free profile, counted by `lib/localStats` from SQLite with no request to make. */
 export default function LocalStatistics({
@@ -65,12 +68,14 @@ export default function LocalStatistics({
   );
   const heatmap = useMemo(() => activityHeatmap(entries), [entries]);
   const seasons = useMemo(() => seasonalHistory(entries), [entries]);
+  const statusColors = useTheme((s) => s.statusColors);
 
+  // Counted by the raw format, labelled in the reader's language only once the counts are settled.
   const breakdown = useMemo<Slice[]>(() => {
     const byStatus = new Map<MediaListStatus, Map<string, number>>();
     for (const e of entries) {
       const formats = byStatus.get(e.status) ?? new Map<string, number>();
-      const key = e.media.format ?? "?";
+      const key = e.media.format ?? "";
       formats.set(key, (formats.get(key) ?? 0) + 1);
       byStatus.set(e.status, formats);
     }
@@ -79,10 +84,12 @@ export default function LocalStatistics({
       return {
         label: t(`status.${type}.${st}`),
         value: formats.reduce((sum, [, n]) => sum + n, 0),
-        children: formats.map(([label, value]) => ({ label, value })),
+        color: statusColorVar(st),
+        ink: inkOn(statusColors[st]),
+        children: formats.map(([key, value]) => ({ key, label: formatLabel(key, t) || "?", value })),
       };
     });
-  }, [entries, t, type]);
+  }, [entries, t, type, statusColors]);
 
   const monthLabels = useMemo(
     () =>
@@ -105,7 +112,7 @@ export default function LocalStatistics({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2.5">
-            <h1 className="text-xl">{t("stats.title")}</h1>
+            <h1 className="text-title">{t("stats.title")}</h1>
             <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
               統計
             </span>
@@ -148,6 +155,7 @@ export default function LocalStatistics({
               ).map((st) => ({
                 label: t(`status.${type}.${st}`),
                 count: totals.byStatus.find((s) => s.status === st)!.count,
+                color: statusColorVar(st),
               }))}
             />
             {breakdown.length > 0 && (
@@ -161,7 +169,7 @@ export default function LocalStatistics({
                   </div>
                   <div className="min-w-36 flex-1">
                     <ToneLegend locale={i18n.language}
-                      items={breakdown.map((b) => ({ label: b.label, value: b.value }))}
+                      items={breakdown.map((b) => ({ label: b.label, value: b.value, color: b.color }))}
                     />
                   </div>
                 </div>

@@ -19,12 +19,13 @@ describe("GradientBars", () => {
     }
   });
 
-  it("fills through a theme-following SVG gradient, never a literal colour", () => {
+  it("fills through a theme-following CSS gradient, never a literal colour", () => {
     const markup = html(<GradientBars title="t" rows={rows} />);
-    expect(markup).toContain("<linearGradient");
-    expect(markup).toContain("var(--color-accent-600)");
-    expect(markup).toContain("var(--color-accent-400)");
-    expect(markup).not.toMatch(/(?:fill|stop-color)="#/);
+    expect(markup).toContain(
+      "linear-gradient(to right, var(--color-accent-600), var(--color-accent-400))",
+    );
+    expect(markup).not.toContain("<svg");
+    expect(markup).not.toMatch(/background:#/);
   });
 
   it("a pinned domain keeps a 7.4 from reading as a landslide over a 7.1", () => {
@@ -32,7 +33,7 @@ describe("GradientBars", () => {
     const markup = html(
       <GradientBars title="t" domain={10} rows={[{ label: "TV", value: 7.4, text: "7.4" }]} />,
     );
-    expect(markup).toContain('width="74"');
+    expect(markup).toContain("width:74%");
   });
 
   it("renders nothing for an empty list", () => {

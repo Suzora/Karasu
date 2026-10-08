@@ -69,19 +69,30 @@ describe("DayHeatmap", () => {
     />,
   );
 
-  /** The count is the assertion: a week is seven cells whether or not anything happened in them. */
+  /** The count is the assertion: a week is seven cells whether or not anything happened in them, plus six swatches. */
   it("draws every day in the range, not only the busy ones", () => {
-    expect(markup.match(/rounded-mark/g) ?? []).toHaveLength(12);
+    expect(markup.match(/rounded-mark/g) ?? []).toHaveLength(13);
   });
 
-  /** The legend is never hover-only: the range with its total and one swatch per intensity bucket. */
-  it("spells out the range and one swatch per bucket", () => {
+  /** The legend is never hover-only: the range with its total, a swatch for none and one per intensity bucket. */
+  it("spells out the range, the empty day and one swatch per bucket", () => {
     expect(markup).toContain("2026-01-05 – 2026-01-11 · 13 actions");
     expect(markup).toContain("Less");
     expect(markup).toContain("More");
-    for (const a of [0.14, 0.32, 0.5, 0.7, 0.92]) {
-      expect(markup).toContain(`rgba(var(--accent-rgb), ${a})`);
+    const legend = markup.slice(markup.indexOf("Less"));
+    expect(legend).toMatch(/^Less<span[^>]*class="size-3 rounded-mark bg-surface-800"/);
+    for (const share of [14, 32, 50, 70, 92]) {
+      expect(legend).toContain(
+        `color-mix(in oklab, rgb(var(--accent-rgb)) ${share}%, var(--color-surface-800))`,
+      );
     }
+  });
+
+  /** Mixed over the empty day's fill rather than the panel, so level one never reads as no activity. */
+  it("shades a busy day over the empty fill, never as a bare alpha", () => {
+    const cells = markup.slice(0, markup.indexOf("Less"));
+    expect(cells).toContain("color-mix(in oklab, rgb(var(--accent-rgb)) 32%, var(--color-surface-800))");
+    expect(cells).not.toContain("rgba(var(--accent-rgb)");
   });
 
   /** No column may hold a month label inside the day rows, or the cells drift off their weekday labels. */

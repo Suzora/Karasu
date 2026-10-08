@@ -72,19 +72,20 @@ export function StatusBar({
   locale,
 }: {
   title: string;
-  data: { label: string; count: number }[];
+  /** `color` where the category has one, a status above all; the rest take the shared ramp. */
+  data: { label: string; count: number; color?: string }[];
   locale: string;
 }) {
   if (data.length === 0) return null;
   const total = data.reduce((sum, d) => sum + d.count, 0) || 1;
-  // The shared categorical ramp; a local copy is how two ramps start disagreeing.
-  const tone = TONES;
+  // The category's own colour, else the shared ramp; a local copy is how two ramps start disagreeing.
+  const paint = (d: { color?: string }, i: number) => d.color ?? TONES[i % TONES.length];
 
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
       {/* `data-keep-colors` on the painted spans, never a wrapper; it inherits and would freeze the text too. */}
-      <div className="mt-4 flex h-2 shrink-0 overflow-hidden rounded-full bg-surface-800">
+      <div className="mt-4 flex h-2 shrink-0 gap-px overflow-hidden rounded-full bg-surface-900">
         {data.map((d, i) => (
           <span
             key={d.label}
@@ -92,7 +93,7 @@ export function StatusBar({
             title={`${d.label}: ${d.count.toLocaleString(locale)}`}
             style={{
               width: `${(d.count / total) * 100}%`,
-              background: tone[i % tone.length],
+              background: paint(d, i),
             }}
           />
         ))}
@@ -102,10 +103,11 @@ export function StatusBar({
         <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 @legend-pair:grid-cols-2">
           {data.map((d, i) => (
             <div key={d.label} className="flex items-center gap-2 text-xs">
+              {/* The inset hairline keeps a pale swatch visible on a white panel. */}
               <span
                 data-keep-colors
-                className="size-2 shrink-0 rounded-mark"
-                style={{ background: tone[i % tone.length] }}
+                className="size-2 shrink-0 rounded-mark ring-1 ring-(--hair) ring-inset"
+                style={{ background: paint(d, i) }}
               />
               <span className="min-w-0 flex-1 truncate text-ink-500">{d.label}</span>
               <span className="shrink-0 tabular-nums text-ink-300">{d.count.toLocaleString(locale)}</span>

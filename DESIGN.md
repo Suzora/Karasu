@@ -98,6 +98,9 @@ The six **status colours** (`status-current` … `status-planning`) are defaults
 that the user can override. Read them through `lib/statusColors`. The defaults
 are deliberately not the accent, so a status never reads as a selection.
 
+A chart of statuses takes the status colours; only categories with no meaning
+(countries, formats) take the tone ramp in `components/stats/tones`.
+
 ### Accent
 
 `accentShades(hex, context)` returns the whole family:

@@ -80,6 +80,10 @@ export function isDefaultPalette(p: StatusPalette): boolean {
 export const statusVar = (status: MediaListStatus): string =>
   `--color-status-${status.toLowerCase()}`;
 
+/** Whether a status string from AniList is one of the six, so an unknown one keeps a chart's neutral ramp. */
+export const isListStatus = (v: unknown): v is MediaListStatus =>
+  STATUS_COLOR_ORDER.includes(v as MediaListStatus);
+
 /** What to paint for a status as a `var()`, so a palette change repaints live; `null` is "not on your list", not Planning. */
 export const statusColorVar = (status: MediaListStatus | null): string =>
   status ? `var(${statusVar(status)})` : NO_STATUS_COLOR;
