@@ -24,7 +24,7 @@ import {
 } from "@/api/social";
 import { isTauri } from "@/api/anilist";
 import BackButton from "@/components/shell/BackButton";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserLockup } from "@/components/ui/user-lockup";
 import { EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/EmptyState";
@@ -414,8 +414,13 @@ export default function Thread() {
       <Frame>
         <EmptyState
           visual={<PerchRule />}
-          title={t("social.needsAccount")}
-          hint={t("social.needsAccountHint")}
+          title={t("social.threadNeedsAccount")}
+          hint={t("social.threadNeedsAccountHint")}
+          actions={
+            <Link to="/settings?pane=account" className={buttonClass("secondary", "sm")}>
+              {t("social.goToSettings")}
+            </Link>
+          }
         />
       </Frame>
     );

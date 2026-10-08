@@ -609,7 +609,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
           <CloudOff className="size-3.5" />
           {data?.fromCache
             ? t("list.offline")
-            : t("list.pending", { count: data?.pending ?? 0 })}
+            : t((data?.pending ?? 0) === 1 ? "sync.queuedOne" : "sync.queuedMany", { n: data?.pending ?? 0 })}
           <Button
             variant="ghost"
             size="sm"

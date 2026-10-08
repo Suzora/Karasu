@@ -134,9 +134,9 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
     use Msg::*;
     match (lang, msg) {
         (En, AiringTitle) => "New episode aired".into(),
-        (De, AiringTitle) => "Neue Folge erschienen".into(),
+        (De, AiringTitle) => "Neue Episode erschienen".into(),
         (En, AiringBody { title, episode }) => format!("{title} — episode {episode} is out"),
-        (De, AiringBody { title, episode }) => format!("{title} — Folge {episode} ist da"),
+        (De, AiringBody { title, episode }) => format!("{title} — Episode {episode} ist da"),
 
         (En, StaleTitle) => "On-hold reminder".into(),
         (De, StaleTitle) => "Erinnerung: pausiert".into(),
@@ -200,7 +200,7 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
         (En, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
         (De, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
         (En, SiteAiring { title, episode }) => format!("Episode {episode} of {title} aired"),
-        (De, SiteAiring { title, episode }) => format!("Folge {episode} von {title} ist erschienen"),
+        (De, SiteAiring { title, episode }) => format!("Episode {episode} von {title} ist erschienen"),
         (En, SiteFollowing { actor }) => format!("{actor} started following you"),
         (De, SiteFollowing { actor }) => format!("{actor} folgt dir jetzt"),
         (En, SiteActivity { event: ActivityEvent::Mention, actor }) => format!("{actor} mentioned you in an activity"),
@@ -272,7 +272,7 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
         (En, ConfirmAction) => "Update now".into(),
         (De, ConfirmAction) => "Jetzt aktualisieren".into(),
         (En, ConfirmEpisode { episode }) => format!("Mark episode {episode} as watched?"),
-        (De, ConfirmEpisode { episode }) => format!("Folge {episode} als gesehen markieren?"),
+        (De, ConfirmEpisode { episode }) => format!("Episode {episode} als gesehen markieren?"),
         (En, ConfirmChapter { chapter }) => format!("Mark chapter {chapter} as read?"),
         (De, ConfirmChapter { chapter }) => format!("Kapitel {chapter} als gelesen markieren?"),
 

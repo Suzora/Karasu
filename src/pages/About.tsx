@@ -53,6 +53,7 @@ const EMAIL = "contact@kyusetzu.de";
 
 export default function About() {
   const { t } = useTranslation();
+  const android = isAndroid(usePlatform((s) => s.info));
   const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function About() {
           <p className="mt-2 font-brand-jp text-lg text-accent-400">カラス</p>
           <p className="mt-3 text-sm text-ink-500">{t("about.tagline")}</p>
           <p className="mt-4 text-sm leading-relaxed text-ink-300">
-            {t("about.description")}
+            {android ? t("about.descriptionAndroid") : t("about.description")}
           </p>
           {version && (
             <p className="mt-4 text-2xs tabular-nums text-ink-600">

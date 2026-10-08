@@ -49,6 +49,11 @@ interface PortableStatus {
   other: DatabaseInfo | null;
 }
 
+/** A count of entries with its noun, one or many, for the export and import receipts. */
+function entriesText(n: number, t: (key: string, vars?: Record<string, unknown>) => string): string {
+  return n === 1 ? t("settings.entriesOne") : t("settings.entriesMany", { n });
+}
+
 /** The one-shot score rescale, planned purely in `lib/rescale` and previewed with its request count first. */
 export function RescaleSection() {
   const { t } = useTranslation();
@@ -98,7 +103,7 @@ export function RescaleSection() {
       }
       showToast({
         kind: "success",
-        text: t("settings.rescaleDone", { n: plan.affected }),
+        text: t(plan.affected === 1 ? "settings.rescaleDoneOne" : "settings.rescaleDone", { n: plan.affected }),
       });
       await qc.invalidateQueries({ queryKey: ["mediaList", type] });
     } catch (e) {
@@ -322,8 +327,8 @@ export function ExportSection() {
           kind: "success",
           text:
             skipped > 0
-              ? t("settings.exportDoneSkipped", { n: count, skipped })
-              : t("settings.exportDone", { n: count }),
+              ? t("settings.exportDoneSkipped", { entries: entriesText(count, t), skipped })
+              : t("settings.exportDone", { entries: entriesText(count, t) }),
           // Two different absences, two lines: no MAL id is a limit of the format, private is the user's choice.
           detail:
             omitted > 0 ? t("settings.exportOmittedPrivate", { n: omitted }) : undefined,
@@ -342,7 +347,7 @@ export function ExportSection() {
       if (await api.saveText(json, "karasu-export.json", "JSON", "json")) {
         showToast({
           kind: "success",
-          text: t("settings.exportDone", { n: anime.length + manga.length }),
+          text: t("settings.exportDone", { entries: entriesText(anime.length + manga.length, t) }),
         });
       }
     });
@@ -439,8 +444,8 @@ export function ImportSection() {
         kind: "success",
         text:
           unmatched > 0
-            ? t("settings.importDoneUnmatched", { n: imported, unmatched })
-            : t("settings.importDone", { n: imported }),
+            ? t("settings.importDoneUnmatched", { entries: entriesText(imported, t), unmatched })
+            : t("settings.importDone", { entries: entriesText(imported, t) }),
       });
     } catch (e) {
       showToast({ kind: "error", text: t("settings.importFailed"), detail: backendErrorText(e, t) });
@@ -490,10 +495,10 @@ export function ImportSection() {
         text:
           parsed.skipped > 0
             ? t("settings.importDoneUnmatched", {
-                n: parsed.rows.length,
+                entries: entriesText(parsed.rows.length, t),
                 unmatched: parsed.skipped,
               })
-            : t("settings.importDone", { n: parsed.rows.length }),
+            : t("settings.importDone", { entries: entriesText(parsed.rows.length, t) }),
       });
     } catch (e) {
       showToast({ kind: "error", text: t("settings.importFailed"), detail: backendErrorText(e, t) });

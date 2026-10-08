@@ -157,7 +157,13 @@ const GROUP_LABELS: ReadonlySet<unknown> = new Set([KarasuGroup, AniListGroup]);
 
 function AdvancedWarning() {
   const { t } = useTranslation();
-  return <DangerNote title={t("settings.dangerTitle")}>{t("settings.dangerBody")}</DangerNote>;
+  // Android shows neither the database's location nor anything that moves it, so its note names only what it has.
+  const android = isAndroid(usePlatform((s) => s.info));
+  return (
+    <DangerNote title={t("settings.dangerTitle")}>
+      {android ? t("settings.dangerBodyAndroid") : t("settings.dangerBody")}
+    </DangerNote>
+  );
 }
 
 export default function Settings() {
@@ -256,7 +262,7 @@ export default function Settings() {
                     <span className={cn("block text-sm font-medium", danger ? "text-danger" : "text-ink-100")}>
                       {t(`settings.pane_${p.id}`)}
                     </span>
-                    <span className="block truncate text-xs text-ink-600">{paneHint(p.id)}</span>
+                    <span className="line-clamp-2 text-xs text-ink-600">{paneHint(p.id)}</span>
                   </span>
                   {danger && <AlertTriangle aria-hidden className="size-3.5 shrink-0 text-danger" />}
                   <ChevronRight className="size-4 shrink-0 text-ink-600" />

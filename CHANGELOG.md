@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: abd612d -->
+<!-- generated-through: 50a343b -->
 
 ### Fixed
 
@@ -104,6 +104,7 @@ tag time is then optional rather than load-bearing.
 - A failed load says what went wrong and offers Retry.
 - Numbers, scores, dates and durations read the way your language writes them.
 - Buttons that open another page are one Tab stop.
+- German copy uses one word per thing and counts properly.
 
 ## 1.32.0 — 2026-10-03
 

@@ -688,7 +688,7 @@ function SuggestionRow({
           </span>
         </span>
         <span className="dense-text block truncate text-ink-600">
-          {t("library.fileCount", { n: group.files.length })}
+          {t(group.files.length === 1 ? "library.fileCountOne" : "library.fileCount", { n: group.files.length })}
         </span>
       </span>
 
@@ -811,7 +811,7 @@ function Unplaced({
               </span>
             </span>
             <span className="shrink-0 text-2xs tabular-nums text-ink-600">
-              {t("library.fileCount", { n: group.files.length })}
+              {t(group.files.length === 1 ? "library.fileCountOne" : "library.fileCount", { n: group.files.length })}
             </span>
             <Button
               variant="outline"
@@ -989,7 +989,7 @@ function LibraryRow({
           aria-expanded={open}
           className="flex shrink-0 items-center gap-1 rounded-inner px-1.5 py-1 text-2xs tabular-nums text-ink-600 transition-surface hover:bg-surface-800 hover:text-ink-300"
         >
-          {t("library.fileCount", { n: lib.files.length })}
+          {t(lib.files.length === 1 ? "library.fileCountOne" : "library.fileCount", { n: lib.files.length })}
           <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} />
         </button>
 
