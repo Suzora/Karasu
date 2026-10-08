@@ -111,7 +111,7 @@ export function StatusMenu({
     <Popover
       label={t("detail.myEntry")}
       variant={variant}
-      width={380}
+      width={400}
       className={className}
       anchorRef={entry ? undefined : splitRef}
       openOnHover={!entry && !add.isPending}

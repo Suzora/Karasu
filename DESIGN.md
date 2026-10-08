@@ -796,3 +796,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   Segmented control for Anime and Manga, one row per list with its member
   count, a pencil that renames in place and a bin that asks first, and a field
   that adds a list at the end. The list's filter panel links there.
+- **2026-10-08:** The quick editor's status choices stay a 3×2 grid of
+  tiles, each with its colour dot above the full status name, and the
+  desktop dropdown is 400 px wide instead of 380 (C of three mockups, over A,
+  a two-column grid, and B, a wrapping row of pills with dots). The German
+  names ("Abgeschlossen", "Abgebrochen") read whole instead of cut at the
+  tile's edge.

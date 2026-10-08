@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 1d2144c -->
+<!-- generated-through: 1c4f92e -->
 
 ### Fixed
 
@@ -111,6 +111,7 @@ tag time is then optional rather than load-bearing.
 - The list search and the composer name their keys the way your keyboard does.
 - List rows: the checkbox works, and receipts lead with what happened.
 - The detail page, its editors and dialogs.
+- The quick editor's status tiles show the whole German name.
 
 ## 1.32.0 — 2026-10-03
 

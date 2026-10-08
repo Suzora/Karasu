@@ -57,8 +57,9 @@ export function QuickEditor({
                 type="button"
                 aria-pressed={current}
                 onClick={() => onStatus(s)}
+                // A stacked tile, the dot above the name, so a German status reads whole instead of cut at the tile's edge.
                 className={cn(
-                  "flex h-10 min-w-0 items-center gap-2 rounded-control px-2.5 text-left text-xs font-medium transition-surface",
+                  "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-control px-2 py-2 text-center text-xs font-medium transition-surface",
                   "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-500",
                   "border",
                   current || preset ? "tint-fill text-ink-100" : "border-surface-700 text-ink-300 hover:border-surface-600 hover:text-ink-100",
@@ -66,9 +67,9 @@ export function QuickEditor({
                 style={current || preset ? ({ "--tint": statusColorVar(s) } as CSSProperties) : undefined}
               >
                 <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: statusColorVar(s) }} />
-                <span className="flex min-w-0 flex-col leading-tight">
-                  <span className="truncate">{t(`status.${media.type}.${s}`)}</span>
-                  {preset && <span className="truncate text-2xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
+                <span className="flex min-w-0 max-w-full flex-col items-center leading-tight">
+                  <span className="break-words">{t(`status.${media.type}.${s}`)}</span>
+                  {preset && <span className="break-words text-2xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
                 </span>
               </button>
             );
