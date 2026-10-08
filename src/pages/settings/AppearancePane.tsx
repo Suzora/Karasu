@@ -40,6 +40,8 @@ import {
   type TitleLanguage,
 } from "@/lib/titleLanguage";
 import { formatDecimal } from "@/lib/format";
+import { Input } from "@/components/ui/input";
+import { cardClass } from "@/components/ui/card";
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 
 const shownTheme = () => `${document.documentElement.dataset.theme ?? ""} ${document.documentElement.dataset.contrast ?? ""}`;
@@ -139,35 +141,49 @@ export function AppearanceSection() {
           disabled={systemAccent === null}
         />
 
-        <div className={cn("space-y-3 py-1", followSystem && systemAccent !== null && "pointer-events-none opacity-55")}>
+        {/* Inert while the system colour is followed, so neither a press nor a key can change the fallback unseen. */}
+        <div
+          className={cn("space-y-3 py-1", followSystem && systemAccent !== null && "opacity-55")}
+          inert={(followSystem && systemAccent !== null) || undefined}
+        >
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
             <span className="block text-ink-100">{t("settings.accent")}</span>
             {/* Wraps: the swatches plus the custom button outgrow a phone card. */}
             <div className="flex flex-wrap items-center justify-end gap-2">
-              {ACCENT_PRESETS.map((hex) => (
-                <button
-                  key={hex}
-                  onClick={() => setAccent(hex)}
-                  className="size-6 rounded-full transition-surface"
-                  style={{
-                    backgroundColor: hex,
-                    // A double ring rather than a border, so the mark holds on a swatch of any hue.
-                    boxShadow:
-                      accent.toLowerCase() === hex.toLowerCase()
-                        ? "0 0 0 2px var(--color-surface-900), 0 0 0 3.5px var(--color-accent-500)"
-                        : undefined,
-                  }}
-                  aria-label={hex}
-                  title={hex}
-                />
-              ))}
+              {/* One choice of several, so a radio group: arrow keys move through it and a reader hears which is chosen. */}
+              <div role="radiogroup" aria-label={t("settings.accent")} className="flex flex-wrap items-center justify-end gap-2">
+                {ACCENT_PRESETS.map((hex) => (
+                  <label key={hex} title={presetName(hex, t)} className="relative coarse:hit-area cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`${pickerId}-preset`}
+                      checked={accent.toLowerCase() === hex.toLowerCase()}
+                      onChange={() => setAccent(hex)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      aria-hidden
+                      className="block size-6 rounded-full transition-surface peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-500"
+                      style={{
+                        backgroundColor: hex,
+                        // A double ring rather than a border, so the mark holds on a swatch of any hue.
+                        boxShadow:
+                          accent.toLowerCase() === hex.toLowerCase()
+                            ? "0 0 0 2px var(--color-surface-900), 0 0 0 3.5px var(--color-accent-500)"
+                            : undefined,
+                      }}
+                    />
+                    <span className="sr-only">{presetName(hex, t)}</span>
+                  </label>
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowCustomAccent((v) => !v)}
                 aria-expanded={showCustomAccent}
                 aria-controls={`${pickerId}-accent`}
                 className={cn(
-                  "grid size-6 place-items-center rounded-full border border-surface-600 transition-surface",
+                  "relative coarse:hit-area grid size-6 place-items-center rounded-full border border-surface-600 transition-surface",
                   showCustomAccent && "border-accent-500 text-accent-400",
                 )}
                 title={t("settings.accentCustom")}
@@ -192,7 +208,7 @@ export function AppearanceSection() {
               <button
                 type="button"
                 onClick={resetStatusColors}
-                className="text-xs text-accent-400 hover:underline"
+                className="relative coarse:hit-area text-xs text-accent-400 hover:underline"
               >
                 {t("settings.statusColorsReset")}
               </button>
@@ -204,14 +220,14 @@ export function AppearanceSection() {
               const weak = weakestContrast(statusColors[status], grounds);
               const low = weak != null && weak < STATUS_CONTRAST_MIN;
               return (
-              <div key={status} className="flex items-center justify-between gap-4 py-0.5">
+              <div key={status} className="flex items-center justify-between gap-4 py-0.5 coarse:py-0">
                 <button
                   type="button"
                   onClick={() => setEditingStatus(editingStatus === status ? null : status)}
                   aria-expanded={editingStatus === status}
                   aria-controls={`${pickerId}-status`}
                   aria-describedby={low ? `${pickerId}-low-${status}` : undefined}
-                  className="flex flex-1 items-center gap-2.5 rounded-inner py-0.5 text-left text-sm text-ink-300 transition-surface hover:text-ink-100"
+                  className="flex flex-1 items-center gap-2.5 rounded-inner py-0.5 text-left text-sm text-ink-300 transition-surface hover:text-ink-100 coarse:min-h-11"
                 >
                   <span
                     className="size-4 shrink-0 rounded-full"
@@ -235,6 +251,8 @@ export function AppearanceSection() {
                   >
                     <TriangleAlert aria-hidden className="size-3.5" />
                     {t("settings.statusColorLow", { ratio: ratioText(weak) })}
+                    {/* The why, said to a reader as well; the title alone reaches a hovering mouse and nothing else. */}
+                    <span className="sr-only"> {t("settings.statusColorLowHint")}</span>
                   </span>
                 )}
               </div>
@@ -278,7 +296,7 @@ export function AppearanceSection() {
 
         <Row label={t("settings.coverCols")} hint={t("settings.coverColsHint")}>
           {/* A typed number, not a slider, because the wanted range outgrows a slider's track; the store clamps. */}
-          <input
+          <Input
             type="number"
             min={COVER_COLS_MIN}
             max={COVER_COLS_MAX}
@@ -295,7 +313,7 @@ export function AppearanceSection() {
             }}
             onBlur={() => setColsDraft(null)}
             aria-label={t("settings.coverCols")}
-            className="h-8 w-16 rounded-control border border-surface-700 bg-surface-900 px-2 text-right text-sm tabular-nums text-ink-100 focus:border-accent-500 focus:outline-none"
+            className="w-20 text-right tabular-nums"
           />
         </Row>
         {/* One example row at the chosen count, so the number becomes a picture before the pane closes. */}
@@ -392,7 +410,7 @@ function TitleLanguageRow() {
           ))}
         </Select>
       </Row>
-      <div className="rounded-inner border border-hair bg-surface-950 px-3 py-2">
+      <div className={cn(cardClass("sunken"), "px-3 py-2")}>
         <p className={cn("truncate text-ui font-medium text-ink-100", isNativeLine(example, main) && "font-brand-jp")}>
           {main}
         </p>
@@ -469,4 +487,30 @@ function Miniature({ theme }: { theme: "dark" | "light" }) {
       </span>
     </span>
   );
+}
+
+/** A swatch's name in the reader's language; a literal key per preset, so the key test sees each one. */
+function presetName(hex: string, t: (key: string) => string): string {
+  switch (hex) {
+    case "#4b3fc7":
+      return t("settings.accentPreset_deepIndigo");
+    case "#6c7fff":
+      return t("settings.accentPreset_indigo");
+    case "#3b93e6":
+      return t("settings.accentPreset_blue");
+    case "#46a5b3":
+      return t("settings.accentPreset_featherSheen");
+    case "#34c78a":
+      return t("settings.accentPreset_emerald");
+    case "#e8d48a":
+      return t("settings.accentPreset_paleStraw");
+    case "#f56c92":
+      return t("settings.accentPreset_rose");
+    case "#ffab2e":
+      return t("settings.accentPreset_amber");
+    case "#a56cff":
+      return t("settings.accentPreset_violet");
+    default:
+      return hex;
+  }
 }

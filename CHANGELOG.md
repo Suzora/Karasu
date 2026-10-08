@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 1c4f92e -->
+<!-- generated-through: 26fcbe3 -->
 
 ### Fixed
 
@@ -112,6 +112,7 @@ tag time is then optional rather than load-bearing.
 - List rows: the checkbox works, and receipts lead with what happened.
 - The detail page, its editors and dialogs.
 - The quick editor's status tiles show the whole German name.
+- Settings: fields you can retype, rows that don't misfire, controls with names.
 
 ## 1.32.0 — 2026-10-03
 

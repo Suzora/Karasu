@@ -102,7 +102,7 @@ export function AccountSection() {
               </button>
             }
           />
-          <Button variant="danger" onClick={() => logout()}>
+          <Button variant="secondary" onClick={() => logout()}>
             <LogOut className="size-4" /> {t("settings.logout")}
           </Button>
         </div>
@@ -216,7 +216,7 @@ export function AccountSection() {
             onClick={() => setShowManual((v) => !v)}
             aria-expanded={showManual}
             aria-controls={manualId}
-            className="flex items-center gap-1 text-xs text-ink-500 hover:text-ink-300"
+            className="flex items-center gap-1 text-xs text-ink-500 hover:text-ink-300 coarse:min-h-11"
           >
             <ChevronRight
               aria-hidden

@@ -63,10 +63,15 @@ describe("the notification card's battery row", () => {
     expect(ipc.calls).not.toContain("request_battery_exemption");
   });
 
-  it("clicking the row's text still presses the exemption button, not the link", async () => {
+  /** The row is a group, not a label: its text presses nothing, and the button it holds is described by the hint. */
+  it("asks for the exemption from its button alone, which the hint describes", async () => {
     answer({ supported: true, batteryExempt: false });
     renderWithProviders(<NotificationScheduleSection />);
     fireEvent.click(await screen.findByText("settings.batteryHint"));
+    expect(ipc.calls).not.toContain("request_battery_exemption");
+    const button = screen.getByRole("button", { name: "settings.batteryAllow" });
+    expect(button).toHaveAccessibleDescription("settings.batteryHint");
+    fireEvent.click(button);
     await waitFor(() => expect(ipc.calls).toContain("request_battery_exemption"));
     expect(openUrl).not.toHaveBeenCalled();
   });

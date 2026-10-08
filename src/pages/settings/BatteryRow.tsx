@@ -44,7 +44,7 @@ export function BatteryRow({ exempt }: { exempt: boolean | null }) {
     }
   };
 
-  // An anchor, not a button: inside the row's `<label>` a button would become the control a click on the text presses.
+  // An anchor beside the hint, reached by its own press: the row is a group, so the text around it presses nothing.
   const vendors = (
     <span className="block text-xs text-ink-600">
       {t("settings.batteryVendors")} <ExternalAnchor href={DONT_KILL_MY_APP_URL}>dontkillmyapp.com</ExternalAnchor>
@@ -53,14 +53,16 @@ export function BatteryRow({ exempt }: { exempt: boolean | null }) {
 
   return (
     <div>
-      <Row label={t("settings.battery")} hint={t("settings.batteryHint")} note={vendors}>
-        {exempt ? (
-          <span className="shrink-0 text-sm text-success">{t("settings.batteryAllowed")}</span>
-        ) : (
-          <Button variant="secondary" size="sm" className="shrink-0" onClick={ask}>
-            {t("settings.batteryAllow")}
-          </Button>
-        )}
+      <Row action label={t("settings.battery")} hint={t("settings.batteryHint")} note={vendors}>
+        {(hintId) =>
+          exempt ? (
+            <span className="shrink-0 text-sm text-success">{t("settings.batteryAllowed")}</span>
+          ) : (
+            <Button variant="secondary" size="sm" className="shrink-0" aria-describedby={hintId} onClick={ask}>
+              {t("settings.batteryAllow")}
+            </Button>
+          )
+        }
       </Row>
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>

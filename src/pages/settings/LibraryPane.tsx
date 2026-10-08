@@ -13,6 +13,8 @@ import * as api from "@/api/anilist";
 import * as library from "@/api/library";
 import { Spinner } from "@/components/ui/spinner";
 import { backendErrorText } from "@/lib/backendError";
+import { cardClass } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 export function LibrarySection() {
   const { t } = useTranslation();
   const refreshLibrary = useLibrary((s) => s.refresh);
@@ -137,13 +139,13 @@ export function LibrarySplitsSection() {
     <Card>
       <CardTitle>{t("settings.splits")}</CardTitle>
       <p className="mt-2 text-sm text-ink-500">{t("settings.splitsHint")}</p>
-      <ul className="mt-3 space-y-1.5">
+      <ul className={cn(cardClass("sunken"), "mt-3 space-y-1 p-1.5")}>
         {rows.map((row) => {
           const m = byId.get(row.mediaId);
           return (
             <li
               key={`${row.title}-${row.season}-${row.epFrom}`}
-              className="flex items-center gap-3 rounded-control bg-surface-900 px-3 py-2"
+              className="flex items-center gap-3 rounded-control bg-surface-900 py-1.5 pl-3 pr-1"
             >
               <span className="min-w-0 flex-1">
                 <Link
@@ -164,9 +166,10 @@ export function LibrarySplitsSection() {
                 </span>
               </span>
               <IconButton
+                size="sm"
                 variant="ghost"
                 onClick={() => remove(row)}
-                aria-label={t("settings.splitsRemove")}
+                aria-label={`${t("settings.splitsRemove")}: ${m ? displayTitle(m.title) : `#${row.mediaId}`}`}
                 title={t("settings.splitsRemove")}
               >
                 <X className="size-3.5" />

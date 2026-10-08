@@ -38,17 +38,17 @@ describe("the status colour warning", () => {
   /** The OS switching theme under "system" rewrites the document and nothing in the store, so the pane must watch it. */
   it("follows a theme the document changes without the store", async () => {
     renderWithProviders(<AppearanceSection />);
-    expect(screen.getAllByText(/settings\.statusColorLow/)).toHaveLength(1);
+    expect(screen.getAllByText(/settings\.statusColorLow:/)).toHaveLength(1);
 
     act(() => {
       root.dataset.theme = "light";
     });
-    await waitFor(() => expect(screen.queryByText(/settings\.statusColorLow/)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/settings\.statusColorLow:/)).not.toBeInTheDocument());
 
     act(() => {
       root.dataset.theme = "dark";
     });
-    await waitFor(() => expect(screen.getAllByText(/settings\.statusColorLow/)).toHaveLength(1));
+    await waitFor(() => expect(screen.getAllByText(/settings\.statusColorLow:/)).toHaveLength(1));
   });
 });
 
@@ -73,5 +73,18 @@ describe("the title language row", () => {
     // The native line takes the Japanese face, and the romaji moves underneath it.
     expect(within(row!).getByText(SAMPLE_TITLE.native!)).toHaveClass("font-brand-jp");
     expect(within(row!).getByText(SAMPLE_TITLE.romaji!)).not.toHaveClass("font-brand-jp");
+  });
+});
+
+/** One choice of several: a radio group named by colour, which says which one is chosen and moves on arrow keys. */
+describe("the accent swatches", () => {
+  it("are radios named by colour, the chosen one checked, and a press picks another", async () => {
+    const user = userEvent.setup({ delay: null });
+    useTheme.setState({ accent: "#4b3fc7", accentSource: "custom" });
+    renderWithProviders(<AppearanceSection />);
+    const group = screen.getByRole("radiogroup", { name: "settings.accent" });
+    expect(within(group).getByRole("radio", { name: "settings.accentPreset_deepIndigo" })).toBeChecked();
+    await user.click(within(group).getByRole("radio", { name: "settings.accentPreset_emerald" }));
+    expect(useTheme.getState().accent.toLowerCase()).toBe("#34c78a");
   });
 });

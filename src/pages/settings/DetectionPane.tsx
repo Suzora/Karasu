@@ -47,6 +47,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Chip } from "@/components/ui/chip";
 import { useAiringMutes } from "@/stores/airingMutes";
 import type { AiringMute } from "@/api/anilist";
+import { cardClass } from "@/components/ui/card";
 export function ScrobbleSection() {
   const { t } = useTranslation();
   const [settings, setSettings] = useState<ScrobbleSettings | null>(null);
@@ -55,6 +56,9 @@ export function ScrobbleSection() {
   const [sequel, setSequel] = useState<boolean | null>(null);
   const [mediaOn, setMediaOn] = useState<boolean | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // The text typed into the two number fields until it is committed; null shows the saved value.
+  const [delayDraft, setDelayDraft] = useState<string | null>(null);
+  const [monthsDraft, setMonthsDraft] = useState<string | null>(null);
   const platform = usePlatform((s) => s.info);
   const viewer = useAuth((s) => s.viewer);
 
@@ -110,6 +114,24 @@ export function ScrobbleSection() {
     );
   };
 
+  // Saved on leaving the field or on Enter, so a value can be retyped without each digit being saved on its way.
+  const commitDelay = () => {
+    const draft = delayDraft;
+    setDelayDraft(null);
+    const n = Math.round(Number(draft));
+    if (draft === null || draft.trim() === "" || !Number.isFinite(n)) return;
+    const next = Math.max(0, Math.min(120, n));
+    if (next !== settings.delayMin) update({ delayMin: next });
+  };
+  const commitMonths = () => {
+    const draft = monthsDraft;
+    setMonthsDraft(null);
+    const n = Math.round(Number(draft));
+    if (!stale || draft === null || draft.trim() === "" || !Number.isFinite(n)) return;
+    const next = Math.max(1, Math.min(24, n));
+    if (next !== stale.months) updateStale({ months: next });
+  };
+
   return (
     <Card>
       <CardTitle>{t("settings.tracking")}</CardTitle>
@@ -163,12 +185,15 @@ export function ScrobbleSection() {
             type="number"
             min={0}
             max={120}
-            value={settings.delayMin}
-            onChange={(e) =>
-              update({
-                delayMin: Math.max(0, Math.min(120, Number(e.target.value))),
-              })
-            }
+            value={delayDraft ?? String(settings.delayMin)}
+            onChange={(e) => setDelayDraft(e.target.value)}
+            onBlur={commitDelay}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commitDelay();
+              }
+            }}
             className="w-20"
           />
         </Row>
@@ -213,12 +238,15 @@ export function ScrobbleSection() {
                   type="number"
                   min={1}
                   max={24}
-                  value={stale.months}
-                  onChange={(e) =>
-                    updateStale({
-                      months: Math.max(1, Math.min(24, Number(e.target.value))),
-                    })
-                  }
+                  value={monthsDraft ?? String(stale.months)}
+                  onChange={(e) => setMonthsDraft(e.target.value)}
+                  onBlur={commitMonths}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      commitMonths();
+                    }
+                  }}
                   className="w-20"
                 />
               </Row>
@@ -267,7 +295,7 @@ export function MediaSessionSection() {
         onClick={toggle}
         aria-expanded={open}
         aria-controls={panelId}
-        className="mt-3 flex items-center gap-1 text-xs text-ink-500 hover:text-ink-300"
+        className="mt-3 flex items-center gap-1 text-xs text-ink-500 hover:text-ink-300 coarse:min-h-11"
       >
         <ChevronRight
           aria-hidden
@@ -355,11 +383,11 @@ function AiringMutesList() {
     <div className="ml-1 border-l-2 border-hair pl-3">
       <p className="text-xs font-medium text-ink-300">{t("settings.airingMutes")}</p>
       <p className="mt-0.5 text-xs text-ink-500">{t("settings.airingMutesHint")}</p>
-      <ul className="mt-2 space-y-1.5">
+      <ul className={cn(cardClass("sunken"), "mt-2 space-y-1 p-1.5")}>
         {rows.map(({ row, label }) => (
           <li
             key={row.mediaId}
-            className="flex items-center gap-3 rounded-control bg-surface-900 px-3 py-1.5"
+            className="flex items-center gap-3 rounded-control bg-surface-900 py-1 pl-3 pr-1"
           >
             <Link
               to={`/media/${row.mediaId}`}
@@ -368,6 +396,7 @@ function AiringMutesList() {
               {label}
             </Link>
             <IconButton
+              size="sm"
               variant="ghost"
               onClick={() => void setMuted(row.mediaId, row.title, false)}
               aria-label={t("settings.airingUnmute", { title: label })}
@@ -423,11 +452,11 @@ export function DetectionCorrectionsSection() {
     <Card>
       <CardTitle>{t("settings.corrections")}</CardTitle>
       <p className="mt-2 text-sm text-ink-500">{t("settings.correctionsHint")}</p>
-      <ul className="mt-3 space-y-1.5">
+      <ul className={cn(cardClass("sunken"), "mt-3 space-y-1 p-1.5")}>
         {rows.map((row) => (
           <li
             key={`${row.mediaType}-${row.season}-${row.title}`}
-            className="flex items-center gap-3 rounded-control bg-surface-900 px-3 py-2"
+            className="flex items-center gap-3 rounded-control bg-surface-900 py-1.5 pl-3 pr-1"
           >
             <span className="min-w-0 flex-1">
               <Link
@@ -446,9 +475,10 @@ export function DetectionCorrectionsSection() {
               </span>
             </span>
             <IconButton
+              size="sm"
               variant="ghost"
               onClick={() => remove(row)}
-              aria-label={t("library.clearMatch")}
+              aria-label={`${t("library.clearMatch")}: ${labelOf(row)}`}
               title={t("library.clearMatch")}
             >
               <X className="size-3.5" />
@@ -688,7 +718,7 @@ export function JellyfinSection() {
       <p className="mt-2 text-sm text-ink-500">{t("settings.jellyfinHint")}</p>
 
       {/* The connection leads: the sign-in while there is none, then one status line with the two things it can do. */}
-      <div className="mt-4 rounded-control border border-hair bg-surface-950 p-3">
+      <div className={cn(cardClass("sunken"), "mt-4 p-3")}>
         {settings.connected ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
@@ -715,7 +745,7 @@ export function JellyfinSection() {
             {/* Jellyfin's own discovery: the servers on this network, one click each, so no address is typed. */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <Button variant="secondary" size="sm" onClick={find} disabled={finding}>
-                <Search className={cn("size-4", finding && "animate-pulse")} />{" "}
+                {finding ? <Spinner className="size-4" /> : <Search className="size-4" />}{" "}
                 {finding ? t("settings.jellyfinFinding") : t("settings.jellyfinFind")}
               </Button>
               <span className="text-xs text-ink-600">{t("settings.jellyfinFindHint")}</span>

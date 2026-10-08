@@ -393,10 +393,11 @@ the season split's cover rows are still their own and move to it when those
 areas are next restyled.
 
 The cards cover the Overview's tiles, the composer, the franchise pane,
-the feed's and the forum's rows, the offline entry and three wells. Four
-shapes move with their areas instead: the borderless code and log wells
-on `surface-850`, the tiles nested inside a card on the card's own fill,
-the tinted notices, and the frames around the virtual lists.
+the feed's and the forum's rows, the offline entry and three wells, and
+since 2026-10-08 the settings lists: their rows sit in a sunken well, so a
+row shows its shape against it. Three shapes move with their areas
+instead: the borderless code and log wells on `surface-850`, the tinted
+notices, and the frames around the virtual lists.
 
 ## Libraries
 

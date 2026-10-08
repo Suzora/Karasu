@@ -129,12 +129,15 @@ function DesktopOnly({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   return (
     // The card title keeps the chip's width free, so a long title wraps beneath it instead of running under it.
-    <div aria-disabled className="relative [&_:is(h2,h3)]:pr-24">
+    <div className="relative [&_:is(h2,h3)]:pr-24">
       {/* Inside the card's padding, centred on its title line, so it reads as the title's caveat rather than a tab. */}
       <Chip tone="muted" size="xs" className="absolute right-5 top-6 z-10">
         {t("settings.desktopOnly")}
       </Chip>
-      <div className="pointer-events-none select-none opacity-45">{children}</div>
+      {/* A disabled fieldset, so its controls leave the tab order and read as disabled, while its text stays readable. */}
+      <fieldset disabled className="m-0 min-w-0 border-0 p-0 pointer-events-none select-none opacity-45">
+        {children}
+      </fieldset>
     </div>
   );
 }
@@ -302,13 +305,13 @@ export default function Settings() {
               aria-current={p.id === active ? "page" : undefined}
               onClick={() => setParams(p.id === "account" ? {} : { pane: p.id })}
               className={cn(
-                "flex items-center gap-2.5 rounded-control px-2.5 py-1.75 text-left text-ui transition-surface",
+                "flex items-center gap-2.5 rounded-control px-2.5 py-1.75 text-left text-ui transition-surface coarse:min-h-11",
                 p.id === active
                   ? danger
                     ? "bg-danger/12 text-danger"
                     : "bg-surface-850 text-ink-100"
                   : danger
-                    ? "text-danger/75 hover:bg-danger/10 hover:text-danger"
+                    ? "text-danger hover:bg-danger/10"
                     : "text-ink-500 hover:bg-surface-850 hover:text-ink-100",
               )}
             >

@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hexToHsv, hsvToHex, type Hsv } from "@/lib/contrast";
 import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "react-i18next";
+import { Input } from "@/components/ui/input";
 
 /** The controls every settings pane shares; none is a `components/ui` primitive, since each knows the pane. */
 
@@ -16,6 +18,7 @@ export function Row({
   hint,
   note,
   setting,
+  action = false,
   children,
 }: {
   label: string;
@@ -24,22 +27,43 @@ export function Row({
   note?: ReactNode;
   /** The id a `?setting=` deep link names to land here. */
   setting?: string;
-  children: ReactNode;
+  /** The control is a button: the row is a named group, not a label, so a click on its hint presses nothing. */
+  action?: boolean;
+  /** A function receives the hint's id, for the button an action row describes with it. */
+  children: ReactNode | ((hintId: string | undefined) => ReactNode);
 }) {
-  return (
-    <label
-      data-setting={setting}
-      className={cn(
-        "flex items-center justify-between gap-4 py-1 text-sm max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:*:w-full",
-        setting && landingClass,
-      )}
-    >
-      <span>
-        <span className="block text-ink-100">{label}</span>
-        {hint && <span className="block text-xs text-ink-600">{hint}</span>}
-        {note}
+  const labelId = useId();
+  const hintId = useId();
+  const className = cn(
+    "flex items-center justify-between gap-4 py-1 text-sm max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:*:w-full",
+    setting && landingClass,
+  );
+  const text = (
+    // A basis of zero, so the hint's length never decides how wide the control beside it may be.
+    <span className="md:min-w-40 md:flex-1">
+      <span id={labelId} className="block text-ink-100">
+        {label}
       </span>
-      {children}
+      {hint && (
+        <span id={hintId} className="block text-xs text-ink-600">
+          {hint}
+        </span>
+      )}
+      {note}
+    </span>
+  );
+  const control = typeof children === "function" ? children(hint ? hintId : undefined) : children;
+  if (action)
+    return (
+      <div role="group" aria-labelledby={labelId} data-setting={setting} className={className}>
+        {text}
+        {control}
+      </div>
+    );
+  return (
+    <label data-setting={setting} className={className}>
+      {text}
+      {control}
     </label>
   );
 }
@@ -116,16 +140,17 @@ export function Toggle({
       data-setting={setting}
       className={cn(
         "flex items-start justify-between gap-4 py-1",
-        disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer",
+        disabled ? "cursor-not-allowed" : "cursor-pointer",
         setting && landingClass,
       )}
     >
       {/* May shrink and break a path mid-word, so a long hint can never push the switch out of the card. */}
       <span className="min-w-0 break-words">
-        <span className="block text-sm text-ink-100">{label}</span>
+        <span className={cn("block text-sm", disabled ? "text-ink-500" : "text-ink-100")}>{label}</span>
+        {/* Never faded: on a disabled switch the hint is the reason, and a reason has to stay readable. */}
         {hint && <span className="block text-xs text-ink-600">{hint}</span>}
       </span>
-      <Switch checked={checked} disabled={disabled} onChange={onChange} />
+      <Switch checked={checked} disabled={disabled} onChange={onChange} className={disabled ? "opacity-55" : undefined} />
     </label>
   );
 }
@@ -138,6 +163,7 @@ export function ColorPicker({
   value: string;
   onChange: (hex: string) => void;
 }) {
+  const { t } = useTranslation();
   const validValue = /^#[0-9a-f]{6}$/i.test(value) ? value : "#6c7fff";
   const [hsv, setHsvState] = useState<Hsv>(() => hexToHsv(validValue));
   const hsvRef = useRef(hsv);
@@ -226,8 +252,9 @@ export function ColorPicker({
         />
       </div>
 
-      <input
+      <Input
         type="text"
+        aria-label={t("settings.colorHex")}
         value={hexInput}
         onChange={(e) => setHexInput(e.target.value)}
         onBlur={() => {
@@ -236,7 +263,7 @@ export function ColorPicker({
         }}
         spellCheck={false}
         maxLength={7}
-        className="w-full rounded-inner border border-surface-700 bg-surface-850 px-2 py-1 font-mono text-xs uppercase focus:border-accent-500 focus:outline-none"
+        className="h-8 px-2 font-mono text-xs uppercase"
       />
     </div>
   );

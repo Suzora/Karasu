@@ -36,6 +36,7 @@ import { Presence } from "@/components/ui/presence";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { commands, unwrap } from "@/api/tauri";
 import { Spinner } from "@/components/ui/spinner";
+import { cardClass } from "@/components/ui/card";
 interface DatabaseInfo {
   path: string;
   bytes: number;
@@ -578,17 +579,20 @@ export function BackupSection() {
           label={t("settings.backupEnabled")}
           hint={t("settings.backupEnabledHint", { dir: settings.dir })}
         />
-        <Row label={t("settings.backupOpen")} hint={t("settings.backupRestoreHint")}>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="shrink-0"
-            onClick={async () => {
-              await unwrap(commands.openBackupDir()).catch((e) => setError(backendErrorText(e, t)));
-            }}
-          >
-            <FolderOpen className="size-3.5" /> {t("settings.backupOpenButton")}
-          </Button>
+        <Row action label={t("settings.backupOpen")} hint={t("settings.backupRestoreHint")}>
+          {(hintId) => (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
+              aria-describedby={hintId}
+              onClick={async () => {
+                await unwrap(commands.openBackupDir()).catch((e) => setError(backendErrorText(e, t)));
+              }}
+            >
+              <FolderOpen className="size-3.5" /> {t("settings.backupOpenButton")}
+            </Button>
+          )}
         </Row>
         <Row label={t("settings.backupKeep")} hint={t("settings.backupKeepHint")}>
           <Input
@@ -915,7 +919,7 @@ export function LogSection() {
             }}
             aria-expanded={open}
             aria-controls={panelId}
-            className="flex w-full items-center gap-1.5 text-left text-sm text-ink-300 hover:text-ink-100"
+            className="flex w-full items-center gap-1.5 text-left text-sm text-ink-300 hover:text-ink-100 coarse:min-h-11"
           >
             <ChevronRight
               aria-hidden
@@ -1039,11 +1043,11 @@ export function QueueSection() {
       {rows.length === 0 ? (
         <p className="mt-3 text-sm text-ink-600">{t("settings.queueEmpty")}</p>
       ) : (
-        <ul className="mt-3 space-y-1.5">
+        <ul className={cn(cardClass("sunken"), "mt-3 space-y-1 p-1.5")}>
             {rows.map((edit) => (
               <li
                 key={edit.id}
-                className="flex items-center gap-3 rounded-control bg-surface-900 px-3 py-2"
+                className="flex items-center gap-3 rounded-control bg-surface-900 py-1.5 pl-3 pr-1"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-xs text-ink-100">
@@ -1059,9 +1063,10 @@ export function QueueSection() {
                   </span>
                 </span>
                 <IconButton
+                  size="sm"
                   variant="ghost"
                   onClick={() => setConfirming(edit)}
-                  aria-label={t("settings.queueDiscard")}
+                  aria-label={`${t("settings.queueDiscard")}: ${label(edit)}`}
                   title={t("settings.queueDiscard")}
                 >
                   <Trash2 className="size-3.5" />
