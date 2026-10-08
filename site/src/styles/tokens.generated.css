@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 df67b3a82fbd) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 0fd0195df8c2) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -765,6 +765,19 @@
     width: max(100%, 2.75rem);
     height: max(100%, 2.75rem);
     translate: -50% -50%;
+  }
+}
+
+/* The same target grown only up and down, for controls that sit flush in a row and would overlap sideways. */
+@utility hit-area-y {
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: max(100%, 2.75rem);
+    translate: 0 -50%;
   }
 }
 

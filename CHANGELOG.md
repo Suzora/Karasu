@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 3912735 -->
+<!-- generated-through: 0b52cd7 -->
 
 ### Fixed
 
@@ -118,6 +118,7 @@ tag time is then optional rather than load-bearing.
 - The content filter is one control with its levels named.
 - Social controls get names and finger-sized targets.
 - Statistics: real format names, readable charts, one title size.
+- Overview, calendar, library, person page and Wrapped.
 
 ## 1.32.0 — 2026-10-03
 

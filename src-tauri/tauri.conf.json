@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Karasu",
-  "version": "1.41.34",
+  "version": "1.41.35",
   "identifier": "dev.kyu.karasu",
   "build": {
     "beforeDevCommand": "npm run dev",

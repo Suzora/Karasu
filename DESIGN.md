@@ -270,7 +270,8 @@ states. The style audit holds every icon to these four.
   width. A narrowed desktop window keeps mouse-sized targets, and a tablet
   at desktop width gets finger-sized ones. `coarse:hit-area` gives a small
   control a 44 px tap area without changing how it looks; the same six
-  primitives carry it.
+  primitives carry it. `coarse:hit-area-y` grows the area up and down only,
+  for controls that sit flush in a row, such as the hero's dots.
 
 ## Contrast obligations
 
@@ -378,6 +379,7 @@ no row here, add the primitive first.
 | something a finger flicks away | `useFlickDismiss` (the toast): follows a downward drag at 60 %, dismisses past 40 px or 400 px/s, springs back otherwise, and swallows the click its release fires |
 | a dialog | `Modal`: `size` from `sm` to `2xl`, `description` and `icon` in the header, `footer` pinned under a body that scrolls; `alert` for a question that interrupts (`alertdialog`, over other dialogs, answered by its buttons with the harmless one first); `bare` for a full-screen view such as the cover; `dismissable={false}` while something runs that must not be left half done. Escape closes only the dialog holding focus |
 | keeping an overlay alive through its exit | `Presence`, `PresenceIf` |
+| a row of choices wider than its room | `ScrollRow`: scrolls sideways under a fade at whichever edge hides more, never cutting the last item mid-word; the status tabs read their edges from the same hook |
 | a wait with no shape | `Loader`; a known shape is `Skeleton`, built from `Shimmer`, which a quick load never shows, inside one `Busy` (a single status with a hidden caption, the blocks silent) |
 | a busy icon (sync, refresh, install) | `Spinner` with `spinning`, the only place `animate-spin` may appear |
 | nothing to show | `EmptyState`, with a drawn `visual` or, where none fits, `icon` for a plain glyph at 32 px |

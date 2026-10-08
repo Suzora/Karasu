@@ -159,7 +159,7 @@ export default function Person({ kind }: { kind: Kind }) {
     <Frame>
       <header className="flex flex-wrap gap-5">
         {!su && (
-          <div className="w-32 shrink-0 overflow-hidden rounded-panel bg-surface-850">
+          <div className="w-32 shrink-0 self-start overflow-hidden rounded-panel bg-surface-850">
             {image ? (
               <img src={image} alt="" className="aspect-2/3 w-full object-cover" />
             ) : (

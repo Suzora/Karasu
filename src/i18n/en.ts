@@ -989,6 +989,7 @@ export const en = {
     allWatched: "watched",
     watchedOf: "{{progress}} / {{total}} watched",
     playEpisode: "Play episode {{n}}",
+    playEpisodeWatched: "Play episode {{n}} (watched)",
     empty: "Karasu has nowhere to look.",
     emptyHint:
       "Point Karasu at your anime folder, then scan — matched episodes show up here, ready to play.",
@@ -1097,7 +1098,7 @@ export const en = {
     saveFailed: "The image could not be saved.",
     empty: "No completed titles with a finish date yet.",
     connectPrompt: "Connect your AniList account to see your Wrapped.",
-    shape: "Shape",
+    shape: "Template",
     format: "Format",
     size: "Size",
     presetBanner: "Banner",

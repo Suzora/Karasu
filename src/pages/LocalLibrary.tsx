@@ -983,16 +983,6 @@ function LibraryRow({
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={() => onToggle(lib.mediaId)}
-          aria-expanded={open}
-          className="flex shrink-0 items-center gap-1 rounded-inner px-1.5 py-1 text-2xs tabular-nums text-ink-600 transition-surface hover:bg-surface-800 hover:text-ink-300"
-        >
-          {t(lib.files.length === 1 ? "library.fileCountOne" : "library.fileCount", { n: lib.files.length })}
-          <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} />
-        </button>
-
         {/* The folder holds more than the show; the user decides, so this chip only opens the split card. */}
         {lib.overflow && (
           <button
@@ -1015,6 +1005,16 @@ function LibraryRow({
           </button>
         )}
 
+        <button
+          type="button"
+          onClick={() => onToggle(lib.mediaId)}
+          aria-expanded={open}
+          className="flex shrink-0 items-center gap-1 rounded-inner px-1.5 py-1 text-2xs tabular-nums text-ink-600 transition-surface hover:bg-surface-800 hover:text-ink-300"
+        >
+          {t(lib.files.length === 1 ? "library.fileCountOne" : "library.fileCount", { n: lib.files.length })}
+          <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} />
+        </button>
+
         {/* The match and the way to disagree; a row with no source parse has nothing to key on and stays a label. */}
         {source ? (
           <button
@@ -1032,14 +1032,14 @@ function LibraryRow({
               lib.manual ? "text-accent-400" : exact ? "text-ink-500" : "text-gold",
             )}
           >
-            <span className="group-hover/match:hidden">
+            <span className="group-hover/match:hidden group-focus-visible/match:hidden">
               {lib.manual
                 ? t("library.matchManual")
                 : scored
                   ? t(exact ? "library.matchExact" : "library.matchClose")
                   : t("library.correct")}
             </span>
-            <span className="hidden text-accent-400 group-hover/match:inline">
+            <span className="hidden text-accent-400 group-hover/match:inline group-focus-visible/match:inline">
               {t("library.correct")}
             </span>
           </button>
@@ -1069,9 +1069,16 @@ function LibraryRow({
             </Button>
           </>
         ) : (
-          <span className="w-16 shrink-0 text-right text-2xs text-ink-600">
-            {muted ? t("library.allWatched") : ""}
-          </span>
+          <>
+            <span className="w-16 shrink-0 text-right text-2xs text-ink-600">
+              {muted ? t("library.allWatched") : ""}
+            </span>
+            {/* The play button's own width, held invisible, so every row's columns end on the same edge in both languages. */}
+            <Button size="sm" className="invisible shrink-0" aria-hidden tabIndex={-1}>
+              <Play className="size-3.5" fill="currentColor" />
+              {t("library.play")}
+            </Button>
+          </>
         )}
       </div>
 
@@ -1086,7 +1093,11 @@ function LibraryRow({
                 key={file.episode}
                 onClick={() => playEpisode(lib.mediaId, file.episode)}
                 title={fileName(file.path)}
-                aria-label={t("library.playEpisode", { n: file.episode })}
+                aria-label={
+                  watched
+                    ? t("library.playEpisodeWatched", { n: file.episode })
+                    : t("library.playEpisode", { n: file.episode })
+                }
                 className={cn(
                   "flex items-center gap-1 rounded-inner px-2 py-1 text-xs font-medium tabular-nums transition-surface",
                   watched
@@ -1094,7 +1105,11 @@ function LibraryRow({
                     : "bg-accent-600/15 text-accent-400 hover:bg-accent-600/30",
                 )}
               >
-                <Play className="size-3.5" fill="currentColor" />
+                {watched ? (
+                  <Check aria-hidden className="size-3.5" />
+                ) : (
+                  <Play aria-hidden className="size-3.5" fill="currentColor" />
+                )}
                 {file.episode}
               </button>
             );

@@ -38,6 +38,7 @@ import { toBase64 } from "@/lib/base64";
 import { backendErrorText } from "@/lib/backendError";
 import { showToast } from "@/stores/toast";
 import { needsJapaneseFace } from "@/lib/titleLanguage";
+import { ScrollRow } from "@/components/ui/scroll-row";
 
 /** Poster type and geometry are written in em, like the design, so one layout serves every crop. */
 const FONT = '"SN Pro", system-ui, sans-serif';
@@ -873,20 +874,16 @@ function ExportRow({
   children: React.ReactNode;
 }) {
   const phone = usePhoneShell();
-  return (
-    <div
-      // Only the x axis scrolls and draws no bar: a pill's touch hit area overflows the row vertically.
-      className={cn(
-        "flex items-center gap-2",
-        phone
-          ? "flex-nowrap overflow-x-auto overflow-y-hidden pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          : "flex-wrap",
-      )}
-    >
-      <span className="w-14 shrink-0 text-2xs uppercase tracking-eyebrow text-ink-600">
-        {label}
-      </span>
+  const content = (
+    <>
+      <span className="w-14 shrink-0 text-2xs uppercase tracking-eyebrow text-ink-600">{label}</span>
       {children}
-    </div>
+    </>
+  );
+  // On the phone the choices scroll sideways under an edge fade, which says there is more instead of cutting a word.
+  return phone ? (
+    <ScrollRow innerClassName="items-center gap-2 pb-1">{content}</ScrollRow>
+  ) : (
+    <div className="flex flex-wrap items-center gap-2">{content}</div>
   );
 }

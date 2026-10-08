@@ -9,6 +9,7 @@ import {
 } from "react";
 import { prefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { EDGE_PX, edgeMask, useScrollEdges } from "./scroll-row";
 
 export interface StatusTab<T extends string> {
   value: T;
@@ -17,9 +18,6 @@ export interface StatusTab<T extends string> {
   /** The underline's colour while this tab is the active one; the accent when absent. */
   color?: string;
 }
-
-/** Room kept beside a tab scrolled into view, so the fade at the strip's edge never sits on its label. */
-const EDGE_PX = 32;
 
 /** One row of tabs that scrolls sideways instead of wrapping, with a single underline that slides to the active tab. */
 export function StatusTabs<T extends string>({
@@ -40,7 +38,8 @@ export function StatusTabs<T extends string>({
   const rowRef = useRef<HTMLDivElement>(null);
   const refs = useRef(new Map<string, HTMLButtonElement>());
   const [bar, setBar] = useState<{ left: number; width: number } | null>(null);
-  const [edges, setEdges] = useState({ start: false, end: false });
+  // The strip's fades and its sideways wheel are the shared scroller's, so every scrolling row fades the same way.
+  const { edges, read: readEdges } = useScrollEdges(stripRef, rowRef);
   // The tab holding the one tab stop while arrows walk the row; null means the active tab holds it.
   const [roving, setRoving] = useState<T | null>(null);
 
@@ -50,29 +49,16 @@ export function StatusTabs<T extends string>({
     setBar(el ? { left: el.offsetLeft, width: el.offsetWidth } : null);
   }, [value]);
 
-  const readEdges = useCallback(() => {
-    const s = stripRef.current;
-    if (!s) return;
-    const start = s.scrollLeft > 1;
-    const end = s.scrollLeft + s.clientWidth < s.scrollWidth - 1;
-    setEdges((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
-  }, []);
-
   // The signature covers everything that can change a tab's width: the labels and the counts.
   const signature = tabs.map((tab) => `${tab.label}:${tab.count ?? ""}`).join("|");
   useLayoutEffect(measure, [measure, signature]);
 
-  // The row re-measures when a font arrives or a count grows; the strip re-reads its edges when the window narrows.
+  // The row re-measures its underline when a font arrives or a count grows.
   useLayoutEffect(() => {
-    const ro = new ResizeObserver(() => {
-      measure();
-      readEdges();
-    });
+    const ro = new ResizeObserver(measure);
     if (rowRef.current) ro.observe(rowRef.current);
-    if (stripRef.current) ro.observe(stripRef.current);
-    readEdges();
     return () => ro.disconnect();
-  }, [measure, readEdges]);
+  }, [measure]);
 
   // A tab chosen by a swipe or a URL may sit past the edge; the first placement jumps, later ones glide.
   const placed = useRef(false);
@@ -92,19 +78,6 @@ export function StatusTabs<T extends string>({
     readEdges();
   }, [value, readEdges]);
 
-  // A vertical wheel scrolls the strip sideways, and only takes the event when it actually moved something.
-  useLayoutEffect(() => {
-    const s = stripRef.current;
-    if (!s) return;
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const before = s.scrollLeft;
-      s.scrollLeft += e.deltaY;
-      if (s.scrollLeft !== before) e.preventDefault();
-    };
-    s.addEventListener("wheel", onWheel, { passive: false });
-    return () => s.removeEventListener("wheel", onWheel);
-  }, []);
 
   // Arrows only move focus; Enter and Space activate through the button, since every switch resets the list.
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
@@ -129,7 +102,6 @@ export function StatusTabs<T extends string>({
 
   const stop = roving ?? value;
   const color = tabs.find((tab) => tab.value === value)?.color ?? "var(--color-accent-500)";
-  const fade = edges.start || edges.end;
 
   return (
     <div
@@ -140,15 +112,7 @@ export function StatusTabs<T extends string>({
         "-mx-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
-      style={
-        fade
-          ? {
-              maskImage: `linear-gradient(90deg, ${edges.start ? `transparent, #000 ${EDGE_PX}px` : "#000"}, ${
-                edges.end ? `#000 calc(100% - ${EDGE_PX}px), transparent` : "#000"
-              })`,
-            }
-          : undefined
-      }
+      style={edgeMask(edges)}
     >
       <div
         ref={rowRef}

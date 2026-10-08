@@ -992,6 +992,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     allWatched: "gesehen",
     watchedOf: "{{progress}} / {{total}} gesehen",
     playEpisode: "Episode {{n}} abspielen",
+    playEpisodeWatched: "Episode {{n}} abspielen (gesehen)",
     empty: "Karasu weiß nicht, wo er suchen soll.",
     emptyHint:
       "Wähle deinen Anime-Ordner und starte den Scan — zugeordnete Episoden erscheinen hier und lassen sich direkt abspielen.",
@@ -1104,7 +1105,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     saveFailed: "Das Bild konnte nicht gespeichert werden.",
     empty: "Noch keine abgeschlossenen Titel mit Abschlussdatum.",
     connectPrompt: "Verbinde dein AniList-Konto, um dein Wrapped zu sehen.",
-    shape: "Form",
+    shape: "Vorlage",
     format: "Format",
     size: "Größe",
     presetBanner: "Banner",

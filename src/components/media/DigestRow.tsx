@@ -25,7 +25,7 @@ export function DigestRow({
       to={`/media/${media.id}`}
       className={cn(
         "flex items-center gap-2.5 rounded-control px-2.5 py-2 transition-surface hover:bg-surface-900",
-        dim && "opacity-55 hover:opacity-100",
+        dim && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
       <img

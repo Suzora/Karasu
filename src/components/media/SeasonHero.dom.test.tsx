@@ -242,6 +242,19 @@ describe("SeasonHero", () => {
     expect(heading()).toBe("Second");
   });
 
+  /** Keyboard focus inside the hero holds it as a resting pointer does, so the focused slide is the one being read. */
+  it("holds the rotation while focus is inside it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    hero.mockResolvedValue([media(1, "First"), media(2, "Second")]);
+    const { container } = renderWithProviders(<SeasonHero />);
+    await waitFor(() => expect(heading()).toBe("First"));
+    act(() => container.querySelector<HTMLAnchorElement>('a[tabindex="0"]')!.focus());
+    await act(async () => {
+      vi.advanceTimersByTime(7000);
+    });
+    expect(heading()).toBe("First");
+  });
+
   it("advances on its own", async () => {
     // Faked before the render, or the mount effect's timer stays real; `shouldAdvanceTime` lets the query settle.
     vi.useFakeTimers({ shouldAdvanceTime: true });

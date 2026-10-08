@@ -908,6 +908,19 @@ html[data-swapping] *::after {
   }
 }
 
+/* The same target grown only up and down, for controls that sit flush in a row and would overlap sideways. */
+@utility hit-area-y {
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: max(100%, 2.75rem);
+    translate: 0 -50%;
+  }
+}
+
 /* A sheet rises on a spring and follows a finger; at rest it has no translate, so a fixed child still uses the screen. */
 @utility sheet-popup {
   transition: translate 440ms var(--ease-spring-soft);

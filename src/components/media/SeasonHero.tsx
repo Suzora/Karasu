@@ -43,16 +43,18 @@ export default function SeasonHero() {
   count.current = items.length;
   // A finger or a mouse button resting on the hero holds the rotation, so a slide never changes under a drag.
   const [held, setHeld] = useState(false);
+  // A resting mouse or the keyboard inside the hero holds it too, so a slide never changes under the one being read.
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (items.length < 2 || held) return;
+    if (items.length < 2 || held || paused) return;
     const tick = window.setTimeout(
       () => setAt((i) => (i + 1) % Math.max(1, count.current)),
       HOLD_MS,
     );
     return () => window.clearTimeout(tick);
     // `at` is a dependency on purpose: each slide schedules the next, so a hidden tab does not wake owing several at once.
-  }, [at, items.length, held]);
+  }, [at, items.length, held, paused]);
 
   // Released anywhere, not only over the hero: a drag that ends outside it must not leave the rotation stopped.
   useEffect(() => {
@@ -100,7 +102,16 @@ export default function SeasonHero() {
   const current = items[Math.min(at, items.length - 1)];
 
   return (
-    <section aria-label={t("dashboard.heroLabel")} className="relative">
+    <section
+      aria-label={t("dashboard.heroLabel")}
+      className="relative"
+      onPointerEnter={(e) => e.pointerType === "mouse" && setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPaused(false);
+      }}
+    >
       {/* Near-black in every theme, since the art's feathered edges fade into it and the text over it is light. */}
       <div
         ref={card}
@@ -158,7 +169,7 @@ export default function SeasonHero() {
                       onClick={() => setAt(i)}
                       aria-label={displayTitle(m.title)}
                       aria-current={i === at}
-                      className="group grid h-4 place-items-center px-0.5"
+                      className="group relative coarse:hit-area-y grid h-4 place-items-center px-0.5"
                     >
                       <span
                         className={cn(
@@ -213,7 +224,7 @@ function Slide({
       tabIndex={active ? 0 : -1}
       aria-hidden={!active}
       className={cn(
-        "absolute inset-0 transition-opacity duration-(--duration-expressive)",
+        "absolute inset-0 transition-opacity duration-(--duration-expressive) focus-inset",
         active ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >

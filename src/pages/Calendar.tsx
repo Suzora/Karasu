@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronLeft, ChevronRight, Circle, Download } from "lucide-react";
+import { Bookmark, Check, ChevronLeft, ChevronRight, Circle, Download } from "lucide-react";
 import { airingWeek, type AiringSlot } from "@/api/queries";
 import { fetchMediaList, isTauri, saveText } from "@/api/anilist";
 import { buildIcs } from "@/lib/ical";
@@ -422,22 +422,27 @@ function DaySection({
 function StateMarker({ slot, state }: { slot: Slot; state: ReleaseState }) {
   const { t } = useTranslation();
   if (!slot.entry) return null;
+  // Three shapes, so watched, aired-but-unwatched and upcoming never share a mark; the word joins the link's name.
   if (state === "unwatched") {
     return (
-      <span
-        title={t("calendar.unwatched")}
-        className="grid size-3.5 shrink-0 place-items-center rounded-full bg-accent-500/15 text-accent-400"
-      >
-        <Circle className="size-2" strokeWidth={3} />
+      <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-accent-500/15 text-accent-400">
+        <Circle aria-hidden className="size-2" strokeWidth={3} />
+        <span className="sr-only">{t("calendar.unwatched")}</span>
+      </span>
+    );
+  }
+  if (state === "watched") {
+    return (
+      <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-success/15 text-success">
+        <Check aria-hidden className="size-2.5" />
+        <span className="sr-only">{t("calendar.watched")}</span>
       </span>
     );
   }
   return (
-    <span
-      title={state === "watched" ? t("calendar.watched") : t(`status.ANIME.${slot.entry.status}`)}
-      className="grid size-3.5 shrink-0 place-items-center rounded-full bg-success/15 text-success"
-    >
-      <Check className="size-2.5" />
+    <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-ink-500/15 text-ink-500">
+      <Bookmark aria-hidden className="size-2" />
+      <span className="sr-only">{t(`status.ANIME.${slot.entry.status}`)}</span>
     </span>
   );
 }
@@ -453,7 +458,7 @@ function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
       title={title}
       className={cn(
         "group flex flex-col gap-1.5 rounded-control transition-surface",
-        released && "opacity-55 hover:opacity-100",
+        released && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-control bg-surface-800">
@@ -461,7 +466,7 @@ function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
           src={slot.media.coverImage.large ?? ""}
           alt=""
           loading="lazy"
-          className={cn("size-full object-cover", released && "grayscale-[.5] group-hover:grayscale-0")}
+          className={cn("size-full object-cover", released && "grayscale-[.5] group-hover:grayscale-0 group-focus-visible:grayscale-0")}
         />
         <p className="dense-text absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-surface-950/80 px-1.5 py-1 backdrop-blur-sm">
           <span className="tabular-nums text-accent-400">
@@ -558,7 +563,7 @@ function CalendarCard({ slot, state }: { slot: Slot; state: ReleaseState }) {
       title={title}
       className={cn(
         "flex gap-1.5 rounded-control bg-surface-900 p-1.5 transition-surface hover:bg-surface-850",
-        released && "opacity-55 hover:opacity-100",
+        released && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
       <img
