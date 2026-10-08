@@ -5,6 +5,7 @@ import { type Preset } from "@/lib/presets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { IconButton } from "@/components/ui/icon-button";
 
 /** Save the current filter/sort as a named preset and manage existing ones. */
 export default function PresetModal({
@@ -51,16 +52,17 @@ export default function PresetModal({
             {presets.map((p) => (
               <li
                 key={p.name}
-                className="flex items-center justify-between px-3 py-2 text-sm"
+                className="flex items-center justify-between px-3 py-1 text-sm"
               >
                 <span className="truncate text-ink-100">{p.name}</span>
-                <button
+                <IconButton
+                  size="xs"
                   onClick={() => onDelete(p.name)}
-                  className="text-ink-600 hover:text-danger"
-                  aria-label={t("common.remove")}
+                  className="hover:text-danger"
+                  aria-label={t("presets.removeNamed", { name: p.name })}
                 >
                   <Trash2 className="size-3.5" />
-                </button>
+                </IconButton>
               </li>
             ))}
           </ul>

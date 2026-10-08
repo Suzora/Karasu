@@ -20,9 +20,9 @@ import {
 import { scoreScale } from "@/lib/scoreFormat";
 import { useAuth, useScoreFormat } from "@/stores/auth";
 import { showToast } from "@/stores/toast";
-import { cn } from "@/lib/utils";
 import MediaCard from "@/components/media/MediaCard";
 import { ErrorState } from "@/components/EmptyState";
+import { IconButton } from "@/components/ui/icon-button";
 
 /** Below this the suggestions are too thin to be worth a section. */
 const MIN_SEEDS = 3;
@@ -160,23 +160,21 @@ function RecVote({ rec }: { rec: ScoredRecommendation }) {
   };
 
   const button = (rating: "RATE_UP" | "RATE_DOWN", Icon: typeof ThumbsUp, label: string) => (
-    <button
-      type="button"
+    <IconButton
+      size="xs"
       onClick={() => void cast(rating)}
       aria-pressed={vote === rating}
       aria-label={label}
       title={label}
-      className={cn(
-        "rounded-inner p-0.5 transition-surface hover:text-ink-100",
-        vote === rating ? "text-accent-400" : "text-ink-600",
-      )}
+      className={vote === rating ? "text-accent-400 hover:text-accent-400" : undefined}
     >
       <Icon className="size-3.5" fill={vote === rating ? "currentColor" : "none"} />
-    </button>
+    </IconButton>
   );
 
   return (
-    <span className="flex shrink-0 items-center">
+    // Apart by a gap, so the two touch areas around the small glyphs do not overlap.
+    <span className="-my-1 flex shrink-0 items-center gap-1">
       {button("RATE_UP", ThumbsUp, t("dashboard.voteUp"))}
       {button("RATE_DOWN", ThumbsDown, t("dashboard.voteDown"))}
     </span>

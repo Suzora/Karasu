@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
 import {
@@ -26,6 +26,8 @@ import { parseNotes, serializeNotes } from "@/lib/tags";
 import { loadDefaultAddStatus } from "@/lib/defaultAddStatus";
 import { chooseStatus, openingFields, type FillMemo } from "@/lib/completion";
 import { statusColorVar } from "@/lib/statusColors";
+import ConfirmDialog from "@/components/overlays/ConfirmDialog";
+import { PresenceIf } from "@/components/ui/presence";
 
 export interface EditableMedia {
   id: number;
@@ -139,6 +141,7 @@ export default function EntryEditModal({
   customListNames?: string[];
 }) {
   const { t } = useTranslation();
+  const flagHintId = useId();
   const mode = useAuth((s) => s.mode);
   const initial = parseNotes(entry?.notes);
   // Read once: a first add opens as if its default pill was picked, so a default of Completed starts on the totals.
@@ -201,8 +204,59 @@ export default function EntryEditModal({
     setFillMemo(picked.memo);
   };
 
+  const footer = (
+    <>
+      {onDelete && (
+        <Button variant="dangerGhost" size="sm" className="mr-auto" onClick={() => setConfirmDelete(true)}>
+          <Trash2 className="size-3.5" /> {t("common.remove")}
+        </Button>
+      )}
+      <Button variant="secondary" onClick={onClose}>
+        {t("common.cancel")}
+      </Button>
+      <Button
+        onClick={() =>
+          onSave({
+            mediaId: media.id,
+            status,
+            progress,
+            // Never sent for anime: AniList accepts it there and would store a volume count on a TV series.
+            ...(isManga ? { progressVolumes: volumes } : {}),
+            score,
+            repeat,
+            notes: serializeNotes(notes, tags),
+            private: priv,
+            // A cleared date is written as all-null parts, AniList's own "remove the date" spelling.
+            ...(startedDirty ? { startedAt: started ?? CLEARED_DATE } : {}),
+            ...(completedDirty
+              ? { completedAt: completed ?? CLEARED_DATE }
+              : {}),
+            ...(anilist
+              ? {
+                  hiddenFromStatusLists: hidden,
+                  // Membership only when touched: the write replaces the whole set, so an untouched dialog sends none.
+                  ...(membershipsDirty ? { customLists: [...memberships] } : {}),
+                  // The array is positional, so it is built from the account's category order, never the map's key order.
+                  ...(advancedDirty && advancedCategories.length > 0
+                    ? {
+                        advancedScores: toAdvancedArray(
+                          advancedCategories,
+                          advanced,
+                        ),
+                      }
+                    : {}),
+                }
+              : {}),
+          })
+        }
+      >
+        {entry ? t("common.save") : t("common.add")}
+      </Button>
+    </>
+  );
+
   return (
-    <Modal title={displayTitle(media.title)} onClose={onClose} leaving={leaving}>
+    <Modal title={displayTitle(media.title)} onClose={onClose} leaving={leaving} footer={footer}>
       <div className="space-y-4">
         {/* Pills, not a dropdown: status is the most-changed field here and a dropdown hides its options. */}
         <div className="text-sm">
@@ -281,34 +335,35 @@ export default function EntryEditModal({
             onChange={setCompleted}
           />
         </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-          <label
-            className="flex cursor-pointer items-center gap-2 text-sm text-ink-300"
-            // Locally there is no feed to be private from, so the checkbox says what it does: keep the entry out of exports.
-            title={anilist ? undefined : t("entry.privateLocalHint")}
-          >
-            <input
-              type="checkbox"
-              checked={priv}
-              onChange={(e) => setPriv(e.target.checked)}
-              className="size-3.5 accent-accent-500"
-            />
-            {anilist ? t("entry.private") : t("entry.privateLocal")}
-          </label>
-          {anilist && (
-            <label
-              className="flex cursor-pointer items-center gap-2 text-sm text-ink-300"
-              title={t("entry.hiddenHint")}
-            >
+        <div>
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-300">
               <input
                 type="checkbox"
-                checked={hidden}
-                onChange={(e) => setHidden(e.target.checked)}
+                checked={priv}
+                onChange={(e) => setPriv(e.target.checked)}
+                aria-describedby={anilist ? undefined : flagHintId}
                 className="size-3.5 accent-accent-500"
               />
-              {t("entry.hidden")}
+              {anilist ? t("entry.private") : t("entry.privateLocal")}
             </label>
-          )}
+            {anilist && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={hidden}
+                  onChange={(e) => setHidden(e.target.checked)}
+                  aria-describedby={flagHintId}
+                  className="size-3.5 accent-accent-500"
+                />
+                {t("entry.hidden")}
+              </label>
+            )}
+          </div>
+          {/* Said on the page, since a hover title reaches neither a keyboard nor a finger; one flag has a reason at a time. */}
+          <p id={flagHintId} className="mt-1 text-2xs text-ink-600">
+            {anilist ? t("entry.hiddenHint") : t("entry.privateLocalHint")}
+          </p>
         </div>
         {anilist && (
           <>
@@ -364,69 +419,21 @@ export default function EntryEditModal({
             placeholder={t("entry.notesPlaceholder")}
           />
         </label>
-        <div className="flex items-center justify-between pt-2">
-          {onDelete ? (
-            confirmDelete ? (
-              <Button variant="danger" size="sm" onClick={onDelete}>
-                {t("common.confirmRemove")}
-              </Button>
-            ) : (
-              <Button
-                variant="dangerGhost"
-                size="sm"
-                onClick={() => setConfirmDelete(true)}
-              >
-                <Trash2 className="size-3.5" /> {t("common.remove")}
-              </Button>
-            )
-          ) : (
-            <span />
-          )}
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={onClose}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              onClick={() =>
-                onSave({
-                  mediaId: media.id,
-                  status,
-                  progress,
-                  // Never sent for anime: AniList accepts it there and would store a volume count on a TV series.
-                  ...(isManga ? { progressVolumes: volumes } : {}),
-                  score,
-                  repeat,
-                  notes: serializeNotes(notes, tags),
-                  private: priv,
-                  // A cleared date is written as all-null parts, AniList's own "remove the date" spelling.
-                  ...(startedDirty ? { startedAt: started ?? CLEARED_DATE } : {}),
-                  ...(completedDirty
-                    ? { completedAt: completed ?? CLEARED_DATE }
-                    : {}),
-                  ...(anilist
-                    ? {
-                        hiddenFromStatusLists: hidden,
-                        // Membership only when touched: the write replaces the whole set, so an untouched dialog sends none.
-                        ...(membershipsDirty ? { customLists: [...memberships] } : {}),
-                        // The array is positional, so it is built from the account's category order, never the map's key order.
-                        ...(advancedDirty && advancedCategories.length > 0
-                          ? {
-                              advancedScores: toAdvancedArray(
-                                advancedCategories,
-                                advanced,
-                              ),
-                            }
-                          : {}),
-                      }
-                    : {}),
-                })
-              }
-            >
-              {entry ? t("common.save") : t("common.add")}
-            </Button>
-          </div>
-        </div>
       </div>
+      {/* The confirm every removal uses, over the editor; Escape closes it alone and leaves the editor open. */}
+      <PresenceIf when={confirmDelete}>
+        {(confirmLeaving) => (
+          <ConfirmDialog
+            leaving={confirmLeaving}
+            title={t("confirm.removeOne")}
+            names={[displayTitle(media.title)]}
+            note={t("confirm.removeNote")}
+            confirmLabel={t("common.remove")}
+            onConfirm={() => onDelete?.()}
+            onCancel={() => setConfirmDelete(false)}
+          />
+        )}
+      </PresenceIf>
     </Modal>
   );
 }

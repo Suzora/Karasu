@@ -7,6 +7,7 @@ const node = (id: number): FranchiseNode => ({
   type: "ANIME",
   title: { romaji: `T${id}`, english: null, native: null },
   coverImage: { large: null },
+  isAdult: null,
   format: null,
   listStatus: null,
   progress: null,

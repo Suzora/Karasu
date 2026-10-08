@@ -771,6 +771,18 @@ nav a {
   }
 }
 
+/* Adult art behind the blur setting, clipped by its frame: scaled so the soft edge never shows inside the frame. */
+@utility veil {
+  scale: 1.05;
+  filter: blur(24px);
+}
+
+/* The same veil for a thumbnail, where a cover's blur would leave a flat colour instead of a shape. */
+@utility veil-thumb {
+  scale: 1.1;
+  filter: blur(4px);
+}
+
 /* The gradient at the foot of every cover: art is arbitrary, so anything over it needs a deterministic backdrop. */
 @utility cover-scrim {
   background-image: linear-gradient(to top, rgba(4, 5, 8, 0.92), transparent);

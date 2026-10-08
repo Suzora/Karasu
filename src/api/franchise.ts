@@ -62,6 +62,8 @@ export interface FranchiseNode {
   title: MediaTitle;
   coverImage: { large: string | null };
   format: string | null;
+  /** Kept for the blur setting: an adult relative shown at all is shown veiled. */
+  isAdult: boolean | null;
   listStatus: MediaListStatus | null;
   /** null when the title isn't on the list — 0 means on the list, unstarted. */
   progress: number | null;
@@ -119,6 +121,7 @@ export async function loadFranchise(
         type: m.type,
         title: m.title,
         coverImage: m.coverImage ?? { large: null },
+        isAdult: m.isAdult,
         format: m.format ?? null,
         listStatus: m.mediaListEntry?.status ?? null,
         progress: m.mediaListEntry?.progress ?? null,

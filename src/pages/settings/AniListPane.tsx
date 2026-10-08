@@ -435,14 +435,8 @@ export function AniListNotificationsSection() {
   return (
     <Card>
       <Disclosure
-        summary={
-          <span>
-            <CardTitle>{t("settings.alNotifications")}</CardTitle>
-            <span className="mt-1 block text-xs text-ink-600">
-              {t("settings.alNotificationsHint")}
-            </span>
-          </span>
-        }
+        title={t("settings.alNotifications")}
+        hint={t("settings.alNotificationsHint")}
         open={open}
         onOpenChange={setOpen}
         panelClassName="mt-4 space-y-1"

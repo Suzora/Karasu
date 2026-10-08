@@ -58,4 +58,16 @@ describe("Disclosure", () => {
     rerender(<DisclosurePanel open id="p">replies</DisclosurePanel>);
     expect(document.getElementById("p")).not.toHaveAttribute("data-instant");
   });
+
+  /** A section's heading holds the button, and its hint describes it without becoming part of its name. */
+  it("puts the button inside the heading and ties the hint to it", () => {
+    render(
+      <Disclosure title="AniList notifications" hint="Which kinds AniList sends you.">
+        body
+      </Disclosure>,
+    );
+    const button = screen.getByRole("button", { name: "AniList notifications" });
+    expect(screen.getByRole("heading", { name: "AniList notifications" })).toContainElement(button);
+    expect(button).toHaveAccessibleDescription("Which kinds AniList sends you.");
+  });
 });

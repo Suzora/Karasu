@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Dices, ExternalLink } from "lucide-react";
+import { Dices } from "lucide-react";
 import { displayTitle, type MediaListEntry } from "@/api/types";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { ACTION_ICON } from "@/components/shell/actionIcons";
+import { formatLabel } from "@/lib/format";
+import { shouldBlur } from "@/lib/contentFilter";
+import { useContentFilter } from "@/stores/contentFilter";
+import { cn } from "@/lib/utils";
+
+/** The action vocabulary's glyph for opening a title, so this button and the menus draw the same one. */
+const OpenIcon = ACTION_ICON.open;
 
 /** Picks a random entry from the planning pool, with an optional episode-count cap and a reroll. */
 export default function RandomPickModal({
@@ -19,6 +27,8 @@ export default function RandomPickModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const level = useContentFilter((s) => s.level);
+  const blurAdult = useContentFilter((s) => s.blurAdult);
   const [cap, setCap] = useState<number | "">("");
   const [picked, setPicked] = useState<MediaListEntry | null>(null);
   const [nonce, setNonce] = useState(0);
@@ -60,23 +70,27 @@ export default function RandomPickModal({
           <div className="flex gap-4">
             {/* The same destination as the Open button below, so the cover is a picture and not a second tab stop. */}
             <Link to={`/media/${picked.media.id}`} onClick={onClose} tabIndex={-1} aria-hidden>
-              <img
-                src={picked.media.coverImage.large ?? ""}
-                alt=""
-                className="h-40 w-28 shrink-0 rounded-control object-cover"
-              />
+              <div className="h-40 w-28 shrink-0 overflow-hidden rounded-control">
+                <img
+                  src={picked.media.coverImage.large ?? ""}
+                  alt=""
+                  className={cn("size-full object-cover", shouldBlur(picked.media, level, blurAdult) && "veil")}
+                />
+              </div>
             </Link>
             <div className="flex min-w-0 flex-1 flex-col">
               <p className="font-semibold">{displayTitle(picked.media.title)}</p>
               <p className="text-xs text-ink-600">
-                {picked.media.format ?? ""}
-                {picked.media.episodes
-                  ? ` · ${picked.media.episodes} ${t("common.episodes")}`
-                  : ""}
+                {[
+                  formatLabel(picked.media.format, t),
+                  picked.media.episodes ? `${picked.media.episodes} ${t("common.episodes")}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
               <div className="mt-auto flex gap-2 pt-3">
                 <Link to={`/media/${picked.media.id}`} onClick={onClose} className={buttonClass()}>
-                  {t("random.open")} <ExternalLink className="size-3.5" aria-hidden="true" />
+                  {t("random.open")} <OpenIcon className="size-3.5" aria-hidden="true" />
                 </Link>
                 <Button variant="secondary" onClick={() => setNonce((n) => n + 1)}>
                   <Dices className="size-4" /> {t("random.reroll")}

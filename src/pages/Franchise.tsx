@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { isNativeLine, secondLine } from "@/lib/titleLanguage";
 import { statusColorVar } from "@/lib/statusColors";
 import { loadLegendOpen, saveLegendOpen } from "@/lib/franchiseLegend";
+import { shouldBlur } from "@/lib/contentFilter";
 
 /** List status → node outline, from `lib/statusColors` so cover rings and this graph never disagree. */
 const colorOf = statusColorVar;
@@ -263,7 +264,8 @@ export default function Franchise() {
                 type="button"
                 onClick={recenter}
                 title={t("franchise.resetView")}
-                className="min-w-11 rounded-inner px-1 py-0.5 text-2xs tabular-nums text-ink-500 transition-surface hover:bg-surface-800 hover:text-ink-100"
+                aria-label={t("franchise.resetViewAt", { n: Math.round(pan.zoom * 100) })}
+                className="relative press coarse:hit-area h-7 min-w-11 rounded-inner px-1 text-2xs tabular-nums text-ink-500 transition-surface hover:bg-surface-800 hover:text-ink-100"
               >
                 {Math.round(pan.zoom * 100)}%
               </button>
@@ -344,6 +346,8 @@ function GraphNode({
   onOpen: () => void;
 }) {
   const { t } = useTranslation();
+  const level = useContentFilter((s) => s.level);
+  const blurAdult = useContentFilter((s) => s.blurAdult);
   const color = colorOf(node.listStatus);
   const title = displayTitle(node.title);
   const done =
@@ -390,7 +394,7 @@ function GraphNode({
               src={node.coverImage.large}
               alt=""
               draggable={false}
-              className="size-full object-cover"
+              className={cn("size-full object-cover", shouldBlur(node, level, blurAdult) && "veil")}
             />
           ) : (
             <span className="grid size-full place-items-center text-[.5625em] uppercase tracking-eyebrow text-ink-600">
@@ -449,6 +453,8 @@ function Rail({
   onEdit: () => void;
 }) {
   const { t } = useTranslation();
+  const level = useContentFilter((s) => s.level);
+  const blurAdult = useContentFilter((s) => s.blurAdult);
   const entry = useCachedEntry(userId, node?.type, node?.id);
 
   if (!node) {
@@ -471,11 +477,13 @@ function Rail({
       {/* The scroll lives inside the card, so the card's top catch-light stays put while the contents move. */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {node.coverImage.large && (
-          <img
-            src={node.coverImage.large}
-            alt=""
-            className="mb-3 hidden aspect-2/3 w-full rounded-control object-cover xl:block"
-          />
+          <div className="mb-3 hidden aspect-2/3 w-full overflow-hidden rounded-control xl:block">
+            <img
+              src={node.coverImage.large}
+              alt=""
+              className={cn("size-full object-cover", shouldBlur(node, level, blurAdult) && "veil")}
+            />
+          </div>
         )}
         {relation && (
           <p className="text-2xs uppercase tracking-eyebrow text-accent-400">

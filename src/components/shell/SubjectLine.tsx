@@ -35,7 +35,7 @@ function SubjectCover({ subject, small = false }: { subject: ListSubject; small?
         loading="lazy"
         decoding="async"
         // The scale keeps the blur from leaving a see-through rim inside the clip.
-        className={cn("size-full object-cover", shouldBlur(subject.media, level, blurAdult) && "scale-110 blur-xs")}
+        className={cn("size-full object-cover", shouldBlur(subject.media, level, blurAdult) && "veil-thumb")}
       />
     </span>
   );

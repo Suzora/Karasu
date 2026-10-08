@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { MarkdownTextarea } from "@/components/social/MarkdownTextarea";
 import { showToast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
+import { NumberInput } from "@/components/ui/number-input";
+import { Switch } from "@/components/ui/switch";
 
 /** One literal `t()` call per case, because `i18nKeys.test.ts` only sees literal calls. */
 function reasonText(
@@ -115,7 +117,15 @@ export function ReviewComposerModal({
       }
     >
       <div className="space-y-4">
-        <Field label={t("review.summaryLabel")} htmlFor="review-summary">
+        <Field
+          label={t("review.summaryLabel")}
+          htmlFor="review-summary"
+          error={
+            summary.length > 0 && (check.reason === "summaryTooShort" || check.reason === "summaryTooLong")
+              ? reasonText(check.reason, t, bodyLen)
+              : undefined
+          }
+        >
           <Input
             id="review-summary"
             value={summary}
@@ -125,8 +135,12 @@ export function ReviewComposerModal({
           />
         </Field>
 
-        {/* The textarea stays mounted under the preview, so the label's `htmlFor` always resolves. */}
-        <Field label={t("review.bodyLabel")} htmlFor="review-body">
+        {/* Mounted under the preview so `htmlFor` resolves; the error joins the counter only once something is written. */}
+        <Field
+          label={t("review.bodyLabel")}
+          htmlFor="review-body"
+          error={bodyLen > 0 && check.reason === "bodyTooShort" ? reasonText(check.reason, t, bodyLen) : undefined}
+        >
           <MarkdownTextarea
             id="review-body"
             value={body}
@@ -150,33 +164,24 @@ export function ReviewComposerModal({
           />
         </Field>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <label className="flex items-center gap-2 text-xs font-medium text-ink-300">
-            {t("review.scoreLabel")}
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              value={score}
-              onChange={(e) => setScore(Number(e.target.value))}
-              className="w-20"
-            />
-            <span className="text-2xs text-ink-600">/ 100</span>
-          </label>
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-ink-300">
-            <input
-              type="checkbox"
-              checked={priv}
-              onChange={(e) => setPriv(e.target.checked)}
-              className="size-3.5 accent-accent-500"
-            />
-            {t("review.privateLabel")}
-          </label>
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+          <Field
+            label={t("review.scoreLabel")}
+            htmlFor="review-score"
+            error={check.reason === "scoreOut" ? reasonText(check.reason, t, bodyLen) : undefined}
+          >
+            <span className="flex items-center gap-2">
+              <NumberInput id="review-score" max={100} value={score} onChange={setScore} className="w-20" />
+              <span className="text-2xs text-ink-600">/ 100</span>
+            </span>
+          </Field>
+          <div className="flex items-center gap-2 pb-2">
+            <Switch id="review-private" checked={priv} onChange={setPriv} aria-labelledby="review-private-label" />
+            <span id="review-private-label" className="text-xs font-medium text-ink-300">
+              {t("review.privateLabel")}
+            </span>
+          </div>
         </div>
-
-        {!check.ok && check.reason !== undefined && (summary.length > 0 || bodyLen > 0) && (
-          <p className="text-2xs text-gold">{reasonText(check.reason, t, bodyLen)}</p>
-        )}
       </div>
     </Modal>
   );

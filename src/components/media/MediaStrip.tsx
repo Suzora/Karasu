@@ -41,7 +41,7 @@ export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
                   decoding="async"
                   className={cn(
                     "size-full object-cover transition-transform group-hover:scale-[1.03]",
-                    shouldBlur(e.node, level, blurAdult) && "blur-[6px]",
+                    shouldBlur(e.node, level, blurAdult) && "veil",
                   )}
                 />
               )}

@@ -379,6 +379,7 @@ no row here, add the primitive first.
 | a busy icon (sync, refresh, install) | `Spinner` with `spinning`, the only place `animate-spin` may appear |
 | nothing to show | `EmptyState`, with a drawn `visual` or, where none fits, `icon` for a plain glyph at 32 px |
 | a load that failed | `ErrorState`: the reason in the reader's language (`backendErrorText`, never a raw backend code) and one Retry the user presses; the full form for a page, `inline` for a fold, a footer or a page whose rows are already showing; a later page that failed says why above its own Load more, which is what asks again, and the loaded rows stay |
+| adult art while the blur setting is on | `veil` on a cover its frame clips, `veil-thumb` on a thumbnail; never a blur picked per site, which is how three places came to show the art unblurred |
 | a score picker | `ScoreBars` |
 | a season picker | `SeasonPicker` |
 | a user's name and face | `UserLockup` |

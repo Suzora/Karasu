@@ -19,6 +19,7 @@ const graph: FranchiseGraph = {
       type: "ANIME",
       title: { romaji: "Root", english: null, native: null },
       coverImage: { large: null },
+      isAdult: null,
       format: "TV",
       listStatus: "COMPLETED",
       progress: 12,
@@ -29,6 +30,7 @@ const graph: FranchiseGraph = {
       type: "ANIME",
       title: { romaji: "Sequel", english: null, native: null },
       coverImage: { large: null },
+      isAdult: null,
       format: "TV",
       listStatus: null,
       progress: null,
@@ -111,5 +113,17 @@ describe("Franchise legend", () => {
     await user.click(screen.getByRole("button", { name: "franchise.legend" }));
     expect(screen.queryByRole("list")).toBeNull();
     expect(store.get("karasu-franchise-legend")).toBe("closed");
+  });
+
+  /** An adult relative shown at all is shown veiled while the blur is on, as it is on every other cover. */
+  it("veils an adult relative's cover while the blur is on", async () => {
+    graph.nodes[1] = { ...graph.nodes[1], isAdult: true, coverImage: { large: "https://example.test/adult.jpg" } };
+    useContentFilter.setState({ level: "off", blurAdult: true, ready: true, error: null });
+    const { baseElement } = mount();
+    await screen.findAllByText("Sequel");
+    const covers = baseElement.querySelectorAll('img[src="https://example.test/adult.jpg"]');
+    expect(covers.length).toBeGreaterThan(0);
+    for (const img of covers) expect(img).toHaveClass("veil");
+    graph.nodes[1] = { ...graph.nodes[1], isAdult: null, coverImage: { large: null } };
   });
 });

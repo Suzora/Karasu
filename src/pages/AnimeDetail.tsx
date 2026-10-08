@@ -467,13 +467,15 @@ export default function AnimeDetail() {
                     to={`/media/${e.node.id}`}
                     className="group block"
                   >
-                    {/* The same lift as the trailer thumbnail; these are equally clickable and should say so. */}
-                    <img
-                      src={e.node.coverImage.large ?? ""}
-                      alt=""
-                      loading="lazy"
-                      className="aspect-[2/3] w-full rounded-control object-cover transition-transform group-hover:-translate-y-1"
-                    />
+                    {/* The same lift as the trailer thumbnail; the frame clips a veiled cover's blur to its own corners. */}
+                    <div className="aspect-[2/3] overflow-hidden rounded-control transition-transform group-hover:-translate-y-1">
+                      <img
+                        src={e.node.coverImage.large ?? ""}
+                        alt=""
+                        loading="lazy"
+                        className={cn("size-full object-cover", shouldBlur(e.node, level, blurAdult) && "veil")}
+                      />
+                    </div>
                     <p className="mt-1 text-xs text-accent-400">
                       {t(`relation.${e.relationType}`, {
                         defaultValue: e.relationType,
@@ -507,7 +509,7 @@ function EpisodesSection({ mediaId }: { mediaId: number }) {
   return (
     <Card>
       <Disclosure
-        summary={<CardTitle>{t("detail.episodes")}</CardTitle>}
+        title={t("detail.episodes")}
         open={open}
         onOpenChange={setOpen}
         panelClassName="mt-3"
@@ -564,7 +566,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
   return (
     <Card>
       <Disclosure
-        summary={<CardTitle>{t("detail.cast")}</CardTitle>}
+        title={t("detail.cast")}
         open={open}
         onOpenChange={setOpen}
         panelClassName="mt-3 space-y-5"
@@ -715,7 +717,7 @@ function ReviewsSection({ mediaId }: { mediaId: number }) {
   return (
     <Card>
       <Disclosure
-        summary={<CardTitle>{t("detail.reviews")}</CardTitle>}
+        title={t("detail.reviews")}
         open={open}
         onOpenChange={setOpen}
         panelClassName="mt-3 space-y-3"
@@ -843,30 +845,29 @@ function ReviewCard({
         </span>
         {canVote && (
           <>
-            <button
+            {/* The filled glyph says pressed as well as the colour does, so the state never rests on colour alone. */}
+            <IconButton
+              size="xs"
               onClick={() => onVote(up ? "NO_VOTE" : "UP_VOTE")}
               disabled={votePending}
               aria-pressed={up}
+              aria-label={t("review.voteUp")}
               title={t("review.voteUp")}
-              className={cn(
-                "rounded-inner p-1 transition-surface hover:bg-surface-800",
-                up ? "text-success" : "text-ink-600",
-              )}
+              className={up ? "text-success hover:text-success" : undefined}
             >
               <ThumbsUp className="size-3.5" fill={up ? "currentColor" : "none"} />
-            </button>
-            <button
+            </IconButton>
+            <IconButton
+              size="xs"
               onClick={() => onVote(down ? "NO_VOTE" : "DOWN_VOTE")}
               disabled={votePending}
               aria-pressed={down}
+              aria-label={t("review.voteDown")}
               title={t("review.voteDown")}
-              className={cn(
-                "rounded-inner p-1 transition-surface hover:bg-surface-800",
-                down ? "text-danger" : "text-ink-600",
-              )}
+              className={down ? "text-danger hover:text-danger" : undefined}
             >
               <ThumbsDown className="size-3.5" fill={down ? "currentColor" : "none"} />
-            </button>
+            </IconButton>
           </>
         )}
       </div>
@@ -896,7 +897,7 @@ function TrendSection({ mediaId }: { mediaId: number }) {
   return (
     <Card>
       <Disclosure
-        summary={<CardTitle>{t("detail.trend")}</CardTitle>}
+        title={t("detail.trend")}
         open={open}
         onOpenChange={setOpen}
         panelClassName="mt-3"
@@ -1082,8 +1083,8 @@ function InformationCard({
         <Row label={t("detail.favorites")} value={num(data.favourites)} />
         <Row label={t("detail.source")} value={sourceLabel(data.source, t)} />
         <Row label={t("detail.country")} value={data.countryOfOrigin} />
-        <Row label={t("detail.studios")} value={<StudioLinks studios={mainStudios} />} />
-        <Row label={t("detail.producers")} value={<StudioLinks studios={producers} />} />
+        <Row label={t("detail.studios")} value={mainStudios.length > 0 ? <StudioLinks studios={mainStudios} /> : null} />
+        <Row label={t("detail.producers")} value={producers.length > 0 ? <StudioLinks studios={producers} /> : null} />
         <Row label={t("detail.hashtag")} value={data.hashtag} />
       </dl>
     </Card>

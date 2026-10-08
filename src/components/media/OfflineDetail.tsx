@@ -7,6 +7,8 @@ import { displayTitle } from "@/api/types";
 import { useCachedMedia } from "@/hooks/useCachedMedia";
 import { useListMutations } from "@/hooks/useListMutations";
 import { cn } from "@/lib/utils";
+import { useContentFilter } from "@/stores/contentFilter";
+import { shouldBlur } from "@/lib/contentFilter";
 
 
 /** The detail page offline: the cached list entry with a working +1, or a plain retry; never a faked page shape. */
@@ -58,6 +60,8 @@ function OfflineEntry({
 }) {
   const { t } = useTranslation();
   const { entry, mediaType, userId } = cached;
+  const level = useContentFilter((s) => s.level);
+  const blurAdult = useContentFilter((s) => s.blurAdult);
   const { save } = useListMutations(userId, mediaType);
   const total = entry.media.episodes ?? entry.media.chapters ?? null;
   const atEnd = total !== null && entry.progress >= total;
@@ -75,7 +79,7 @@ function OfflineEntry({
             <img
               src={entry.media.coverImage.large}
               alt=""
-              className="size-full object-cover"
+              className={cn("size-full object-cover", shouldBlur(entry.media, level, blurAdult) && "veil")}
             />
           )}
         </div>

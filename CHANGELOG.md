@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 880fab1 -->
+<!-- generated-through: 1d2144c -->
 
 ### Fixed
 
@@ -110,6 +110,7 @@ tag time is then optional rather than load-bearing.
 - The bell and the sync panel speak their counts, and the panel is a popover.
 - The list search and the composer name their keys the way your keyboard does.
 - List rows: the checkbox works, and receipts lead with what happened.
+- The detail page, its editors and dialogs.
 
 ## 1.32.0 — 2026-10-03
 

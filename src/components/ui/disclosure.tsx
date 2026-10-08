@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
+import { CardTitle } from "@/components/ui/card";
 
 /** The body of a disclosure, mounted while open and through its exit, growing to its content's height as it arrives. */
 export function DisclosurePanel({
@@ -39,6 +40,8 @@ export function DisclosurePanel({
 /** A heading row that opens and closes the section under it; open state is the caller's when it passes `open`. */
 export function Disclosure({
   summary,
+  title,
+  hint,
   open: controlled,
   onOpenChange,
   defaultOpen = false,
@@ -46,7 +49,12 @@ export function Disclosure({
   panelClassName,
   children,
 }: {
-  summary: ReactNode;
+  /** Plain text in the button, for a disclosure that is not a section heading. */
+  summary?: ReactNode;
+  /** A section's heading: the button sits inside it, so the heading is navigable and the hint is not part of its name. */
+  title?: ReactNode;
+  /** A sentence under the heading, outside the button and tied to it as its description. */
+  hint?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   defaultOpen?: boolean;
@@ -55,6 +63,7 @@ export function Disclosure({
   children: ReactNode;
 }) {
   const id = useId();
+  const hintId = useId();
   const [own, setOwn] = useState(defaultOpen);
   const open = controlled ?? own;
   const toggle = () => {
@@ -62,21 +71,37 @@ export function Disclosure({
     onOpenChange?.(!open);
   };
 
+  const button = (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-controls={id}
+      aria-describedby={title !== undefined && hint ? hintId : undefined}
+      onClick={toggle}
+      className={cn("flex w-full items-center justify-between gap-2 text-left", className)}
+    >
+      {title ?? summary}
+      <ChevronDown
+        aria-hidden
+        className={cn("size-4 shrink-0 text-ink-500 transition-transform", open && "rotate-180")}
+      />
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={toggle}
-        className={cn("flex w-full items-center justify-between gap-2 text-left", className)}
-      >
-        {summary}
-        <ChevronDown
-          aria-hidden
-          className={cn("size-4 shrink-0 text-ink-500 transition-transform", open && "rotate-180")}
-        />
-      </button>
+      {title !== undefined ? (
+        <>
+          <CardTitle>{button}</CardTitle>
+          {hint && (
+            <p id={hintId} className="mt-1 text-xs text-ink-600">
+              {hint}
+            </p>
+          )}
+        </>
+      ) : (
+        button
+      )}
       <DisclosurePanel open={open} id={id} className={panelClassName}>
         {children}
       </DisclosurePanel>

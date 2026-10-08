@@ -402,8 +402,8 @@ describe("notifications", () => {
     // A group names its subjects on one line.
     expect(screen.getByRole("button", { name: /^Ren notif\.groupLikes.*Frieren · notif\.quoted:.*A long day\./ })).toBeInTheDocument();
     // Explicit art arrives veiled while the blur is on, and the press stays the row's.
-    expect(baseElement.querySelector(`img[src="${explicit}"]`)).toHaveClass("blur-xs");
-    expect(baseElement.querySelector('img[src="https://example.test/frieren.jpg"]')).not.toHaveClass("blur-xs");
+    expect(baseElement.querySelector(`img[src="${explicit}"]`)).toHaveClass("veil-thumb");
+    expect(baseElement.querySelector('img[src="https://example.test/frieren.jpg"]')).not.toHaveClass("veil-thumb");
     expect(await checkA11y(baseElement)).toHaveNoViolations();
 
     // A filtered title takes its subject away and leaves the row.

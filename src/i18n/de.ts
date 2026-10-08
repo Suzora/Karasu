@@ -754,6 +754,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     empty: "Nichts passt — „Max. Episoden“ erhöhen oder Einträge zu „Geplant“ hinzufügen.",
   },
   presets: {
+    removeNamed: "„{{name}}“ entfernen",
     button: "Presets",
     save: "Aktuelle Ansicht speichern …",
     empty: "Noch keine Presets. Speichere eine Ansicht, um mit einem Klick zu ihr zurückzukehren.",
@@ -1055,7 +1056,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     },
     run: "Jetzt zusammenführen",
     later: "Später",
-    progress: "Führe zusammen {{done}} / {{total}} …",
+    progress: "Wird zusammengeführt: {{done}} / {{total}} …",
+    laterHint: "Mit „Später“ bietet Karasu das Zusammenführen beim nächsten Start wieder an.",
     done: "Zusammenführung abgeschlossen ({{count}} Einträge).",
     doneQueued:
       "{{count}} Einträge konnten noch nicht gesendet werden und warten in der Offline-Warteschlange. Bis sie ankommen, bleiben sie in deiner lokalen Liste.",
@@ -1076,6 +1078,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     zoomIn: "Vergrößern",
     zoomOut: "Verkleinern",
     resetView: "Ansicht zurücksetzen",
+    resetViewAt: "Ansicht zurücksetzen ({{n}} %)",
     selectHint:
       "Wähle einen Titel, um zu sehen, was er ist. Doppelklick öffnet die Detailseite.",
     editMissing:

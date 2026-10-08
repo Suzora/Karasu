@@ -1,9 +1,11 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { Heart } from "lucide-react";
 import type { FavouriteKind } from "@/api/social";
 import { useFavourite } from "@/hooks/useFavourite";
 import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/utils";
+import { showToast } from "@/stores/toast";
 
 /** The favourite heart: nothing without an account, and disabled with a reason when AniList blocks the toggle. */
 export function FavouriteButton({
@@ -23,6 +25,7 @@ export function FavouriteButton({
   const { t } = useTranslation();
   const mode = useAuth((s) => s.mode);
   const fav = useFavourite(kind);
+  const reasonId = useId();
 
   if (mode !== "anilist") return null;
 
@@ -31,8 +34,11 @@ export function FavouriteButton({
   return (
     <button
       type="button"
-      onClick={() => !blocked && fav.mutate({ id })}
-      disabled={fav.isPending || blocked === true}
+      // Pressable while blocked, so the reason reaches a keyboard and a finger and not only a hovering mouse.
+      onClick={() => (blocked ? showToast({ kind: "info", text: t("detail.favouriteBlocked") }) : fav.mutate({ id }))}
+      disabled={fav.isPending}
+      aria-disabled={blocked ? true : undefined}
+      aria-describedby={blocked ? reasonId : undefined}
       aria-pressed={on}
       // The action, not the state: a control announced as "Favourited" implies pressing it would favourite.
       aria-label={on ? t("detail.unfavouriteAria") : t("detail.favouriteAria")}
@@ -49,6 +55,11 @@ export function FavouriteButton({
     >
       <Heart className={cn(square ? "size-5" : "size-3.5", on && "fill-current")} />
       {!square && (on ? t("detail.favourited") : t("detail.favourite"))}
+      {blocked && (
+        <span id={reasonId} className="sr-only">
+          {t("detail.favouriteBlocked")}
+        </span>
+      )}
     </button>
   );
 }

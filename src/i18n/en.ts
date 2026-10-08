@@ -752,6 +752,7 @@ export const en = {
     empty: "Nothing matches — raise Max. episodes or add entries to Planning.",
   },
   presets: {
+    removeNamed: "Remove “{{name}}”",
     button: "Presets",
     save: "Save current view…",
     empty: "No presets yet. Save a view to come back to it in one click.",
@@ -1051,6 +1052,7 @@ export const en = {
     },
     run: "Merge now",
     later: "Not now",
+    laterHint: "With Later, Karasu offers the merge again at the next start.",
     progress: "Merging {{done}} / {{total}} …",
     done: "Merge complete ({{count}} entries).",
     doneQueued:
@@ -1071,6 +1073,7 @@ export const en = {
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     resetView: "Reset the view",
+    resetViewAt: "Reset the view ({{n}}%)",
     selectHint: "Pick a title to see what it is. Double-click opens its page.",
     editMissing: "Not on your list yet — open the title to add it.",
     yourProgress: "Your progress",

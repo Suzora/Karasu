@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 a3893eaf512d) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 df67b3a82fbd) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -636,6 +636,18 @@
       background-image: none;
     }
   }
+}
+
+/* Adult art behind the blur setting, clipped by its frame: scaled so the soft edge never shows inside the frame. */
+@utility veil {
+  scale: 1.05;
+  filter: blur(24px);
+}
+
+/* The same veil for a thumbnail, where a cover's blur would leave a flat colour instead of a shape. */
+@utility veil-thumb {
+  scale: 1.1;
+  filter: blur(4px);
 }
 
 /* The gradient at the foot of every cover: art is arbitrary, so anything over it needs a deterministic backdrop. */

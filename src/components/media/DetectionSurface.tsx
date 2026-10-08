@@ -197,7 +197,7 @@ export default function DetectionSurface({
             {cover ? (
               <DecodedImage
                 src={cover}
-                className={cn("h-full w-full object-cover", veiled && "scale-105 blur-xl")}
+                className={cn("h-full w-full object-cover", veiled && "veil")}
               />
             ) : (
               <span className="grid h-full place-items-center text-ink-600">
