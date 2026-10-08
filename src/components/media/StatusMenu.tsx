@@ -57,7 +57,7 @@ export function StatusMenu({
       settle(res.entry);
       // Scoped to this title's own collection; no patch can invent an entry the list has never held.
       void qc.invalidateQueries({ queryKey: ["mediaList", media.type] });
-      if (res.queued) showToast({ kind: "info", text: t("receipt.queued", { title }) });
+      if (res.queued) showToast({ kind: "info", text: t("receipt.queued"), detail: title });
     },
     onError: () =>
       showToast({ kind: "error", text: t("receipt.failed", { title }), detail: t("receipt.failedDetail") }),

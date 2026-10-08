@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -6,16 +5,23 @@ import { cn } from "@/lib/utils";
 export function SelectBox({
   checked,
   onToggle,
+  label,
   className,
 }: {
   checked: boolean;
   onToggle: () => void;
+  /** Whose box this is, so a reader hears which title a press selects rather than a row of identical "Select"s. */
+  label: string;
   className?: string;
 }) {
-  const { t } = useTranslation();
   return (
     <button
-      onClick={onToggle}
+      type="button"
+      // The row selects on its own click as the larger target; without this the two cancel out and nothing changes.
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
       className={cn(
         "grid size-5 shrink-0 place-items-center rounded-inner border transition-surface",
         // Near-opaque unchecked: it sits on arbitrary cover art, where a translucent box has no contrast floor.
@@ -26,7 +32,7 @@ export function SelectBox({
       )}
       role="checkbox"
       aria-checked={checked}
-      aria-label={t("bulk.select")}
+      aria-label={label}
     >
       <Check className="size-3.5" strokeWidth={3} />
     </button>

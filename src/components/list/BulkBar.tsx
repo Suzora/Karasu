@@ -89,7 +89,7 @@ export function BulkBar({
         placeholder="—"
         onChange={(v) => v !== "" && onProgress(Number(v))}
         options={[
-          { value: "0", label: t("bulk.progressReset") },
+          { value: "0", label: type === "MANGA" ? t("bulk.progressResetManga") : t("bulk.progressReset") },
           { value: "1", label: t("bulk.progressOne") },
         ]}
         className={cn(disabled && "pointer-events-none opacity-50")}

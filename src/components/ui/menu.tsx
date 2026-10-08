@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export type MenuAnchor = Element | { x: number; y: number };
 
 const PANEL =
-  "w-55 rounded-panel border border-hair bg-surface-900 p-1.25 shadow-float panel-wash outline-none origin-(--transform-origin) data-open:animate-pop-in data-closed:animate-pop-out";
+  "w-max min-w-55 max-w-80 rounded-panel border border-hair bg-surface-900 p-1.25 shadow-float panel-wash outline-none origin-(--transform-origin) data-open:animate-pop-in data-closed:animate-pop-out";
 
 /** A point as the zero-size box Floating UI positions against, so a menu can open where the pointer was. */
 function toAnchor(anchor: MenuAnchor) {

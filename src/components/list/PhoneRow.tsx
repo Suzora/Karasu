@@ -85,7 +85,11 @@ export const PhoneRow = memo(function PhoneRow({
       )}
     >
       {selectMode && (
-        <SelectBox checked={selected} onToggle={() => onToggleSelect(entry.mediaId)} />
+        <SelectBox
+          checked={selected}
+          onToggle={() => onToggleSelect(entry.mediaId)}
+          label={t("bulk.selectTitle", { title: displayTitle(media.title) })}
+        />
       )}
 
       {/* One link for the cover and every line, so a long press on the text opens the sheet rather than a selection. */}

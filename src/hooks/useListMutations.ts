@@ -45,32 +45,26 @@ export function useListMutations(userId: number, mediaType: MediaType) {
     completedAt: entry.completedAt,
   });
 
-  /** The one line the receipt leads with. */
-  const receiptText = (
-    input: SaveEntryInput,
-    before: EntrySnapshot,
-    title: string,
-  ): string => {
+  /** The one line the receipt leads with: what happened, so a long title under it can be cut without losing that. */
+  const receiptText = (input: SaveEntryInput, before: EntrySnapshot): string => {
     const head = headline(input, before);
-    if (!head) return t("receipt.saved", { title });
+    if (!head) return t("receipt.saved");
     switch (head.field) {
       case "progress":
-        return t("receipt.progress", { title, n: head.value as number });
+        return t("receipt.progress", { n: head.value as number });
       case "progressVolumes":
-        return t("receipt.volumes", { title, n: head.value as number });
+        return t("receipt.volumes", { n: head.value as number });
       case "status":
         return t("receipt.status", {
-          title,
           status: t(`status.${mediaType}.${head.value as string}`),
         });
       case "score":
         // Rendered, not raw: a smiley account should read "scored 🙂", not "scored 2"; local mode's cache holds POINT_10.
         return t("receipt.score", {
-          title,
           n: formatScore(currentScoreFormat(), head.value as number, i18n.language),
         });
       default:
-        return t("receipt.saved", { title });
+        return t("receipt.saved");
     }
   };
 
@@ -181,9 +175,8 @@ export function useListMutations(userId: number, mediaType: MediaType) {
       // `queued` is not success: the edit still sits in SQLite, so it must not wear the green receipt of a landed write.
       showToast({
         kind: res?.queued ? "info" : "success",
-        text: res?.queued
-          ? t("receipt.queued", { title: ctx.title })
-          : receiptText(input, ctx.before, ctx.title),
+        text: res?.queued ? t("receipt.queued") : receiptText(input, ctx.before),
+        detail: ctx.title,
         action: {
           label: t("receipt.undo"),
           // Raw, not through the fill: the undo restores a recorded state, and refilling would overwrite it with totals.

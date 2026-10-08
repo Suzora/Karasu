@@ -253,7 +253,7 @@ export function ListMoreMenu({
 }
 
 const toolClass = cn(
-  "relative inline-flex h-8.5 shrink-0 items-center gap-1.5 rounded-control border border-surface-700 bg-surface-900 text-xs font-medium text-ink-300 transition-surface",
+  "relative press coarse:hit-area inline-flex h-8.5 shrink-0 items-center gap-1.5 rounded-control border border-surface-700 bg-surface-900 text-xs font-medium text-ink-300 transition-surface",
   "hover:border-surface-600 hover:bg-surface-850 hover:text-ink-100",
   "focus-visible:outline-2 focus-visible:outline-accent-500",
   "aria-expanded:border-accent-500 aria-expanded:bg-surface-850 aria-expanded:text-ink-100",

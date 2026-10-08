@@ -90,7 +90,7 @@ function ToastBody({ toast, onAction }: { toast: ToastData; onAction: () => void
 
       <span className="min-w-0">
         <span className="block truncate text-ui font-medium text-ink-100">{toast.text}</span>
-        {toast.detail && <span className="block truncate text-2xs text-ink-600">{toast.detail}</span>}
+        {toast.detail && <span className="line-clamp-2 text-2xs text-ink-600">{toast.detail}</span>}
       </span>
 
       {toast.action && (

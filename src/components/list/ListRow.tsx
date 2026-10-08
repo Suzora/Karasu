@@ -141,6 +141,7 @@ export const ListRow = memo(function ListRow({
           <SelectBox
             checked={selected}
             onToggle={() => onToggleSelect(entry.mediaId)}
+            label={t("bulk.selectTitle", { title: displayTitle(media.title) })}
           />
         )}
       </div>
@@ -149,11 +150,13 @@ export const ListRow = memo(function ListRow({
       {text ? (
         <span />
       ) : (
+        // Out of the tab order and the tree: the title beside it is the same link, and one stop per row is enough.
         <Link
           to={`/media/${media.id}`}
           className="block"
           onClick={(e) => selectMode && e.preventDefault()}
-          tabIndex={selectMode ? -1 : undefined}
+          tabIndex={-1}
+          aria-hidden="true"
         >
           {/* No reveal control, deliberately: at this size it would sit on the link it replaces, and the detail page has one. */}
           <img
@@ -341,7 +344,7 @@ export const ListRow = memo(function ListRow({
           </IconButton>
         )}
         <IconButton
-          variant="surface"
+          variant="accent"
           size="xs"
           onClick={() => onQuickSave(entry, { progress: entry.progress + 1 })}
           disabled={!canIncrement(entry)}

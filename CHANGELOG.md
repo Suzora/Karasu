@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 5003981 -->
+<!-- generated-through: 880fab1 -->
 
 ### Fixed
 
@@ -109,6 +109,7 @@ tag time is then optional rather than load-bearing.
 - Keyboard focus stays in the palette and lands on the new page.
 - The bell and the sync panel speak their counts, and the panel is a popover.
 - The list search and the composer name their keys the way your keyboard does.
+- List rows: the checkbox works, and receipts lead with what happened.
 
 ## 1.32.0 — 2026-10-03
 

@@ -21,7 +21,6 @@ export function CoverCell({
   overlay,
   statusRing,
   onCoverClick,
-  coverLabel,
   selected,
   className,
   children,
@@ -33,7 +32,7 @@ export function CoverCell({
   score?: ReactNode;
   /** Marks the title 18+; only visible with the filter off, since `adultQueryArg` excludes adult titles server-side. */
   adult?: boolean;
-  /** Accessible name for the reveal button, the title, so a grid does not announce identical "Show"s. */
+  /** The title, naming the cover link and the reveal button, so a grid does not announce identical links or "Show"s. */
   revealLabel?: string;
   /** The title this cover belongs to, so the cell decides the blur itself; prefer it over `blurred`. */
   media?: Filterable | null;
@@ -47,8 +46,6 @@ export function CoverCell({
   overlay?: ReactNode;
   /** Replaces the link on the artwork; bulk-edit hands this in so a click selects instead of navigating. */
   onCoverClick?: () => void;
-  /** Accessible name for `onCoverClick`. */
-  coverLabel?: string;
   /** Bulk-edit selection ring. */
   selected?: boolean;
   /** List-status colour drawn as a ring inside the frame, where the selection outline and focus ring cannot collide. */
@@ -94,17 +91,19 @@ export function CoverCell({
         )}
       >
         {onCoverClick ? (
+          // The pointer's larger target only: the card's named checkbox is the one stop a keyboard or a reader gets.
           <button
             type="button"
             onClick={onCoverClick}
-            aria-label={coverLabel}
+            tabIndex={-1}
+            aria-hidden="true"
             data-fills-frame
             className="block h-full w-full"
           >
             {art}
           </button>
         ) : (
-          <Link to={to} data-fills-frame className="block h-full">
+          <Link to={to} aria-label={revealLabel} data-fills-frame className="block h-full">
             {art}
           </Link>
         )}

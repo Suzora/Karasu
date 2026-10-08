@@ -64,7 +64,6 @@ export const GridCard = memo(function GridCard({
       onCoverClick={
         selectMode ? () => onToggleSelect(entry.mediaId) : undefined
       }
-      coverLabel={t("bulk.select")}
       score={
         !selectMode && entry.score > 0
           ? formatScore(scoreFormat, entry.score, i18n.language)
@@ -76,6 +75,7 @@ export const GridCard = memo(function GridCard({
           <SelectBox
             checked={selected}
             onToggle={() => onToggleSelect(entry.mediaId)}
+            label={t("bulk.selectTitle", { title: displayTitle(media.title) })}
             className="absolute left-2 top-2 z-20"
           />
         ) : (

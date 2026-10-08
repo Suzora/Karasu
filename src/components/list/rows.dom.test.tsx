@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/render";
 import { entry, media } from "@/test/fixtures";
 import { checkA11y } from "@/test/a11y";
@@ -82,6 +83,18 @@ describe("PhoneRow", () => {
     expect(onToggleSelect).toHaveBeenCalledWith(1);
   });
 
+  /** The box sits inside the row that selects on its own click; both firing cancelled out, so a press changed nothing. */
+  it("selects once from its checkbox, by press and by Space, and names the title", async () => {
+    const user = userEvent.setup({ delay: null });
+    const onToggleSelect = vi.fn();
+    renderWithProviders(phoneRow({ selectMode: true, onToggleSelect }));
+    const box = screen.getByRole("checkbox", { name: 'bulk.selectTitle:{"title":"Cowboy Bebop"}' });
+    await user.click(box);
+    expect(onToggleSelect).toHaveBeenCalledTimes(1);
+    await user.keyboard(" ");
+    expect(onToggleSelect).toHaveBeenCalledTimes(2);
+  });
+
   it("stops +1 at the final episode", () => {
     renderWithProviders(phoneRow({ entry: entry({ progress: 26 }) }));
     expect(screen.getByRole("button", { name: "common.plusOne" })).toBeDisabled();
@@ -119,6 +132,16 @@ describe("ListRow, text variant", () => {
     expect(screen.getByRole("combobox", { name: "common.status" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "common.progress" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "common.complete" })).toBeInTheDocument();
+  });
+
+  it("selects once from its checkbox, by press and by Space", async () => {
+    const user = userEvent.setup({ delay: null });
+    const onToggleSelect = vi.fn();
+    renderWithProviders(row({ selectMode: true, onToggleSelect }));
+    await user.click(screen.getByRole("checkbox"));
+    expect(onToggleSelect).toHaveBeenCalledTimes(1);
+    await user.keyboard(" ");
+    expect(onToggleSelect).toHaveBeenCalledTimes(2);
   });
 
   it("collapses the cover track rather than removing it", () => {
@@ -164,7 +187,7 @@ describe("GridCard", () => {
     expect(browsing.container.querySelector("a[data-fills-frame]")).toBeInTheDocument();
     browsing.unmount();
     renderWithProviders(gridCard({ selectMode: true }));
-    expect(screen.getByRole("button", { name: "bulk.select" })).toHaveAttribute("data-fills-frame");
+    expect(document.querySelector("button[data-fills-frame]")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByRole("checkbox")).not.toHaveAttribute("data-fills-frame");
   });
 
