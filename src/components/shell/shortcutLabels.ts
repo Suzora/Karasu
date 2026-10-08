@@ -8,6 +8,8 @@ export function useShortcutLabels(): {
   scope: (scope: ShortcutScope) => string;
   /** Worded for where it is read: inside the open palette its own key closes it, and sync says what its row says. */
   inPalette: (id: PaletteShortcutId) => string;
+  /** The caps as the reader's keyboard prints them: "Strg" and "Entf" on a German one. */
+  caps: (keys: readonly string[]) => string[];
 } {
   const { t } = useTranslation();
   return useMemo(
@@ -90,6 +92,21 @@ export function useShortcutLabels(): {
             return t("keys.inComposer");
         }
       },
+      caps: (keys: readonly string[]) =>
+        keys.map((key) => {
+          switch (key) {
+            case "Ctrl":
+              return t("keys.capCtrl");
+            case "Shift":
+              return t("keys.capShift");
+            case "Del":
+              return t("keys.capDel");
+            case "Space":
+              return t("keys.capSpace");
+            default:
+              return key;
+          }
+        }),
     }),
     [t],
   );

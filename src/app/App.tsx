@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, Routes, Route, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
@@ -203,6 +203,17 @@ export default function App() {
     document.documentElement.style.setProperty("--shell-bottom", phone ? "3.5rem" : "0px");
   }, [phone]);
 
+  // A page opened from inside the old one took the focused element with it, so the new page takes the keyboard.
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false;
+      return;
+    }
+    const active = document.activeElement;
+    if (!active || active === document.body) document.getElementById("main")?.focus({ preventScroll: true });
+  }, [pathname]);
+
   return (
     <div className="flex h-full flex-col">
       <PresenceReporter />
@@ -269,7 +280,13 @@ export default function App() {
       {/* The touch shell's sync affordance; the sidebar's button serves the mouse one, so it is width-keyed. */}
       {phone && <PullToSync />}
       {/* One bottom-right stack for both while they float here; the popup leaves it on its own once dragged. */}
-      <div className="pointer-events-none fixed bottom-[calc(1rem+var(--shell-bottom,0px))] right-4 z-30 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
+      <div
+        className={cn(
+          "pointer-events-none fixed bottom-[calc(1rem+var(--shell-bottom,0px))] z-30 flex flex-col gap-2",
+          // On the phone the stack takes the content's own 16 px edges; on the desktop it hugs the corner.
+          phone ? "inset-x-4 items-stretch" : "right-4 max-w-[calc(100vw-2rem)] items-end",
+        )}
+      >
         <PlaybackError />
         <DetectionPopupWhenNeeded />
       </div>
@@ -336,11 +353,15 @@ function PlaybackError() {
     <div
       role="alert"
       className={cn(
-        "pointer-events-auto flex w-88 max-w-full origin-bottom-right items-start gap-3 rounded-control border border-surface-700 bg-surface-850 py-3 pl-4 pr-2 shadow-float",
+        "pointer-events-auto flex w-full max-w-full origin-bottom-right items-start gap-3 rounded-panel border border-hair bg-surface-900 panel-wash panel-top py-3 pl-3 pr-2 shadow-float md:w-88",
         leaving ? "animate-pop-out" : "animate-pop-in",
       )}
     >
-      <span className="min-w-0 flex-1 py-0.5 text-sm text-ink-300">{shown}</span>
+      {/* The toast's error tile, so the two error notices read as one family. */}
+      <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-danger/15 text-danger">
+        <TriangleAlert className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1 py-1 text-ui text-ink-100">{shown}</span>
       <IconButton size="xs" onClick={clearError} aria-label={t("common.dismiss")} className="-my-1 shrink-0">
         <X className="size-4" />
       </IconButton>

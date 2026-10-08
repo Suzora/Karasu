@@ -18,7 +18,7 @@ export default function NotifSheet({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <Sheet open={open} label={t("notif.title")} tall onClose={onClose} className="flex flex-col overflow-hidden px-0 pb-0">
-      <div className="flex shrink-0 items-center justify-between gap-3 pb-2 pl-4 pr-2">
+      <div className="flex shrink-0 items-center justify-between gap-3 pb-2 pl-3 pr-2">
         <h2 className="text-base text-ink-100">{t("notif.title")}</h2>
         <Button variant="ghost" size="sm" onClick={() => void n.readAll()}>
           <CheckCheck className="size-3.5" />

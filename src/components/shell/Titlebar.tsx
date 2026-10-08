@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTranslation } from "react-i18next";
 import { Minus, Square, X } from "lucide-react";
-import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { isAndroid, usePlatform } from "@/stores/platform";
 import Bell from "@/components/shell/Bell";
 import DetectionPill from "@/components/shell/DetectionPill";
 import KarasuMark from "@/components/KarasuMark";
@@ -12,11 +12,12 @@ import { appVersion, isTauri } from "@/api/anilist";
 const appWindow =
   "__TAURI_INTERNALS__" in window ? getCurrentWindow() : null;
 
+// `focus-inset`, since a ring drawn outward from the window's own edge falls outside the window.
 const controlClass =
-  "grid h-full w-12 place-items-center text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100";
+  "grid h-full w-12 place-items-center text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-inset";
 
 export default function Titlebar() {
-  const phone = usePhoneShell();
+  const android = isAndroid(usePlatform((s) => s.info));
   const { t } = useTranslation();
   const [version, setVersion] = useState<string | null>(null);
 
@@ -49,8 +50,8 @@ export default function Titlebar() {
 
       <div className="flex h-full items-center">
         <Bell />
-        {/* Min/max/close are window furniture a phone has not got; the bell stays because it is content, not chrome. */}
-        {!phone && (
+        {/* Min/max/close are desktop furniture: Android has no window to minimise and no tray to close to. */}
+        {!android && (
           <>
         <button
           onClick={() => appWindow?.minimize()}
@@ -69,7 +70,7 @@ export default function Titlebar() {
         {/* Keep `close()`, never `hide()`: Rust's CloseRequested handler decides between hiding to the tray and quitting. */}
         <button
           onClick={() => appWindow?.close()}
-          className="grid h-full w-12 place-items-center text-ink-500 transition-surface hover:bg-window-close hover:text-window-close-ink"
+          className="grid h-full w-12 place-items-center text-ink-500 transition-surface hover:bg-window-close hover:text-window-close-ink focus-inset"
           aria-label={t("window.closeToTray")}
         >
           <X className="size-4" />

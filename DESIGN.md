@@ -255,7 +255,10 @@ states. The style audit holds every icon to these four.
   `accent-500`, 2 px out. It comes from `@layer base`, so a primitive that
   draws its own ring, or a field that marks focus with its border, still
   wins. High contrast makes the ring 3 px. Grid cells draw their ring
-  themselves, because the roving cursor is not real focus.
+  themselves, because the roving cursor is not real focus. A control that
+  fills an edge of the window or of a clipping frame (the titlebar's
+  buttons, the bell) draws it inside with `focus-inset`, or half the ring
+  falls outside.
 - **Press.** `press` sinks a control to 97 % while it is held.
   `transition-surface` carries the scale, and reduced motion sets it back
   to 100 %. `Button`, `IconButton`, `Pill`, `Segmented`, `Switch` and

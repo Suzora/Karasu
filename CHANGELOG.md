@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 50a343b -->
+<!-- generated-through: 250ae4e -->
 
 ### Fixed
 
@@ -105,6 +105,7 @@ tag time is then optional rather than load-bearing.
 - Numbers, scores, dates and durations read the way your language writes them.
 - Buttons that open another page are one Tab stop.
 - German copy uses one word per thing and counts properly.
+- Keyboard focus stays in the palette and lands on the new page.
 
 ## 1.32.0 — 2026-10-03
 

@@ -43,7 +43,7 @@ export default function Bell() {
           {...trigger}
           aria-label={t("notif.title")}
           title={t("notif.title")}
-          className="relative grid h-9 w-11 place-items-center text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100 aria-expanded:bg-surface-850 aria-expanded:text-ink-100"
+          className="relative grid h-9 w-11 place-items-center text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100 aria-expanded:bg-surface-850 aria-expanded:text-ink-100 focus-inset"
         >
           <BellIcon className="size-4" />
           {badge > 0 && (

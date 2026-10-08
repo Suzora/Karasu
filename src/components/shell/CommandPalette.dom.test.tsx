@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { act, screen, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CommandPalette from "./CommandPalette";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
@@ -28,6 +28,30 @@ function groupNames(): string[] {
 
 /** The empty palette: what was used lately beside the keys worth knowing, and never a title in either. */
 describe("CommandPalette", () => {
+  /** A modal: Tab cannot walk out behind the scrim, and closing hands the keyboard back to what opened it. */
+  it("keeps the keyboard in the field while open and gives it back on Escape", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    renderWithProviders(
+      <>
+        <button type="button">opener</button>
+        <CommandPalette />
+      </>,
+    );
+    const opener = screen.getByRole("button", { name: "opener" });
+    opener.focus();
+    openPalette();
+    expect(screen.getByRole("dialog", { name: "keys.palette" })).toBeInTheDocument();
+    const field = screen.getByRole("combobox");
+    await waitFor(() => expect(field).toHaveFocus());
+    await user.tab();
+    expect(field).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(field).toHaveFocus();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(opener).toHaveFocus());
+  });
+
   it("offers the commands alone until something has been used, beside the main shortcuts", () => {
     signIn();
     renderWithProviders(<CommandPalette />);
@@ -36,7 +60,7 @@ describe("CommandPalette", () => {
     const keys = screen.getByRole("region", { name: "palette.groupShortcuts" });
     // Worded as the row it names, and one cap for the whole combination.
     expect(within(keys).getByText("sync.button")).toBeInTheDocument();
-    expect(within(keys).getByText("Ctrl R")).toBeInTheDocument();
+    expect(within(keys).getByText("keys.capCtrl R")).toBeInTheDocument();
     expect(within(keys).getByText("palette.keyClose")).toBeInTheDocument();
   });
 

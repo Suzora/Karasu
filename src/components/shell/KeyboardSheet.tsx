@@ -42,7 +42,7 @@ export default function KeyboardSheet() {
               {shortcutsIn(scope).map((s) => (
                 <div key={s.id} className="flex items-center justify-between gap-4 text-xs text-ink-300">
                   <span className="min-w-0 truncate">{labels.label(s.id)}</span>
-                  <KeyCombo keys={s.keys} />
+                  <KeyCombo keys={labels.caps(s.keys)} />
                 </div>
               ))}
             </div>

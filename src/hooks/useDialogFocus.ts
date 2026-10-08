@@ -7,8 +7,10 @@ const FOCUSABLE = [
   "input:not([disabled])",
   "select:not([disabled])",
   "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(",");
+  "[tabindex]",
+]
+  .map((s) => `${s}:not([tabindex="-1"])`)
+  .join(",");
 
 /** Keep this attribute-only; a layout check reports everything hidden under jsdom and silently disables the trap. */
 function focusable(root: HTMLElement): HTMLElement[] {

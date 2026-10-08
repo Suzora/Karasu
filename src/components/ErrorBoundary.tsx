@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { withTranslation, type WithTranslation } from "react-i18next";
-import { RefreshCw, TriangleAlert } from "lucide-react";
+import { RotateCw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { copyDiagnostics, reportError } from "@/api/diagnostics";
 
@@ -57,7 +57,7 @@ class ErrorBoundaryInner extends Component<Props, State> {
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             <Button onClick={() => window.location.reload()}>
-              <RefreshCw className="size-3.5" /> {t("error.reload")}
+              <RotateCw className="size-3.5" /> {t("error.reload")}
             </Button>
             <Button
               variant="secondary"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ import { loadRecent, pushRecent, saveRecent } from "@/lib/paletteRecent";
 import { PALETTE_SHORTCUTS, shortcutKeys } from "@/lib/shortcuts";
 import { useShortcutLabels } from "@/components/shell/shortcutLabels";
 import { Kbd } from "@/components/ui/kbd";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 
 interface Item {
   id: string;
@@ -119,7 +120,6 @@ export default function CommandPalette() {
       setQuery("");
       setSel(0);
       setRecent(loadRecent());
-      setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [open]);
 
@@ -273,21 +273,7 @@ export default function CommandPalette() {
   };
 
   return (
-    <div
-      data-overlay
-      className={cn(
-        "fixed inset-0 z-50 flex items-start justify-center bg-scrim px-4 pb-4 pt-22",
-        presence.leaving ? "animate-fade-out" : "animate-fade-in",
-      )}
-      onMouseDown={() => setOpen(false)}
-    >
-      <div
-        className={cn(
-          "w-full max-w-136 overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
-          presence.leaving ? "animate-settle-out" : "animate-spring-in",
-        )}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+    <PaletteFrame leaving={presence.leaving} label={t("keys.palette")} onClose={() => setOpen(false)}>
         <div className="flex items-center gap-2 border-b border-hair px-3.5">
           <Search className="size-4 shrink-0 text-ink-600" />
           <input
@@ -306,7 +292,7 @@ export default function CommandPalette() {
             aria-label={t("palette.placeholder")}
             className="h-12 flex-1 bg-transparent text-sm text-ink-100 placeholder:text-ink-600 focus:outline-none"
           />
-          <Kbd quiet>ESC</Kbd>
+          <Kbd quiet>{keyLabels.caps(shortcutKeys("close")).join(" ")}</Kbd>
         </div>
 
         {/* Two columns only while nothing is typed; a query needs the whole width for titles. */}
@@ -376,7 +362,7 @@ export default function CommandPalette() {
                 {PALETTE_SHORTCUTS.map((id) => (
                   <li key={id} className="flex min-h-9 items-center justify-between gap-3 px-2.5 text-ui text-ink-300">
                     <span className="min-w-0 truncate">{keyLabels.inPalette(id)}</span>
-                    <Kbd quiet>{shortcutKeys(id).join(" ")}</Kbd>
+                    <Kbd quiet>{keyLabels.caps(shortcutKeys(id)).join(" ")}</Kbd>
                   </li>
                 ))}
               </ul>
@@ -387,10 +373,60 @@ export default function CommandPalette() {
 
         {/* The strip is the whole tutorial: nobody reads documentation for a palette, they read the bottom of it. */}
         <div className="flex items-center gap-3 border-t border-hair px-3.5 py-1.5 text-2xs text-ink-600">
-          <span>{t("palette.hintMove")}</span>
-          <span>{t("palette.hintRun")}</span>
-          <span className="ml-auto">{t("palette.hintClose")}</span>
+          {/* The arrows are the field's own binding, in `onInputKey`; the other two caps come from the shortcut table. */}
+          <span className="flex items-center gap-1.5">
+            <Kbd quiet>↑↓</Kbd>
+            {t("palette.hintMove")}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Kbd quiet>{keyLabels.caps(shortcutKeys("open")).join(" ")}</Kbd>
+            {t("palette.hintRun")}
+          </span>
+          <span className="ml-auto flex items-center gap-1.5">
+            <Kbd quiet>{keyLabels.caps(shortcutKeys("palette")).join(" ")}</Kbd>
+            {t("palette.hintClose")}
+          </span>
         </div>
+    </PaletteFrame>
+  );
+}
+
+/** The palette's scrim and panel, mounted with the panel so the focus trap sees a real node from its first effect. */
+function PaletteFrame({
+  leaving,
+  label,
+  onClose,
+  children,
+}: {
+  leaving: boolean;
+  label: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const panel = useRef<HTMLDivElement>(null);
+  // Takes the field as the first stop, keeps Tab inside, and hands focus back to whatever opened the palette.
+  useDialogFocus(panel, !leaving);
+  return (
+    <div
+      data-overlay
+      className={cn(
+        "fixed inset-0 z-50 flex items-start justify-center bg-scrim px-4 pb-4 pt-22",
+        leaving ? "animate-fade-out" : "animate-fade-in",
+      )}
+      onMouseDown={onClose}
+    >
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className={cn(
+          "w-full max-w-136 overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
+          leaving ? "animate-settle-out" : "animate-spring-in",
+        )}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {children}
       </div>
     </div>
   );
