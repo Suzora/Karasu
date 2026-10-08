@@ -12,6 +12,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { COMMIT_NUMBER, FULL_VERSION, JSON_VERSION, LOCK_VERSION, SEMVER, TOML_VERSION } from "./version-patterns.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -30,15 +31,6 @@ const VERSION_FILES = [
   CARGO_LOCK,
   COMMANDS_RS,
 ].map((p) => relative(ROOT, p).replaceAll("\\", "/"));
-
-const SEMVER = String.raw`\d+\.\d+\.\d+`;
-/** The top-level "version" key — the first one in both JSON files. */
-const JSON_VERSION = new RegExp(`"version":\\s*"${SEMVER}"`);
-/** Anchored to line start, so inline `{ version = "0.13" }` deps don't match. */
-const TOML_VERSION = new RegExp(`^version = "${SEMVER}"`, "m");
-const LOCK_VERSION = new RegExp(`(name = "karasu"\\r?\\nversion = )"${SEMVER}"`);
-const COMMIT_NUMBER = /COMMIT_NUMBER: u32 = (\d+);/;
-const FULL_VERSION = new RegExp(`FULL_VERSION: &str = "(${SEMVER}\\.\\d+)";`);
 
 function fail(message) {
   console.error(`bump-version: ${message}`);

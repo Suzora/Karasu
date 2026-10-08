@@ -1,24 +1,28 @@
 #!/usr/bin/env node
 // The gate before a commit, and with --full the whole of it before a push: every check the repository owns, in one run.
 //
-//   node scripts/verify.mjs              the commit gate; one line per phase, the full log only for a phase that failed
+//   node scripts/verify.mjs              the commit gate; one line per phase, the full log only for a phase that failed;
+//                                        vitest and cargo test only when a change since HEAD can reach them
+//   node scripts/verify.mjs --all        the commit gate with both suites, whatever changed
 //   node scripts/verify.mjs --full       the push gate: the commit gate, then clippy, cargo-deny, knip, machete, the
 //                                        version files, the site, npm audit, the bundle budget, the Android check,
 //                                        a release build, a clean tree
 //   node scripts/verify.mjs --frontend   typecheck, audits, lints and vitest only
 //   node scripts/verify.mjs --rust       cargo test only
 //   node scripts/verify.mjs --verbose    every phase's output as it runs, as the tools print it themselves
-import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { collectChanges, decide } from "./verify-scope.mjs";
 
 const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const ROOT = path.resolve(here, "..");
 const flags = new Set(process.argv.slice(2));
+// The cheap phases run unless only the Rust half was asked for; which suites run is `decide`'s answer below.
 const wantFrontend = !flags.has("--rust");
-const wantRust = !flags.has("--frontend");
 const verbose = flags.has("--verbose");
 const full = flags.has("--full");
+const ci = Boolean(process.env.CI);
 // The JS tools by their entry files under node itself: no `.cmd` shim to find, so no shell and nothing to escape.
 const node = process.execPath;
 const TSC = path.join(ROOT, "node_modules", "typescript", "bin", "tsc");
@@ -198,13 +202,30 @@ if (wantFrontend) {
   if (!(await run("oxlint", node, [OXLINT, "--deny-warnings"], summarizeLint)).ok) report();
 }
 
+// A plain local run starts only the suites its change can reach; CI, --full and --all start both (verify-scope.mjs).
+const plain = !ci && !full && !["--frontend", "--rust", "--all"].some((f) => flags.has(f));
+const git = (args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+const readWorking = (p) => (existsSync(path.join(ROOT, p)) ? readFileSync(path.join(ROOT, p), "utf8") : null);
+let collected = null;
+if (plain) {
+  try {
+    collected = collectChanges(git, readWorking);
+  } catch {
+    collected = null;
+  }
+}
+const suites = decide({ flags, ci, collected });
+const skip = (name) => phases.push({ name, ms: 0, ok: true, skipped: true, out: "", summary: `skipped — ${suites.why}` });
+
 // Cargo compiles while vitest runs; both are captured, so the two never interleave and a green run prints two lines.
 await Promise.all([
-  wantRust && run("cargo test", "cargo", ["test", "--manifest-path", "src-tauri/Cargo.toml"], summarizeCargo),
-  wantFrontend && run("vitest", node, [VITEST, "run", "--reporter=default"], summarizeVitest),
+  suites.cargo && run("cargo test", "cargo", ["test", "--manifest-path", "src-tauri/Cargo.toml"], summarizeCargo),
+  suites.vitest && run("vitest", node, [VITEST, "run", "--reporter=default"], summarizeVitest),
 ]);
+if (suites.why && !suites.vitest) skip("vitest");
+if (suites.why && !suites.cargo) skip("cargo test");
 // `cargo test` just rewrote the bindings; a diff is a commit's business here and, in CI or before a push, a stale copy.
-if (wantRust) {
+if (suites.cargo) {
   const phase = await run("bindings", "git", ["diff", "--numstat", "--", "src/api/bindings.ts"], summarizeBindings);
   if ((process.env.GITHUB_ACTIONS || full) && phase.summary !== "unchanged") {
     phase.ok = false;

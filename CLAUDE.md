@@ -288,7 +288,10 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      hashes and the sideways-overflow check, see "Design
                      language"),
                      verify.mjs (the gate, see
-                     "The commit loop"), toml-check.mjs (taplo over the
+                     "The commit loop") with verify-scope.mjs (which
+                     suites a change can reach) and version-patterns.mjs
+                     (what a bump rewrites, shared with bump-version),
+                     toml-check.mjs (taplo over the
                      TOML files, one per stdin — see the same section),
                      mutants.mjs (cargo-mutants in a copy tauri-build can
                      still configure, see "Three Cargo tools"),
@@ -734,7 +737,24 @@ that, `--print` just reports the current version.
 **`npm run verify`** is `scripts/verify.mjs`, the whole gate and what CI runs,
 so the two cannot drift. Typecheck, the comment audit, the style audit and the
 site tokens' freshness go first and stop the run on a failure; then vitest and
-`cargo test` run at the same time. Every
+`cargo test` run at the same time — **each only when the change can reach
+it**. A plain local run asks `scripts/verify-scope.mjs` (pure, tested by
+`src/lib/verifyScope.test.ts`) what changed since HEAD, untracked files
+included, or in HEAD's own commit on a clean tree: `cargo test` runs for
+anything under `src-tauri/` outside `gen/` and for `rust-toolchain.toml`;
+vitest runs for everything except Rust-side files and docs that no test reads
+raw; and a version bump alone reaches neither, judged by the very patterns
+`bump-version` writes (`scripts/version-patterns.mjs`, shared by both). A
+skipped suite prints a `skip` line saying so, never silence, and `--all` runs
+both. CI, `--full` and so the pre-push hook always run both, which is where a
+version bump's cold compile now lands: once per push, not once per commit. It
+was the gate's biggest cost — the package version is part of Cargo's metadata
+hash, so every bump recompiled the crate from scratch, about 26 s, where a
+real source edit costs 3 to 9 s. Measured on 2026-10-08: a commit touching
+only the frontend went from 66 s of gate to 13.5 s. The tests that read files
+through `import.meta.glob(…?raw)` are invisible to an import graph, so the
+scope keeps their globs in `RAW_READ_GLOBS`, and the guard test fails when a
+test adds a glob the list lacks. Every
 phase is captured, and a green run prints one line per phase — counts, seconds,
 any compiler warning — and nothing else, which is the point: the loop runs
 many times a day and its output is read by an agent. A failed phase prints its
@@ -1087,10 +1107,11 @@ components' own a11y checks away from the states they build, and
 which is every CI run. Outside GitHub Actions the config names no reporter,
 so an agent's own `npx vitest run` gets Vitest's failures-only `agent`
 reporter; `verify.mjs` asks for `default` because it parses that. `npm run
-test:changed` (and `vitest related`) follow imports only, so the five tests
-that read files through `import.meta.glob(…?raw)` — `i18nKeys`, `tokens`,
-`notices`, `toolchain`, `notifSchedule` — never come along for a change to
-the files they read. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
+test:changed` (and `vitest related`) follow imports only, so the tests that
+read files through `import.meta.glob(…?raw)` — `i18nKeys`, `tokens`,
+`notices`, `toolchain`, `notifSchedule`, `verifyScope` — never come along for
+a change to the files they read; the commit gate's scope (above) is the
+selection that knows them. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
 measured against jsdom on 2026-09-19 and lost: tests 5.9 → 2.9 s, but the
 environment boot 19.7 → 34.6 s across 29 small files, 7.0 → 8.5 s in all —
 the suite is boot-bound, not test-bound, so the faster DOM is the slower run.
