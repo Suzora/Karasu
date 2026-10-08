@@ -40,8 +40,8 @@ export default defineConfig(async ({ command, mode }) => ({
   test: {
     // Threads, not forks: nothing here needs a process of its own, and a worker thread starts in a fraction of the time.
     pool: "threads",
-    // Failures as annotations on the PR's diff, where a red step alone would send the reader into the log.
-    reporters: process.env.GITHUB_ACTIONS ? ["default", "github-actions"] : ["default"],
+    // Failures as annotations on the PR's diff; elsewhere unset, so an agent's own run gets Vitest's failures-only reporter.
+    ...(process.env.GITHUB_ACTIONS ? { reporters: ["default", "github-actions"] } : {}),
     // Reported in the summary, so a test that starts leaning on timers or the network shows up before it hurts.
     slowTestThreshold: 300,
     // `npm run test:coverage`: four lines on the terminal, the per-file map under coverage/ for a browser.
@@ -73,6 +73,8 @@ export default defineConfig(async ({ command, mode }) => ({
           name: "dom",
           include: ["src/**/*.dom.test.tsx"],
           environment: "jsdom",
+          // One jsdom per worker with a fresh context per file, so a file no longer pays jsdom's own boot.
+          pool: "vmThreads",
           setupFiles: ["./vitest.setup.ts"],
           // A cold CI runner can spend the default timeout just rendering a jsdom test; this still fails a real hang.
           testTimeout: 20_000,

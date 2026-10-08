@@ -1056,7 +1056,7 @@ intent: prefer one good line.
 **Two vitest projects, and the filename picks one.** Everything runs in **node**
 by default; only `*.dom.test.tsx` boots jsdom and Testing Library, via the
 `projects` block in `vite.config.ts`. That split is what keeps the suite fast
-(~1,200 tests in a handful of seconds), and it is a *name* rather than an inference on purpose:
+(~1,900 tests in about ten seconds), and it is a *name* rather than an inference on purpose:
 `components/stats/Charts.test.tsx` renders with `renderToStaticMarkup` and needs
 no DOM, so an extension rule (`.tsx` ⇒ jsdom) dragged it into one and the suite
 went from 2.0 s to **14.1 s**. Needing a DOM is a decision, so it is spelled out
@@ -1066,10 +1066,31 @@ import it. `src/test/fixtures.ts` holds the complete, typed `media`, `entry`,
 `listResult`, `nowPlaying` and `idleScrobble` builders both projects use — a
 test overrides the field it is about rather than spelling a sixteen-field
 literal — and `src/test/{markdown,markup,actions}.ts` the readers the split
-suites share. Both projects run on worker threads, and the node project runs
-without isolation (one module graph for every file) because its modules are
-pure; a node test that needs a fresh module must say so with a `.dom.` name or
-`vi.resetModules`. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
+suites share. The node project runs on worker threads without isolation (one
+module graph for every file) because its modules are pure; a node test that
+needs a fresh module must say so with a `.dom.` name or `vi.resetModules`. The
+dom project runs on **VM threads** (`pool: "vmThreads"`): one jsdom per
+worker and a fresh context per file, where plain threads booted jsdom once per
+file, about 750 ms each. Measured on 2026-10-08 (76 dom files, 1,885 tests,
+all green both ways): the whole suite went from 20.5 s to 9.8 s, and the peak
+worker process from 2.0 to 3.4 GB, which the default `vmMemoryLimit` (memory
+over cores) leaves alone. `isolate: false` on the dom project was faster again
+and broke 35 tests in 12 files through shared module state, so it is not the
+lever. A hover, tooltip or timer a test waits for goes on a fake clock
+(`vi.useFakeTimers({ shouldAdvanceTime: true })`, then
+`vi.advanceTimersByTimeAsync`) rather than a real sleep — `StatusMenu.dom`
+went from 4.7 to 2.4 s that way — and each one was shown to fail when the
+behaviour it guards was broken. Two things were measured that day and left
+alone: `vitest-axe` costs the whole suite about 0.8 s, not worth moving nine
+components' own a11y checks away from the states they build, and
+`experimental.fsModuleCache` saved 0.6 s on a warm run and cost 1.1 s cold,
+which is every CI run. Outside GitHub Actions the config names no reporter,
+so an agent's own `npx vitest run` gets Vitest's failures-only `agent`
+reporter; `verify.mjs` asks for `default` because it parses that. `npm run
+test:changed` (and `vitest related`) follow imports only, so the five tests
+that read files through `import.meta.glob(…?raw)` — `i18nKeys`, `tokens`,
+`notices`, `toolchain`, `notifSchedule` — never come along for a change to
+the files they read. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
 measured against jsdom on 2026-09-19 and lost: tests 5.9 → 2.9 s, but the
 environment boot 19.7 → 34.6 s across 29 small files, 7.0 → 8.5 s in all —
 the suite is boot-bound, not test-bound, so the faster DOM is the slower run.

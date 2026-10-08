@@ -1,15 +1,22 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Sidebar from "./Sidebar";
 import { renderWithProviders, signIn } from "@/test/render";
 import { saveCollapsed } from "@/lib/sidebarWidth";
 
-afterEach(() => saveCollapsed(false));
+afterEach(() => {
+  saveCollapsed(false);
+  vi.useRealTimers();
+});
+
+/** Past the tooltip's open delay on a fake clock, so the test does not wait it out on the wall clock. */
+const pastTooltipDelay = () => act(() => vi.advanceTimersByTimeAsync(500));
 
 /** The rail keeps every destination named: by its label when open, by a tooltip of its own when collapsed. */
 describe("Sidebar", () => {
   it("names a collapsed item in a tooltip on hover, and leaves no native title to double it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ delay: null });
     saveCollapsed(true);
     signIn();
@@ -17,7 +24,8 @@ describe("Sidebar", () => {
     const calendar = screen.getByRole("link", { name: "nav.calendar" });
     expect(calendar).not.toHaveAttribute("title");
     await user.hover(calendar);
-    await waitFor(() => expect(screen.getByText("nav.calendar")).toBeInTheDocument(), { timeout: 2000 });
+    await pastTooltipDelay();
+    expect(screen.getByText("nav.calendar")).toBeInTheDocument();
   });
 
   it("shows the collapsed avatar at its own size rather than squeezed into a doubly inset column", () => {
@@ -45,11 +53,12 @@ describe("Sidebar", () => {
   });
 
   it("adds no tooltip while the labels are showing", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ delay: null });
     signIn();
     renderWithProviders(<Sidebar />);
     await user.hover(screen.getByRole("link", { name: "nav.calendar" }));
-    await new Promise((r) => setTimeout(r, 500));
+    await pastTooltipDelay();
     expect(screen.getAllByText("nav.calendar")).toHaveLength(1);
   });
 });

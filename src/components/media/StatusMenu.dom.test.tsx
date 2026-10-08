@@ -74,6 +74,12 @@ async function open() {
   return { user, sheet: await screen.findByRole("dialog") };
 }
 
+/** The popover's hover timers on a fake clock, so a test passes them without waiting them out on the wall clock. */
+function fakeClock() {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+}
+const pass = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
 async function pick(label: string) {
   const { user, sheet } = await open();
   await user.click(within(sheet).getByRole("button", { name: label }));
@@ -90,6 +96,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   signOut();
+  vi.useRealTimers();
 });
 
 describe("StatusMenu", () => {
@@ -171,10 +178,11 @@ describe("StatusMenu", () => {
 
   /** A resting mouse opens the choice without taking focus, and leaving it closes it; a finger never hovers. */
   it("opens the add choice under a resting mouse and closes it when the mouse leaves, and ignores a touch", async () => {
+    fakeClock();
     mount(offList, "dropdown");
     const split = screen.getByRole("button", { name: "detail.addToList" }).parentElement!;
     act(() => void split.dispatchEvent(pointer("pointerenter", "touch")));
-    await new Promise((r) => setTimeout(r, 300));
+    await pass(300);
     expect(screen.queryByRole("dialog")).toBeNull();
 
     act(() => void split.dispatchEvent(pointer("pointerenter", "mouse")));
@@ -250,6 +258,7 @@ describe("StatusMenu", () => {
 
   /** Working in a panel the mouse opened makes it a pressed one: leaving keeps it, and closing hands focus back. */
   it("keeps a hover-opened choice once it is used, and returns focus from it", async () => {
+    fakeClock();
     save.mockResolvedValue(echo({ status: "CURRENT", progress: 0 }));
     mount(offList, "dropdown");
     const user = userEvent.setup({ delay: null });
@@ -260,7 +269,7 @@ describe("StatusMenu", () => {
     await user.click(within(panel).getByRole("button", { name: "status.ANIME.CURRENT" }));
     act(() => void panel.dispatchEvent(pointer("pointerleave", "mouse")));
     await within(panel).findByRole("spinbutton", { name: "common.progress" });
-    await new Promise((r) => setTimeout(r, 300));
+    await pass(300);
     expect(screen.getByRole("dialog")).toBe(panel);
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
@@ -269,6 +278,7 @@ describe("StatusMenu", () => {
 
   /** A press decides before a resting mouse does, and an add in flight offers no second one to race it. */
   it("opens no choice after a press on the add or while the add is out", async () => {
+    fakeClock();
     let land: (r: MutationResult) => void = () => {};
     save.mockImplementation(() => new Promise<MutationResult>((r) => (land = r)));
     mount(offList, "dropdown");
@@ -277,12 +287,12 @@ describe("StatusMenu", () => {
     act(() => void split.dispatchEvent(pointer("pointerenter", "mouse")));
     act(() => void split.dispatchEvent(pointer("pointerdown", "mouse")));
     act(() => add.click());
-    await new Promise((r) => setTimeout(r, 300));
+    await pass(300);
     expect(screen.queryByRole("dialog")).toBeNull();
 
     act(() => void split.dispatchEvent(pointer("pointerleave", "mouse")));
     act(() => void split.dispatchEvent(pointer("pointerenter", "mouse")));
-    await new Promise((r) => setTimeout(r, 300));
+    await pass(300);
     expect(screen.queryByRole("dialog")).toBeNull();
     act(() => add.click());
     expect(save).toHaveBeenCalledTimes(1);
@@ -292,6 +302,7 @@ describe("StatusMenu", () => {
 
   /** A hover open waits for another panel's unwind; if the mouse has gone by then, it must not open on its own. */
   it("drops a hover open that waited behind another panel once the mouse has left", async () => {
+    fakeClock();
     mount(offList, "dropdown");
     renderWithProviders(
       <Popover label="Bell" variant="dropdown" renderTrigger={(p) => <button type="button" {...p}>Bell</button>}>
@@ -303,13 +314,13 @@ describe("StatusMenu", () => {
     await screen.findByRole("dialog", { name: "Bell" });
     const split = screen.getByRole("button", { name: "detail.addToList" }).parentElement!;
     act(() => void split.dispatchEvent(pointer("pointerenter", "mouse")));
-    await new Promise((r) => setTimeout(r, 200));
+    await pass(200);
     act(() => void split.dispatchEvent(pointer("pointerleave", "mouse")));
     // Past the leave's own close timer, which would otherwise hide an open that landed early.
-    await new Promise((r) => setTimeout(r, 300));
+    await pass(300);
     await user.click(screen.getByRole("button", { name: "Bell" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Bell" })).toBeNull());
-    await new Promise((r) => setTimeout(r, 400));
+    await pass(400);
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
