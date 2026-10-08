@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Ban, Pencil, UserRound } from "lucide-react";
+import { Ban, BookOpen, Building2, Library, Pencil, Users } from "lucide-react";
 import {
   followCounts,
   followers,
@@ -32,8 +32,9 @@ import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked } from "@/lib/contentFilter";
 import { isSelf } from "@/lib/follows";
-import { displayTitle } from "@/api/types";
 import { cn } from "@/lib/utils";
+import { MediaStrip } from "@/components/media/MediaStrip";
+import { chipClass } from "@/components/ui/chip";
 
 /** The loaded page's frame, so Back stands where it will stay while the profile loads or fails. */
 function Frame({ children }: { children?: ReactNode }) {
@@ -161,6 +162,8 @@ function Tabbed({ user }: { user: UserProfileData }) {
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
   const viewer = useAuth((s) => s.viewer);
+  // The viewer's own profile speaks to them, not about them by name.
+  const self = isSelf(viewer?.id, user.id);
   // Comparing needs an own list and someone else's, so the tab exists only signed in on another profile.
   const canCompare = viewer != null && !isSelf(viewer.id, user.id);
   const tabs = TABS.filter((id) => id !== "compare" || canCompare);
@@ -230,24 +233,24 @@ function Tabbed({ user }: { user: UserProfileData }) {
           <ActivityFeed
             queryKey={["social", "activities", user.id]}
             source={{ userId: user.id }}
-            emptyTitle={t("social.noActivity", { name: user.name })}
+            emptyTitle={self ? t("social.noActivitySelf") : t("social.noActivity", { name: user.name })}
           />
         )}
         {tab === "followers" && (
           <UserList
             queryKey={["social", "followers", user.id]}
             fetchPage={(page) => followers(user.id, page)}
-            emptyTitle={t("social.noFollowers", { name: user.name })}
+            emptyTitle={self ? t("social.noFollowersSelf") : t("social.noFollowers", { name: user.name })}
           />
         )}
         {tab === "following" && (
           <UserList
             queryKey={["social", "following", user.id]}
             fetchPage={(page) => following(user.id, page)}
-            emptyTitle={t("social.noFollowing", { name: user.name })}
+            emptyTitle={self ? t("social.noFollowingSelf") : t("social.noFollowing", { name: user.name })}
           />
         )}
-        {tab === "forum" && <UserThreads userId={user.id} name={user.name} />}
+        {tab === "forum" && <UserThreads userId={user.id} name={user.name} self={self} />}
       </div>
     </div>
   );
@@ -287,46 +290,23 @@ function Favourites({ user }: { user: UserProfileData }) {
       {empty && (
         <EmptyState
           visual={<CoverOutline />}
-          title={t("social.noFavourites", { name: user.name })}
+          title={self ? t("social.noFavouritesSelf") : t("social.noFavourites", { name: user.name })}
         />
       )}
 
+      {/* The person pages' strip, so these covers are filtered, veiled and staggered as theirs are. */}
       {([
-        ["anime", anime],
-        ["manga", manga],
-      ] as const).map(([kind, list]) =>
+        ["anime", anime, Library],
+        ["manga", manga, BookOpen],
+      ] as const).map(([kind, list, icon]) =>
         list.length ? (
           <section key={kind} className="space-y-3">
             <SectionHeader
-              icon={UserRound}
+              icon={icon}
               title={kind === "anime" ? t("social.favAnime") : t("social.favManga")}
               meta={String(list.length)}
             />
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {list.map((m) => (
-                <Link
-                  key={m.id}
-                  to={`/media/${m.id}`}
-                  title={displayTitle(m.title)}
-                  className="group w-24 shrink-0"
-                >
-                  <div className="aspect-2/3 overflow-hidden rounded-control bg-surface-850">
-                    {m.coverImage?.large && (
-                      <img
-                        src={m.coverImage.large}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        className="size-full object-cover transition-transform group-hover:scale-[1.03]"
-                      />
-                    )}
-                  </div>
-                  <p className="mt-1.5 line-clamp-2 text-2xs leading-snug text-ink-500 group-hover:text-ink-300">
-                    {displayTitle(m.title)}
-                  </p>
-                </Link>
-              ))}
-            </div>
+            <MediaStrip edges={list.map((node) => ({ node }))} />
           </section>
         ) : null,
       )}
@@ -339,7 +319,7 @@ function Favourites({ user }: { user: UserProfileData }) {
         list.length ? (
           <section key={kind} className="space-y-3">
             <SectionHeader
-              icon={UserRound}
+              icon={Users}
               title={kind === "characters" ? t("social.favCharacters") : t("social.favStaff")}
               meta={String(list.length)}
             />
@@ -360,7 +340,7 @@ function Favourites({ user }: { user: UserProfileData }) {
       {studios.length > 0 && (
         <section className="space-y-3">
           <SectionHeader
-            icon={UserRound}
+            icon={Building2}
             title={t("social.favStudios")}
             meta={String(studios.length)}
           />
@@ -369,7 +349,7 @@ function Favourites({ user }: { user: UserProfileData }) {
               <Link
                 key={s.id}
                 to={`/studio/${s.id}`}
-                className="rounded-control border border-surface-700 px-2.5 py-1.5 text-xs text-ink-300 transition-surface hover:border-surface-600 hover:text-ink-100"
+                className={cn(chipClass("neutral", "md"), "relative coarse:hit-area transition-surface hover:border-surface-600 hover:text-ink-100")}
               >
                 {s.name}
               </Link>

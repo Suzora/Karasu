@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { CornerDownRight, ExternalLink, Heart, Reply } from "lucide-react";
+import { CornerDownRight, ExternalLink, Reply } from "lucide-react";
 import type { FlatComment } from "@/lib/comments";
 import { UserLockup } from "@/components/ui/user-lockup";
 import { cardClass } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Markdown } from "./Markdown";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import { prefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { LikeButton, reactionClass } from "./LikeButton";
+import { IconButton } from "@/components/ui/icon-button";
 
 /** Comments two levels deep, in reading order; `lib/comments` did the flattening and this only draws it. */
 export function CommentTree({
@@ -53,8 +55,8 @@ export function CommentTree({
           className={cn(
             cardClass(c.depth === 1 ? "sunken" : "flat"),
             "rounded-panel p-3",
-            // A reply is indented and quieter, so the two levels read apart without a connector line.
-            c.depth === 1 && "ml-6 border-surface-850",
+            // A reply is indented and on the quieter fill, so the two levels read apart without a connector line.
+            c.depth === 1 && "ml-6",
             c.id === highlightId && "border-accent-500/70 ring-1 ring-accent-500/30",
           )}
         >
@@ -81,14 +83,15 @@ export function CommentTree({
               </Link>
             </div>
             {c.siteUrl && (
-              <button
+              <IconButton
+                size="xs"
                 onClick={() => void openUrl(c.siteUrl)}
                 aria-label={t("social.openOnAniList")}
                 title={t("social.openOnAniList")}
-                className="shrink-0 text-ink-600 transition-surface hover:text-ink-300"
+                className="-m-1.5 shrink-0"
               >
                 <ExternalLink className="size-3.5" />
-              </button>
+              </IconButton>
             )}
           </div>
 
@@ -96,24 +99,17 @@ export function CommentTree({
 
           <div className="mt-2 flex items-center gap-1">
             {onLike && (
-              <button
-                onClick={() => onLike(c)}
-                aria-pressed={c.isLiked}
-                className={cn(
-                  "flex items-center gap-1 rounded-inner px-1.5 py-0.5 text-2xs transition-surface hover:bg-surface-850",
-                  c.isLiked ? "text-danger" : "text-ink-600 hover:text-ink-300",
-                )}
-              >
-                <Heart className={cn("size-3.5", c.isLiked && "fill-current")} />
-                <span className="tabular-nums">{c.likeCount}</span>
-              </button>
+              <LikeButton
+                id={c.id}
+                type="THREAD_COMMENT"
+                likeCount={c.likeCount}
+                isLiked={c.isLiked}
+                onLike={() => onLike(c)}
+              />
             )}
             {onReply && (
-              <button
-                onClick={() => onReply(c)}
-                className="flex items-center gap-1 rounded-inner px-1.5 py-0.5 text-2xs text-ink-600 transition-surface hover:bg-surface-850 hover:text-ink-300"
-              >
-                <Reply className="size-3.5" />
+              <button type="button" onClick={() => onReply(c)} className={reactionClass(false)}>
+                <Reply aria-hidden className="size-3.5" />
                 {t("social.reply")}
               </button>
             )}

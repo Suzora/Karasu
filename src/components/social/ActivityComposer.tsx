@@ -8,10 +8,13 @@ import { charsLeft, POST_MAX, validatePost } from "@/lib/composer";
 import { useActivityPost } from "@/hooks/useActivityPost";
 import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/utils";
+import { isAndroid, usePlatform } from "@/stores/platform";
 
 /** Post a status update to AniList (CLAUDE.md's social carve-out); the preview renders through the feed's `Markdown`. */
 export function ActivityComposer() {
   const { t } = useTranslation();
+  // A phone's keyboard has no Ctrl+Enter to offer, so its hint leaves the shortcut out.
+  const android = isAndroid(usePlatform((s) => s.info));
   const viewer = useAuth((s) => s.viewer);
   const mode = useAuth((s) => s.mode);
   const { post } = useActivityPost(viewer?.id);
@@ -41,7 +44,7 @@ export function ActivityComposer() {
         value={text}
         onChange={setText}
         onSubmit={submit}
-        placeholder={t("social.composerPlaceholder")}
+        placeholder={android ? t("social.composerPlaceholderTouch") : t("social.composerPlaceholder")}
         rows={3}
         preview="toggle"
         previewSource={check.ok ? check.text : ""}

@@ -3,11 +3,11 @@ import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink, Heart, MessageSquare, Pin } from "lucide-react";
+import { ExternalLink, MessageSquare, Pin } from "lucide-react";
 import { formatProgress, PROGRESS_VERBS, splitSentence, type FeedItem } from "@/lib/activity";
 import { displayTitle } from "@/api/types";
 import { isTauri } from "@/api/anilist";
-import { activityReplies, type LikeableType } from "@/api/social";
+import { activityReplies } from "@/api/social";
 import { UserLockup } from "@/components/ui/user-lockup";
 import { Button } from "@/components/ui/button";
 import { DisclosurePanel } from "@/components/ui/disclosure";
@@ -24,6 +24,10 @@ import { useActivityPost } from "@/hooks/useActivityPost";
 import { useAuth } from "@/stores/auth";
 import { cn } from "@/lib/utils";
 import { ErrorState } from "@/components/EmptyState";
+import { LikeButton, reactionClass } from "./LikeButton";
+import { IconButton } from "@/components/ui/icon-button";
+import { shouldBlur } from "@/lib/contentFilter";
+import { useContentFilter } from "@/stores/contentFilter";
 
 /** The list-activity sentence, translated whole, with the title link in its slot. */
 function ListSentence({ item }: { item: Extract<FeedItem, { kind: "list" }> }) {
@@ -60,50 +64,6 @@ function ListSentence({ item }: { item: Extract<FeedItem, { kind: "list" }> }) {
       {titleLink}
       {after}
     </p>
-  );
-}
-
-/** The heart is its own receipt and undo, so only a failed like gets a toast; see `useSocialActions`. */
-function LikeButton({
-  id,
-  type,
-  activityId,
-  likeCount,
-  isLiked,
-}: {
-  id: number;
-  type: LikeableType;
-  activityId?: number;
-  likeCount: number;
-  isLiked: boolean;
-}) {
-  const { t } = useTranslation();
-  const mode = useAuth((s) => s.mode);
-  const { like } = useSocialActions();
-
-  // Nothing to like as without an account, and a disabled heart is an invitation with no explanation.
-  if (mode !== "anilist") {
-    return (
-      <span className="flex items-center gap-1 px-1.5 py-0.5 text-2xs text-ink-600">
-        <Heart className="size-3.5" />
-        <span className="tabular-nums">{likeCount}</span>
-      </span>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => like.mutate({ id, type, activityId })}
-      aria-pressed={isLiked}
-      aria-label={isLiked ? t("social.unlike") : t("social.like")}
-      className={cn(
-        "flex items-center gap-1 rounded-inner px-1.5 py-0.5 text-2xs transition-surface hover:bg-surface-850",
-        isLiked ? "text-danger" : "text-ink-600 hover:text-ink-300",
-      )}
-    >
-      <Heart className={cn("size-3.5", isLiked && "fill-current")} />
-      <span className="tabular-nums">{likeCount}</span>
-    </button>
   );
 }
 
@@ -223,21 +183,24 @@ export function ActivityCard({
   const showPin = canTogglePin(viewer, item, self);
   const { pin } = useActivityPost(viewer?.id);
   const when = relTimeFromSeconds(item.createdAt, i18n.language, t("notif.now"));
+  const level = useContentFilter((s) => s.level);
+  const blurAdult = useContentFilter((s) => s.blurAdult);
 
   return (
     <article className={cn(cardClass("flat"), "flex gap-3 p-3")}>
       {item.kind === "list" && item.media?.coverImage?.large && (
         <Link
           to={`/media/${item.media.id}`}
-          className="w-11 shrink-0"
+          className="w-11 shrink-0 overflow-hidden rounded-inner"
           title={displayTitle(item.media.title)}
         >
+          {/* Veiled like every other cover, and never revealed here: the title it links to has its own reveal. */}
           <img
             src={item.media.coverImage.large}
             alt=""
             loading="lazy"
             decoding="async"
-            className="aspect-2/3 w-full rounded-inner object-cover"
+            className={cn("aspect-2/3 w-full object-cover", shouldBlur(item.media, level, blurAdult) && "veil")}
           />
         </Link>
       )}
@@ -256,19 +219,17 @@ export function ActivityCard({
           <div className="flex shrink-0 items-center gap-2">
             {/* Your own activity gets the toggle if you may pin; anyone's pinned one gets the passive marker. */}
             {showPin ? (
-              <button
+              <IconButton
+                size="xs"
                 onClick={() => pin.mutate({ id: item.id, pinned: !item.isPinned })}
                 disabled={pin.isPending}
                 aria-pressed={item.isPinned}
                 aria-label={item.isPinned ? t("social.unpin") : t("social.pin")}
                 title={item.isPinned ? t("social.unpin") : t("social.pin")}
-                className={cn(
-                  "transition-surface",
-                  item.isPinned ? "text-accent-400" : "text-ink-600 hover:text-ink-300",
-                )}
+                className={cn("-m-1.5", item.isPinned && "text-accent-400 hover:text-accent-400")}
               >
                 <Pin className={cn("size-3.5", item.isPinned && "fill-current")} />
-              </button>
+              </IconButton>
             ) : (
               item.isPinned && (
                 <span title={t("social.pinned")} className="text-accent-400">
@@ -276,14 +237,15 @@ export function ActivityCard({
                 </span>
               )
             )}
-            <button
+            <IconButton
+              size="xs"
               onClick={() => void openUrl(item.siteUrl)}
               title={t("social.openOnAniList")}
               aria-label={t("social.openOnAniList")}
-              className="text-ink-600 transition-surface hover:text-ink-300"
+              className="-m-1.5"
             >
               <ExternalLink className="size-3.5" />
-            </button>
+            </IconButton>
           </div>
         </div>
 
@@ -304,15 +266,18 @@ export function ActivityCard({
             isLiked={item.isLiked}
           />
           <button
+            type="button"
             onClick={() => setRepliesOpen((v) => !v)}
             aria-expanded={repliesOpen}
             aria-controls={repliesId}
-            className={cn(
-              "flex items-center gap-1 rounded-inner px-1.5 py-0.5 text-2xs transition-surface hover:bg-surface-850",
-              repliesOpen ? "text-ink-300" : "text-ink-600 hover:text-ink-300",
-            )}
+            aria-label={
+              item.replyCount === 1
+                ? t("social.repliesCountOne")
+                : t("social.repliesCountMany", { count: item.replyCount })
+            }
+            className={reactionClass(repliesOpen)}
           >
-            <MessageSquare className="size-3.5" />
+            <MessageSquare aria-hidden className="size-3.5" />
             <span className="tabular-nums">{item.replyCount}</span>
           </button>
         </div>

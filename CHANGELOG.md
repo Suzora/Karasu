@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 94b3450 -->
+<!-- generated-through: c6fe7ec -->
 
 ### Fixed
 
@@ -116,6 +116,7 @@ tag time is then optional rather than load-bearing.
 - Settings: fields you can retype, rows that don't misfire, controls with names.
 - An open settings pane on the phone says which pane it is.
 - The content filter is one control with its levels named.
+- Social controls get names and finger-sized targets.
 
 ## 1.32.0 — 2026-10-03
 

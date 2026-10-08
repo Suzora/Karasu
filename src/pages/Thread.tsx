@@ -3,16 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import {
-  ArrowDownToLine,
-  Bell,
-  BellOff,
-  ExternalLink,
-  Eye,
-  Heart,
-  Lock,
-  MessageSquare,
-} from "lucide-react";
+import { ArrowDownToLine, Bell, BellOff, BellRing, ExternalLink, Eye, Lock, MessageSquare } from "lucide-react";
 import {
   saveThreadComment,
   thread as fetchThread,
@@ -52,10 +43,10 @@ import { validatePost } from "@/lib/composer";
 import { displayTitle } from "@/api/types";
 import { useAuth } from "@/stores/auth";
 import { showToast } from "@/stores/toast";
-import { useSocialActions } from "@/hooks/useSocialActions";
 import { cn } from "@/lib/utils";
 import { Chip, chipClass } from "@/components/ui/chip";
 import { Card } from "@/components/ui/card";
+import { LikeButton } from "@/components/social/LikeButton";
 
 /** The tree route has no pageInfo; keep hasNextPage false so no "Load more" appears under a conversation. */
 const EMPTY_PAGE_INFO = { total: 0, currentPage: 1, lastPage: 1, hasNextPage: false };
@@ -102,9 +93,9 @@ export default function Thread() {
   const { id = "" } = useParams();
   const threadId = Number(id);
   const { t, i18n } = useTranslation();
+  const [subscribeHot, setSubscribeHot] = useState(false);
   const qc = useQueryClient();
   const mode = useAuth((s) => s.mode);
-  const { like } = useSocialActions();
   const [draft, setDraft] = useState("");
 
   const [params, setParams] = useSearchParams();
@@ -476,14 +467,30 @@ export default function Thread() {
           <h1 className="min-w-0 flex-1 text-xl text-ink-100">
             {data.title ?? t("social.untitledThread")}
           </h1>
+          {/* As the follow button does: the state at rest, the action under the pointer or focus, the action as its name. */}
           <Button
             variant={data.isSubscribed ? "outline" : "secondary"}
             size="sm"
             disabled={subscribe.isPending}
             onClick={() => subscribe.mutate(!data.isSubscribed)}
+            onMouseEnter={() => setSubscribeHot(true)}
+            onMouseLeave={() => setSubscribeHot(false)}
+            onFocus={() => setSubscribeHot(true)}
+            onBlur={() => setSubscribeHot(false)}
+            aria-label={data.isSubscribed ? t("social.unsubscribeAction") : t("social.subscribe")}
           >
-            {data.isSubscribed ? <BellOff className="size-3.5" /> : <Bell className="size-3.5" />}
-            {data.isSubscribed ? t("social.unsubscribe") : t("social.subscribe")}
+            {!data.isSubscribed ? (
+              <Bell aria-hidden className="size-3.5" />
+            ) : subscribeHot ? (
+              <BellOff aria-hidden className="size-3.5" />
+            ) : (
+              <BellRing aria-hidden className="size-3.5" />
+            )}
+            {!data.isSubscribed
+              ? t("social.subscribe")
+              : subscribeHot
+                ? t("social.unsubscribeAction")
+                : t("social.subscribed")}
           </Button>
         </div>
 
@@ -506,24 +513,14 @@ export default function Thread() {
             <Eye className="size-3.5" />
             <span className="tabular-nums">{data.viewCount ?? 0}</span>
           </span>
-          <button
-            onClick={() => like.mutate({ id: data.id, type: "THREAD" })}
-            aria-pressed={data.isLiked === true}
-            className={cn(
-              "flex items-center gap-1 rounded-inner px-1.5 py-0.5 transition-surface hover:bg-surface-850",
-              data.isLiked ? "text-danger" : "hover:text-ink-300",
-            )}
-          >
-            <Heart className={cn("size-3.5", data.isLiked && "fill-current")} />
-            <span className="tabular-nums">{data.likeCount ?? 0}</span>
-          </button>
+          <LikeButton id={data.id} type="THREAD" likeCount={data.likeCount ?? 0} isLiked={data.isLiked === true} />
           {data.createdAt && (
             <span>{relTimeFromSeconds(data.createdAt, i18n.language, t("notif.now"))}</span>
           )}
           {data.siteUrl && (
             <button
               onClick={() => void openUrl(data.siteUrl!)}
-              className="flex items-center gap-1 text-accent-400 hover:underline"
+              className="relative coarse:hit-area flex items-center gap-1 text-accent-400 hover:underline"
             >
               {t("social.openOnAniList")} <ExternalLink className="size-3.5" />
             </button>
@@ -597,10 +594,11 @@ export default function Thread() {
                     max={maxPage}
                     value={pageDraft}
                     onChange={(e) => setPageDraft(e.target.value)}
-                    className="w-20"
+                    placeholder="1"
+                    className="h-8 w-20 text-xs coarse:h-9"
                   />
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     type="submit"
                     disabled={newest.isFetching}

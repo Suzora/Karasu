@@ -120,10 +120,11 @@ export function ProfileEditModal({
                   setColor(name);
                   setHex("");
                 }}
-                aria-label={name}
+                aria-label={profileColorName(name, t)}
+                title={profileColorName(name, t)}
                 aria-pressed={normalColor === name}
                 className={cn(
-                  "size-7 rounded-full border-2 transition-surface",
+                  "relative coarse:hit-area size-7 rounded-full border-2 transition-surface",
                   normalColor === name ? "border-ink-100" : "border-transparent",
                 )}
                 style={{ backgroundColor: PROFILE_COLOR_HEX[name] }}
@@ -153,4 +154,24 @@ export function ProfileEditModal({
       </div>
     </Modal>
   );
+}
+
+/** A literal key per AniList profile colour, so the key test sees each one; the value sent stays AniList's name. */
+function profileColorName(name: (typeof PROFILE_COLORS)[number], t: (key: string) => string): string {
+  switch (name) {
+    case "blue":
+      return t("social.profileColor_blue");
+    case "purple":
+      return t("social.profileColor_purple");
+    case "pink":
+      return t("social.profileColor_pink");
+    case "orange":
+      return t("social.profileColor_orange");
+    case "red":
+      return t("social.profileColor_red");
+    case "green":
+      return t("social.profileColor_green");
+    case "gray":
+      return t("social.profileColor_gray");
+  }
 }

@@ -12,6 +12,8 @@ import { renderPlain } from "@/lib/anilistMarkdown";
 import { nextPageParam } from "@/lib/paging";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import { staggerDelay } from "@/lib/motion";
+import { cardClass } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 /** One user's forum comments across every thread, newest first, paged by a button and never a scroll. */
 export function UserComments({
@@ -101,7 +103,7 @@ export function UserComments({
           key={c.id}
           // The comment's own anchor, resolved by the thread page; a comment with no thread lands on the forum index.
           to={c.thread ? `/thread/${c.thread.id}?comment=${c.id}` : "/forum"}
-          className="block animate-rise-in rounded-panel border border-hair p-3 transition-surface hover:border-surface-700 hover:bg-surface-900"
+          className={cn(cardClass("flat", { interactive: true }), "block animate-rise-in p-3")}
           style={{ animationDelay: `${staggerDelay(i)}ms` }}
         >
           <div className="flex items-center gap-2">
