@@ -36,7 +36,7 @@ import { customListNames } from "@/lib/customLists";
 import { collectTags, tagsOf } from "@/lib/tags";
 import { searchTitles } from "@/lib/search";
 import { fuzzyScore, prepareDoc, prepareQuery, type FuzzyDoc } from "@/lib/fuzzy";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusTabs } from "@/components/ui/status-tabs";
 import { CoverOutline, EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
@@ -70,6 +70,7 @@ import {
 import { statusColorVar } from "@/lib/statusColors";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
 // One collator, since localeCompare builds a fresh one per call; default options keep the ordering it gave.
 const COLLATOR = new Intl.Collator();
@@ -87,8 +88,8 @@ export default function MediaList({ type }: { type: MediaType }) {
       <div className="grid h-full place-items-center p-8">
         <div className="text-center">
           <p className="text-ink-500">{t("list.connectPrompt")}</p>
-          <Link to="/settings?pane=account">
-            <Button className="mt-4">{t("list.toSettings")}</Button>
+          <Link to="/settings?pane=account" className={cn(buttonClass(), "mt-4")}>
+            {t("list.toSettings")}
           </Link>
         </div>
       </div>

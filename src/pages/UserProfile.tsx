@@ -24,7 +24,7 @@ import { profileKey } from "@/lib/anilistUrl";
 import { Busy, Shimmer } from "@/components/Skeleton";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusTabs } from "@/components/ui/status-tabs";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/user-lockup";
 import { PresenceIf } from "@/components/ui/presence";
 import { FavouritesModal } from "@/components/overlays/FavouritesModal";
@@ -76,10 +76,8 @@ export default function UserProfile() {
             title={t("social.needsAccount")}
             hint={t("social.needsAccountHint")}
             actions={
-              <Link to="/settings?pane=account">
-                <Button variant="secondary" size="sm">
-                  {t("social.goToSettings")}
-                </Button>
+              <Link to="/settings?pane=account" className={buttonClass("secondary", "sm")}>
+                {t("social.goToSettings")}
               </Link>
             }
           />

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 35c0dac -->
+<!-- generated-through: abd612d -->
 
 ### Fixed
 
@@ -103,6 +103,7 @@ tag time is then optional rather than load-bearing.
 - When Karasu will ask before updating ("Ask before updating" on, or a chapter from a site it does not name), the now-playing card counts down to asking instead of promising an update.
 - A failed load says what went wrong and offers Retry.
 - Numbers, scores, dates and durations read the way your language writes them.
+- Buttons that open another page are one Tab stop.
 
 ## 1.32.0 — 2026-10-03
 

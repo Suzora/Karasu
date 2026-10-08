@@ -21,7 +21,7 @@ import {
   isBlockedGenre,
   type ContentFilterLevel,
 } from "@/lib/contentFilter";
-import { Button } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/user-lockup";
@@ -58,6 +58,7 @@ import {
 import { RankedList, fmt, scoreText } from "@/components/stats/RankedList";
 import LocalStatistics from "@/components/stats/LocalStatistics";
 import { formatDecimal, formatSigned } from "@/lib/format";
+import { cn } from "@/lib/utils";
 /** Five themed tabs shared by both media types; the ranked lists live inside two of them, not one each. */
 const CATEGORIES: Category[] = ["overview", "ratings", "years", "genresTags", "people"];
 
@@ -99,8 +100,8 @@ export default function Statistics() {
           <p className="mt-3 text-sm leading-relaxed text-ink-500">
             {t("stats.signInText")}
           </p>
-          <Link to="/settings?pane=account">
-            <Button className="mt-5">{t("dashboard.connect")}</Button>
+          <Link to="/settings?pane=account" className={cn(buttonClass(), "mt-5")}>
+            {t("dashboard.connect")}
           </Link>
         </div>
       </div>
@@ -278,10 +279,8 @@ function StatisticsContent({
             {name} <ExternalLink className="size-3.5" />
           </ExternalAnchor>
         </div>
-        <Link to="/wrapped">
-          <Button variant="secondary" size="sm">
-            <Sparkles className="size-3.5" /> {t("wrapped.title")}
-          </Button>
+        <Link to="/wrapped" className={buttonClass("secondary", "sm")}>
+          <Sparkles className="size-3.5" aria-hidden="true" /> {t("wrapped.title")}
         </Link>
       </header>
 

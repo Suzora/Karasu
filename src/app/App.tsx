@@ -43,6 +43,7 @@ import { DetailSkeleton } from "@/components/Skeleton";
 import { commands } from "@/api/tauri";
 import { lazyRoute } from "./lazyRoute";
 import { whenIdle } from "@/lib/idle";
+import { buttonClass } from "@/components/ui/button";
 
 // The launch screens stay eager; the pages one click away load on idle and render directly once in, for the morph.
 const AnimeDetail = lazyRoute(() => import("@/pages/AnimeDetail"), <DetailSkeleton />);
@@ -307,10 +308,7 @@ function NotFound() {
           {t("notFound.body")}
         </p>
         <p className="mt-2 break-all text-xs text-ink-600">{pathname}</p>
-        <Link
-          to="/"
-          className="mt-5 inline-block rounded-control border tint-fill tint-accent px-4 py-2 text-sm font-medium text-ink-100"
-        >
+        <Link to="/" className={cn(buttonClass(), "mt-5")}>
           {t("notFound.home")}
         </Link>
       </div>

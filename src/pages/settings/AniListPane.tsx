@@ -9,7 +9,7 @@ import { notificationOptions, userProfile } from "@/api/social";
 import { Card, CardTitle, cardClass } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Disclosure } from "@/components/ui/disclosure";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shimmer } from "@/components/Skeleton";
 import { ErrorState } from "@/components/EmptyState";
@@ -303,10 +303,8 @@ export function AniListProfileSection() {
         <ExternalNote>{t("settings.alNoUpload")}</ExternalNote>
 
         <div className="flex flex-wrap gap-2 border-t border-hair pt-3">
-          <Link to={`/user/${encodeURIComponent(viewer.name)}`}>
-            <Button variant="secondary" size="sm">
-              {t("settings.alEditBio")}
-            </Button>
+          <Link to={`/user/${encodeURIComponent(viewer.name)}`} className={buttonClass("secondary", "sm")}>
+            {t("settings.alEditBio")}
           </Link>
           <Button variant="ghost" size="sm" onClick={() => void openUrl(viewer.siteUrl)}>
             {t("settings.alOpenSite")} <ExternalLink className="size-3.5" />

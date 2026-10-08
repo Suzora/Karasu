@@ -32,6 +32,14 @@ const buttonVariants = cva(
   },
 );
 
+/** A Button's look for an element that is not a button, above all a router `Link`: one control, one Tab stop. */
+export function buttonClass(
+  variant: VariantProps<typeof buttonVariants>["variant"] = "default",
+  size: VariantProps<typeof buttonVariants>["size"] = "default",
+): string {
+  return buttonVariants({ variant, size });
+}
+
 interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}

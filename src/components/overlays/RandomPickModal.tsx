@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Dices, ExternalLink } from "lucide-react";
 import { displayTitle, type MediaListEntry } from "@/api/types";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 
@@ -75,10 +75,8 @@ export default function RandomPickModal({
                   : ""}
               </p>
               <div className="mt-auto flex gap-2 pt-3">
-                <Link to={`/media/${picked.media.id}`} onClick={onClose}>
-                  <Button>
-                    {t("random.open")} <ExternalLink className="size-3.5" />
-                  </Button>
+                <Link to={`/media/${picked.media.id}`} onClick={onClose} className={buttonClass()}>
+                  {t("random.open")} <ExternalLink className="size-3.5" aria-hidden="true" />
                 </Link>
                 <Button variant="secondary" onClick={() => setNonce((n) => n + 1)}>
                   <Dices className="size-4" /> {t("random.reroll")}

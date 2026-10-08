@@ -41,7 +41,7 @@ import { showToast } from "@/stores/toast";
 import { useContentFilter } from "@/stores/contentFilter";
 import { blockReason, isBlocked, type BlockReason } from "@/lib/contentFilter";
 import { FilteredNotice } from "@/components/FilteredNotice";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Presence } from "@/components/ui/presence";
 import { EmptyState, FolderStack } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
@@ -70,8 +70,8 @@ export default function LocalLibrary() {
         <div className="text-center">
           <p className="text-ink-500">{t("list.connectPrompt")}</p>
           {/* Account, not Library: this prompt is about being signed out. */}
-          <Link to="/settings?pane=account">
-            <Button className="mt-4">{t("list.toSettings")}</Button>
+          <Link to="/settings?pane=account" className={cn(buttonClass(), "mt-4")}>
+            {t("list.toSettings")}
           </Link>
         </div>
       </div>
@@ -468,8 +468,8 @@ function LibraryView({ userId }: { userId: number }) {
             title={t("library.empty")}
             hint={t("library.emptyHint")}
             actions={
-              <Link to="/settings?pane=library">
-                <Button size="control">{t("library.toSettings")}</Button>
+              <Link to="/settings?pane=library" className={buttonClass("default", "control")}>
+                {t("library.toSettings")}
               </Link>
             }
           />

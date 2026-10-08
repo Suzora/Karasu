@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 import { ActivityFeed } from "@/components/social/ActivityFeed";
 import { ActivityComposer } from "@/components/social/ActivityComposer";
 import { EmptyState, PerchRule } from "@/components/EmptyState";
-import { Button } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { useAuth } from "@/stores/auth";
 
 /** The following feed as a stable sidebar page; the viewer comes from the store, so opening it costs one request. */
@@ -25,10 +25,8 @@ export default function Social() {
           title={t("social.needsAccount")}
           hint={t("social.needsAccountHint")}
           actions={
-            <Link to="/settings?pane=account">
-              <Button variant="secondary" size="sm">
-                {t("social.goToSettings")}
-              </Button>
+            <Link to="/settings?pane=account" className={buttonClass("secondary", "sm")}>
+              {t("social.goToSettings")}
             </Link>
           }
         />
@@ -49,10 +47,8 @@ export default function Social() {
           </div>
           <p className="mt-0.5 text-xs text-ink-600">{t("social.feedSubtitle")}</p>
         </div>
-        <Link to={`/user/${encodeURIComponent(viewer.name)}`}>
-          <Button variant="secondary" size="sm">
-            <Users className="size-3.5" /> {t("social.myProfile")}
-          </Button>
+        <Link to={`/user/${encodeURIComponent(viewer.name)}`} className={buttonClass("secondary", "sm")}>
+          <Users className="size-3.5" aria-hidden="true" /> {t("social.myProfile")}
         </Link>
       </header>
 

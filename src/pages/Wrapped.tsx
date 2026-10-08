@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked, isBlockedGenre } from "@/lib/contentFilter";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Pill } from "@/components/ui/pill";
 import { EmptyState, ErrorState, OutlineYear } from "@/components/EmptyState";
@@ -707,8 +707,8 @@ export default function Wrapped() {
       <div className="grid h-full place-items-center p-8">
         <div className="text-center">
           <p className="text-ink-500">{t("wrapped.connectPrompt")}</p>
-          <Link to="/settings?pane=account">
-            <Button className="mt-4">{t("list.toSettings")}</Button>
+          <Link to="/settings?pane=account" className={cn(buttonClass(), "mt-4")}>
+            {t("list.toSettings")}
           </Link>
         </div>
       </div>
