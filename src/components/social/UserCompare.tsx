@@ -22,6 +22,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { DotPlot } from "@/components/stats/DotPlot";
 import { CoverCell } from "@/components/media/CoverCell";
 import { TitleLockup } from "@/components/media/TitleLockup";
+import { formatSigned } from "@/lib/format";
 
 interface Known {
   mediaId: number;
@@ -151,7 +152,7 @@ export function UserCompare({ user }: { user: UserProfile }) {
               adult={k.adult}
               blurred={shouldBlur(k.media, level, blurAdult)}
               revealLabel={displayTitle(k.title)}
-              score={formatScore(viewerFormat, fromRaw(viewerFormat, p.theirsRaw))}
+              score={formatScore(viewerFormat, fromRaw(viewerFormat, p.theirsRaw), i18n.language)}
             >
               <Link to={`/media/${p.mediaId}`}>
                 <TitleLockup title={k.title} clamp={2} tone="muted" className="mt-2" />
@@ -189,7 +190,7 @@ export function UserCompare({ user }: { user: UserProfile }) {
       ? [
           {
             label: t("social.compareMeanDiff", { name: user.name }),
-            value: `${diff >= 0.05 ? "+" : ""}${diff.toFixed(1).replace("-", "\u2212")}`,
+            value: formatSigned(diff, i18n.language, 1),
           },
         ]
       : []),
@@ -218,6 +219,7 @@ export function UserCompare({ user }: { user: UserProfile }) {
       </Card>
       {rows.length > 0 && (
         <DotPlot
+          locale={i18n.language}
           title={t("social.compareDisagree")}
           hint={t("social.compareDisagreeHint", { name: user.name })}
           rows={rows}

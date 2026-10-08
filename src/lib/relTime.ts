@@ -16,7 +16,7 @@ export function relTime(
   return new Date(ms).toLocaleDateString(lang);
 }
 
-/** Narrow-unit `NumberFormat` per language and unit, cached because constructing one is the expensive part of every row. */
+/** A unit `NumberFormat` per language and unit, cached because constructing one is the expensive part of every row. */
 const formatters = new Map<string, Intl.NumberFormat>();
 
 function narrow(lang: string, value: number, unit: "minute" | "hour" | "day"): string {
@@ -26,7 +26,8 @@ function narrow(lang: string, value: number, unit: "minute" | "hour" | "day"): s
     const options: Intl.NumberFormatOptions = {
       style: "unit",
       unit,
-      unitDisplay: "narrow",
+      // German's narrow forms mix "3h" with "3 T"; its short ones are "Min.", "Std." and "Tg.", as the durations write them.
+      unitDisplay: lang.startsWith("de") ? "short" : "narrow",
     };
     // An unrecognised tag throws rather than falling back, and `lang` comes from the browser and a stored override.
     try {

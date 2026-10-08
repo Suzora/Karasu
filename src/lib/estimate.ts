@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { durationText } from "./format";
 
 /** Remaining watch time in minutes for an anime entry, or null if unknown. */
 export function remainingMinutes(
@@ -11,13 +12,8 @@ export function remainingMinutes(
   return Math.max(0, episodes - progress) * duration;
 }
 
-/** Human-readable duration ("3d 4h" / "12h 30m" / "45m"), localized. */
+/** What is left to watch as a duration ("3d 4h" / "12h 30m" / "45m"), or the word for nothing left. */
 export function formatMinutes(total: number, t: TFunction): string {
   if (total <= 0) return t("time.none");
-  const days = Math.floor(total / 1440);
-  const hours = Math.floor((total % 1440) / 60);
-  const minutes = Math.round(total % 60);
-  if (days > 0) return t("time.dh", { d: days, h: hours });
-  if (hours > 0) return t("time.hm", { h: hours, m: minutes });
-  return t("time.m", { m: minutes });
+  return durationText(total, t);
 }

@@ -27,6 +27,11 @@ describe("formatMinutes", () => {
     expect(formatMinutes(1440 + 120, t)).toBe('time.dh({"d":1,"h":2})');
   });
 
+  it("says whole days and whole hours without a zero part", () => {
+    expect(formatMinutes(2 * 1440, t)).toBe('time.d({"d":2})');
+    expect(formatMinutes(180, t)).toBe('time.h({"h":3})');
+  });
+
   it("picks the hour+minute form under a day", () => {
     expect(formatMinutes(150, t)).toBe('time.hm({"h":2,"m":30})');
   });

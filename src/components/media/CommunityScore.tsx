@@ -35,7 +35,7 @@ export function CommunityScore({
   // The bar a score lands on; a continuous score between two bars belongs to the lower one.
   const at = value > 0 ? bars.reduce((found, b, i) => (b.value <= value ? i : found), -1) : -1;
   const meanAt = mean === null ? 0 : meanPosition(bars, mean);
-  const label = (n: number) => (continuous ? String(n) : formatScore(format, n));
+  const label = (n: number) => (continuous ? String(n) : formatScore(format, n, i18n.language));
   const columns = { gridTemplateColumns: `repeat(${bars.length}, minmax(0, 1fr))` };
 
   return (
@@ -65,7 +65,7 @@ export function CommunityScore({
         ) : (
           <span className="leading-none" aria-hidden>
             <span className={cn("text-2xl font-bold tabular-nums", value > 0 && !smiley ? "text-gold" : "text-ink-500")}>
-              {formatScore(format, value)}
+              {formatScore(format, value, i18n.language)}
             </span>
             {!smiley && <span className="ml-1 text-sm text-ink-500">/ {max}</span>}
           </span>
@@ -123,7 +123,7 @@ export function CommunityScore({
             className="absolute top-2 whitespace-nowrap text-2xs text-accent-400"
             style={{ left: `${meanAt * 100}%`, translate: `-${meanAt * 100}% 0` }}
           >
-            {t("detail.communityMean", { mean: formatMeanScore(format, mean), count: votes.toLocaleString(i18n.language) })}
+            {t("detail.communityMean", { mean: formatMeanScore(format, mean, i18n.language), count: votes.toLocaleString(i18n.language) })}
           </span>
         </div>
       )}

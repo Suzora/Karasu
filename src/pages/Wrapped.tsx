@@ -416,7 +416,7 @@ function drawCard(
       },
       {
         value: stats.anime.meanScore
-          ? formatMeanScore(currentScoreFormat(), stats.anime.meanScore)
+          ? formatMeanScore(currentScoreFormat(), stats.anime.meanScore, lang)
           : "–",
         label: t("wrapped.meanScore"),
       },
@@ -427,7 +427,7 @@ function drawCard(
       { value: stats.manga.units.toLocaleString(lang), label: t("common.chapters") },
       {
         value: stats.manga.meanScore
-          ? formatMeanScore(currentScoreFormat(), stats.manga.meanScore)
+          ? formatMeanScore(currentScoreFormat(), stats.manga.meanScore, lang)
           : "–",
         label: t("wrapped.meanScore"),
       },

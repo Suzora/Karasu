@@ -42,6 +42,7 @@ import KarasuMark from "@/components/KarasuMark";
 import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { backendErrorText } from "@/lib/backendError";
+import { formatDecimal } from "@/lib/format";
 
 const REPO_URL = "https://github.com/Suzora/Karasu";
 const DISCORD_HANDLE = "Kyusetzu";
@@ -222,7 +223,7 @@ function Row({
 
 /** The Android half of the Updates card: the download's state, the installer button, and why it may be waiting. */
 function ApkUpdatePanel({ tick }: { tick: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [state, setState] = useState<ApkUpdateState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -257,7 +258,7 @@ function ApkUpdatePanel({ tick }: { tick: number }) {
   };
 
   if (!state || !state.available || state.status === "none") return null;
-  const mb = (n: number) => (n / 1_048_576).toFixed(1);
+  const mb = (n: number) => formatDecimal(n / 1_048_576, i18n.language, 1);
 
   return (
     <div className="mt-3 space-y-2 text-sm">

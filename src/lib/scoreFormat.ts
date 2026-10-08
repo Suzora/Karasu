@@ -1,3 +1,5 @@
+import { formatDecimal } from "./format";
+
 /** Score formats as one vocabulary: writes go through `scoreRaw`, reads and controls follow the account's format. */
 
 export type ScoreFormat =
@@ -81,17 +83,17 @@ export function unroundedScore(f: ScoreFormat, raw: number): number {
 const SMILEYS = ["", "☹️", "😐", "🙂"] as const;
 
 /** A score as the user's format displays it; zero renders as an en dash, since "0" would claim a score nobody gave. */
-export function formatScore(f: ScoreFormat, value: number): string {
+export function formatScore(f: ScoreFormat, value: number, locale: string): string {
   if (!Number.isFinite(value) || value <= 0) return "–";
   if (f === "POINT_3") return SMILEYS[Math.min(3, Math.round(value))] || "–";
   const { max, decimals } = scoreScale(f);
-  return Math.min(max, value).toFixed(decimals);
+  return formatDecimal(Math.min(max, value), locale, decimals);
 }
 
 /** An aggregate on the display scale, always one decimal and numeric even for the smiley scale, which has no glyph for it. */
-export function formatMeanScore(f: ScoreFormat, value: number): string {
+export function formatMeanScore(f: ScoreFormat, value: number, locale: string): string {
   if (!Number.isFinite(value) || value <= 0) return "–";
-  return Math.min(scoreScale(f).max, value).toFixed(1);
+  return formatDecimal(Math.min(scoreScale(f).max, value), locale, 1);
 }
 
 /** The selectable values for a discrete format, or `null` for the continuous ones, which take a number input. */

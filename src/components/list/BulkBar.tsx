@@ -42,7 +42,7 @@ export function BulkBar({
   /** On its way out: plays the exit and takes no input. */
   leaving?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const disabled = count === 0;
@@ -78,7 +78,7 @@ export function BulkBar({
         value=""
         placeholder="—"
         onChange={(v) => v !== "" && onScore(Number(v))}
-        options={[{ value: "0", label: "–" }, ...bulkScoreOptions(scoreFormat)]}
+        options={[{ value: "0", label: "–" }, ...bulkScoreOptions(scoreFormat, i18n.language)]}
         className={cn(disabled && "pointer-events-none opacity-50")}
       />
 

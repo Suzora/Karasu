@@ -48,7 +48,7 @@ describe("RadarChart", () => {
   ];
 
   it("writes each axis's count next to its label", () => {
-    const out = texts(html(<RadarChart axes={axes} />));
+    const out = texts(html(<RadarChart locale="en" axes={axes} />));
     for (const a of axes) {
       expect(out).toContain(a.label);
       expect(out).toContain(String(a.value));
@@ -56,7 +56,7 @@ describe("RadarChart", () => {
   });
 
   it("labels the rings, so the polygon is a measurement and not just a shape", () => {
-    const out = texts(html(<RadarChart axes={axes} />));
+    const out = texts(html(<RadarChart locale="en" axes={axes} />));
     // The outer ring always equals the largest axis, so its string is counted rather than merely found.
     expect(out.filter((v) => v === "120")).toHaveLength(2); // ring + axis
     expect(out).toContain("60"); // the half ring, which is nobody's count

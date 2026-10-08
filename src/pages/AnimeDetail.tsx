@@ -977,6 +977,7 @@ function CommunitySection({ data }: { data: MediaDetail }) {
           )}
           {statuses.length > 0 && (
             <StatusBar
+              locale={i18n.language}
               title={t("detail.communityStatus")}
               data={statuses.map((d) => ({
                 label: t(`status.${data.type ?? "ANIME"}.${d.status}`, {

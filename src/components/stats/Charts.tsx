@@ -141,7 +141,7 @@ function ArcValue({
 }
 
 /** A legend for whatever the sunburst or the stacked bar just drew. */
-export function ToneLegend({ items }: { items: { label: string; value: number }[] }) {
+export function ToneLegend({ items, locale }: { items: { label: string; value: number }[]; locale: string }) {
   // One column that may shrink, since beside a ring the legend is narrow and a second column cut labels to a few letters.
   return (
     <div className="grid grid-cols-1 gap-y-1.5">
@@ -154,7 +154,7 @@ export function ToneLegend({ items }: { items: { label: string; value: number }[
           <span className="min-w-0 flex-1 truncate text-ink-500" title={item.label}>
             {item.label}
           </span>
-          <span className="shrink-0 tabular-nums text-ink-300">{item.value}</span>
+          <span className="shrink-0 tabular-nums text-ink-300">{item.value.toLocaleString(locale)}</span>
         </div>
       ))}
     </div>
@@ -165,9 +165,11 @@ export function ToneLegend({ items }: { items: { label: string; value: number }[
 export function RadarChart({
   axes,
   size = 260,
+  locale,
 }: {
   axes: { label: string; value: number }[];
   size?: number;
+  locale: string;
 }) {
   const c = size / 2;
   const r = size * 0.32;
@@ -260,7 +262,7 @@ export function RadarChart({
               textAnchor="middle"
               className="fill-ink-300 text-2xs font-medium tabular-nums"
             >
-              {axis.value}
+              {axis.value.toLocaleString(locale)}
             </text>
           </Fragment>
         );

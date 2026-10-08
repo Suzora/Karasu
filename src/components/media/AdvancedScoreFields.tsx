@@ -16,7 +16,7 @@ export function AdvancedScoreFields({
   values: Record<string, number>;
   onChange: (next: Record<string, number>) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const format = useScoreFormat();
   const rows = orderedCategories(categories, values);
   const overall = derivedOverall(rows.map((r) => r.value));
@@ -29,7 +29,7 @@ export function AdvancedScoreFields({
         <span className="text-ink-500">{t("entry.advancedScores")}</span>
         {anyScored(rows.map((r) => r.value)) && (
           <span className="text-2xs text-ink-600">
-            {t("entry.advancedDerived", { score: formatMeanScore(format, overall) })}
+            {t("entry.advancedDerived", { score: formatMeanScore(format, overall, i18n.language) })}
           </span>
         )}
       </div>

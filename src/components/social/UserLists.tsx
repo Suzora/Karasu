@@ -24,7 +24,7 @@ import { statusColorVar } from "@/lib/statusColors";
 
 /** Another user's list, read-only through `CoverCell` rather than `GridCard`, with scores in the owner's format. */
 export function UserLists({ user }: { user: UserProfile }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const viewer = useAuth((s) => s.viewer);
   const viewerFormat = useScoreFormat();
   const level = useContentFilter((s) => s.level);
@@ -154,7 +154,7 @@ export function UserLists({ user }: { user: UserProfile }) {
                 adult={e.media.isAdult === true}
                 blurred={shouldBlur(e.media, level, blurAdult)}
                 revealLabel={displayTitle(e.media.title)}
-                score={e.score > 0 ? formatScore(theirFormat, e.score) : undefined}
+                score={e.score > 0 ? formatScore(theirFormat, e.score, i18n.language) : undefined}
                 progress={total ? { current: e.progress, total } : null}
               >
                 <Link to={`/media/${e.mediaId}`}>

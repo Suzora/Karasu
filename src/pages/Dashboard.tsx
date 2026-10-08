@@ -32,6 +32,7 @@ import RecommendedSection from "@/components/media/RecommendedSection";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/stores/theme";
+import { countdown, formatDecimal } from "@/lib/format";
 
 export default function Dashboard() {
   const viewer = useAuth((s) => s.viewer);
@@ -488,19 +489,19 @@ function Stats({ entries }: { entries: MediaListEntry[] }) {
   if (stats.anime === 0) return null;
 
   const items: { icon: LucideIcon; label: string; value: string }[] = [
-    { icon: Tv, label: t("dashboard.statAnime"), value: String(stats.anime) },
+    { icon: Tv, label: t("dashboard.statAnime"), value: stats.anime.toLocaleString(i18n.language) },
     {
       icon: Play,
       label: t("dashboard.statEpisodes"),
       value: stats.episodes.toLocaleString(i18n.language),
     },
-    { icon: Clock, label: t("dashboard.statDays"), value: stats.days.toFixed(1) },
+    { icon: Clock, label: t("dashboard.statDays"), value: formatDecimal(stats.days, i18n.language, 1) },
     {
       icon: Star,
       label: t("dashboard.statMeanScore"),
       value:
         stats.meanScore !== null
-          ? formatMeanScore(scoreFormat, stats.meanScore)
+          ? formatMeanScore(scoreFormat, stats.meanScore, i18n.language)
           : "–",
     },
   ];
@@ -543,7 +544,7 @@ const ContinueCard = memo(function ContinueCard({
   /** Computed by the parent — see `GridCard` for why it is not read here. */
   blurred: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
   const { media } = entry;
   // The list's own check; `maxProgress` knows chapters where `media.episodes` does not.
@@ -557,7 +558,7 @@ const ContinueCard = memo(function ContinueCard({
       adult={media.isAdult === true}
       blurred={blurred}
       revealLabel={displayTitle(media.title)}
-      score={entry.score > 0 ? formatScore(scoreFormat, entry.score) : null}
+      score={entry.score > 0 ? formatScore(scoreFormat, entry.score, i18n.language) : null}
       progress={total ? { current: entry.progress, total } : null}
       actions={
         // Always visible, not hover-only: the most-used action in the app must not cost a hover every time.
@@ -601,14 +602,9 @@ function AiringRow({ entry }: { entry: MediaListEntry }) {
   const airing = entry.media.nextAiringEpisode!;
 
   const formatAiring = (airingAt: number): string => {
-    const diff = airingAt * 1000 - Date.now();
+    const diff = airingAt - Math.floor(Date.now() / 1000);
     if (diff <= 0) return t("dashboard.airingNow");
-    const hours = Math.floor(diff / 3_600_000);
-    const days = Math.floor(hours / 24);
-    if (days > 0)
-      return t("dashboard.airingInDays", { d: days, h: hours % 24 });
-    const minutes = Math.floor((diff % 3_600_000) / 60_000);
-    return t("dashboard.airingInHours", { h: hours, m: minutes });
+    return t("dashboard.airingIn", { when: countdown(diff, t) });
   };
 
   return (

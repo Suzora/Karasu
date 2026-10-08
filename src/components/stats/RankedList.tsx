@@ -5,6 +5,7 @@ import { type StatEntry } from "@/api/queries";
 import type { MediaType } from "@/api/types";
 import { Segmented, type Segment } from "@/components/ui/segmented";
 import { Empty, type RankedCategory, type SortKey } from "./shared";
+import { formatDecimal } from "@/lib/format";
 
 /** AniList clamps `userStatistics` category lists server-side whatever `limit` says, so this is all of it, not a choice. */
 export const TOP_N = 30;
@@ -84,6 +85,7 @@ export function RankedRow({
   barPct: number;
   metricText: string;
 }) {
+  const { i18n } = useTranslation();
   const image = entryImage(entry, category);
   const label = entryLabel(entry, category);
   const href = entryHref(entry, category);
@@ -109,7 +111,7 @@ export function RankedRow({
         <div className="flex items-baseline justify-between gap-2">
           <span className="truncate text-sm text-ink-100">{label}</span>
           <span className="shrink-0 text-xs tabular-nums text-ink-500">
-            {entry.count}× · {metricText}
+            {entry.count.toLocaleString(i18n.language)}× · {metricText}
           </span>
         </div>
         <div className="mt-1 h-2 overflow-hidden rounded-inner bg-surface-800">
@@ -120,7 +122,7 @@ export function RankedRow({
         </div>
       </div>
       <span className="w-9 shrink-0 text-right text-xs font-medium tabular-nums text-gold">
-        {scoreText(entry.meanScore)}
+        {scoreText(entry.meanScore, i18n.language)}
       </span>
     </div>
   );
@@ -187,6 +189,6 @@ export function fmt(n: number, locale: string): string {
 }
 
 /** Scores read to one decimal, never whole: `userStatistics` already divided by ten, and rounding drops that digit. */
-export function scoreText(score: number): string {
-  return score > 0 ? score.toFixed(1) : "–";
+export function scoreText(score: number, locale: string): string {
+  return score > 0 ? formatDecimal(score, locale, 1) : "–";
 }

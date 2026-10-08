@@ -26,6 +26,7 @@ import { Heatmap } from "@/components/stats/Heatmap";
 import { Empty } from "@/components/stats/shared";
 import { fmt } from "@/components/stats/RankedList";
 import { ErrorState } from "@/components/EmptyState";
+import { formatDecimal } from "@/lib/format";
 
 /** Statistics for the account-free profile, counted by `lib/localStats` from SQLite with no request to make. */
 export default function LocalStatistics({
@@ -129,7 +130,7 @@ export default function LocalStatistics({
               },
               {
                 label: t("stats.meanScore"),
-                value: totals.meanScore > 0 ? totals.meanScore.toFixed(2) : "—",
+                value: totals.meanScore > 0 ? formatDecimal(totals.meanScore, i18n.language, 2) : "—",
               },
               {
                 label: t("stats.scoredTitles"),
@@ -140,6 +141,7 @@ export default function LocalStatistics({
 
           <div className="grid gap-4 lg:grid-cols-2">
             <StatusBar
+              locale={i18n.language}
               title={t("stats.statuses")}
               data={STATUS_ORDER.filter((st) =>
                 totals.byStatus.some((s) => s.status === st),
@@ -158,7 +160,7 @@ export default function LocalStatistics({
                     <Sunburst data={breakdown} />
                   </div>
                   <div className="min-w-36 flex-1">
-                    <ToneLegend
+                    <ToneLegend locale={i18n.language}
                       items={breakdown.map((b) => ({ label: b.label, value: b.value }))}
                     />
                   </div>
@@ -196,12 +198,13 @@ export default function LocalStatistics({
                   label: t(`season.${s.season}`, { defaultValue: s.season }),
                   value: s.count,
                   text: fmt(s.count, i18n.language),
-                  sub: s.meanScore > 0 ? `★ ${s.meanScore.toFixed(1)}` : undefined,
+                  sub: s.meanScore > 0 ? `★ ${formatDecimal(s.meanScore, i18n.language, 1)}` : undefined,
                 }))}
               />
             )}
             {delta && (delta.harshest.length > 0 || delta.kindest.length > 0) && (
               <DotPlot
+                locale={i18n.language}
                 title={t("stats.vsCommunity")}
                 hint={t("stats.vsCommunityHint")}
                 legendMine={t("stats.legendMine")}

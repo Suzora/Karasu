@@ -57,6 +57,7 @@ import {
 } from "@/lib/localStats";
 import { RankedList, fmt, scoreText } from "@/components/stats/RankedList";
 import LocalStatistics from "@/components/stats/LocalStatistics";
+import { formatDecimal, formatSigned } from "@/lib/format";
 /** Five themed tabs shared by both media types; the ranked lists live inside two of them, not one each. */
 const CATEGORIES: Category[] = ["overview", "ratings", "years", "genresTags", "people"];
 
@@ -402,16 +403,16 @@ function AnimeView({
         tiles={[
           { label: t("stats.entries"), value: fmt(stats.count, i18n.language) },
           { label: t("stats.episodes"), value: fmt(stats.episodesWatched, i18n.language) },
-          { label: t("stats.daysWatched"), value: days.toFixed(1) },
-          { label: t("stats.meanScore"), value: scoreText(stats.meanScore) },
+          { label: t("stats.daysWatched"), value: formatDecimal(days, i18n.language, 1) },
+          { label: t("stats.meanScore"), value: scoreText(stats.meanScore, i18n.language) },
           {
             label: t("stats.spread"),
-            value: `± ${stats.standardDeviation.toFixed(1)}`,
+            value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
           },
           {
             label: t("stats.perEntry"),
             value: t("stats.episodesEach", {
-              n: (stats.episodesWatched / Math.max(1, stats.count)).toFixed(1),
+              n: formatDecimal(stats.episodesWatched / Math.max(1, stats.count), i18n.language, 1),
             }),
           },
         ]}
@@ -471,15 +472,15 @@ function MangaView({
           { label: t("stats.entries"), value: fmt(stats.count, i18n.language) },
           { label: t("stats.chapters"), value: fmt(stats.chaptersRead, i18n.language) },
           { label: t("stats.volumes"), value: fmt(stats.volumesRead, i18n.language) },
-          { label: t("stats.meanScore"), value: scoreText(stats.meanScore) },
+          { label: t("stats.meanScore"), value: scoreText(stats.meanScore, i18n.language) },
           {
             label: t("stats.spread"),
-            value: `± ${stats.standardDeviation.toFixed(1)}`,
+            value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
           },
           {
             label: t("stats.perEntry"),
             value: t("stats.chaptersEach", {
-              n: (stats.chaptersRead / Math.max(1, stats.count)).toFixed(0),
+              n: formatDecimal(stats.chaptersRead / Math.max(1, stats.count), i18n.language, 0),
             }),
           },
         ]}
@@ -519,7 +520,7 @@ function GenresTagsView({
   stats: AnimeStats | MangaStats;
   type: MediaType;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const level = useContentFilter((s) => s.level);
   const scoreMax = scoreScale(useScoreFormat()).max;
 
@@ -544,7 +545,7 @@ function GenresTagsView({
             <p className="mt-1 text-2xs text-ink-600">{t("stats.genreShapeHint")}</p>
             <div className="mt-2 flex flex-1 items-center justify-center">
               <div className="w-full max-w-72">
-                <RadarChart
+                <RadarChart locale={i18n.language}
                   axes={radarGenres.map((g) => ({ label: g.genre ?? "?", value: g.count }))}
                 />
               </div>
@@ -553,6 +554,7 @@ function GenresTagsView({
         )}
         {genreDots.length > 1 && (
           <DotPlot
+            locale={i18n.language}
             title={t("stats.genreTaste")}
             hint={t("stats.genreTasteHint")}
             legendMine={t("stats.legendGenreMean")}
@@ -643,7 +645,7 @@ function RatingsView({
       .map((d) => ({
         label: label(d),
         value: d.meanScore ?? 0,
-        text: (d.meanScore ?? 0).toFixed(1),
+        text: formatDecimal(d.meanScore ?? 0, i18n.language, 1),
         sub: `${fmt(d.count, i18n.language)}×`,
       }));
 
@@ -652,11 +654,11 @@ function RatingsView({
       {delta && (
         <TileGrid
           tiles={[
-            { label: t("stats.yourMean"), value: delta.meanMine.toFixed(2) },
-            { label: t("stats.communityMean"), value: delta.meanCommunity.toFixed(2) },
+            { label: t("stats.yourMean"), value: formatDecimal(delta.meanMine, i18n.language, 2) },
+            { label: t("stats.communityMean"), value: formatDecimal(delta.meanCommunity, i18n.language, 2) },
             {
               label: t("stats.meanDelta"),
-              value: `${delta.meanDelta > 0 ? "+" : ""}${delta.meanDelta.toFixed(2)}`,
+              value: formatSigned(delta.meanDelta, i18n.language, 2),
             },
             { label: t("stats.scoredTitles"), value: fmt(delta.count, i18n.language) },
           ]}
@@ -688,6 +690,7 @@ function RatingsView({
         />
         {delta && (delta.harshest.length > 0 || delta.kindest.length > 0) && (
           <DotPlot
+            locale={i18n.language}
             title={t("stats.vsCommunity")}
             hint={t("stats.vsCommunityHint")}
             legendMine={t("stats.legendMine")}
@@ -734,7 +737,7 @@ function YearsView({
     .map((d) => ({
       label: String(d.startYear ?? 0),
       value: d.meanScore ?? 0,
-      text: (d.meanScore ?? 0).toFixed(1),
+      text: formatDecimal(d.meanScore ?? 0, i18n.language, 1),
       sub: `${fmt(d.count, i18n.language)}×`,
     }));
   const monthLabels = useMemo(
@@ -841,7 +844,7 @@ function YearsView({
             label: t(`season.${s.season}`, { defaultValue: s.season }),
             value: s.count,
             text: fmt(s.count, i18n.language),
-            sub: s.meanScore > 0 ? `★ ${s.meanScore.toFixed(1)}` : undefined,
+            sub: s.meanScore > 0 ? `★ ${formatDecimal(s.meanScore, i18n.language, 1)}` : undefined,
           }))}
         />
       )}
@@ -858,7 +861,7 @@ function OverviewCharts({
   type: MediaType;
   breakdown: Slice[];
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // AniList returns the length buckets unordered, so sort on the number each one opens with.
   const lengths = [...stats.lengths]
     .filter((d) => d.length)
@@ -880,13 +883,14 @@ function OverviewCharts({
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <StatusBar
+        locale={i18n.language}
         title={t("stats.statuses")}
         data={stats.statuses.map((d) => ({
           label: t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }),
           count: d.count,
         }))}
       />
-      <DistributionCard
+      <DistributionCard locale={i18n.language}
         title={t("stats.formats")}
         data={stats.formats.map((d) => ({ label: d.format ?? "?", count: d.count }))}
       />
@@ -902,7 +906,7 @@ function OverviewCharts({
               <Sunburst data={breakdown} />
             </div>
             <div className="min-w-36 flex-1 space-y-3">
-              <ToneLegend
+              <ToneLegend locale={i18n.language}
                 items={breakdown.map((b) => ({ label: b.label, value: b.value }))}
               />
               {/* The outer ring's key, so its formats are readable without hovering. */}
@@ -915,7 +919,7 @@ function OverviewCharts({
                     {formatsInBreakdown.map((f) => (
                       <span key={f.label} className="text-2xs text-ink-500">
                         {f.label}
-                        <span className="ml-1 tabular-nums text-ink-300">{f.value}</span>
+                        <span className="ml-1 tabular-nums text-ink-300">{f.value.toLocaleString(i18n.language)}</span>
                       </span>
                     ))}
                   </div>
@@ -927,7 +931,7 @@ function OverviewCharts({
       )}
 
       {/* The radar and the treemap live on Genres & Tags, one home per chart. */}
-      <DistributionCard
+      <DistributionCard locale={i18n.language}
         title={t("stats.lengths")}
         data={lengths.map((d) => ({
           label:
@@ -941,6 +945,7 @@ function OverviewCharts({
       />
       {countries.length > 1 && (
         <StatusBar
+          locale={i18n.language}
           title={t("stats.countries")}
           data={countries.map((d) => ({
             label: t(`country.${d.country}`, { defaultValue: d.country ?? "?" }),

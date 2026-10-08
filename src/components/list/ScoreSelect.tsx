@@ -10,14 +10,15 @@ import { useScoreFormat } from "@/stores/auth";
 import { SCORE_SHOWS_STAR } from "./columns";
 
 /** An option's label inside the open dropdown, where a star fits; the three-point format keeps AniList's smiley. */
-function optionLabel(format: ScoreFormat, n: number): string {
-  if (format === "POINT_3") return formatScore(format, n);
-  return `★ ${formatScore(format, n)}`;
+function optionLabel(format: ScoreFormat, n: number, locale: string): string {
+  if (format === "POINT_3") return formatScore(format, n, locale);
+  return `★ ${formatScore(format, n, locale)}`;
 }
 
 /** The bulk bar's score options, the row's vocabulary so the two cannot drift; continuous formats get coarse steps. */
 export function bulkScoreOptions(
   format: ScoreFormat,
+  locale: string,
 ): { value: string; label: string }[] {
   const options =
     scoreOptions(format) ??
@@ -25,7 +26,7 @@ export function bulkScoreOptions(
       { length: 10 },
       (_, i) => ((i + 1) * scoreScale(format).max) / 10,
     );
-  return options.map((n) => ({ value: String(n), label: optionLabel(format, n) }));
+  return options.map((n) => ({ value: String(n), label: optionLabel(format, n, locale) }));
 }
 
 /** The row's score control in the account's format; a continuous one commits a number input on blur, not per keystroke. */
@@ -39,7 +40,7 @@ export function ScoreSelect({
   onChange: (score: number) => void;
   className?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const format = useScoreFormat();
   const options = scoreOptions(format);
   const star = SCORE_SHOWS_STAR ? "★ " : "";
@@ -94,11 +95,11 @@ export function ScoreSelect({
       <option value={0}>–</option>
       {/* A value from the previous format, cached across a switch, would render empty like unscored, so it gets an option. */}
       {value > 0 && !options.includes(value) && (
-        <option value={value}>{`${star}${formatScore(format, value)}`}</option>
+        <option value={value}>{`${star}${formatScore(format, value, i18n.language)}`}</option>
       )}
       {options.map((n) => (
         <option key={n} value={n}>
-          {optionLabel(format, n)}
+          {optionLabel(format, n, i18n.language)}
         </option>
       ))}
     </select>

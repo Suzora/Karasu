@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: d362efa -->
+<!-- generated-through: 35c0dac -->
 
 ### Fixed
 
@@ -102,6 +102,7 @@ tag time is then optional rather than load-bearing.
 - Manga detection names only official readers, and a chapter on any other site is recognised for a manga you are reading, always with a confirmation.
 - When Karasu will ask before updating ("Ask before updating" on, or a chapter from a site it does not name), the now-playing card counts down to asking instead of promising an update.
 - A failed load says what went wrong and offers Retry.
+- Numbers, scores, dates and durations read the way your language writes them.
 
 ## 1.32.0 — 2026-10-03
 

@@ -39,7 +39,7 @@ export const GridCard = memo(function GridCard({
   focused: boolean;
   onToggleSelect: (mediaId: number) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
   const { media } = entry;
   const max = maxProgress(media);
@@ -67,7 +67,7 @@ export const GridCard = memo(function GridCard({
       coverLabel={t("bulk.select")}
       score={
         !selectMode && entry.score > 0
-          ? formatScore(scoreFormat, entry.score)
+          ? formatScore(scoreFormat, entry.score, i18n.language)
           : undefined
       }
       progress={max ? { current: entry.progress, total: max } : null}

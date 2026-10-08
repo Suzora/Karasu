@@ -18,15 +18,16 @@ import { cn } from "@/lib/utils";
 import { BannerImage } from "@/components/media/BannerImage";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { Chip } from "@/components/ui/chip";
+import { formatDecimal } from "@/lib/format";
 
 /** `meanScore` arrives hundred-point and is shown ten-point on purpose: someone else's mean, on the neutral scale. */
-function meanText(score: number | undefined | null): string | null {
+function meanText(score: number | undefined | null, locale: string): string | null {
   if (!score) return null; // 0 means "no scores", not "scored zero"
-  return `★ ${toDisplayScale("POINT_10", score).toFixed(1)}`;
+  return `★ ${formatDecimal(toDisplayScale("POINT_10", score), locale, 1)}`;
 }
 
 export function ProfileHeader({ user }: { user: UserProfile }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const relation = followRelation(user);
   const badgeKey = relationBadgeKey(relation);
   const donator = donatorLabel(user);
@@ -65,13 +66,13 @@ export function ProfileHeader({ user }: { user: UserProfile }) {
       {anime && anime.count > 0 && (
         <span>
           {t("social.animeCount", { n: anime.count })}
-          {meanText(anime.meanScore) && ` · ${meanText(anime.meanScore)}`}
+          {meanText(anime.meanScore, i18n.language) && ` · ${meanText(anime.meanScore, i18n.language)}`}
         </span>
       )}
       {manga && manga.count > 0 && (
         <span>
           {t("social.mangaCount", { n: manga.count })}
-          {meanText(manga.meanScore) && ` · ${meanText(manga.meanScore)}`}
+          {meanText(manga.meanScore, i18n.language) && ` · ${meanText(manga.meanScore, i18n.language)}`}
         </span>
       )}
       <button

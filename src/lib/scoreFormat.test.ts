@@ -14,19 +14,25 @@ import {
 
 describe("formatMeanScore", () => {
   it("always keeps one decimal — a mean of integers is not an integer", () => {
-    expect(formatMeanScore("POINT_10", 7.06)).toBe("7.1");
-    expect(formatMeanScore("POINT_100", 82.36)).toBe("82.4");
-    expect(formatMeanScore("POINT_5", 4)).toBe("4.0");
+    expect(formatMeanScore("POINT_10", 7.06, "en")).toBe("7.1");
+    expect(formatMeanScore("POINT_100", 82.36, "en")).toBe("82.4");
+    expect(formatMeanScore("POINT_5", 4, "en")).toBe("4.0");
   });
 
   it("stays numeric even on the smiley scale, and clamps to the max", () => {
-    expect(formatMeanScore("POINT_3", 2.4)).toBe("2.4");
-    expect(formatMeanScore("POINT_10", 11)).toBe("10.0");
+    expect(formatMeanScore("POINT_3", 2.4, "en")).toBe("2.4");
+    expect(formatMeanScore("POINT_10", 11, "en")).toBe("10.0");
+  });
+
+  it("writes the decimal the way the reader's language does", () => {
+    expect(formatMeanScore("POINT_10", 7.06, "de")).toBe("7,1");
+    expect(formatScore("POINT_10_DECIMAL", 8.5, "de")).toBe("8,5");
+    expect(formatScore("POINT_100", 85, "de")).toBe("85");
   });
 
   it("nothing scored is an en dash", () => {
-    expect(formatMeanScore("POINT_10", 0)).toBe("–");
-    expect(formatMeanScore("POINT_10", NaN)).toBe("–");
+    expect(formatMeanScore("POINT_10", 0, "en")).toBe("–");
+    expect(formatMeanScore("POINT_10", NaN, "en")).toBe("–");
   });
 });
 
@@ -124,22 +130,22 @@ describe("unroundedScore", () => {
 
 describe("formatScore", () => {
   it("renders in the format's own precision", () => {
-    expect(formatScore("POINT_100", 85)).toBe("85");
-    expect(formatScore("POINT_10_DECIMAL", 8.5)).toBe("8.5");
-    expect(formatScore("POINT_10_DECIMAL", 8)).toBe("8.0");
-    expect(formatScore("POINT_10", 8)).toBe("8");
-    expect(formatScore("POINT_5", 4)).toBe("4");
+    expect(formatScore("POINT_100", 85, "en")).toBe("85");
+    expect(formatScore("POINT_10_DECIMAL", 8.5, "en")).toBe("8.5");
+    expect(formatScore("POINT_10_DECIMAL", 8, "en")).toBe("8.0");
+    expect(formatScore("POINT_10", 8, "en")).toBe("8");
+    expect(formatScore("POINT_5", 4, "en")).toBe("4");
   });
 
   it("the smiley scale renders smileys, not numbers", () => {
-    expect(formatScore("POINT_3", 1)).toBe("☹️");
-    expect(formatScore("POINT_3", 2)).toBe("😐");
-    expect(formatScore("POINT_3", 3)).toBe("🙂");
+    expect(formatScore("POINT_3", 1, "en")).toBe("☹️");
+    expect(formatScore("POINT_3", 2, "en")).toBe("😐");
+    expect(formatScore("POINT_3", 3, "en")).toBe("🙂");
   });
 
   it("unscored is an en dash, never a zero", () => {
     for (const f of SCORE_FORMATS) {
-      expect(formatScore(f, 0), f).toBe("–");
+      expect(formatScore(f, 0, "en"), f).toBe("–");
     }
   });
 });

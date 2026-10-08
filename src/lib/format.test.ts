@@ -3,14 +3,21 @@ import type { TFunction } from "i18next";
 import {
   compactCount,
   countdown,
+  durationText,
+  formatDecimal,
   formatLabel,
+  formatSigned,
   fuzzyDate,
   mediaStatusLabel,
+  personDate,
   sourceLabel,
 } from "./format";
 
 // Echoing stub: returns the i18n key so we can assert the lookup path.
 const t = ((key: string) => key) as unknown as TFunction;
+// Echoing stub with the values, so a dropped zero part is asserted rather than assumed.
+const tv = ((key: string, params?: Record<string, unknown>) =>
+  params ? `${key}(${JSON.stringify(params)})` : key) as unknown as TFunction;
 
 describe("formatLabel", () => {
   it("looks up known formats by i18n key", () => {
@@ -78,16 +85,74 @@ describe("fuzzyDate", () => {
   });
 });
 
+describe("personDate", () => {
+  it("reads a birthday without a year as day and month, and anything less as nothing", () => {
+    expect(personDate({ year: null, month: 5, day: 10 }, "de")).toBe("10. Mai");
+    expect(personDate({ year: null, month: 5, day: 10 }, "en-US")).toBe("May 10");
+    expect(personDate({ year: null, month: 2, day: 29 }, "en-US")).toBe("Feb 29");
+    expect(personDate({ year: null, month: null, day: 10 }, "de")).toBe("");
+    expect(personDate({ year: null, month: 5, day: null }, "de")).toBe("");
+  });
+
+  it("is fuzzyDate once there is a year, and a media date without one stays empty", () => {
+    expect(personDate({ year: 1995, month: 7, day: 23 }, "de")).toBe(fuzzyDate({ year: 1995, month: 7, day: 23 }, "de"));
+    expect(fuzzyDate({ year: null, month: 5, day: 10 }, "de")).toBe("");
+  });
+});
+
+describe("durationText", () => {
+  it("uses at most two units, largest first, and leaves a zero second unit off", () => {
+    expect(durationText(2 * 1440 + 4 * 60, tv)).toBe('time.dh({"d":2,"h":4})');
+    expect(durationText(2 * 1440 + 30, tv)).toBe('time.d({"d":2})');
+    expect(durationText(4 * 60 + 30, tv)).toBe('time.hm({"h":4,"m":30})');
+    expect(durationText(4 * 60, tv)).toBe('time.h({"h":4})');
+    expect(durationText(35, tv)).toBe('time.m({"m":35})');
+  });
+
+  it("rounds before it splits, so a fraction never reads as sixty minutes", () => {
+    expect(durationText(59.6, tv)).toBe('time.h({"h":1})');
+  });
+});
+
 describe("countdown", () => {
-  it("uses at most two units, largest first", () => {
-    expect(countdown(2 * 86400 + 4 * 3600, t)).toBe("detail.countdownDh");
-    expect(countdown(4 * 3600 + 30 * 60, t)).toBe("detail.countdownHm");
-    expect(countdown(35 * 60, t)).toBe("detail.countdownM");
+  it("is the same duration, counted down from the air time", () => {
+    expect(countdown(2 * 86400 + 4 * 3600, t)).toBe("time.dh");
+    expect(countdown(4 * 3600 + 30 * 60, t)).toBe("time.hm");
+    expect(countdown(35 * 60, t)).toBe("time.m");
+  });
+
+  it("never counts down to zero minutes", () => {
+    expect(countdown(30, tv)).toBe('time.m({"m":1})');
   });
 
   it("returns empty once the episode has aired", () => {
     expect(countdown(0, t)).toBe("");
     expect(countdown(-60, t)).toBe("");
+  });
+});
+
+describe("formatDecimal", () => {
+  it("writes the reader's separators at a fixed count of digits", () => {
+    expect(formatDecimal(1700.46, "de", 1)).toBe("1.700,5");
+    expect(formatDecimal(1700.46, "en", 1)).toBe("1,700.5");
+    expect(formatDecimal(29, "de", 1)).toBe("29,0");
+  });
+
+  it("falls back to English for a tag Intl does not know", () => {
+    expect(formatDecimal(2.5, "not a tag!", 1)).toBe("2.5");
+  });
+});
+
+describe("formatSigned", () => {
+  it("always writes the sign, the minus as U+2212", () => {
+    expect(formatSigned(0.25, "de", 2)).toBe("+0,25");
+    expect(formatSigned(-0.25, "de", 2)).toBe("−0,25");
+    expect(formatSigned(-1.5, "en", 1)).toBe("−1.5");
+  });
+
+  it("writes no sign on a difference that rounds to zero", () => {
+    expect(formatSigned(0.04, "en", 1)).toBe("0.0");
+    expect(formatSigned(-0.04, "en", 1)).toBe("0.0");
   });
 });
 

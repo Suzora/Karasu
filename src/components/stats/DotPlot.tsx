@@ -1,6 +1,7 @@
 import { scaleLinear } from "d3-scale";
 import { Card, CardTitle } from "@/components/ui/card";
 import { seriesDelay } from "@/lib/motion";
+import { formatDecimal } from "@/lib/format";
 
 /** A dumbbell plot: two scores per row on one 0-`max` axis, where `max` is the account's score scale top. */
 export interface DotPlotRow {
@@ -18,6 +19,7 @@ export function DotPlot({
   legendMine,
   legendOther,
   max = 10,
+  locale,
 }: {
   title: string;
   hint?: string;
@@ -25,6 +27,7 @@ export function DotPlot({
   legendMine: string;
   legendOther: string;
   max?: number;
+  locale: string;
 }) {
   if (rows.length === 0) return null;
   const X = scaleLinear().domain([0, max]).range([3, 97]).clamp(true);
@@ -40,9 +43,9 @@ export function DotPlot({
             <div className="flex items-baseline justify-between gap-2 text-xs">
               <span className="min-w-0 truncate text-ink-300">{r.label}</span>
               <span className="shrink-0 tabular-nums text-ink-100">
-                {r.other.toFixed(1)}
+                {formatDecimal(r.other, locale, 1)}
                 <span className="mx-1 text-ink-600">→</span>
-                {r.mine.toFixed(1)}
+                {formatDecimal(r.mine, locale, 1)}
               </span>
             </div>
             <svg

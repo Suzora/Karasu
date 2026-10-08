@@ -23,6 +23,7 @@ import { Markdown } from "@/components/social/Markdown";
 import { MediaStrip } from "@/components/media/MediaStrip";
 import { FavouriteButton } from "@/components/media/FavouriteButton";
 import { cn } from "@/lib/utils";
+import { personDate } from "@/lib/format";
 
 /** The three routes one Person component serves; they are the same page with different words. */
 type Kind = "character" | "staff" | "studio";
@@ -34,20 +35,6 @@ type PersonData = CharacterDetail | StaffDetail | StudioDetail;
 const isCharacter = (_d: PersonData, k: Kind): _d is CharacterDetail => k === "character";
 const isStaff = (_d: PersonData, k: Kind): _d is StaffDetail => k === "staff";
 const isStudio = (_d: PersonData, k: Kind): _d is StudioDetail => k === "studio";
-
-function useFuzzyDate() {
-  const { i18n } = useTranslation();
-  return (d: { year: number | null; month: number | null; day: number | null } | null) => {
-    if (!d?.year && !d?.month) return null;
-    // Month-and-day with no year is normal for a character's birthday, so the year is optional.
-    const parts = [d.day, d.month, d.year].filter((n): n is number => n != null);
-    if (!parts.length) return null;
-    if (d.year && d.month && d.day) {
-      return new Date(d.year, d.month - 1, d.day).toLocaleDateString(i18n.language);
-    }
-    return parts.join(".");
-  };
-}
 
 /** The three genders AniList offers as choices read translated; anything typed freely is shown as written. */
 function genderLabel(gender: string | null | undefined, t: (k: string) => string): string | null | undefined {
@@ -88,8 +75,7 @@ function Frame({ children }: { children: ReactNode }) {
 export default function Person({ kind }: { kind: Kind }) {
   const { id = "" } = useParams();
   const numericId = Number(id);
-  const { t } = useTranslation();
-  const fuzzy = useFuzzyDate();
+  const { t, i18n } = useTranslation();
 
   const q = useQuery<PersonData>({
     queryKey: ["person", kind, numericId],
@@ -197,7 +183,7 @@ export default function Person({ kind }: { kind: Kind }) {
             ) : null}
             {data.favourites != null && data.favourites > 0 && (
               <span className="flex items-center gap-1">
-                <Heart className="size-3.5" /> {data.favourites}
+                <Heart className="size-3.5" /> {data.favourites.toLocaleString(i18n.language)}
               </span>
             )}
             {data.siteUrl && (
@@ -225,7 +211,7 @@ export default function Person({ kind }: { kind: Kind }) {
               <Fact label={t("person.age")} value={ch?.age ?? st?.age} />
               <Fact
                 label={t("person.birthday")}
-                value={fuzzy(ch?.dateOfBirth ?? st?.dateOfBirth ?? null)}
+                value={personDate(ch?.dateOfBirth ?? st?.dateOfBirth ?? null, i18n.language)}
               />
               <Fact label={t("person.bloodType")} value={ch?.bloodType} />
               <Fact label={t("person.homeTown")} value={st?.homeTown} />
@@ -236,7 +222,7 @@ export default function Person({ kind }: { kind: Kind }) {
               />
               <Fact
                 label={t("person.died")}
-                value={fuzzy(st?.dateOfDeath ?? null)}
+                value={personDate(st?.dateOfDeath ?? null, i18n.language)}
               />
             </dl>
           )}

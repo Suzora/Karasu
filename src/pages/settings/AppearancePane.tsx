@@ -39,6 +39,7 @@ import {
   secondLine,
   type TitleLanguage,
 } from "@/lib/titleLanguage";
+import { formatDecimal } from "@/lib/format";
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 
 const shownTheme = () => `${document.documentElement.dataset.theme ?? ""} ${document.documentElement.dataset.contrast ?? ""}`;
@@ -80,8 +81,7 @@ export function AppearanceSection() {
   const surfaces = getComputedStyle(document.documentElement);
   const grounds = ["--color-surface-950", "--color-surface-900"].map((v) => surfaces.getPropertyValue(v).trim());
   // Rounded down, so a colour just short of the line never reads as reaching it.
-  const ratioText = (r: number) =>
-    new Intl.NumberFormat(i18n.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.floor(r * 10) / 10);
+  const ratioText = (r: number) => formatDecimal(Math.floor(r * 10) / 10, i18n.language, 1);
   const statusColors = useTheme((s) => s.statusColors);
   const setStatusColor = useTheme((s) => s.setStatusColor);
   const resetStatusColors = useTheme((s) => s.resetStatusColors);

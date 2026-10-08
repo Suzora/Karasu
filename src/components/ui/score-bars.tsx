@@ -23,7 +23,7 @@ export function ScoreBars({
   onChange: (score: number) => void;
   className?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const format = useScoreFormat();
   const options = scoreOptions(format);
 
@@ -62,7 +62,7 @@ export function ScoreBars({
       <div className="flex items-end gap-0.5">
         {options.map((n, i) => {
           const filled = value > 0 && n <= value;
-          const label = smiley ? formatScore(format, n) : String(n);
+          const label = smiley ? formatScore(format, n, i18n.language) : String(n);
           return (
             <button
               key={n}

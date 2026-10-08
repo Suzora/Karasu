@@ -69,9 +69,11 @@ export function ScoreColumns({
 export function StatusBar({
   title,
   data,
+  locale,
 }: {
   title: string;
   data: { label: string; count: number }[];
+  locale: string;
 }) {
   if (data.length === 0) return null;
   const total = data.reduce((sum, d) => sum + d.count, 0) || 1;
@@ -87,7 +89,7 @@ export function StatusBar({
           <span
             key={d.label}
             data-keep-colors
-            title={`${d.label}: ${d.count}`}
+            title={`${d.label}: ${d.count.toLocaleString(locale)}`}
             style={{
               width: `${(d.count / total) * 100}%`,
               background: tone[i % tone.length],
@@ -106,7 +108,7 @@ export function StatusBar({
                 style={{ background: tone[i % tone.length] }}
               />
               <span className="min-w-0 flex-1 truncate text-ink-500">{d.label}</span>
-              <span className="shrink-0 tabular-nums text-ink-300">{d.count}</span>
+              <span className="shrink-0 tabular-nums text-ink-300">{d.count.toLocaleString(locale)}</span>
             </div>
           ))}
         </div>
@@ -136,9 +138,11 @@ export function TileGrid({ tiles }: { tiles: { label: string; value: string }[] 
 export function DistributionCard({
   title,
   data,
+  locale,
 }: {
   title: string;
   data: { label: string; count: number }[];
+  locale: string;
 }) {
   if (data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.count), 1);
@@ -157,7 +161,7 @@ export function DistributionCard({
                 style={{ width: `${(d.count / max) * 100}%` }}
               />
             </div>
-            <span className="min-w-8 text-right tabular-nums text-ink-500">{d.count}</span>
+            <span className="min-w-8 text-right tabular-nums text-ink-500">{d.count.toLocaleString(locale)}</span>
           </Fragment>
         ))}
       </div>

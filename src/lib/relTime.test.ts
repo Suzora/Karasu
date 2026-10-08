@@ -42,6 +42,12 @@ describe("relTime", () => {
     expect(rel(NOW + 5 * MIN)).toBe("now");
   });
 
+  it("writes German's short units, which agree with each other and with the durations", () => {
+    expect(relTime(ago(3 * MIN), "de", "jetzt", NOW)).toBe("3 Min.");
+    expect(relTime(ago(5 * HOUR), "de", "jetzt", NOW)).toBe("5 Std.");
+    expect(relTime(ago(DAY), "de", "jetzt", NOW)).toBe("1 Tg.");
+  });
+
   it("formats the date in the requested language", () => {
     const old = ago(30 * DAY);
     expect(relTime(old, "de", "now", NOW)).toBe(new Date(old).toLocaleDateString("de"));

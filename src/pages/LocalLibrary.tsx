@@ -91,7 +91,7 @@ interface Row {
 }
 
 function LibraryView({ userId }: { userId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const entries = useLibrary((s) => s.entries);
   const refresh = useLibrary((s) => s.refresh);
   const loadEntries = useLibrary((s) => s.loadEntries);
@@ -443,7 +443,7 @@ function LibraryView({ userId }: { userId: number }) {
             <>
               <span className="shrink-0 text-2xs tabular-nums text-ink-600">
                 {t("library.filesMatched", {
-                  files: status.filesSeen.toLocaleString(),
+                  files: status.filesSeen.toLocaleString(i18n.language),
                   matched: status.matched,
                 })}
               </span>

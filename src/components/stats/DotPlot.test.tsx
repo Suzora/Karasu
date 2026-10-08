@@ -12,7 +12,7 @@ describe("DotPlot", () => {
 
   it("writes each row's pair as text, not only as geometry", () => {
     const markup = html(
-      <DotPlot title="t" rows={rows} legendMine="mine" legendOther="crowd" />,
+      <DotPlot locale="en" title="t" rows={rows} legendMine="mine" legendOther="crowd" />,
     );
     expect(markup).toContain("Hidden Gem");
     expect(markup).toContain("6.2");
@@ -23,7 +23,7 @@ describe("DotPlot", () => {
 
   it("keeps both dots on the theme's palette", () => {
     const markup = html(
-      <DotPlot title="t" rows={rows} legendMine="m" legendOther="c" />,
+      <DotPlot locale="en" title="t" rows={rows} legendMine="m" legendOther="c" />,
     );
     expect(markup).toContain("var(--color-accent-400)");
     expect(markup).toContain("var(--color-graph-none)");
@@ -31,6 +31,6 @@ describe("DotPlot", () => {
   });
 
   it("renders nothing for an empty list", () => {
-    expect(html(<DotPlot title="t" rows={[]} legendMine="m" legendOther="c" />)).toBe("");
+    expect(html(<DotPlot locale="en" title="t" rows={[]} legendMine="m" legendOther="c" />)).toBe("");
   });
 });

@@ -25,7 +25,7 @@ import { showToast } from "@/stores/toast";
 /** Mutations on one media list with optimistic cache updates; a status change moves the entry locally, no refetch. */
 export function useListMutations(userId: number, mediaType: MediaType) {
   const qc = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const key = ["mediaList", mediaType, userId];
 
   const findEntry = (data: ListResult | undefined, mediaId: number) =>
@@ -67,7 +67,7 @@ export function useListMutations(userId: number, mediaType: MediaType) {
         // Rendered, not raw: a smiley account should read "scored 🙂", not "scored 2"; local mode's cache holds POINT_10.
         return t("receipt.score", {
           title,
-          n: formatScore(currentScoreFormat(), head.value as number),
+          n: formatScore(currentScoreFormat(), head.value as number, i18n.language),
         });
       default:
         return t("receipt.saved", { title });

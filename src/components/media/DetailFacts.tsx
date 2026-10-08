@@ -10,7 +10,7 @@ import { Chip } from "@/components/ui/chip";
 
 /** Score, format, status, counts, duration, season and the main studios, in one wrapping line. */
 export function MetaLine({ data, studios, className }: { data: MediaDetail; studios: string[]; className?: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-ui text-ink-300", className)}>
       {data.averageScore !== null && (
@@ -22,17 +22,17 @@ export function MetaLine({ data, studios, className }: { data: MediaDetail; stud
       {data.status && <span>{mediaStatusLabel(data.status, t)}</span>}
       {data.episodes && (
         <span>
-          {data.episodes} {t("common.episodes")}
+          {data.episodes.toLocaleString(i18n.language)} {t("common.episodes")}
         </span>
       )}
       {data.chapters && (
         <span>
-          {data.chapters} {t("common.chapters")}
+          {data.chapters.toLocaleString(i18n.language)} {t("common.chapters")}
         </span>
       )}
       {data.volumes && (
         <span>
-          {data.volumes} {t("common.volumes")}
+          {data.volumes.toLocaleString(i18n.language)} {t("common.volumes")}
         </span>
       )}
       {data.duration && <span>{t("detail.minutes", { n: data.duration })}</span>}

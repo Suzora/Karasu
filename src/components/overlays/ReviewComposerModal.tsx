@@ -52,7 +52,7 @@ export function ReviewComposerModal({
   onClose: () => void;
   leaving?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [summary, setSummary] = useState(existing?.summary ?? "");
   const [body, setBody] = useState(existing?.body ?? "");
@@ -144,7 +144,7 @@ export function ReviewComposerModal({
                   bodyLen < REVIEW_BODY_MIN ? "text-ink-600" : "text-success",
                 )}
               >
-                {bodyLen.toLocaleString()} / {REVIEW_BODY_MIN.toLocaleString()}
+                {bodyLen.toLocaleString(i18n.language)} / {REVIEW_BODY_MIN.toLocaleString(i18n.language)}
               </span>
             }
           />

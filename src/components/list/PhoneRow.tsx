@@ -40,7 +40,7 @@ export const PhoneRow = memo(function PhoneRow({
   focused: boolean;
   onToggleSelect: (mediaId: number) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
   const { media } = entry;
   const thumbs = variant === "thumbs";
@@ -55,7 +55,7 @@ export const PhoneRow = memo(function PhoneRow({
     manga && (entry.progressVolumes || media.volumes)
       ? t("common.progressVolumes", { n: entry.progressVolumes ?? 0, total: media.volumes ?? "?" })
       : null,
-    entry.score > 0 ? `★ ${formatScore(scoreFormat, entry.score)}` : null,
+    entry.score > 0 ? `★ ${formatScore(scoreFormat, entry.score, i18n.language)}` : null,
     media.format ? formatLabel(media.format, t) : null,
     media.nextAiringEpisode
       ? t("list.nextEpisode", {
