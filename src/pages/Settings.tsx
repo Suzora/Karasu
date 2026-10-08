@@ -288,7 +288,7 @@ export default function Settings() {
 
   return (
     <div className="flex h-full min-h-0">
-      <nav className="flex w-48 shrink-0 flex-col gap-0.5 border-r border-hair p-3">
+      <nav aria-label={t("nav.settings")} className="flex w-48 shrink-0 flex-col gap-0.5 border-r border-hair p-3">
         <h1 className="px-2.5 pb-2 pt-1 text-2xs uppercase tracking-eyebrow text-ink-600">
           {t("settings.title")}
         </h1>

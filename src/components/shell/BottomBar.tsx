@@ -73,7 +73,7 @@ export default function BottomBar() {
             {/* The bell lives in the sheet, since an unlabeled icon in the nav row read as decoration; More carries its count. */}
             {isTauri && (
               <IconButton
-                aria-label={t("notif.title")}
+                aria-label={badge > 0 ? t("notif.titleUnread", { n: badge }) : t("notif.title")}
                 // More steps aside first; the notifications sheet waits for its back entry to unwind before pushing its own.
                 onClick={() => {
                   setMoreOpen(false);
@@ -81,7 +81,7 @@ export default function BottomBar() {
                 }}
               >
                 <BellIcon className="size-5" />
-                {badge > 0 && <Badge count={badge} max={9} floating className="animate-idle-pulse -right-0.5 -top-0.5" />}
+                {badge > 0 && <Badge aria-hidden="true" count={badge} max={9} floating className="animate-idle-pulse -right-0.5 -top-0.5" />}
               </IconButton>
             )}
             <IconButton aria-label={t("window.close")} onClick={() => setMoreOpen(false)}>
@@ -178,6 +178,7 @@ export default function BottomBar() {
           type="button"
           onClick={() => setMoreOpen((v) => !v)}
           aria-expanded={moreOpen}
+          aria-label={badge > 0 ? t("nav.moreUnread", { n: badge }) : t("nav.more")}
           // Keep the one exclusive ternary; `cn` runs tailwind-merge, which keeps only the last text-colour class.
           className={cn(
             slotClass,
@@ -191,7 +192,7 @@ export default function BottomBar() {
           <span className="relative">
             <LayoutGrid className="size-5" />
             {badge > 0 && (
-              <Badge count={badge} max={9} floating className="-right-2.5 -top-1.5" />
+              <Badge aria-hidden="true" count={badge} max={9} floating className="-right-2.5 -top-1.5" />
             )}
           </span>
           <span className="truncate">{t("nav.more")}</span>

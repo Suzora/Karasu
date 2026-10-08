@@ -27,6 +27,7 @@ const HOVER_CLOSE_MS = 220;
 export function Popover({
   label,
   variant,
+  side = "bottom",
   align = "start",
   width = 360,
   renderTrigger,
@@ -40,6 +41,8 @@ export function Popover({
 }: {
   label: string;
   variant: "dropdown" | "sheet";
+  /** Which side of the trigger the dropdown opens on; upward for a trigger at the foot of a column. */
+  side?: "top" | "bottom";
   align?: "start" | "end";
   /** The dropdown's width in px; the sheet always spans the screen. */
   width?: number;
@@ -206,7 +209,7 @@ export function Popover({
         <BasePopover.Portal>
           <BasePopover.Positioner
             anchor={anchorRef ?? triggerRef}
-            side="bottom"
+            side={side}
             align={align}
             sideOffset={8}
             collisionPadding={8}

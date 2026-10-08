@@ -242,6 +242,16 @@ export function NotifFeed({
     </Link>
   );
 
+  // The dot says it to the eye; the word says it to a reader, and a stretched row's label names it by id.
+  const unreadMark = (id?: string) => (
+    <>
+      <Badge aria-hidden="true" />
+      <span id={id} className="sr-only">
+        {t("notif.unreadMark")}
+      </span>
+    </>
+  );
+
   const renderLocal = (item: AppNotification) => {
     const Icon = KIND_ICON[item.kind] ?? BellIcon;
     return (
@@ -252,7 +262,7 @@ export function NotifFeed({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             <span className="truncate text-ui font-medium text-ink-100">{item.title}</span>
-            {!item.read && <Badge />}
+            {!item.read && unreadMark()}
           </span>
           <span className="mt-0.5 block text-xs text-ink-500">{item.body}</span>
           <span className="mt-0.5 block text-2xs text-ink-600">{rowTime(item.createdMs)}</span>
@@ -288,7 +298,7 @@ export function NotifFeed({
                 {row.title}
               </span>
             )}
-            {unread && <Badge />}
+            {unread && unreadMark(`${id}-unread`)}
           </span>
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {siteVerb(row, t)}
@@ -309,6 +319,7 @@ export function NotifFeed({
     if (profile) {
       const lines = [
         `${id}-lead`,
+        unread ? `${id}-unread` : null,
         `${id}-verb`,
         row.subject ? `${id}-subject` : null,
         row.detail ? `${id}-detail` : null,
@@ -365,7 +376,7 @@ export function NotifFeed({
               <span className="truncate text-ui font-medium text-ink-100">{lead}</span>
             )}
             <Badge tone="neutral" count={label.n} />
-            {g.unread && <Badge />}
+            {g.unread && unreadMark(`${id}-unread`)}
           </span>
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {groupVerb(label, t)}
@@ -390,7 +401,7 @@ export function NotifFeed({
         {actor ? (
           <LinkedRow
             unread={g.unread}
-            labelledBy={[`${id}-lead`, `${id}-verb`, subjects.length > 0 ? `${id}-subject` : null, `${id}-time`]
+            labelledBy={[`${id}-lead`, g.unread ? `${id}-unread` : null, `${id}-verb`, subjects.length > 0 ? `${id}-subject` : null, `${id}-time`]
               .filter(Boolean)
               .join(" ")}
             expanded={expanded}

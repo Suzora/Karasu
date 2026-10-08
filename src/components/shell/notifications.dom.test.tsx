@@ -123,6 +123,9 @@ afterEach(() => {
   signOut();
 });
 
+/** The bell by its name, which carries the unread count when there is one. */
+const BELL = /^notif\.title/;
+
 /** The bell in its three places: the titlebar's glance, the phone's tall sheet and the page they lead to. */
 describe("notifications", () => {
   it("glances at the newest three in the titlebar and leads to the page for the rest", async () => {
@@ -135,7 +138,7 @@ describe("notifications", () => {
         <Where />
       </>,
     );
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     const panel = await screen.findByRole("dialog", { name: "notif.title" });
     await waitFor(() => expect(within(panel).getAllByText(/^Local \d$/)).toHaveLength(3));
     expect(within(panel).getByText("Local 1")).toBeInTheDocument();
@@ -153,7 +156,7 @@ describe("notifications", () => {
     const { baseElement } = renderWithProviders(<BottomBar />);
     await user.click(screen.getByRole("button", { name: /nav\.more/ }));
     const more = await screen.findByRole("dialog", { name: "nav.more" });
-    await user.click(within(more).getByRole("button", { name: "notif.title" }));
+    await user.click(within(more).getByRole("button", { name: BELL }));
     const sheet = await screen.findByRole("dialog", { name: "notif.title" });
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "nav.more" })).toBeNull());
     // Today above earlier, each under its own label.
@@ -200,7 +203,7 @@ describe("notifications", () => {
     expect(await screen.findByText("Hoshi")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
     expect(await screen.findByText("Mikan")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     await screen.findByRole("dialog", { name: "notif.title" });
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "notif.title" })).toBeNull());
@@ -224,8 +227,10 @@ describe("notifications", () => {
       </>,
     );
     // The badge's count has to be known before the glance's first page spends it.
-    await waitFor(() => expect(screen.getByRole("button", { name: "notif.title" })).toHaveTextContent("1"));
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: BELL })).toHaveTextContent("1"));
+    // The count is in the name too, since the badge is drawn for the eye alone.
+    expect(screen.getByRole("button", { name: 'notif.titleUnread:{"n":1}' })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: BELL }));
     const panel = await screen.findByRole("dialog", { name: "notif.title" });
     const unreadClass = "bg-surface-850/60";
     expect((await within(panel).findByText("Hoshi")).closest("button")).toHaveClass(unreadClass);
@@ -252,7 +257,7 @@ describe("notifications", () => {
     await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
     expect(await screen.findByText("Mikan")).toBeInTheDocument();
     aMinuteLater();
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     await screen.findByRole("dialog", { name: "notif.title" });
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "notif.title" })).toBeNull());
@@ -267,12 +272,12 @@ describe("notifications", () => {
     signIn();
     data.site = [follow(7, "Hoshi")];
     renderWithProviders(<Bell />);
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     expect(await screen.findByText("Hoshi")).toBeInTheDocument();
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "notif.title" })).toBeNull());
     aMinuteLater();
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     await waitFor(() => expect(vi.mocked(siteNotifications)).toHaveBeenCalledTimes(2));
   });
 
@@ -290,8 +295,8 @@ describe("notifications", () => {
         </Routes>
       </>,
     );
-    await waitFor(() => expect(screen.getByRole("button", { name: "notif.title" })).toHaveTextContent("1"));
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: BELL })).toHaveTextContent("1"));
+    await user.click(screen.getByRole("button", { name: BELL }));
     const panel = await screen.findByRole("dialog", { name: "notif.title" });
     await within(panel).findByText("Hoshi");
     await user.click(within(panel).getByRole("button", { name: "notif.all" }));
@@ -299,7 +304,7 @@ describe("notifications", () => {
     const pageRow = () => within(page.closest("div.mx-auto") as HTMLElement).getByText("Hoshi").closest("button");
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "notif.title" })).toBeNull());
     aMinuteLater();
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     await screen.findByRole("dialog", { name: "notif.title" });
     expect(pageRow()).toHaveClass("bg-surface-850/60");
     expect(vi.mocked(siteNotifications)).toHaveBeenCalledTimes(1);
@@ -455,7 +460,7 @@ describe("notifications", () => {
     data.local = [local(1, HOUR)];
     vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
     renderWithProviders(<Bell />);
-    await user.click(screen.getByRole("button", { name: "notif.title" }));
+    await user.click(screen.getByRole("button", { name: BELL }));
     const panel = await screen.findByRole("dialog", { name: "notif.title" });
     expect(await within(panel).findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
     expect(within(panel).getByText("Local 1")).toBeInTheDocument();

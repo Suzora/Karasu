@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Loader } from "@/components/ui/loader";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CloudUpload, Hourglass, Trash2 } from "lucide-react";
+import { CloudUpload, Hourglass, Trash2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { displayTitle, type ListResult, type QueuedEdit } from "@/api/types";
 import { cn } from "@/lib/utils";
-import { backendErrorText } from "@/lib/backendError";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import {
   isQueueField,
@@ -16,8 +15,8 @@ import {
   type QueueField,
   type SyncPhase,
 } from "@/lib/syncQueue";
-import { usePresence } from "@/hooks/usePresence";
-import { useBackClose } from "@/hooks/useBackClose";
+import { Popover, type PopoverApi } from "@/components/ui/popover";
+import { ErrorState } from "@/components/EmptyState";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { useManualSync } from "@/hooks/useManualSync";
 import { Spinner } from "@/components/ui/spinner";
@@ -80,35 +79,39 @@ export default function SyncPanel({
   children: ReactNode;
   className?: string;
 }) {
+  const { t } = useTranslation();
+  return (
+    <Popover
+      label={t("syncPanel.title")}
+      variant="dropdown"
+      side="top"
+      align="start"
+      width={304}
+      panelClassName="p-0"
+      className={cn("flex", className)}
+      renderTrigger={(trigger) => (
+        <button
+          type="button"
+          {...trigger}
+          aria-label={label}
+          className="w-full rounded-control text-left transition-surface hover:bg-surface-850"
+        >
+          {children}
+        </button>
+      )}
+    >
+      {(api) => <SyncPanelBody api={api} />}
+    </Popover>
+  );
+}
+
+/** The panel's contents, mounted with the panel, so the status is read only while someone is looking at it. */
+function SyncPanelBody({ api }: { api: PopoverApi }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  useBackClose(open, () => setOpen(false));
-  const panel = usePresence(open);
-  const wrap = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const status = useSyncStatus(open);
+  const status = useSyncStatus(true);
   const manual = useManualSync();
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setOpen(false);
-      // Focus returns to the trigger on Escape only; after an outside click the user is already elsewhere.
-      trigger.current?.focus();
-    };
-    window.addEventListener("mousedown", onDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   // Titles come from the cached lists only, never a request; an unfetched list's row simply goes unlabelled.
   const entries = qc
@@ -123,8 +126,8 @@ export default function SyncPanel({
   const openEdit = (edit: QueuedEdit) => {
     const mediaId = queuedMediaId(edit, entries);
     if (mediaId == null) return;
-    setOpen(false);
-    navigate(`/media/${mediaId}`);
+    // After the panel's back entry has unwound, so Back from the title returns to the page and not to a dead step.
+    api.closeThen(() => navigate(`/media/${mediaId}`));
   };
 
   const row = (edit: QueuedEdit) => {
@@ -178,31 +181,9 @@ export default function SyncPanel({
     );
   };
 
-  return (
-    <div ref={wrap} className={cn("relative", className)}>
-      <button
-        ref={trigger}
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={label}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className="w-full rounded-control text-left transition-surface hover:bg-surface-900"
-      >
-        {children}
-      </button>
 
-      {panel.mounted && (
-        <div
-          role="dialog"
-          aria-label={t("syncPanel.title")}
-          // Owns the keyboard while up, exit included; not a focus trap, because trapping Tab in a popover is wrong.
-          data-overlay
-          className={cn(
-            "absolute bottom-full left-0 z-50 mb-1 w-76 origin-bottom-left overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
-            panel.leaving ? "animate-pop-out" : "animate-spring-in",
-          )}
-        >
+  return (
+    <>
           <div className="flex items-center justify-between border-b border-hair px-3 py-2">
             <span className="text-2xs font-semibold uppercase text-ink-600">
               {t("syncPanel.title")}
@@ -223,9 +204,7 @@ export default function SyncPanel({
 
           {/* A failed status read is a state to render, not a reason to show the reassuring empty one. */}
           {status.error != null ? (
-            <p className="px-3 py-4 text-xs text-danger">
-              {t("common.error", { message: backendErrorText(status.error, t) })}
-            </p>
+            <ErrorState inline error={status.error} onRetry={() => status.refetch()} className="px-3 py-4 text-xs" />
           ) : !data ? (
             <Loader size="sm" label={t("syncPanel.loading")} className="px-3 py-4" />
           ) : (
@@ -297,17 +276,20 @@ export default function SyncPanel({
                         key={r.seq}
                         className="flex items-baseline gap-2 px-3 py-1 text-2xs"
                       >
-                        <span
-                          aria-hidden
-                          className={cn(
-                            "size-1.25 shrink-0 rounded-full",
-                            r.outcome === "ok"
-                              ? "bg-success"
-                              : r.outcome === "throttled"
-                                ? "bg-gold"
-                                : "bg-danger",
-                          )}
-                        />
+                        {/* A healthy row keeps its quiet dot; a limited or failed one says so with a glyph and a word. */}
+                        {r.outcome === "ok" ? (
+                          <span aria-hidden className="size-1.25 shrink-0 self-center rounded-full bg-success" />
+                        ) : r.outcome === "throttled" ? (
+                          <span className="shrink-0 self-center text-gold">
+                            <Hourglass aria-hidden className="size-3.5" />
+                            <span className="sr-only">{t("syncPanel.outcomeLimited")}</span>
+                          </span>
+                        ) : (
+                          <span className="shrink-0 self-center text-danger">
+                            <TriangleAlert aria-hidden className="size-3.5" />
+                            <span className="sr-only">{t("syncPanel.outcomeFailed")}</span>
+                          </span>
+                        )}
                         <span className="min-w-0 flex-1 truncate text-ink-300">
                           {r.operation}
                         </span>
@@ -370,8 +352,6 @@ export default function SyncPanel({
               )}
             </>
           )}
-        </div>
-      )}
-    </div>
+    </>
   );
 }

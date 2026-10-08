@@ -59,15 +59,11 @@ describe("SyncPanel", () => {
     expect(status).toHaveBeenCalled();
   });
 
-  /** Proves `data-overlay` holds through the exit animation, so the list behind cannot act on the last frame. */
-  it("marks itself as an overlay and keeps doing so while it leaves", async () => {
+  /** The shared popover marks itself, so the list behind cannot act on a key meant for the panel. */
+  it("marks itself as an overlay while it is up", async () => {
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
-    await waitFor(() => expect(document.querySelector("[data-overlay]")).toBeInTheDocument());
-
-    fireEvent.keyDown(window, { key: "Escape" });
-    // Still mounted, still marked — `usePresence` holds the node for the exit.
-    expect(document.querySelector("[data-overlay]")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("dialog")).toHaveAttribute("data-overlay"));
   });
 
   it("returns focus to the trigger when Escape closes it", async () => {
@@ -76,8 +72,8 @@ describe("SyncPanel", () => {
     fireEvent.click(trigger);
     await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
 
-    fireEvent.keyDown(window, { key: "Escape" });
-    expect(document.activeElement).toBe(trigger);
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   /** Proves a failed read renders as one, since the empty state would call an unreadable queue "nothing waiting". */
@@ -165,6 +161,26 @@ describe("SyncPanel", () => {
     expect(screen.queryByText('syncPanel.paced:{"ms":0}')).toBeNull();
     // And the reading's age, which the panel computed and discarded before.
     expect(screen.getByText("syncPanel.measuredNow")).toBeInTheDocument();
+  });
+
+  /** A limited or failed request is said in words, since its colour alone tells a reader nothing. */
+  it("names a limited and a failed request beside the healthy dot", async () => {
+    const req = (seq: number, outcome: "ok" | "throttled" | "error") => ({
+      seq,
+      operation: `Op${seq}`,
+      startedAgoMs: 1_000,
+      durationMs: 100,
+      pacedMs: 0,
+      status: outcome === "ok" ? 200 : outcome === "throttled" ? 429 : 500,
+      remainingAfter: 20,
+      outcome,
+    });
+    status.mockResolvedValue({ ...IDLE, recent: [req(3, "error"), req(2, "throttled"), req(1, "ok")] });
+    renderWithProviders(panel());
+    fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
+    await waitFor(() => expect(screen.getByText("Op3")).toBeInTheDocument());
+    expect(screen.getByText("syncPanel.outcomeFailed")).toBeInTheDocument();
+    expect(screen.getByText("syncPanel.outcomeLimited")).toBeInTheDocument();
   });
 
   it("labels a queued row by what it changes", async () => {

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 250ae4e -->
+<!-- generated-through: 426445c -->
 
 ### Fixed
 
@@ -106,6 +106,7 @@ tag time is then optional rather than load-bearing.
 - Buttons that open another page are one Tab stop.
 - German copy uses one word per thing and counts properly.
 - Keyboard focus stays in the palette and lands on the new page.
+- The bell and the sync panel speak their counts, and the panel is a popover.
 
 ## 1.32.0 — 2026-10-03
 

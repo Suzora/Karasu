@@ -236,10 +236,11 @@ function Account({
 
   /** The line with the panel behind it, except in local mode, where a list that never syncs has nothing to explain. */
   const syncNode = local ? (
-    <span className="mt-1 block px-1">{line}</span>
+    <span className="mt-1 block pl-9.5">{line}</span>
   ) : (
-    <SyncPanel label={t("syncPanel.open")} className="mt-1">
-      <span className="block px-1 py-0.5">{line}</span>
+    // The same `-mx-1` box as the profile link above, and the dot under the name, where it sat as the lockup's line.
+    <SyncPanel label={t("syncPanel.open")} className="-mx-1 mt-1">
+      <span className="block py-0.5 pl-10.5 pr-1">{line}</span>
     </SyncPanel>
   );
 
@@ -261,7 +262,7 @@ function Account({
             <NavLink
               to={`/user/${encodeURIComponent(viewer.name)}`}
               aria-label={name}
-              className="rounded-control transition-surface hover:bg-surface-900"
+              className="rounded-control transition-surface hover:bg-surface-850"
             >
               {body}
             </NavLink>
@@ -308,7 +309,7 @@ function Account({
       {viewer ? (
         <NavLink
           to={`/user/${encodeURIComponent(viewer.name)}`}
-          className="-mx-1 block rounded-control px-1 py-0.5 transition-surface hover:bg-surface-900"
+          className="-mx-1 block rounded-control px-1 py-0.5 transition-surface hover:bg-surface-850"
         >
           {lockup}
         </NavLink>
@@ -360,6 +361,7 @@ export default function Sidebar() {
     <TooltipProvider>
     <nav
       ref={navRef}
+      aria-label={t("nav.primary")}
       className={cn(
         "relative flex shrink-0 flex-col border-r border-hair bg-surface-900 pb-2.5 pt-3",
         // Surface motion: the plain utility inherits `--ease-karasu` and the reduce-motion rules kill it for free.

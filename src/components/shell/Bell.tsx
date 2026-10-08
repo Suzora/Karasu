@@ -41,14 +41,14 @@ export default function Bell() {
         <button
           type="button"
           {...trigger}
-          aria-label={t("notif.title")}
+          aria-label={badge > 0 ? t("notif.titleUnread", { n: badge }) : t("notif.title")}
           title={t("notif.title")}
           className="relative grid h-9 w-11 place-items-center text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100 aria-expanded:bg-surface-850 aria-expanded:text-ink-100 focus-inset"
         >
           <BellIcon className="size-4" />
           {badge > 0 && (
             // The floating ring keeps the badge and the bell glyph apart at this size; the pulse stops once read.
-            <Badge count={badge} max={9} floating className="animate-idle-pulse right-1.5 top-1.5" />
+            <Badge aria-hidden="true" count={badge} max={9} floating className="animate-idle-pulse right-1.5 top-1.5" />
           )}
         </button>
       )}
