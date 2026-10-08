@@ -84,7 +84,8 @@ function summarizeVitest(out) {
   const tail = lines(out)
     .map(strip)
     .filter((l) => /^(Test Files|Tests|Duration)\s/.test(l))
-    .map((l) => l.replace(/\s+/g, " ").replace(/ \(transform.*$/, ""));
+    .map((l) => l.replace(/\s+/g, " "))
+    .map((l) => (l.startsWith("Duration") ? l.replace(/ \(.*$/, "") : l));
   return tail.join(" · ") || "(no summary line found)";
 }
 

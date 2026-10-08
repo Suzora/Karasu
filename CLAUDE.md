@@ -1076,7 +1076,7 @@ intent: prefer one good line.
 **Two vitest projects, and the filename picks one.** Everything runs in **node**
 by default; only `*.dom.test.tsx` boots jsdom and Testing Library, via the
 `projects` block in `vite.config.ts`. That split is what keeps the suite fast
-(~1,900 tests in about ten seconds), and it is a *name* rather than an inference on purpose:
+(~1,900 tests in under eight seconds), and it is a *name* rather than an inference on purpose:
 `components/stats/Charts.test.tsx` renders with `renderToStaticMarkup` and needs
 no DOM, so an extension rule (`.tsx` ⇒ jsdom) dragged it into one and the suite
 went from 2.0 s to **14.1 s**. Needing a DOM is a decision, so it is spelled out
@@ -1100,11 +1100,17 @@ lever. A hover, tooltip or timer a test waits for goes on a fake clock
 (`vi.useFakeTimers({ shouldAdvanceTime: true })`, then
 `vi.advanceTimersByTimeAsync`) rather than a real sleep — `StatusMenu.dom`
 went from 4.7 to 2.4 s that way — and each one was shown to fail when the
-behaviour it guards was broken. Two things were measured that day and left
-alone: `vitest-axe` costs the whole suite about 0.8 s, not worth moving nine
-components' own a11y checks away from the states they build, and
-`experimental.fsModuleCache` saved 0.6 s on a warm run and cost 1.1 s cold,
-which is every CI run. Outside GitHub Actions the config names no reporter,
+behaviour it guards was broken. `vitest-axe` costs the whole suite about
+0.8 s, measured the same day and left alone: not worth moving nine
+components' own a11y checks away from the states they build. **Vitest 5**
+(5.0.3, the same day, no test needing a change) took the suite from 9.8 to
+7.5 s with coverage unchanged (72.56 against 72.55 % of statements); the dom
+project alone is 6.4 s on VM threads against 19.2 s on plain threads. Its
+`clearMocks` is on by default, so every test starts with its mocks' calls
+cleared, and `vi.mock` must sit at the top level of a file. Transforms are
+kept between local runs (`fsModuleCache`, under `node_modules/.vitest-cache`):
+a warm run 7.0 s against 7.5 s, a cold one 9.0 s, which is why CI, cold every
+time, leaves it off. Outside GitHub Actions the config names no reporter,
 so an agent's own `npx vitest run` gets Vitest's failures-only `agent`
 reporter; `verify.mjs` asks for `default` because it parses that. `npm run
 test:changed` (and `vitest related`) follow imports only, so the tests that

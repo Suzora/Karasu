@@ -44,6 +44,8 @@ export default defineConfig(async ({ command, mode }) => ({
     ...(process.env.GITHUB_ACTIONS ? { reporters: ["default", "github-actions"] } : {}),
     // Reported in the summary, so a test that starts leaning on timers or the network shows up before it hurts.
     slowTestThreshold: 300,
+    // Transformed modules kept between local runs; CI starts cold every time, where filling the cache only costs.
+    fsModuleCache: !process.env.CI,
     // `npm run test:coverage`: four lines on the terminal, the per-file map under coverage/ for a browser.
     coverage: {
       provider: "v8",
