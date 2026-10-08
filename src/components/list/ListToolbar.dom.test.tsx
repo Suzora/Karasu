@@ -131,12 +131,12 @@ describe("ListToolbar", () => {
 
   it("hints the shortcut only on an empty field with a keyboard to press it on", () => {
     const { rerender } = render(<Probe />);
-    expect(screen.getByText("Ctrl F")).toBeInTheDocument();
+    expect(screen.getByText("keys.capCtrl F")).toBeInTheDocument();
     expect(screen.getByRole("searchbox")).toHaveAttribute("aria-keyshortcuts", "Control+F");
     rerender(<Probe query="x" />);
-    expect(screen.queryByText("Ctrl F")).toBeNull();
+    expect(screen.queryByText("keys.capCtrl F")).toBeNull();
     rerender(<Probe touch />);
-    expect(screen.queryByText("Ctrl F")).toBeNull();
+    expect(screen.queryByText("keys.capCtrl F")).toBeNull();
     expect(screen.getByRole("searchbox")).not.toHaveAttribute("aria-keyshortcuts");
   });
 

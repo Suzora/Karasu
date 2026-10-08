@@ -47,6 +47,8 @@ import {
   wrapSelection,
   type TextEdit,
 } from "@/lib/composer";
+import { shortcutKeys, type ShortcutId } from "@/lib/shortcuts";
+import { useShortcutLabels } from "@/components/shell/shortcutLabels";
 
 /** The shared markdown composer textarea; `execCommand` makes an edit one undo step, and Ctrl+K stays the palette's. */
 
@@ -97,6 +99,7 @@ export function MarkdownTextarea({
   textareaClassName,
 }: MarkdownTextareaProps) {
   const { t } = useTranslation();
+  const keyLabels = useShortcutLabels();
   const ref = useRef<HTMLTextAreaElement>(null);
   const pending = useRef<{ start: number; end: number } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -148,12 +151,15 @@ export function MarkdownTextarea({
     return (text, s, e) => wrapSelection(text, s, e, before, after);
   };
 
+  // The keys come from the shortcut table, in the reader's words, so a tooltip never names a binding that is not wired.
+  const combo = (id: ShortcutId) => keyLabels.caps(shortcutKeys(id)).join("+");
+
   // Literal `t("…")` per button, where `i18nKeys.test.ts` can see them.
   const tools: { key: string; label: string; shortcut?: string; icon: LucideIcon; edit: Edit; compact: boolean }[] = [
-    { key: "bold", label: t("composer.bold"), shortcut: "Ctrl+B", icon: Bold, edit: mark("bold"), compact: true },
-    { key: "italic", label: t("composer.italic"), shortcut: "Ctrl+I", icon: Italic, edit: mark("italic"), compact: true },
-    { key: "strike", label: t("composer.strike"), shortcut: "Ctrl+Shift+X", icon: Strikethrough, edit: mark("strike"), compact: true },
-    { key: "spoiler", label: t("composer.spoiler"), shortcut: "Ctrl+Shift+S", icon: EyeClosed, edit: mark("spoiler"), compact: true },
+    { key: "bold", label: t("composer.bold"), shortcut: combo("bold"), icon: Bold, edit: mark("bold"), compact: true },
+    { key: "italic", label: t("composer.italic"), shortcut: combo("italic"), icon: Italic, edit: mark("italic"), compact: true },
+    { key: "strike", label: t("composer.strike"), shortcut: combo("strike"), icon: Strikethrough, edit: mark("strike"), compact: true },
+    { key: "spoiler", label: t("composer.spoiler"), shortcut: combo("spoiler"), icon: EyeClosed, edit: mark("spoiler"), compact: true },
     { key: "heading", label: t("composer.heading"), icon: Heading, edit: cycleHeading, compact: false },
     { key: "quote", label: t("composer.quote"), icon: TextQuote, edit: (x, s, e) => prefixLines(x, s, e, "quote"), compact: false },
     { key: "bullets", label: t("composer.bullets"), icon: List, edit: (x, s, e) => prefixLines(x, s, e, "bullet"), compact: false },

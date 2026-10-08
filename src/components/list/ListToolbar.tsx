@@ -45,6 +45,9 @@ import {
 import type { Preset } from "@/lib/presets";
 import type { ViewMode } from "@/lib/viewMode";
 import { cn } from "@/lib/utils";
+import { Kbd } from "@/components/ui/kbd";
+import { shortcutKeys } from "@/lib/shortcuts";
+import { useShortcutLabels } from "@/components/shell/shortcutLabels";
 
 /** Past this many tags the pills get a search field, since a wall of them is read by nobody. */
 const TAG_SEARCH_MIN = 12;
@@ -304,6 +307,7 @@ function SearchBox({
   className?: string;
 }) {
   const { t } = useTranslation();
+  const keys = useShortcutLabels();
   return (
     <SearchField
       value={value}
@@ -324,9 +328,9 @@ function SearchBox({
             </span>
           )}
           {!value && hint && (
-            <kbd aria-hidden className="shrink-0 rounded-inner border border-surface-700 px-1.5 py-px font-sans text-2xs text-ink-600">
-              Ctrl F
-            </kbd>
+            <span aria-hidden className="flex shrink-0">
+              <Kbd quiet>{keys.caps(shortcutKeys("findInList")).join(" ")}</Kbd>
+            </span>
           )}
         </>
       }

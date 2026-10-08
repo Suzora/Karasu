@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 426445c -->
+<!-- generated-through: 7414bfd -->
 
 ### Fixed
 
@@ -107,6 +107,7 @@ tag time is then optional rather than load-bearing.
 - German copy uses one word per thing and counts properly.
 - Keyboard focus stays in the palette and lands on the new page.
 - The bell and the sync panel speak their counts, and the panel is a popover.
+- The list search and the composer name their keys the way your keyboard does.
 
 ## 1.32.0 — 2026-10-03
 
