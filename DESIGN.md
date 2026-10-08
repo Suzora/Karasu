@@ -809,3 +809,8 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   page's h1 (C of three mockups, over A, the back button on its own line
   above a heading, and B, the back button and the heading without the
   glyph). Before, an open pane never named itself.
+- **2026-10-08:** The content filter is a Segmented control of its three
+  levels with the chosen level's meaning under it (A of three mockups,
+  over B, three radio rows each with its own hint, and C, a Select in a
+  settings row). The slider and the three text buttons beside it, which
+  said the same thing twice and named nothing to a reader, are gone.

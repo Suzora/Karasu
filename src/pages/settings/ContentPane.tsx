@@ -2,10 +2,11 @@ import { useTranslation } from "react-i18next";
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
-import { CONTENT_FILTER_LEVELS } from "@/lib/contentFilter";
+import { CONTENT_FILTER_LEVELS, type ContentFilterLevel } from "@/lib/contentFilter";
+import { Segmented } from "@/components/ui/segmented";
 import { landingClass, Toggle } from "./shared";
 import { backendErrorText } from "@/lib/backendError";
-/** A three-stop slider rather than a toggle: hiding adult and hiding suggestive are different asks. */
+/** Three levels in one control, not a switch: hiding adult and hiding suggestive are different asks. */
 export function ContentSection() {
   const { t } = useTranslation();
   const level = useContentFilter((s) => s.level);
@@ -14,48 +15,22 @@ export function ContentSection() {
   const error = useContentFilter((s) => s.error);
   const blurAdult = useContentFilter((s) => s.blurAdult);
   const setBlurAdult = useContentFilter((s) => s.setBlurAdult);
-  const index = CONTENT_FILTER_LEVELS.indexOf(level);
 
   return (
     <Card>
       <CardTitle>{t("settings.content")}</CardTitle>
       {ready && (
         <div data-setting="contentFilter" className={cn("mt-4 space-y-3", landingClass)}>
-          <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={index < 0 ? 2 : index}
-            onChange={(e) =>
-              setLevel(CONTENT_FILTER_LEVELS[Number(e.target.value)])
-            }
+          <Segmented
             aria-label={t("settings.contentFilter")}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface-700 accent-accent-500"
+            segments={CONTENT_FILTER_LEVELS.map((l) => ({ value: l, label: levelLabel(l, t) }))}
+            value={level}
+            onChange={setLevel}
           />
-          <div className="flex justify-between text-xs">
-            {CONTENT_FILTER_LEVELS.map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => setLevel(l)}
-                className={cn(
-                  "transition-surface",
-                  l === level
-                    ? "font-semibold text-accent-400"
-                    : "text-ink-600 hover:text-ink-300",
-                )}
-              >
-                {t(`settings.contentLevel_${l}`)}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-ink-500">
-            {t(`settings.contentHint_${level}`)}
-          </p>
+          {/* The chosen level's meaning under the control, so the choice and its effect are read together. */}
+          <p className="text-xs text-ink-500">{levelHint(level, t)}</p>
           <p className="text-xs text-ink-600">{t("settings.contentNote")}</p>
-          {/* Separate from the slider on purpose: the slider decides what is
-              shown at all, this decides how it arrives. See `shouldBlur`. */}
+          {/* Apart from the levels on purpose: they decide what is shown at all, this how it arrives (`shouldBlur`). */}
           <div className="border-t border-hair pt-3">
             <Toggle
               checked={blurAdult}
@@ -64,8 +39,7 @@ export function ContentSection() {
               hint={t("settings.blurAdultHint")}
             />
           </div>
-          {/* The slider reverts on a failed save, so without this the control
-              would simply snap back with no explanation. */}
+          {/* A failed save puts the level back, so without this the control would snap back unexplained. */}
           {error && (
             <p className="text-xs text-danger">
               {t("settings.contentSaveFailed", { message: backendErrorText(error, t) })}
@@ -75,4 +49,27 @@ export function ContentSection() {
       )}
     </Card>
   );
+}
+
+/** A literal key per level, so the key test sees each one. */
+function levelLabel(level: ContentFilterLevel, t: (key: string) => string): string {
+  switch (level) {
+    case "off":
+      return t("settings.contentLevel_off");
+    case "moderate":
+      return t("settings.contentLevel_moderate");
+    case "strict":
+      return t("settings.contentLevel_strict");
+  }
+}
+
+function levelHint(level: ContentFilterLevel, t: (key: string) => string): string {
+  switch (level) {
+    case "off":
+      return t("settings.contentHint_off");
+    case "moderate":
+      return t("settings.contentHint_moderate");
+    case "strict":
+      return t("settings.contentHint_strict");
+  }
 }
