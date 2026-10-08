@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0b52cd7 -->
+<!-- generated-through: c0df834 -->
 
 ### Fixed
 
@@ -119,6 +119,7 @@ tag time is then optional rather than load-bearing.
 - Social controls get names and finger-sized targets.
 - Statistics: real format names, readable charts, one title size.
 - Overview, calendar, library, person page and Wrapped.
+- The profile's lists filter fits one row on the phone.
 
 ## 1.32.0 — 2026-10-03
 

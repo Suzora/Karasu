@@ -819,3 +819,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   over B, three radio rows each with its own hint, and C, a Select in a
   settings row). The slider and the three text buttons beside it, which
   said the same thing twice and named nothing to a reader, are gone.
+- **2026-10-08:** A profile's Lists tab filters with the Anime and Manga
+  pills and, at the row's end, one Select of the six statuses, each option
+  carrying its count ("Schaue (14)") (C of three mockups, over A, the pills
+  and the statuses in one row that scrolls sideways, and B, a Segmented
+  control for the type over a scrolling row of statuses). The filter is one
+  row at every width; before, the phone wrapped it to three.

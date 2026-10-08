@@ -18,9 +18,9 @@ import { useAuth, useScoreFormat } from "@/stores/auth";
 import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { Pill } from "@/components/ui/pill";
+import { Select } from "@/components/ui/select";
 import { Shimmer } from "@/components/Skeleton";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
-import { statusColorVar } from "@/lib/statusColors";
 
 /** Another user's list, read-only through `CoverCell` rather than `GridCard`, with scores in the owner's format. */
 export function UserLists({ user }: { user: UserProfile }) {
@@ -90,21 +90,25 @@ export function UserLists({ user }: { user: UserProfile }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* One row at any width: the six statuses fold into a select that carries their counts. */}
+      <div className="flex items-center gap-1.5">
         {(["ANIME", "MANGA"] as const).map((tp) => (
           <Pill key={tp} active={type === tp} onClick={() => setType(tp)}>
             {tp === "ANIME" ? t("common.anime") : t("common.manga")}
           </Pill>
         ))}
-        <span className="mx-1 h-4 w-px bg-surface-700" />
-        {STATUS_ORDER.map((s) => (
-          <Pill key={s} active={status === s} tint={statusColorVar(s)} onClick={() => setStatus(s)}>
-            {t(`status.${type}.${s}`)}
-            <span className="ml-1 tabular-nums text-ink-600">
-              {byStatus.get(s)?.length ?? 0}
-            </span>
-          </Pill>
-        ))}
+        <Select
+          aria-label={t("common.status")}
+          value={status}
+          onChange={(e) => setStatus(e.target.value as MediaListStatus)}
+          className="ml-auto min-w-0"
+        >
+          {STATUS_ORDER.map((s) => (
+            <option key={s} value={s}>
+              {`${t(`status.${type}.${s}`)} (${(byStatus.get(s)?.length ?? 0).toLocaleString(i18n.language)})`}
+            </option>
+          ))}
+        </Select>
       </div>
 
       {match && match.shared > 0 && (

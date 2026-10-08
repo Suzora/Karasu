@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ForeignListGroup, UserProfile } from "@/api/social";
 import type { ListResult } from "@/api/types";
 import { entry, listResult, media } from "@/test/fixtures";
@@ -94,5 +95,25 @@ describe("UserLists affinity strip", () => {
     expect(await screen.findByText("Show 0")).toBeInTheDocument();
     expect(fetchMine).not.toHaveBeenCalled();
     expect(screen.queryByText(/^social\.affinity/)).toBeNull();
+  });
+});
+
+describe("UserLists status filter", () => {
+  it("names every status with its count in one select, and switching it shows that status", async () => {
+    const user = userEvent.setup({ delay: null });
+    const viewer = signIn();
+    theirs.mockResolvedValue(foreign());
+
+    renderWithProviders(<UserLists user={{ ...them, id: viewer.id }} />);
+
+    expect(await screen.findByText("Show 0")).toBeInTheDocument();
+    const select = screen.getByRole("combobox", { name: "common.status" });
+    expect(screen.getByRole("option", { name: "status.ANIME.CURRENT (10)" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "status.ANIME.COMPLETED (0)" })).toBeInTheDocument();
+
+    await user.selectOptions(select, "COMPLETED");
+
+    expect(screen.queryByText("Show 0")).toBeNull();
+    expect(screen.getByText("social.listsEmpty")).toBeInTheDocument();
   });
 });
