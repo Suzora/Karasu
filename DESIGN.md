@@ -803,3 +803,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   a two-column grid, and B, a wrapping row of pills with dots). The German
   names ("Abgeschlossen", "Abgebrochen") read whole instead of cut at the
   tile's edge.
+- **2026-10-08:** An open settings pane on the phone heads itself with one
+  row: an icon back button named "Einstellungen", the pane's tinted glyph
+  circle from the list (red for Erweitert) and the pane's name as the
+  page's h1 (C of three mockups, over A, the back button on its own line
+  above a heading, and B, the back button and the heading without the
+  glyph). Before, an open pane never named itself.

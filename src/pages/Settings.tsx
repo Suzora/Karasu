@@ -46,11 +46,11 @@ import { DangerNote, GroupLabel } from "./settings/shared";
 import { useAuth } from "@/stores/auth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { isAndroid, usePlatform } from "@/stores/platform";
-import { Button } from "@/components/ui/button";
 import { CardHeadingLevel } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { useSettingLanding } from "@/hooks/useSettingLanding";
 import { afterBackSettles } from "@/hooks/useBackClose";
+import { IconButton } from "@/components/ui/icon-button";
 
 /** The panes, keyed by URL parameter so deep links land; keep the ids, since renaming one breaks every deep link. */
 const PANES = [
@@ -276,13 +276,30 @@ export default function Settings() {
         </div>
       );
     }
+    const open = panes.find((p) => p.id === active)!;
+    const OpenIcon = open.icon;
+    const openDanger = "danger" in open && open.danger;
     return (
       <div key={active} className="animate-settle">
         <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-          <Button variant="ghost" size="sm" className="self-start" onClick={() => setParams({})}>
-            <ChevronLeft className="size-4" />
-            {t("settings.title")}
-          </Button>
+          {/* Back, the pane's glyph and its name in one row, so an open pane always says which one it is. */}
+          <div className="flex min-w-0 items-center gap-2">
+            <IconButton aria-label={t("settings.title")} onClick={() => setParams({})}>
+              <ChevronLeft className="size-5" />
+            </IconButton>
+            <span
+              aria-hidden
+              className={cn(
+                "grid size-9 shrink-0 place-items-center rounded-full border tint-fill",
+                openDanger ? "tint-danger text-danger" : "tint-accent text-accent-400",
+              )}
+            >
+              <OpenIcon className="size-4" />
+            </span>
+            <h1 className={cn("min-w-0 truncate pl-1 text-title", openDanger && "text-danger")}>
+              {t(`settings.pane_${open.id}`)}
+            </h1>
+          </div>
           {rendered}
         </div>
       </div>

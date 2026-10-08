@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 21dc81c -->
+<!-- generated-through: 6131201 -->
 
 ### Fixed
 
@@ -114,6 +114,7 @@ tag time is then optional rather than load-bearing.
 - The detail page, its editors and dialogs.
 - The quick editor's status tiles show the whole German name.
 - Settings: fields you can retype, rows that don't misfire, controls with names.
+- An open settings pane on the phone says which pane it is.
 
 ## 1.32.0 — 2026-10-03
 
