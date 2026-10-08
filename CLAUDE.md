@@ -952,7 +952,8 @@ drops the old Linux files until the next green build. An image that cannot be
 pulled or installed into is a warning, not a failure, and installing has one
 budget per image across every attempt (`-InstallSeconds`, three minutes), so a
 crawling mirror ends in that warning instead of the step's twelve-minute
-timeout. Measured on 2026-10-07: a plain `ubuntu:26.04` took 189 s for
+timeout; each `docker pull` attempt is bounded the same way (`-PullSeconds`,
+two and a half minutes, two attempts), the one stage that had no deadline. Measured on 2026-10-07: a plain `ubuntu:26.04` took 189 s for
 `apt-get update` and 358 s for the install, two PR runs timed out before the
 AppImage ever started while Fedora passed in under two minutes, and a normal
 install takes well under one. The script ends in an explicit `exit 0`:

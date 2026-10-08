@@ -4,6 +4,7 @@ param(
     [string[]]$Images = @("registry.fedoraproject.org/fedora:44", "mirror.gcr.io/library/ubuntu:26.04"),
     [int]$Seconds = 25,
     [int]$InstallSeconds = 180,  # per image across every attempt, so a crawling mirror warns instead of timing the step out
+    [int]$PullSeconds = 150,  # per pull attempt, so a registry that stops answering warns instead of timing the step out
     [string[]]$DockerArgs = @()
 )
 
@@ -27,7 +28,7 @@ if (-not $appimage) {
 $payload = @'
 set -u
 end=$(( $(date +%s) + INSTALL_SECONDS ))
-until timeout $(( end - $(date +%s) )) sh -c "$INSTALL" > /tmp/install.log 2>&1; do
+until timeout -k 10 $(( end - $(date +%s) )) sh -c "$INSTALL" > /tmp/install.log 2>&1; do
   [ $(( end - $(date +%s) )) -gt 20 ] || { tail -20 /tmp/install.log; exit 100; }; sleep 10
 done
 cd /tmp && unsquashfs -n -d squashfs-root -o "$(/appimage/"$APPIMAGE_NAME" --appimage-offset)" /appimage/"$APPIMAGE_NAME" > /dev/null || exit 1
@@ -80,11 +81,11 @@ foreach ($image in $Images) {
         "-e", "INSTALL_SECONDS=$InstallSeconds",
         $image, "bash", "-c", $payload
     )
-    # An image already present is used as it is; otherwise a failed pull is retried once and then only warned about.
+    # An image already present is used as it is; otherwise a failed or stalled pull is retried once, then only warned about.
     & docker image inspect $image *> $null
     if ($LASTEXITCODE -ne 0) {
-        & docker pull -q $image | Out-Null
-        if ($LASTEXITCODE -ne 0) { Start-Sleep 15; & docker pull -q $image | Out-Null }
+        & timeout -k 10 $PullSeconds docker pull -q $image | Out-Null
+        if ($LASTEXITCODE -ne 0) { Start-Sleep 15; & timeout -k 10 $PullSeconds docker pull -q $image | Out-Null }
     }
     if ($LASTEXITCODE -ne 0) {
         Write-Host "::warning::could not pull $image; the AppImage was not smoke-tested there"
