@@ -121,7 +121,7 @@ export function ReviewComposerModal({
           label={t("review.summaryLabel")}
           htmlFor="review-summary"
           error={
-            summary.length > 0 && (check.reason === "summaryTooShort" || check.reason === "summaryTooLong")
+            (summary.length > 0 || bodyLen > 0) && (check.reason === "summaryTooShort" || check.reason === "summaryTooLong")
               ? reasonText(check.reason, t, bodyLen)
               : undefined
           }

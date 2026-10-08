@@ -60,7 +60,7 @@ export function StatusMenu({
       if (res.queued) showToast({ kind: "info", text: t("receipt.queued"), detail: title });
     },
     onError: () =>
-      showToast({ kind: "error", text: t("receipt.failed", { title }), detail: t("receipt.failedDetail") }),
+      showToast({ kind: "error", text: t("receipt.failed"), detail: `${title} · ${t("receipt.failedDetail")}` }),
   });
 
   const write = (patch: EntryPatch) => {

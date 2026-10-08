@@ -14,6 +14,9 @@ function fakeHistory() {
     back() {
       if (idx > 0) idx--;
     },
+    go(delta) {
+      idx = Math.max(0, idx + delta);
+    },
     get state() {
       return entries[idx];
     },
@@ -187,5 +190,52 @@ describe("createBackStack", () => {
     release();
     stack.onPopState();
     expect(order).toEqual([1, 2]);
+  });
+
+  /** A dialog that closes its opener and then itself, as a confirm over an editor does, must still net zero. */
+  it("unwinds an entry released beneath another together with it", () => {
+    const { h, index } = fakeHistory();
+    const stack = createBackStack(h);
+    const releaseEditor = stack.register(vi.fn());
+    const releaseConfirm = stack.register(vi.fn());
+    expect(index()).toBe(2);
+
+    releaseEditor(); // the editor starts closing while the confirm is still up
+    expect(index()).toBe(2);
+    releaseConfirm();
+    expect(index()).toBe(0);
+    expect(stack.onPopState()).toBe("swallowed");
+    expect(stack.onPopState()).toBe("passthrough");
+  });
+
+  it("takes a buried entry along when the back gesture closes the one above it", () => {
+    const { h, index } = fakeHistory();
+    const stack = createBackStack(h);
+    const editorClose = vi.fn();
+    const confirmClose = vi.fn();
+    const releaseEditor = stack.register(editorClose);
+    stack.register(confirmClose);
+    releaseEditor();
+
+    h.back(); // the user's gesture over the confirm
+    expect(stack.onPopState()).toBe("closed");
+    expect(confirmClose).toHaveBeenCalledTimes(1);
+    expect(index()).toBe(0);
+    expect(stack.onPopState()).toBe("swallowed");
+    let ran = false;
+    stack.whenSettled(() => (ran = true));
+    expect(ran).toBe(true);
+  });
+
+  /** Nothing above it is open, so a release whose entry is not current has nothing to wait for. */
+  it("drops an entry that is no longer current with nothing above it", () => {
+    const { h } = fakeHistory();
+    const stack = createBackStack(h);
+    const release = stack.register(vi.fn());
+    h.pushState({ route: "/elsewhere" }, "");
+    release();
+    let ran = false;
+    stack.whenSettled(() => (ran = true));
+    expect(ran).toBe(true);
   });
 });

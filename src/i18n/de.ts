@@ -1006,7 +1006,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     status: "Nach {{status}} verschoben",
     score: "Mit {{n}} bewertet",
     undo: "Rückgängig",
-    failed: "Nicht gespeichert: {{title}}",
+    failed: "Nicht gespeichert",
     queued: "Gespeichert — wird synchronisiert",
     failedDetail: "In der Warteschlange — Karasu versucht es erneut.",
     syncBusy: "Eine Synchronisierung läuft bereits. Bitte gleich erneut versuchen.",

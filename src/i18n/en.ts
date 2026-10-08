@@ -1003,7 +1003,7 @@ export const en = {
     status: "Moved to {{status}}",
     score: "Scored {{n}}",
     undo: "Undo",
-    failed: "Not saved: {{title}}",
+    failed: "Not saved",
     queued: "Saved — will sync",
     failedDetail: "Queued — Karasu will retry.",
     syncBusy: "A sync is already running. Try again in a moment.",
@@ -1052,7 +1052,7 @@ export const en = {
     },
     run: "Merge now",
     later: "Not now",
-    laterHint: "With Later, Karasu offers the merge again at the next start.",
+    laterHint: "Choose Not now, and Karasu offers the merge again at the next start.",
     progress: "Merging {{done}} / {{total}} …",
     done: "Merge complete ({{count}} entries).",
     doneQueued:

@@ -256,6 +256,7 @@ export default function EntryEditModal({
   );
 
   return (
+    <>
     <Modal title={displayTitle(media.title)} onClose={onClose} leaving={leaving} footer={footer}>
       <div className="space-y-4">
         {/* Pills, not a dropdown: status is the most-changed field here and a dropdown hides its options. */}
@@ -420,7 +421,8 @@ export default function EntryEditModal({
           />
         </label>
       </div>
-      {/* The confirm every removal uses, over the editor; Escape closes it alone and leaves the editor open. */}
+    </Modal>
+      {/* Beside the editor, not in it, so its dim covers the screen while the editor leaves and Escape closes it alone. */}
       <PresenceIf when={confirmDelete}>
         {(confirmLeaving) => (
           <ConfirmDialog
@@ -434,6 +436,6 @@ export default function EntryEditModal({
           />
         )}
       </PresenceIf>
-    </Modal>
+    </>
   );
 }

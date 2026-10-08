@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 26fcbe3 -->
+<!-- generated-through: 21dc81c -->
 
 ### Fixed
 
@@ -81,6 +81,7 @@ tag time is then optional rather than load-bearing.
 - A bulk edit on the manga list no longer reverts on screen until the next sync.
 - On Linux, clicking a sidebar link no longer freezes or closes the window; page changes there switch without the cross-fade.
 - List and grid keys work again right after opening a page.
+- Back after removing from the editor works again.
 
 ### Added
 

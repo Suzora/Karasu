@@ -3,12 +3,15 @@
 export interface HistoryLike {
   pushState(data: unknown, unused: string): void;
   back(): void;
+  go(delta: number): void;
   readonly state: unknown;
 }
 
 interface Entry {
   token: number;
   close: () => void;
+  /** Released while an entry above it stood: its history entry waits for that one's unwind to take it too. */
+  buried?: boolean;
 }
 
 const isOurs = (state: unknown, token: number): boolean =>
@@ -25,6 +28,15 @@ export function createBackStack(h: HistoryLike) {
   const flush = () => {
     while (isSettled() && settled.length > 0) settled.shift()!();
   };
+  // The entries released beneath the one just unwound go with it, in one traversal and so one popstate to swallow.
+  const unwindBuried = (): number => {
+    let n = 0;
+    while (stack.length > 0 && stack[stack.length - 1].buried) {
+      stack.pop();
+      n++;
+    }
+    return n;
+  };
 
   return {
     /** Called when an overlay opens; the returned release is a no-op after a back-close, so cleanup may call it anyway. */
@@ -34,11 +46,18 @@ export function createBackStack(h: HistoryLike) {
       stack.push(entry);
       return () => {
         const i = stack.indexOf(entry);
-        if (i === -1) return; // already closed by the back gesture
-        stack.splice(i, 1);
+        if (i === -1 || entry.buried) return; // already closed by the back gesture, or waiting under another
         if (isOurs(h.state, entry.token)) {
+          stack.splice(i, 1);
+          const steps = 1 + unwindBuried();
           swallow++;
-          h.back();
+          if (steps === 1) h.back();
+          else h.go(-steps);
+        } else if (stack.slice(i + 1).some((e) => !e.buried)) {
+          // An overlay opened from this one is still up, so its entry is the current one and this one cannot go yet.
+          entry.buried = true;
+        } else {
+          stack.splice(i, 1);
         }
         flush();
       };
@@ -60,6 +79,11 @@ export function createBackStack(h: HistoryLike) {
       const top = stack.pop();
       if (top) {
         top.close();
+        const steps = unwindBuried();
+        if (steps > 0) {
+          swallow++;
+          h.go(-steps);
+        }
         flush();
         return "closed";
       }

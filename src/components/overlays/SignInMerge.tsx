@@ -49,15 +49,18 @@ export default function SignInMerge() {
   const checked = useRef(false);
 
   const [reading, setReading] = useState(false);
+  // Set by a dismissal, so a Retry's read that answers afterwards cannot open the dialog again by itself.
+  const dismissed = useRef(false);
   // One read of both sides; the effect runs it once per sign-in, and the blocked phase's Retry runs it again on a press.
   const read = async (viewerId: number) => {
     setReading(true);
     try {
       const local = await localAllEntries().catch(() => []);
-      if (local.length === 0) return;
+      if (local.length === 0 || dismissed.current) return;
       const map = new Map<number, MergeSide & MergeExtras>();
       for (const type of ["ANIME", "MANGA"] as const) {
         const res = await anilistFetchList(viewerId, type).catch(() => null);
+        if (dismissed.current) return;
         if (!res || res.fromCache) {
           setPhase("blocked");
           setRows(local);
@@ -174,7 +177,10 @@ export default function SignInMerge() {
     setPhase("done");
   };
 
-  const close = () => setRows(null);
+  const close = () => {
+    dismissed.current = true;
+    setRows(null);
+  };
 
   // In the dialog's pinned footer, by phase: what can be done now, and the way out that says when it comes back.
   const footer =

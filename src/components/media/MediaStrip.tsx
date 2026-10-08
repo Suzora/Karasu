@@ -40,8 +40,9 @@ export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
                   loading="lazy"
                   decoding="async"
                   className={cn(
-                    "size-full object-cover transition-transform group-hover:scale-[1.03]",
-                    shouldBlur(e.node, level, blurAdult) && "veil",
+                    "size-full object-cover transition-transform",
+                    // The hover grows a plain cover; a veiled one keeps the veil's own scale, which the hover would undercut.
+                    shouldBlur(e.node, level, blurAdult) ? "veil" : "group-hover:scale-[1.03]",
                   )}
                 />
               )}

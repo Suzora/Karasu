@@ -189,8 +189,8 @@ export function useListMutations(userId: number, mediaType: MediaType) {
       // An optimistic write that failed has already shown as succeeding, so the rollback is invisible without this.
       showToast({
         kind: "error",
-        text: t("receipt.failed", { title: ctx?.title ?? "" }).trim(),
-        detail: t("receipt.failedDetail"),
+        text: t("receipt.failed"),
+        detail: [ctx?.title, t("receipt.failedDetail")].filter(Boolean).join(" · "),
         action: { label: t("common.retry"), run: () => saveMutation.mutate(input) },
       });
     },

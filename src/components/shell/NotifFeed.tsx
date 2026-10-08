@@ -243,10 +243,10 @@ export function NotifFeed({
   );
 
   // The dot says it to the eye; the word says it to a reader, and a stretched row's label names it by id.
-  const unreadMark = (id?: string) => (
+  const unreadMark = (id?: string, hidden?: boolean) => (
     <>
       <Badge aria-hidden="true" />
-      <span id={id} className="sr-only">
+      <span id={id} aria-hidden={hidden} className="sr-only">
         {t("notif.unreadMark")}
       </span>
     </>
@@ -298,7 +298,7 @@ export function NotifFeed({
                 {row.title}
               </span>
             )}
-            {unread && unreadMark(`${id}-unread`)}
+            {unread && unreadMark(`${id}-unread`, spoken)}
           </span>
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {siteVerb(row, t)}
@@ -376,7 +376,7 @@ export function NotifFeed({
               <span className="truncate text-ui font-medium text-ink-100">{lead}</span>
             )}
             <Badge tone="neutral" count={label.n} />
-            {g.unread && unreadMark(`${id}-unread`)}
+            {g.unread && unreadMark(`${id}-unread`, spoken)}
           </span>
           <span id={`${id}-verb`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-500">
             {groupVerb(label, t)}

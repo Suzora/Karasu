@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { LocalEntryRow } from "@/api/anilist";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
@@ -49,5 +49,21 @@ describe("SignInMerge", () => {
     expect(await screen.findByRole("button", { name: "merge.run" })).toBeInTheDocument();
     expect(screen.queryByText("merge.blocked")).toBeNull();
     expect(await checkA11y(baseElement)).toHaveNoViolations();
+  });
+
+  /** Dismissed while a Retry is still out, the dialog stays dismissed when the answer arrives. */
+  it("stays closed when a Retry answers after it was dismissed", async () => {
+    const user = userEvent.setup({ delay: null });
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    api.list.mockRejectedValueOnce("Network error: refused").mockImplementation(() => gate.then(() => listResult([])));
+    signIn();
+    renderWithProviders(<SignInMerge />);
+    await user.click(await screen.findByRole("button", { name: "common.retry" }));
+    await user.click(screen.getByRole("button", { name: "merge.later" }));
+    await waitFor(() => expect(screen.queryByText("merge.blocked")).toBeNull());
+    await act(async () => release());
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("button", { name: "merge.run" })).toBeNull();
   });
 });
