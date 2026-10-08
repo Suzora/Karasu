@@ -540,7 +540,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     description:
       "Karasu ist ein Desktop-Tracker für deine Anime und Manga auf AniList. Er erkennt, was du im Player oder Browser schaust und im Browser liest, aktualisiert deinen Fortschritt automatisch (bei einem Kapitel von einer Seite, die er nicht kennt, fragt er vorher), startet die nächste Episode aus deiner lokalen Bibliothek und zeigt deine Aktivität auf Discord — alles direkt vom PC.",
     descriptionAndroid:
-      "Karasu für Android führt deine Anime und Manga auf AniList. Schaust du über Jellyfin, aktualisiert es deinen Fortschritt von selbst, hält deine Liste synchron und zeigt mit Widgets auf dem Startbildschirm, was als Nächstes kommt.",
+      "Karasu für Android führt deine Anime und Manga auf AniList. Schaust du über Jellyfin, aktualisiert er deinen Fortschritt von selbst, hält deine Liste synchron und zeigt mit Widgets auf dem Startbildschirm, was als Nächstes kommt.",
     updates: "Updates",
     checkUpdates: "Nach Updates suchen",
     storeUpdates: "Diese Kopie stammt aus einem Store, Flathub oder F-Droid, der auch ihre Updates liefert; hier gibt es nichts zu prüfen.",
@@ -1124,7 +1124,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     blocked: "Du hast {{name}} blockiert",
     blockedHint: "Hebe die Blockierung auf anilist.co auf, um dieses Profil zu sehen.",
     needsAccount: "Profile brauchen ein AniList-Konto",
-    threadNeedsAccount: "Threads öffnen sich mit AniList-Konto",
+    threadNeedsAccount: "Threads öffnen sich mit einem AniList-Konto",
     threadNeedsAccountHint:
       "Das Forum liegt bei AniList. Die kontofreie lokale Liste kann darin stöbern, zum Lesen eines Threads braucht es ein Konto.",
     needsAccountHint:
@@ -1776,7 +1776,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     mediaSessionsTitle: "Mediensitzungen",
     dangerTitle: "Diese Einstellungen können Daten kosten",
     dangerBody:
-      "Alles auf dieser Seite schreibt etwas um oder verschiebt es, das sich schwer zurücknehmen lässt — jede Bewertung einer Liste, den Ort der Datenbank und ein Protokoll, das festhält, was die Erkennung gesehen hat. Lies jede Option, bevor du sie anfasst.",
+      "Alles auf dieser Seite schreibt oder verschiebt etwas, das sich schwer zurücknehmen lässt — jede Bewertung einer Liste, den Ort der Datenbank und ein Protokoll, das festhält, was die Erkennung gesehen hat. Lies jede Option, bevor du sie anfasst.",
     dangerBodyAndroid:
       "Alles auf dieser Seite schreibt etwas um, das sich schwer zurücknehmen lässt — jede Bewertung einer Liste und ein Protokoll, das festhält, was die Erkennung gesehen hat. Lies jede Option, bevor du sie anfasst.",
     discordAppId: "Discord-Anwendungs-ID",

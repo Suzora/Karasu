@@ -16,11 +16,12 @@ export function nextFocus(
   return Math.min(Math.max(current + delta, 0), count - 1);
 }
 
-/** Whether a screen shortcut may act: only when no control is focused, or a row's button hits the wrong entry. */
-export function ownsKeyboard(
-  active: unknown,
-  body: unknown,
-  container: unknown,
-): boolean {
-  return !active || active === body || active === container;
+/** Whether a screen shortcut may act: only while focus rests on a surface, or a row's button hits the wrong entry. */
+export function ownsKeyboard(active: unknown, resting: readonly unknown[]): boolean {
+  return !active || resting.includes(active);
+}
+
+/** The surfaces focus rests on between controls: the page itself, and `#main`, which takes it after a page change. */
+export function restingSurfaces(...own: unknown[]): unknown[] {
+  return [document.body, document.getElementById("main"), ...own];
 }

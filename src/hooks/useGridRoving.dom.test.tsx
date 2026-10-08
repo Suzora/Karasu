@@ -49,6 +49,18 @@ describe("useGridRoving", () => {
     expect(at()).toBe("none");
   });
 
+  /** After a page change `<main>` holds focus, and the grid keys must still answer from there. */
+  it("moves from main, where a page change leaves focus", () => {
+    render(
+      <main id="main" tabIndex={-1}>
+        <Grid count={9} onOpen={vi.fn()} />
+      </main>,
+    );
+    screen.getByRole("main").focus();
+    fireEvent.keyDown(window, { key: "ArrowDown" });
+    expect(at()).toBe("0");
+  });
+
   /** An overlay owns the keyboard while it is up — the same rule as the list. */
   it("stands down while an overlay is open", () => {
     render(<Grid count={9} onOpen={vi.fn()} />);

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { isTyping } from "@/components/shell/KeyboardSheet";
 import { nextFocusGrouped } from "@/lib/formatGroups";
-import { nextFocus, ownsKeyboard, type Move } from "@/lib/roving";
+import { nextFocus, ownsKeyboard, restingSurfaces, type Move } from "@/lib/roving";
 
 /** Arrow keys over a wall of cards via `MediaList`'s roving; not for Franchise, whose arrows already pan. */
 export function useGridRoving({
@@ -34,7 +34,7 @@ export function useGridRoving({
     const onKey = (e: KeyboardEvent) => {
       // `MediaList`'s three guards in the same order: a text field, an overlay or any focused control owns the keyboard.
       if (isTyping() || document.querySelector("[data-overlay]")) return;
-      if (!ownsKeyboard(document.activeElement, document.body, null)) return;
+      if (!ownsKeyboard(document.activeElement, restingSurfaces())) return;
       if (e.altKey || e.ctrlKey || e.metaKey) return;
 
       const {

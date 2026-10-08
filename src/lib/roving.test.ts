@@ -43,22 +43,28 @@ describe("ownsKeyboard", () => {
   const container = { tag: "div.scroll" };
 
   it("acts from the resting state", () => {
-    expect(ownsKeyboard(body, body, container)).toBe(true);
-    expect(ownsKeyboard(null, body, container)).toBe(true);
-    expect(ownsKeyboard(container, body, container)).toBe(true);
+    expect(ownsKeyboard(body, [body, container])).toBe(true);
+    expect(ownsKeyboard(null, [body, container])).toBe(true);
+    expect(ownsKeyboard(container, [body, container])).toBe(true);
   });
 
   /** Space on a focused button must not run the list's `+1` against the roving entry, a different title. */
   it("stands down for any other focused control", () => {
-    expect(ownsKeyboard({ tag: "button" }, body, container)).toBe(false);
-    expect(ownsKeyboard({ tag: "a" }, body, container)).toBe(false);
+    expect(ownsKeyboard({ tag: "button" }, [body, container])).toBe(false);
+    expect(ownsKeyboard({ tag: "a" }, [body, container])).toBe(false);
     // Arrow keys change a `<select>`'s value, so the handler must not preventDefault them for the roving index.
-    expect(ownsKeyboard({ tag: "select" }, body, container)).toBe(false);
+    expect(ownsKeyboard({ tag: "select" }, [body, container])).toBe(false);
+  });
+
+  /** The page's own `<main>` takes focus after a page change; resting there must not switch the list keys off. */
+  it("acts while focus rests on main", () => {
+    const main = { tag: "main" };
+    expect(ownsKeyboard(main, [body, main, container])).toBe(true);
   });
 
   /** Keep this: an "outside the grid" test would let every row's own button through, and those are inside. */
   it("stands down for a control inside the grid too", () => {
     const rowButton = { tag: "button", inside: container };
-    expect(ownsKeyboard(rowButton, body, container)).toBe(false);
+    expect(ownsKeyboard(rowButton, [body, container])).toBe(false);
   });
 });

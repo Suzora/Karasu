@@ -27,7 +27,7 @@ import EntryEditModal from "@/components/media/LazyEntryEditModal";
 import { CoverGridSkeleton } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { isTyping } from "@/components/shell/KeyboardSheet";
-import { nextFocus, ownsKeyboard, type Move } from "@/lib/roving";
+import { nextFocus, ownsKeyboard, restingSurfaces, type Move } from "@/lib/roving";
 import RandomPickModal from "@/components/overlays/RandomPickModal";
 import PresetModal from "@/components/overlays/PresetModal";
 import { loadPresets, savePresets, type Preset } from "@/lib/presets";
@@ -454,8 +454,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       // Anything modal owns the keyboard while it is up, and a field owns it while the caret is in one.
       if (isTyping() || document.querySelector("[data-overlay]")) return;
       // Any other focused control owns it too; keep this above the arrow branch, a focused select reads arrows as well.
-      if (!ownsKeyboard(document.activeElement, document.body, scrollRef.current))
-        return;
+      if (!ownsKeyboard(document.activeElement, restingSurfaces(scrollRef.current))) return;
       if (editing || removing || showRandom || showPresetSave) return;
       if (e.altKey) return;
       if (entries.length === 0) return;

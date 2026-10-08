@@ -120,6 +120,8 @@ export default function CommandPalette() {
       setQuery("");
       setSel(0);
       setRecent(loadRecent());
+      // Reopened during its exit the frame never remounts, so its trap cannot place the caret; this does.
+      inputRef.current?.focus();
     }
   }, [open]);
 
@@ -254,7 +256,11 @@ export default function CommandPalette() {
     if (!item) return;
     saveRecent(pushRecent(recent, item.id));
     if (item.run) item.run();
-    else navigate(item.path);
+    else {
+      // Let go of the field first, so the new page takes the keyboard rather than the palette's opener getting it back.
+      (document.activeElement as HTMLElement | null)?.blur();
+      navigate(item.path);
+    }
     setOpen(false);
   };
 
