@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.41.15"
+version = "1.41.16"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -47,6 +47,8 @@ name = "karasu_lib"
 # holds, so do not re-measure it, and do not "tidy" the list back down to
 # rlib without killing the Android target with it.
 crate-type = ["staticlib", "cdylib", "rlib"]
+# The crate has no doc examples, and rustdoc's empty pass cost every `cargo test` about a second.
+doctest = false
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

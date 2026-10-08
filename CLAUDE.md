@@ -1165,7 +1165,7 @@ async update the real code makes after an await warns instead.
   a bare `npm test` does not reproduce as a regression, and write down the
   file if it happens again.
 - **A suite that finishes far faster than usual failed early, it did not get
-  faster.** The Rust suite takes ~0.5 s; a 0.02 s run means something bailed.
+  faster.** The Rust suite takes ~1 s; a 0.02 s run means something bailed.
 - **Never pipe `npm run verify` through `grep`.** The pipe reports *grep's*
   exit status, so a `tsc` failure sails through and gets committed. Run it bare
   and read the exit code.
@@ -1560,6 +1560,27 @@ async update the real code makes after an await warns instead.
   `--android` adds the cross-compile trees for a cold Android build's price.
   Run it when the disk asks; it costs nothing but the next build's few
   seconds of incremental warm-up.
+- **`cargo test` costs compile time, not test time, and a bump made that cold.**
+  Measured on 2026-10-08 on the maintainer's machine (8 threads): the 523
+  lib tests run in about 1 s. The same metadata hash as above makes the first
+  `cargo test` after a version bump recompile the crate from scratch — 16 s
+  alone, 34 s beside vitest — where an edit costs 6.6–6.9 s and no change at
+  all 1.65 s; that is why the commit gate's scope (see "The commit loop")
+  takes a bump for no change. The no-change figure was 2.3 s until `[lib]
+  doctest = false`: the crate has no doc examples, and rustdoc's empty pass
+  took about a second of every run. Tried and dropped the same day:
+  `[profile.dev.package."*"] debug = false` (edit runs 6.4–7.3 s, noise, for
+  a 73 s rebuild of every dependency). Left alone, each for its reason:
+  dropping `staticlib` (measured as no speed change, see `Cargo.toml`, and
+  mobile needs it), rust-lld (still not the default for MSVC,
+  rust-lang/rust#71520, and this build passes manifest arguments to the
+  linker), one test binary (`tests/bindings.rs` needs the comctl manifest,
+  which `rustc-link-arg-tests` cannot hand to the lib's own unit tests), and
+  cargo-nextest and sccache (neither speeds the incremental compile of the
+  crate being edited). Once, the first run of a freshly linked test binary
+  took 5.4 s instead of 1.0 s; an antivirus scan of the new executable is the
+  likely cause, and a `target/` exclusion or a Dev Drive is a security
+  setting for the maintainer, not a change for an agent.
 - **MSVC writes an 11 MB `karasu.pdb` on every release build and there is no
   flag reaching the linker to stop it.** `debug = 0` and `strip = true` are
   already set, `cargo build --release -v` shows no `/DEBUG`, no `-Cdebuginfo=`
