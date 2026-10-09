@@ -2143,6 +2143,19 @@ the tested commit. Three consequences to know:
   automation** (`gh run rerun <id>`); the re-run keeps Dependabot as the
   run's actor, the merge follows.
 
+**A Tauri minor moves by hand, the npm package and its crate in one commit.**
+`tauri build` refuses an `@tauri-apps/*` package and its Rust crate on
+different minor versions (`Found version mismatched Tauri packages`), and
+Dependabot opens npm and cargo as separate PRs, so neither half of a minor
+could ever pass alone. The cargo side used to ignore `tauri` and `tauri-*`
+for every update type while npm moved their minors: #61 (2026-10-08) took
+`plugin-opener` to 2.7 and `plugin-deep-link` to 2.6 against crates still on
+2.6 and 2.5, and both CI jobs failed in the bundle step. Since 2026-10-09
+npm ignores `@tauri-apps/*` minors, cargo ignores `tauri`/`tauri-*` minors
+and majors, and patches flow on both sides, since the check compares
+major.minor only. A minor is `npm install @tauri-apps/<x>@<v>` plus `cargo
+update -p tauri-<x>`, checked by `verify:full`'s `tauri build`.
+
 ## Invariants the release audit established
 
 Each of these closed a group of real defects, and each is the kind of rule that
