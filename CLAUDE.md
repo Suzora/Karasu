@@ -1218,6 +1218,23 @@ async update the real code makes after an await warns instead.
   Reduce motion. Dropping the DMA-BUF default would bring the transitions and
   GPU compositing back, at the price the default exists to avoid (a blank
   window on some drivers); that wants a measurement on real GPUs, not a guess.
+- **A command never waits on a dialog, because on Linux that dialog is never
+  drawn.** A plain `#[tauri::command] fn` runs on the main thread, and
+  tauri-plugin-dialog's `blocking_*` calls park the calling thread on a
+  channel while rfd's GTK backend queues the dialog as an idle callback on
+  the main loop, which only that parked thread could run. So on Linux every
+  Rust-driven dialog froze the window for good, while Windows, where rfd
+  draws the dialog on a thread of its own, never showed it: the folder
+  picker, the Wrapped poster, the calendar and backup exports, the import and
+  the diagnostics export, from the first import until #62 (Nobara 44, the
+  `.rpm`, 2026-10-09). The five commands are `async` now and await the
+  plugin's callback form through `dialog_answer` in `commands/system.rs`, and
+  `no_command_blocks_on_a_dialog` fails the gate on any `.blocking_` dialog
+  call. Measured that day in an Ubuntu 24.04 container through `tauri-driver`
+  and WebKitWebDriver under Xvfb: on the old release build, "Choose folder"
+  and About's "Save report" opened no window and the WebView stopped
+  answering; on the new one a "Select Folder" and a "Save File" window opened
+  and it kept answering.
 - **Android gets two plugins of its own, and the battery plugin was
   rejected.** `attach_mobile` in `lib.rs` (a cfg pair on `target_os =
   "android"`, with the crates in the Android dependency table so no desktop
