@@ -284,23 +284,24 @@ pub fn set_library_path(db: State<'_, Db>, path: String) -> Result<(), String> {
 /// Opens a native folder picker and returns the chosen path.
 #[tauri::command]
 #[specta::specta]
-pub fn pick_library_folder(app: AppHandle) -> Option<String> {
-    pick_folder(&app)
+pub async fn pick_library_folder(app: AppHandle) -> Option<String> {
+    pick_folder(&app).await
 }
 
 #[cfg(desktop)]
-fn pick_folder(app: &AppHandle) -> Option<String> {
+async fn pick_folder(app: &AppHandle) -> Option<String> {
     use tauri_plugin_dialog::DialogExt;
-    app.dialog()
-        .file()
-        .blocking_pick_folder()
+    let builder = app.dialog().file();
+    crate::commands::dialog_answer(|done| builder.pick_folder(done))
+        .await
+        .flatten()
         .and_then(|p| p.into_path().ok())
         .map(|p| p.to_string_lossy().to_string())
 }
 
 /// The scanner is desktop-only, so on mobile the picker answers "no choice made" rather than erroring.
 #[cfg(mobile)]
-fn pick_folder(_app: &AppHandle) -> Option<String> {
+async fn pick_folder(_app: &AppHandle) -> Option<String> {
     None
 }
 

@@ -68,6 +68,7 @@ tag time is then optional rather than load-bearing.
 
 ### Fixed
 
+- On Linux, choosing the library folder, saving the Wrapped poster, exporting (calendar, backups, diagnostics) and importing no longer freeze the window.
 - On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square.
 - A detail page no longer scrolls sideways on a phone, and the community score chart writes counts from 10,000 up as "22k".
 - A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
