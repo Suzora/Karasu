@@ -1229,6 +1229,23 @@ async update the real code makes after an await warns instead.
   Reduce motion. Dropping the DMA-BUF default would bring the transitions and
   GPU compositing back, at the price the default exists to avoid (a blank
   window on some drivers); that wants a measurement on real GPUs, not a guess.
+- **A command never waits on a dialog, because on Linux that dialog is never
+  drawn.** A plain `#[tauri::command] fn` runs on the main thread, and
+  tauri-plugin-dialog's `blocking_*` calls park the calling thread on a
+  channel while rfd's GTK backend queues the dialog as an idle callback on
+  the main loop, which only that parked thread could run. So on Linux every
+  Rust-driven dialog froze the window for good, while Windows, where rfd
+  draws the dialog on a thread of its own, never showed it: the folder
+  picker, the Wrapped poster, the calendar and backup exports, the import and
+  the diagnostics export, from the first import until #62 (Nobara 44, the
+  `.rpm`, 2026-10-09). The five commands are `async` now and await the
+  plugin's callback form through `dialog_answer` in `commands/system.rs`, and
+  `no_command_blocks_on_a_dialog` fails the gate on any `.blocking_` dialog
+  call. Measured that day in an Ubuntu 24.04 container through `tauri-driver`
+  and WebKitWebDriver under Xvfb: on the old release build, "Choose folder"
+  and About's "Save report" opened no window and the WebView stopped
+  answering; on the new one a "Select Folder" and a "Save File" window opened
+  and it kept answering.
 - **Android gets two plugins of its own, and the battery plugin was
   rejected.** `attach_mobile` in `lib.rs` (a cfg pair on `target_os =
   "android"`, with the crates in the Android dependency table so no desktop
@@ -2153,6 +2170,19 @@ the tested commit. Three consequences to know:
 - **Re-running a PR's CI is the way to merge it by hand through the
   automation** (`gh run rerun <id>`); the re-run keeps Dependabot as the
   run's actor, the merge follows.
+
+**A Tauri minor moves by hand, the npm package and its crate in one commit.**
+`tauri build` refuses an `@tauri-apps/*` package and its Rust crate on
+different minor versions (`Found version mismatched Tauri packages`), and
+Dependabot opens npm and cargo as separate PRs, so neither half of a minor
+could ever pass alone. The cargo side used to ignore `tauri` and `tauri-*`
+for every update type while npm moved their minors: #61 (2026-10-08) took
+`plugin-opener` to 2.7 and `plugin-deep-link` to 2.6 against crates still on
+2.6 and 2.5, and both CI jobs failed in the bundle step. Since 2026-10-09
+npm ignores `@tauri-apps/*` minors, cargo ignores `tauri`/`tauri-*` minors
+and majors, and patches flow on both sides, since the check compares
+major.minor only. A minor is `npm install @tauri-apps/<x>@<v>` plus `cargo
+update -p tauri-<x>`, checked by `verify:full`'s `tauri build`.
 
 ## Invariants the release audit established
 

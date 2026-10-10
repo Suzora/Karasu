@@ -73,6 +73,16 @@ fn remember_dir(db: &Db, dir: Option<std::path::PathBuf>) {
         let _ = db.kv_set(EXPORT_DIR_KEY, &dir.to_string_lossy());
     }
 }
+
+/// Awaits a dialog's answer without holding a thread: on Linux a main thread waiting on its dialog never draws it.
+pub(crate) async fn dialog_answer<T: Send + 'static>(open: impl FnOnce(Box<dyn FnOnce(T) + Send>)) -> Option<T> {
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    open(Box::new(move |answer| {
+        let _ = tx.send(answer);
+    }));
+    rx.await.ok()
+}
+
 /// Verbose logging, off by default; the errors that matter are recorded either way.
 pub(crate) const LOG_DEBUG_KEY: &str = "log_debug";
 
@@ -491,7 +501,7 @@ pub fn disable_portable(app: AppHandle) -> Result<(), String> {
 /// Saves an image through a native dialog; `data` is base64, since a typed array crosses the bridge as JSON numbers.
 #[tauri::command]
 #[specta::specta]
-pub fn save_image(
+pub async fn save_image(
     app: tauri::AppHandle,
     db: State<'_, Db>,
     data: String,
@@ -521,7 +531,8 @@ pub fn save_image(
         }
     }
 
-    match builder.add_filter(label, &[ext]).blocking_save_file() {
+    let builder = builder.add_filter(label, &[ext]);
+    match dialog_answer(|done| builder.save_file(done)).await.flatten() {
         Some(picked) => {
             let dir = write_picked(&app, picked, &data)
                 .map_err(|e| format!("Could not save image: {e}"))?;
@@ -581,7 +592,7 @@ pub fn set_log_debug(db: State<'_, Db>, enabled: bool) -> Result<(), String> {
 /// Writes the report and the log to a file the user picks, through a Rust-driven dialog like `save_image`.
 #[tauri::command]
 #[specta::specta]
-pub fn export_diagnostics(
+pub async fn export_diagnostics(
     app: tauri::AppHandle,
     db: State<'_, Db>,
     redact: bool,
@@ -622,7 +633,8 @@ pub fn export_diagnostics(
             builder = builder.set_directory(dir);
         }
     }
-    match builder.add_filter("Markdown", &["md"]).blocking_save_file() {
+    let builder = builder.add_filter("Markdown", &["md"]);
+    match dialog_answer(|done| builder.save_file(done)).await.flatten() {
         Some(picked) => {
             let dir = write_picked(&app, picked, out.as_bytes())
                 .map_err(|e| format!("Could not save the report: {e}"))?;
@@ -636,7 +648,7 @@ pub fn export_diagnostics(
 /// Saves caller-supplied text through the same dialog as `export_diagnostics`; the WebView gets no filesystem door.
 #[tauri::command]
 #[specta::specta]
-pub fn save_text(
+pub async fn save_text(
     app: tauri::AppHandle,
     db: State<'_, Db>,
     contents: String,
@@ -653,10 +665,8 @@ pub fn save_text(
             builder = builder.set_directory(dir);
         }
     }
-    match builder
-        .add_filter(filter_label, &[extension.as_str()])
-        .blocking_save_file()
-    {
+    let builder = builder.add_filter(filter_label, &[extension.as_str()]);
+    match dialog_answer(|done| builder.save_file(done)).await.flatten() {
         Some(picked) => {
             let dir = write_picked(&app, picked, contents.as_bytes())
                 .map_err(|e| format!("Could not save the file: {e}"))?;
@@ -670,7 +680,7 @@ pub fn save_text(
 /// `save_text`'s opposite: the WebView asks for a kind of file and receives bounded text, never a path.
 #[tauri::command]
 #[specta::specta]
-pub fn open_text(
+pub async fn open_text(
     app: tauri::AppHandle,
     db: State<'_, Db>,
     filter_label: String,
@@ -685,10 +695,8 @@ pub fn open_text(
             builder = builder.set_directory(dir);
         }
     }
-    match builder
-        .add_filter(filter_label, &[extension.as_str()])
-        .blocking_pick_file()
-    {
+    let builder = builder.add_filter(filter_label, &[extension.as_str()]);
+    match dialog_answer(|done| builder.pick_file(done)).await.flatten() {
         Some(picked) => {
             const MAX_BYTES: u64 = 16 * 1024 * 1024;
             let (contents, dir) = read_picked(&app, picked, MAX_BYTES)?;
@@ -855,6 +863,30 @@ mod tests {
         assert!(!is_hex6("#ü0d12"));
         assert!(set_system_bars("#0b0d12".into(), "#12141a".into(), false).is_ok());
         assert!(set_system_bars("red".into(), "#12141a".into(), false).is_err());
+    }
+
+    /// A dialog awaited on the main thread is never drawn on Linux, so no source file may wait on one blocking.
+    #[test]
+    fn no_command_blocks_on_a_dialog() {
+        let needles = ["pick_", "save_", "show"].map(|w| format!(".blocking_{w}"));
+        let mut dirs = vec![std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src")];
+        let mut found = Vec::new();
+        while let Some(dir) = dirs.pop() {
+            for entry in std::fs::read_dir(&dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    dirs.push(path);
+                } else if path.extension().is_some_and(|e| e == "rs") {
+                    let text = std::fs::read_to_string(&path).unwrap();
+                    for (n, line) in text.lines().enumerate() {
+                        if needles.iter().any(|w| line.contains(w.as_str())) {
+                            found.push(format!("{}:{}", path.display(), n + 1));
+                        }
+                    }
+                }
+            }
+        }
+        assert!(found.is_empty(), "a blocking dialog call: {found:?}");
     }
 
     /// WebKit turns compositing off for any value but `0`, the empty string included; the transition gate must agree.
