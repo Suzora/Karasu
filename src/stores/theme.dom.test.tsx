@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "@testing-library/react";
-import { effectiveAccent, setSystemAccentProvider, useTheme } from "./theme";
+import { effectiveAccent, setSystemAccentProvider, setSystemBarsSink, useTheme } from "./theme";
 
 /** The system accent is one more source for the ramp, never a replacement for the colour the user picked. */
 
@@ -98,6 +98,45 @@ describe("useTheme's contrast", () => {
       expect(document.documentElement.dataset.contrast).toBe("more");
       act(() => useTheme.getState().setContrast("standard"));
       expect(document.documentElement.dataset.contrast).toBeUndefined();
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+});
+
+describe("useTheme's system bars", () => {
+  afterEach(() => {
+    act(() => useTheme.getState().setContrast("system"));
+    act(() => useTheme.getState().setMode("dark"));
+    setSystemBarsSink(() => {});
+  });
+
+  it("hands every new look to the sink, and nothing for a change the strips do not show", () => {
+    const sink = vi.fn();
+    act(() => useTheme.getState().setMode("dark"));
+    act(() => useTheme.getState().setContrast("standard"));
+    setSystemBarsSink(sink);
+    act(() => useTheme.getState().setMode("light"));
+    // The test window is desktop-shaped: no bottom bar, so the page's ground runs under both strips.
+    expect(sink).toHaveBeenLastCalledWith({ status: "#f4f6f8", navigation: "#f4f6f8", light: true });
+    act(() => useTheme.getState().setAccent("#e0457b"));
+    expect(sink).toHaveBeenCalledTimes(1);
+    act(() => useTheme.getState().setContrast("high"));
+    expect(sink).toHaveBeenLastCalledWith({ status: "#ffffff", navigation: "#ffffff", light: true });
+    act(() => useTheme.getState().setMode("dark"));
+    expect(sink).toHaveBeenLastCalledWith({ status: "#050608", navigation: "#050608", light: false });
+    expect(sink).toHaveBeenCalledTimes(3);
+  });
+
+  it("continues the phone shell's bottom bar under the navigation strip", () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({ ...original(query), matches: query === "(max-width: 767px)" })) as typeof window.matchMedia;
+    try {
+      const sink = vi.fn();
+      act(() => useTheme.getState().setContrast("standard"));
+      setSystemBarsSink(sink);
+      act(() => useTheme.getState().setMode("light"));
+      expect(sink).toHaveBeenLastCalledWith({ status: "#f4f6f8", navigation: "#ffffff", light: true });
     } finally {
       window.matchMedia = original;
     }

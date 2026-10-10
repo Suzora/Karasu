@@ -168,6 +168,33 @@ pub fn hex_from_unit(r: f64, g: f64, b: f64) -> Option<String> {
     Some(hex_from_rgb(byte(r), byte(g), byte(b)))
 }
 
+// --- System bars -------------------------------------------------------------
+
+/// Paints Android's status and navigation strips in the theme's colours; the desktop's frame is its own, so nothing there.
+#[tauri::command]
+#[specta::specta]
+pub fn set_system_bars(status: String, navigation: String, light: bool) -> Result<(), String> {
+    if !is_hex6(&status) || !is_hex6(&navigation) {
+        return Err(format!("set_system_bars: not a #rrggbb colour: {status} / {navigation}"));
+    }
+    paint_system_bars(&status, &navigation, light)
+}
+
+/// Exactly `#rrggbb`, the spelling the theme store sends; anything else is refused before Kotlin's `parseColor` sees it.
+fn is_hex6(s: &str) -> bool {
+    s.len() == 7 && s.starts_with('#') && s[1..].chars().all(|c| c.is_ascii_hexdigit())
+}
+
+#[cfg(target_os = "android")]
+fn paint_system_bars(status: &str, navigation: &str, light: bool) -> Result<(), String> {
+    crate::background::set_system_bars(status, navigation, light)
+}
+
+#[cfg(not(target_os = "android"))]
+fn paint_system_bars(_status: &str, _navigation: &str, _light: bool) -> Result<(), String> {
+    Ok(())
+}
+
 // --- Platform ----------------------------------------------------------------
 
 /// What the screen needs to know about where it runs; tray presence stays with `get_close_to_tray`, one source.
@@ -811,10 +838,24 @@ pub fn mark_all_notifications_read(app: AppHandle, db: State<'_, Db>) -> Result<
 #[cfg(test)]
 mod tests {
     use super::{
-        close_hides_window, describe_database, hex_from_rgb, hex_from_unit, normalize_ui_zoom,
-        webkit_composites, UI_ZOOM_DEFAULT, UI_ZOOM_MAX, UI_ZOOM_MIN,
+        close_hides_window, describe_database, hex_from_rgb, hex_from_unit, is_hex6, normalize_ui_zoom,
+        set_system_bars, webkit_composites, UI_ZOOM_DEFAULT, UI_ZOOM_MAX, UI_ZOOM_MIN,
     };
     use std::ffi::OsStr;
+
+    /// The command takes `#rrggbb` only, so anything else is refused before it reaches Kotlin.
+    #[test]
+    fn system_bars_take_only_a_six_digit_hex() {
+        assert!(is_hex6("#0b0d12"));
+        assert!(is_hex6("#FFFFFF"));
+        assert!(!is_hex6("#fff"));
+        assert!(!is_hex6("0b0d12"));
+        assert!(!is_hex6("#0b0d1g"));
+        assert!(!is_hex6("#0b0d12ff"));
+        assert!(!is_hex6("#ü0d12"));
+        assert!(set_system_bars("#0b0d12".into(), "#12141a".into(), false).is_ok());
+        assert!(set_system_bars("red".into(), "#12141a".into(), false).is_err());
+    }
 
     /// WebKit turns compositing off for any value but `0`, the empty string included; the transition gate must agree.
     #[test]

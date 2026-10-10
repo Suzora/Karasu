@@ -200,6 +200,8 @@ export const commands = {
 	platformInfo: () => __TAURI_INVOKE<PlatformInfo>("platform_info"),
 	/**  The desktop's or the phone's accent colour as `#rrggbb`, or nothing where the platform does not publish one. */
 	systemAccent: () => __TAURI_INVOKE<string | null>("system_accent"),
+	/**  Paints Android's status and navigation strips in the theme's colours; the desktop's frame is its own, so nothing there. */
+	setSystemBars: (status: string, navigation: string, light: boolean) => typedError<null, string>(__TAURI_INVOKE("set_system_bars", { status, navigation, light })),
 	getCloseToTray: () => __TAURI_INVOKE<CloseToTray>("get_close_to_tray"),
 	setCloseToTray: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_close_to_tray", { enabled })),
 	getGlobalHotkey: () => __TAURI_INVOKE<string | null>("get_global_hotkey"),

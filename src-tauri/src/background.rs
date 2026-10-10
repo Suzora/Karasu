@@ -324,6 +324,26 @@ pub fn system_accent() -> Result<String, String> {
     })
 }
 
+/// Hands the theme's strip colours to `SystemBars.apply`, which paints them and keeps them for a cold start.
+pub fn set_system_bars(status: &str, navigation: &str, light: bool) -> Result<(), String> {
+    with_app_class("dev.kyu.karasu.SystemBars", |env, activity, class| {
+        let status = env.new_string(status)?;
+        let navigation = env.new_string(navigation)?;
+        env.call_static_method(
+            class,
+            "apply",
+            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Z)V",
+            &[
+                JValue::Object(activity),
+                JValue::Object(&status),
+                JValue::Object(&navigation),
+                JValue::Bool(u8::from(light)),
+            ],
+        )?;
+        Ok(())
+    })
+}
+
 /// Whether Android has exempted Karasu from battery optimisation.
 pub fn battery_exempt() -> Result<bool, String> {
     with_app_class("dev.kyu.karasu.TrackingControl", |env, activity, class| {

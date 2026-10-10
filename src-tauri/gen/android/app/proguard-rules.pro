@@ -54,3 +54,7 @@
 # The system accent. SystemAccent shares NotifScheduler's failure mode
 # (JNI-by-name, nothing else keeps it).
 -keep class dev.kyu.karasu.SystemAccent { *; }
+
+# The system bars. SystemBars shares NotifScheduler's failure mode
+# (JNI-by-name, nothing else keeps it).
+-keep class dev.kyu.karasu.SystemBars { *; }

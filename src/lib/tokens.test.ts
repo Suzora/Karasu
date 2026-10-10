@@ -3,6 +3,7 @@ import css from "@/app/index.css?raw";
 import { accentShades, contrastRatio, mix } from "@/lib/contrast";
 import { ACCENT_PRESETS, DEFAULT_ACCENT, customProperties } from "@/lib/designTokens";
 import { DEFAULT_STATUS_COLORS, STATUS_CONTRAST_MIN } from "@/lib/statusColors";
+import { systemBars } from "@/lib/systemBars";
 
 /** DESIGN.md's contrast obligations and the token blocks' parity, read from the stylesheet the app ships. */
 
@@ -16,7 +17,7 @@ const OUTSIDE = {
   ...(import.meta.glob(
     [
       "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
-      "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/MainActivity.kt",
+      "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
     ],
     { query: "?raw", import: "default", eager: true },
   ) as Record<string, string>),
@@ -338,8 +339,34 @@ describe("the frame around the stylesheet", () => {
     expect(hexes(OUTSIDE[`${res}/values/styles_widgets.xml`])).toEqual([colour("dark", "ink-100")]);
     const { a400 } = accentShades(DEFAULT_ACCENT);
     expect(hexes(OUTSIDE[`${res}/layout/karasu_widget.xml`])).toEqual([a400.toLowerCase(), colour("dark", "ink-600")]);
-    const activity = OUTSIDE["/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/MainActivity.kt"];
-    expect(hexes(activity)).toEqual([colour("dark", "surface-950")]);
+    const kotlin = "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu";
+    // The activity names no colour of its own; the strips' first-start colours live in SystemBars alone.
+    expect(hexes(OUTSIDE[`${kotlin}/MainActivity.kt`])).toEqual([]);
+    expect(hexes(OUTSIDE[`${kotlin}/SystemBars.kt`])).toEqual([colour("dark", "surface-950"), colour("dark", "surface-900")]);
+  });
+
+  it("hands Android's strips each look's own page and bottom-bar grounds, the bar's in the phone shell alone", () => {
+    // The cascade index.css builds: high contrast over the theme over the base.
+    const ground = (dark: boolean, high: boolean, name: string) => {
+      const token = `--color-${name}`;
+      const stack = [high && !dark ? hcLight : undefined, high ? hcDark : undefined, dark ? undefined : light, base];
+      for (const block of stack) {
+        const v = block?.get(token);
+        if (v) return v.toLowerCase();
+      }
+      throw new Error(`no ${token}`);
+    };
+    for (const dark of [true, false]) {
+      for (const high of [false, true]) {
+        expect(systemBars(dark, high ? "high" : "standard", true)).toEqual({
+          status: ground(dark, high, "surface-950"),
+          navigation: ground(dark, high, "surface-900"),
+          light: !dark,
+        });
+        // The wide shell has no bottom bar, so its page runs under both strips.
+        expect(systemBars(dark, high ? "high" : "standard", false).navigation).toBe(ground(dark, high, "surface-950"));
+      }
+    }
   });
 
   // Tauri injects nonces only when the page carries inline style; one would silently block every library-injected tag.

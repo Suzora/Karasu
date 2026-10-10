@@ -111,7 +111,7 @@ src/
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          108 of the 132 frontend-facing commands, by subject:
+  commands/          109 of the 133 frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
                      update. The other 24 are the library scanner's 15 in
                      `library.rs` and the Android updater's 9 in
@@ -202,6 +202,12 @@ src-tauri/src/
                      foreground flag through `KarasuNative.setForeground`);
                      and SystemAccent.kt (Material You's primary accent for
                      the theme store, JNI-by-name, proguard keep load-bearing);
+                     and SystemBars.kt (the status and navigation strips in
+                     the theme store's colours, `lib/systemBars` through
+                     `set_system_bars`, kept in SharedPreferences so a cold
+                     start opens in the last look; MainActivity's onCreate
+                     calls its `restore`; JNI-by-name, proguard keep
+                     load-bearing);
                      and UpdateInstaller.kt (the in-app updater's device
                      half — ABI, cache dir, free space, metered state, the
                      signing-certificate comparison and the two intents;

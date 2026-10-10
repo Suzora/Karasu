@@ -335,6 +335,10 @@ export const appVersion = () => commands.appVersion();
 /** The OS accent as `#rrggbb`, or null where the platform has none to publish. */
 export const systemAccent = () => commands.systemAccent();
 
+/** Android's status and navigation strips in the theme's colours; a no-op on the desktop, a failure costs the tint. */
+export const paintSystemBars = (bars: { status: string; navigation: string; light: boolean }) =>
+  void unwrap(commands.setSystemBars(bars.status, bars.navigation, bars.light)).catch(() => {});
+
 /** Windows' Accessibility text-size multiplier, which WebView2 ignores, so App applies it to the root element. */
 export const getTextScale = () => commands.getTextScale();
 

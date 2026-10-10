@@ -521,6 +521,7 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::probe_jellyfin_server,
             commands::platform_info,
             commands::system_accent,
+            commands::set_system_bars,
             commands::get_close_to_tray,
             commands::set_close_to_tray,
             commands::get_global_hotkey,

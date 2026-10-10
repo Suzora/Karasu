@@ -8,7 +8,7 @@ export const RAW_READ_GLOBS = [
   "/index.html",
   "/src-tauri/tauri.conf.json",
   "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
-  "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/MainActivity.kt",
+  "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
   "/THIRD-PARTY-NOTICES.md",
   "/src-tauri/gen/android/app/src/main/assets/THIRD-PARTY-NOTICES.md",
   "/rust-toolchain.toml",

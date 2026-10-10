@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { accentShades, resolveContrast, CONTRAST_MODES, type ContrastMode } from "@/lib/contrast";
+import { systemBars, type SystemBars } from "@/lib/systemBars";
 import { DEFAULT_ACCENT } from "@/lib/designTokens";
 import type { MediaListStatus } from "@/api/types";
 import {
@@ -59,6 +60,15 @@ export const setSystemAccentProvider = (fn: () => Promise<string | null>) => {
   systemAccentProvider = fn;
 };
 
+/** Who paints Android's system strips; main.tsx plugs the Tauri command in, and a test plugs in a spy. */
+let systemBarsSink: (bars: SystemBars) => void = () => {};
+// What the sink was last handed, so a flush that moved only the accent or the density sends nothing.
+let paintedBars = "";
+export const setSystemBarsSink = (fn: (bars: SystemBars) => void) => {
+  systemBarsSink = fn;
+  paintedBars = "";
+};
+
 /** The colour the ramp is derived from: the system's while that source is chosen and known, the user's otherwise. */
 export const effectiveAccent = (source: AccentSource, accent: string, systemAccent: string | null): string =>
   source === "system" && systemAccent ? systemAccent : accent;
@@ -93,6 +103,12 @@ function apply(
   html.style.setProperty("--cover-cols", String(clampCols(coverCols)));
   // The dense screens read their sizes from the tokens index.css keys on this attribute.
   html.dataset.density = density;
+  // Android draws its two strips natively, outside the page, so a light look has to be handed across.
+  const bars = systemBars(dark, contrast, narrowShell());
+  if (JSON.stringify(bars) !== paintedBars) {
+    paintedBars = JSON.stringify(bars);
+    systemBarsSink(bars);
+  }
 
   const base = isHex(accent) ? accent : DEFAULT_ACCENT;
   const { a400, a500, a600, ink, rgb, w1, w2, hair } = accentShades(base, {
@@ -291,6 +307,8 @@ export const useTheme = create<ThemeState>((set, get) => {
         .addEventListener("change", () => {
           if (get().contrast === "system") flush();
         });
+      // And the shell's shape, whose bottom bar the navigation strip continues, when a rotation or a fold changes it.
+      window.matchMedia?.("(max-width: 767px)").addEventListener("change", flush);
     },
   };
 });

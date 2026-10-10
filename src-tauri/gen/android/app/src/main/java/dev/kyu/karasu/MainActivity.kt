@@ -1,15 +1,12 @@
 package dev.kyu.karasu
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : TauriActivity() {
   // Hand-edited: the deep-link plugin rejects ACTION_SEND, so the first URL in EXTRA_TEXT is re-sent as a VIEW it routes.
@@ -28,7 +25,7 @@ class MainActivity : TauriActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
 
-    window.setBackgroundDrawable(ColorDrawable(Color.parseColor("#0b0d12"))) // surface-950: the exposed strips read as chrome, not a hole
+    SystemBars.restore(this) // the strips in the last theme's colours, before the WebView can say which theme it is
     val root = findViewById<ViewGroup>(android.R.id.content)
     ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets -> // native insets: edge-to-edge is enforced, and the WebView cannot see the system bars
       val bars = insets.getInsets(
@@ -37,8 +34,6 @@ class MainActivity : TauriActivity() {
       view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
       WindowInsetsCompat.CONSUMED
     }
-    // Dark surface behind the (now transparent) status bar: light glyphs.
-    WindowInsetsControllerCompat(window, root).isAppearanceLightStatusBars = false
   }
 
   override fun onResume() {

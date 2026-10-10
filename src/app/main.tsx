@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { reportError } from "@/api/diagnostics";
-import { isTauri, isTokenRejected, setIdentityChangedHandler, systemAccent } from "@/api/anilist";
+import { isTauri, isTokenRejected, paintSystemBars, setIdentityChangedHandler, systemAccent } from "@/api/anilist";
 import { isNotFound, isRateLimited } from "@/lib/apiError";
-import { setSystemAccentProvider, useTheme } from "@/stores/theme";
+import { setSystemAccentProvider, setSystemBarsSink, useTheme } from "@/stores/theme";
 import { useTitleLanguage } from "@/stores/titleLanguage";
 import i18n from "i18next";
 import { initLanguage } from "@/i18n";
@@ -15,7 +15,10 @@ import { initLanguage } from "@/i18n";
 import "./index.css";
 
 // Apply the saved theme before the first paint to avoid a flash; the OS accent arrives a beat later, if chosen.
-if (isTauri) setSystemAccentProvider(systemAccent);
+if (isTauri) {
+  setSystemAccentProvider(systemAccent);
+  setSystemBarsSink(paintSystemBars);
+}
 useTheme.getState().init();
 useTitleLanguage.getState().init();
 
