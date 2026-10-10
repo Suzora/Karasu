@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useNavigationType } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
+import { useUrlState } from "@/hooks/useUrlState";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +16,16 @@ import {
   type Season,
 } from "@/api/queries";
 import { EMPTY, encode, isEmpty, toQueryArgs } from "@/lib/multiFilter";
+import {
+  SCOPES,
+  SEASONS,
+  SORTS,
+  STATUSES,
+  isMediaScope,
+  parseSearchView,
+  writeSearchView,
+  type SearchView,
+} from "@/lib/searchView";
 import { MultiFilterSelect } from "@/components/ui/multi-filter-select";
 import type { MediaType } from "@/api/types";
 import {
@@ -52,18 +64,6 @@ import { Pill } from "@/components/ui/pill";
 import { UserList } from "@/components/social/UserList";
 import { cardClass } from "@/components/ui/card";
 
-/** What the search is looking for; the scope pills grew from two mediums to people and entities. */
-type Scope = MediaType | "USERS" | "CHARACTERS" | "STAFF" | "STUDIOS";
-
-/** The two scopes that browse media — everything the filter toolbar serves. */
-const isMediaScope = (s: Scope): s is MediaType =>
-  s === "ANIME" || s === "MANGA";
-
-const SEASONS: Season[] = ["WINTER", "SPRING", "SUMMER", "FALL"];
-const STATUSES = ["RELEASING", "FINISHED", "NOT_YET_RELEASED", "CANCELLED", "HIATUS"];
-/** The sorts worth offering; relevance only means something with a query. */
-const SORTS = ["SEARCH_MATCH", "TRENDING_DESC", "POPULARITY_DESC", "SCORE_DESC", "START_DATE_DESC"];
-
 /** Literal switch, so `i18nKeys.test.ts` sees every key. */
 function sortLabel(sort: string, t: (k: string) => string): string {
   switch (sort) {
@@ -99,38 +99,45 @@ function currentSeasonOf(now = new Date()): { season: Season; year: number } {
 
 export default function Search() {
   const { t } = useTranslation();
-  const [input, setInput] = useState("");
-  const [term, setTerm] = useState("");
-  const [scope, setScope] = useState<Scope>("ANIME");
+  // In the URL, so Back from a result brings the query, the scope and every filter back.
+  const [view, setView, visit] = useUrlState(parseSearchView, writeSearchView);
+  const { scope, term, genre, tag, year, season, format, status, source, country, sort } = view;
+  const set = useCallback(
+    (patch: Partial<SearchView>) =>
+      setView((v) =>
+        (Object.keys(patch) as (keyof SearchView)[]).every((k) => v[k] === patch[k]) ? v : { ...v, ...patch },
+      ),
+    [setView],
+  );
+  // The typed text runs ahead of the debounced term; a new visit to the page starts it from that visit's URL.
+  const [input, setInput] = useState(term);
+  const [inputVisit, setInputVisit] = useState(visit);
+  if (inputVisit !== visit) {
+    setInputVisit(visit);
+    setInput(term);
+  }
+  // Arriving by Back restores a search, and a field that took the focus would open the phone's keyboard over it.
+  const restored = useNavigationType() === "POP";
+  const resultsRef = useRef<HTMLDivElement>(null);
+  useScrollMemory(resultsRef, "search");
   const phone = usePhoneShell();
   // Phone only: the filter chips collapse behind this; desktop has the room and keeps its inline row.
   const [filtersOpen, setFiltersOpen] = useState(false);
   // The phone fold must pop out as well as in; a bare conditional cuts it away mid-frame on collapse.
   const filterPanel = usePresence(filtersOpen);
-  // Include and exclude, many at a time: one genre and one tag was a lens, not a filter.
-  const [genre, setGenre] = useState(EMPTY);
-  const [tag, setTag] = useState(EMPTY);
-  const [year, setYear] = useState("");
-  const [season, setSeason] = useState("");
-  const [format, setFormat] = useState("");
-  const [status, setStatus] = useState("");
-  const [source, setSource] = useState("");
-  const [country, setCountry] = useState("");
-  const [sort, setSort] = useState("SEARCH_MATCH");
   const type: MediaType = isMediaScope(scope) ? scope : "ANIME";
 
   // Debounce: search only after 500 ms of typing pause (spare the rate limit)
   useEffect(() => {
-    const timer = setTimeout(() => setTerm(input.trim()), 500);
+    const timer = setTimeout(() => set({ term: input.trim() }), 500);
     return () => clearTimeout(timer);
-  }, [input]);
+  }, [input, set]);
 
-  // A format from the other medium is meaningless after a scope flip.
-  useEffect(() => {
-    setFormat("");
-    // Season too: it only renders for ANIME, so a stale one would keep filtering MANGA invisibly.
-    setSeason("");
-  }, [scope]);
+  // In the setter, not an effect on the scope, which would also run on arrival and drop a restored format.
+  const changeScope = (next: SearchView["scope"]) => {
+    // A format from the other medium is meaningless after a flip, and a season would keep filtering manga invisibly.
+    if (next !== scope) set({ scope: next, format: "", season: "" });
+  };
 
   const level = useContentFilter((s) => s.level);
   const filterReady = useContentFilter((s) => s.ready);
@@ -164,16 +171,8 @@ export default function Search() {
     Number(!isEmpty(tag)) +
     [year, season, format, status, source, country].filter(Boolean).length;
 
-  const clearFilters = () => {
-    setGenre(EMPTY);
-    setTag(EMPTY);
-    setYear("");
-    setSeason("");
-    setFormat("");
-    setStatus("");
-    setSource("");
-    setCountry("");
-  };
+  const clearFilters = () =>
+    set({ genre: EMPTY, tag: EMPTY, year: "", season: "", format: "", status: "", source: "", country: "" });
   // Relevance without a query is meaningless; popularity is the browse default.
   const effectiveSort = term || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
   const active = term.length >= 2 || hasFilters;
@@ -218,7 +217,8 @@ export default function Search() {
     initialPageParam: 1,
     getNextPageParam: (last, all) => (last.pageInfo.hasNextPage ? all.length + 1 : undefined),
     enabled: isTauri && filterReady && active && isMediaScope(scope),
-    staleTime: 5 * 60 * 1000,
+    // Never stale by age, only by invalidation (a sync, a new score format): a stale refetch re-asks every loaded page.
+    staleTime: Infinity,
   });
 
   // Adult stays server-side (`adultQueryArg`): filtering it here is the sparse-page bug; the split keeps the notice honest.
@@ -235,16 +235,19 @@ export default function Search() {
   const applyChip = (chip: (typeof BROWSE_CHIPS)[number]) => {
     const now = currentSeasonOf();
     setInput("");
-    setTerm("");
-    setGenre(EMPTY);
-    setTag(EMPTY);
-    setStatus("");
-    setFormat("");
-    setSource("");
-    setCountry("");
-    setSort(chip.sort);
-    setYear(chip.thisSeason ? String(now.year) : "");
-    setSeason(chip.thisSeason ? now.season : "");
+    set({
+      term: "",
+      genre: EMPTY,
+      tag: EMPTY,
+      status: "",
+      format: "",
+      source: "",
+      country: "",
+      sort: chip.sort,
+      year: chip.thisSeason ? String(now.year) : "",
+      // Manga has no seasons, and the URL keeps a season for anime alone.
+      season: chip.thisSeason && scope === "ANIME" ? now.season : "",
+    });
   };
 
   const yearOptions = useMemo(() => {
@@ -259,7 +262,9 @@ export default function Search() {
         <div className="mt-4 max-w-176">
           <SearchField
             size="lg"
-            autoFocus
+            autoFocus={!restored}
+            // What "/" and the Search action focus when the page is already open, so they refine rather than reset.
+            data-page-search=""
             value={input}
             onChange={setInput}
             label={t("search.placeholder")}
@@ -277,13 +282,11 @@ export default function Search() {
                 : "flex-wrap",
             )}
           >
-            {(
-              ["ANIME", "MANGA", "USERS", "CHARACTERS", "STAFF", "STUDIOS"] as const
-            ).map((sc) => (
+            {SCOPES.map((sc) => (
               <Pill
                 key={sc}
                 active={scope === sc}
-                onClick={() => setScope(sc)}
+                onClick={() => changeScope(sc)}
                 className="shrink-0 whitespace-nowrap"
               >
                 {sc === "ANIME"
@@ -347,7 +350,7 @@ export default function Search() {
               <MultiFilterSelect
                 label={t("search.genreLabel")}
                 value={genre}
-                onChange={setGenre}
+                onChange={(v) => set({ genre: v })}
                 placeholder={t("search.any")}
                 options={genres}
               />
@@ -355,7 +358,7 @@ export default function Search() {
               <MultiFilterSelect
                 label={t("search.tagLabel")}
                 value={tag}
-                onChange={setTag}
+                onChange={(v) => set({ tag: v })}
                 placeholder={t("search.any")}
                 options={tags}
                 searchable
@@ -363,7 +366,7 @@ export default function Search() {
               <FilterSelect
                 label={t("search.yearLabel")}
                 value={year}
-                onChange={setYear}
+                onChange={(v) => set({ year: v })}
                 placeholder={t("search.any")}
                 options={yearOptions.map((y) => ({ value: y, label: y }))}
               />
@@ -371,7 +374,7 @@ export default function Search() {
                 <FilterSelect
                   label={t("search.seasonLabel")}
                   value={season}
-                  onChange={setSeason}
+                  onChange={(v) => set({ season: v })}
                   placeholder={t("search.any")}
                   options={SEASONS.map((s) => ({
                     value: s,
@@ -382,7 +385,7 @@ export default function Search() {
               <FilterSelect
                 label={t("list.formatLabel")}
                 value={format}
-                onChange={setFormat}
+                onChange={(v) => set({ format: v })}
                 placeholder={t("search.any")}
                 options={MEDIA_FORMATS[type].map((f) => ({
                   value: f,
@@ -392,7 +395,7 @@ export default function Search() {
               <FilterSelect
                 label={t("search.statusLabel")}
                 value={status}
-                onChange={setStatus}
+                onChange={(v) => set({ status: v })}
                 placeholder={t("search.any")}
                 options={STATUSES.map((s) => ({
                   value: s,
@@ -403,7 +406,7 @@ export default function Search() {
               <FilterSelect
                 label={t("search.sourceLabel")}
                 value={source}
-                onChange={setSource}
+                onChange={(v) => set({ source: v })}
                 placeholder={t("search.any")}
                 options={MEDIA_SOURCES.map((s) => ({
                   value: s,
@@ -413,7 +416,7 @@ export default function Search() {
               <FilterSelect
                 label={t("list.originLabel")}
                 value={country}
-                onChange={setCountry}
+                onChange={(v) => set({ country: v })}
                 placeholder={t("search.any")}
                 options={ORIGINS.map((c) => ({
                   value: c,
@@ -423,7 +426,7 @@ export default function Search() {
               <FilterSelect
                 label={t("list.sortLabel")}
                 value={filters.sort}
-                onChange={setSort}
+                onChange={(v) => set({ sort: v })}
                 options={SORTS.map((s) => ({ value: s, label: sortLabel(s, t) }))}
               />
             </div>
@@ -431,7 +434,7 @@ export default function Search() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
         {scope === "USERS" && <UserSearchResults term={term} />}
         {(scope === "CHARACTERS" || scope === "STAFF") && (
           <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} />
@@ -490,7 +493,7 @@ function UserSearchResults({ term }: { term: string }) {
       emptyHint={t("search.noUsersHint")}
       // AniList's `total` is a capped 5000 here, so a count would be invented.
       countRemaining={false}
-      staleTime={5 * 60 * 1000}
+      staleTime={Infinity}
     />
   );
 }
@@ -515,7 +518,7 @@ function PersonSearchResults({
     getNextPageParam: (last, all) =>
       last.pageInfo.hasNextPage ? all.length + 1 : undefined,
     enabled: isTauri && term.length >= USER_SEARCH_MIN,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
   });
 
   if (term.length < USER_SEARCH_MIN) {
@@ -561,7 +564,7 @@ function StudioSearchResults({ term }: { term: string }) {
     getNextPageParam: (last, all) =>
       last.pageInfo.hasNextPage ? all.length + 1 : undefined,
     enabled: isTauri && term.length >= USER_SEARCH_MIN,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity,
   });
 
   if (term.length < USER_SEARCH_MIN) {

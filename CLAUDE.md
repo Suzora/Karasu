@@ -97,7 +97,8 @@ src/
                      usePullToSync, useActionRunner, useCachedMedia,
                      useDetectionMedia, useDetectionDrag, useElementSize,
                      usePointerSwipe, useTabSwipe, useSettingLanding,
-                     useFlickDismiss, useCustomListAdmin)
+                     useFlickDismiss, useCustomListAdmin, useUrlState,
+                     useScrollMemory)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
                      key parity across the two files
   lib/               pure logic + its *.test.ts — the place testable code goes
@@ -252,7 +253,11 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      so it copies the module into a throwaway crate and checks
                      that), virtual-rows-check.mjs (VirtualRows in a real
                      Chromium — jsdom has no layout, so it mounts zero rows
-                     and a unit test there passes vacuously), changelog.mjs
+                     and a unit test there passes vacuously), back-place-check.mjs
+                     (the same harness for Back: scroll, open a title, go
+                     Back, and the list, Search, Seasonal, Overview,
+                     Calendar, Library and Forum must come back at their
+                     place and view), changelog.mjs
                      (appends the Unreleased section from the commits since
                      its `generated-through` marker; a `Changelog:` trailer
                      overrules the subject), ratelimit-probe.mjs (re-measures
@@ -2505,6 +2510,33 @@ shape, and the question that follows them.
   `{ id, exact }` — a pure function that says whether its own answer is the
   clicked comment or its nearest drawable ancestor, so the highlight can
   degrade honestly instead of pointing at the wrong row.
+- **Back returns to the page as it was left, per history entry.** `<main
+  key={pathname}>` remounts every page, so what a page shows lives in its URL
+  (`useUrlState` where the state must act live under an open popover, a plain
+  `replace` otherwise) and where it was scrolled lives in `lib/scrollMemory`,
+  keyed by `location.key`. A page that scrolls its own `overflow-y-auto` div
+  calls `useScrollMemory` once on that div — `MainPlace` in `App` covers
+  `<main>` — and never once per virtualized child; a virtualized list passes a
+  `PlaceReader` that stores the entry at the top and how far into its row,
+  because rows above it are estimates again on return. A URL write that can
+  run while an overlay is open — MediaList's view, Search, Seasonal, Forum's
+  query — goes through `useSettledWrite`, which waits out the overlay's entry
+  and drops a write once the browser has moved to an entry the page has not
+  rendered; Calendar's week and lens are written only from its own buttons. A
+  page never replaces its URL on arrival, since a replace ends a running
+  restore: `writeSearchView` writes its keys in one order, so writing a URL
+  again changes nothing, and Forum writes `?q=` only when the term moved. A
+  link to the page that is already open starts it over (the sidebar), so a key
+  meant to refine it — "/" on Search — focuses the field instead of
+  navigating. An overlay's history entry carries the router state of the entry
+  it covers (`lib/backStack`); without it a stale one reads as the app's first
+  entry, key `default`. Search's infinite queries refetch on return only when
+  invalidated (`staleTime: Infinity`, which invalidation still overrides),
+  because a stale refetch asks again for every page they had loaded. A
+  discovery card (`MediaCard`) reads the viewer's cached list first, then
+  what this session's own adds and removals said (`lib/sessionEntries`), and
+  the response's stub last — never a title's absence from the list as a
+  removal, since an entry hidden from the status lists is absent too.
 - **Paging is a button, never a scroll.** Every paginated list — followers,
   following, user search, activities, threads, comments — uses
   `useInfiniteQuery` with `fetchNextPage` on a click and no `IntersectionObserver`

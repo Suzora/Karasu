@@ -50,6 +50,11 @@
     "reason": "usage block: one invocation per line"
   },
   {
+    "file": "scripts/back-place-check.mjs",
+    "startsWith": "Checks in a real Chromium that Back returns",
+    "reason": "usage block: one invocation per line"
+  },
+  {
     "file": "scripts/phone-measure.ps1",
     "startsWith": "Reads the phone's side of Jellyfin",
     "reason": "usage block: one invocation per line"

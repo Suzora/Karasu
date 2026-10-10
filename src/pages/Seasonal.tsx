@@ -1,8 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Loader } from "@/components/ui/loader";
 import { useNavigate } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
+import { useUrlState } from "@/hooks/useUrlState";
+import { parsePeriod, writePeriod, type Period } from "@/lib/seasonView";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -49,9 +52,16 @@ function shift(season: Season, year: number, dir: 1 | -1) {
   return { season: SEASONS[idx], year };
 }
 
+/** A bare URL means the season it is now, so an entry left across a season's turn reopens on the new one. */
+const readPeriod = (params: URLSearchParams): Period => parsePeriod(params, currentSeason());
+const writeSeasonal = (prev: URLSearchParams, p: Period): URLSearchParams => writePeriod(prev, p, currentSeason());
+
 export default function Seasonal() {
   const { t } = useTranslation();
-  const [{ season, year }, setPeriod] = useState(currentSeason());
+  // In the URL, so Back from a title lands on the season it was opened from, not the current one.
+  const [{ season, year }, setPeriod] = useUrlState(readPeriod, writeSeasonal);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useScrollMemory(scrollRef, "seasonal");
 
   const level = useContentFilter((s) => s.level);
   const filterReady = useContentFilter((s) => s.ready);
@@ -111,7 +121,7 @@ export default function Seasonal() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
         {error && (
           <ErrorState
             error={error}

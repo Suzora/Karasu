@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useLocation, useNavigationType } from "react-router";
 import type { MediaWithListStatus } from "@/api/queries";
 import { useContentFilter } from "@/stores/contentFilter";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
+import { currentSeason } from "@/api/queries";
 
 /** Proves the JSX carries the grouping `lib/formatGroups.test.ts` proves; `isTauri` is the mock seam. */
 const seasonal = vi.fn();
@@ -14,7 +17,7 @@ vi.mock("@/api/anilist", async (orig) => ({
 
 vi.mock("@/api/queries", async (orig) => ({
   ...(await orig<typeof import("@/api/queries")>()),
-  seasonalAnime: () => seasonal(),
+  seasonalAnime: (...args: unknown[]) => seasonal(...args),
 }));
 
 import Seasonal from "./Seasonal";
@@ -114,3 +117,67 @@ describe("Seasonal grouping", () => {
     expect(document.querySelectorAll("[data-media-id]")).toHaveLength(4);
   });
 });
+
+describe("Seasonal in the URL", () => {
+  it("opens the season its URL names, so Back from a title lands on the season it was opened from", async () => {
+    seasonal.mockResolvedValue({ media: [] });
+    renderWithProviders(<Seasonal />, { route: "/seasonal?season=SPRING&year=2019" });
+    await waitFor(() => expect(seasonal).toHaveBeenCalled());
+    expect(seasonal.mock.calls[0].slice(0, 2)).toEqual(["SPRING", 2019]);
+  });
+
+  it("leaves a bare URL bare: no replace, no new entry", async () => {
+    seasonal.mockResolvedValue({ media: [] });
+    renderWithProviders(
+      <>
+        <Seasonal />
+        <Url />
+      </>,
+      { route: "/seasonal" },
+    );
+    const url = () => screen.getByTestId("url");
+    const key = url().dataset.key;
+    await act(async () => {});
+    await waitFor(() => expect(seasonal).toHaveBeenCalled());
+    const now = currentSeason();
+    expect(seasonal.mock.calls[0].slice(0, 2)).toEqual([now.season, now.year]);
+    expect(url()).toBeEmptyDOMElement();
+    expect(url().dataset.key).toBe(key);
+    expect(url().dataset.nav).toBe("POP");
+  });
+
+  it("writes explicit parameters for any other season, and a bare URL again on the way back", async () => {
+    const user = userEvent.setup({ delay: null });
+    seasonal.mockResolvedValue({ media: [] });
+    renderWithProviders(
+      <>
+        <Seasonal />
+        <Url />
+      </>,
+      { route: "/seasonal" },
+    );
+    const now = currentSeason();
+    const order = ["WINTER", "SPRING", "SUMMER", "FALL"];
+    const i = order.indexOf(now.season);
+    const next = i === 3 ? `season=WINTER&year=${now.year + 1}` : `season=${order[i + 1]}&year=${now.year}`;
+
+    await user.click(screen.getByRole("button", { name: "seasonal.next" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(`?${next}`));
+    expect(screen.getByTestId("url").dataset.nav).toBe("REPLACE");
+
+    await user.click(screen.getByRole("button", { name: "seasonal.prev" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toBeEmptyDOMElement());
+    expect(screen.getByTestId("url").dataset.nav).toBe("REPLACE");
+  });
+});
+
+/** The location the page sits on: its search, the history entry's key and how it was reached. */
+function Url() {
+  const { search, key } = useLocation();
+  const navigation = useNavigationType();
+  return (
+    <output data-testid="url" data-key={key} data-nav={navigation}>
+      {search}
+    </output>
+  );
+}

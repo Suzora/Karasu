@@ -28,6 +28,7 @@ import {
 } from "@/lib/calendarView";
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { DigestRow } from "@/components/media/DigestRow";
 import { isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -183,6 +184,7 @@ export default function Calendar() {
 
   const [chosen, setChosen] = useState<CalendarView>(loadCalendarView);
   const scroller = useRef<HTMLDivElement>(null);
+  useScrollMemory(scroller, "calendar");
   const width = useElementWidth(scroller);
   const phone = usePhoneShell();
   const measured = width === 0 ? WEEK_ASSUMED : width;

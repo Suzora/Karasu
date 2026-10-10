@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { Link, Routes, Route, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { TriangleAlert, X } from "lucide-react";
@@ -35,6 +35,7 @@ import KeyboardSheet from "@/components/shell/KeyboardSheet";
 import GlobalKeys from "@/components/shell/GlobalKeys";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useViewTransitions } from "@/hooks/useViewTransitions";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
 import ActionHost from "@/components/shell/ActionHost";
 import SignInMerge from "@/components/overlays/SignInMerge";
 import Dashboard from "@/pages/Dashboard";
@@ -205,6 +206,7 @@ export default function App() {
 
   // A page opened from inside the old one took the focused element with it, so the new page takes the keyboard.
   const firstPath = useRef(true);
+  const mainRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (firstPath.current) {
       firstPath.current = false;
@@ -236,11 +238,14 @@ export default function App() {
         {/* Keyed on the route so the pane re-mounts and settles from above; no sideways slide, the app has no history axis. */}
         <main
           key={pathname}
+          ref={mainRef}
           id="main"
           // `-1` so the skip link can move focus here; a link to an unfocusable target scrolls without moving the caret.
           tabIndex={-1}
           className="min-w-0 flex-1 animate-settle overflow-y-auto outline-none"
         >
+          {/* Inside the keyed `<main>`, so each page's arrival reads the place its own history entry was left at. */}
+          <MainPlace main={mainRef} />
           {/* Keyed on the route so leaving a page that threw resets the boundary; inside `<main>` so the frame stays usable. */}
           <ErrorBoundary key={pathname}>
             <Suspense fallback={null}>
@@ -293,6 +298,12 @@ export default function App() {
       {phone && <BottomBar />}
     </div>
   );
+}
+
+/** The place a page scrolled in `<main>` was left at, brought back when Back returns to its entry. */
+function MainPlace({ main }: { main: RefObject<HTMLElement | null> }) {
+  useScrollMemory(main, "main");
+  return null;
 }
 
 /** Straight past the sidebar, for anyone arriving by keyboard. */

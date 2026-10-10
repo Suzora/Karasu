@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { ANDROID_HIDDEN_ROUTES } from "@/components/shell/Sidebar";
 import { usePresence } from "@/hooks/usePresence";
-import { useBackClose } from "@/hooks/useBackClose";
+import { afterBackSettles, useBackClose } from "@/hooks/useBackClose";
 import { resolveActions } from "@/lib/actions";
 import { useActionLabel } from "@/components/shell/actionLabels";
 import { useActionRunner } from "@/hooks/useActionRunner";
@@ -255,13 +255,14 @@ export default function CommandPalette() {
   const go = (item: Item | undefined) => {
     if (!item) return;
     saveRecent(pushRecent(recent, item.id));
+    setOpen(false);
     if (item.run) item.run();
     else {
       // Let go of the field first, so the new page takes the keyboard rather than the palette's opener getting it back.
       (document.activeElement as HTMLElement | null)?.blur();
-      navigate(item.path);
+      // Queued while the palette's entry still stands, so the page is pushed once that entry has unwound, not above it.
+      afterBackSettles(() => navigate(item.path));
     }
-    setOpen(false);
   };
 
   const onInputKey = (e: React.KeyboardEvent) => {

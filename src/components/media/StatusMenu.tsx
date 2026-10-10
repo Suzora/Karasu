@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Plus } from "lucide-react";
 import { saveListEntry } from "@/api/anilist";
+import { noteAdded, stubFromSave } from "@/lib/sessionEntries";
 import type { MediaDetail } from "@/api/queries";
 import { displayTitle, type MediaListStatus, type SaveEntryInput } from "@/api/types";
 import { QuickEditor, type EntryPatch, type QuickEntry } from "@/components/media/QuickEditor";
@@ -53,8 +54,10 @@ export function StatusMenu({
   const add = useMutation({
     mutationFn: (status: MediaListStatus) =>
       saveListEntry(withCompletion<SaveEntryInput>({ mediaId: media.id, status }, media, media.type, null), media),
-    onSuccess: (res) => {
+    onSuccess: (res, status) => {
       settle(res.entry);
+      // Remembered for the discovery cards, which read the list and cannot see this add until it is fetched again.
+      noteAdded(userId, media.id, stubFromSave({ status }, res.entry));
       // Scoped to this title's own collection; no patch can invent an entry the list has never held.
       void qc.invalidateQueries({ queryKey: ["mediaList", media.type] });
       if (res.queued) showToast({ kind: "info", text: t("receipt.queued"), detail: title });

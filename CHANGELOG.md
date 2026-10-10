@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: c0df834 -->
+<!-- generated-through: c3ca873 -->
 
 ### Fixed
 
@@ -120,6 +120,7 @@ tag time is then optional rather than load-bearing.
 - Statistics: real format names, readable charts, one title size.
 - Overview, calendar, library, person page and Wrapped.
 - The profile's lists filter fits one row on the phone.
+- Back from a title returns you to where you were.
 
 ## 1.32.0 — 2026-10-03
 

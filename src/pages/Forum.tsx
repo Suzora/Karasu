@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { PenSquare } from "lucide-react";
@@ -8,11 +8,12 @@ import { SearchField } from "@/components/ui/search-field";
 import { Pill } from "@/components/ui/pill";
 import { Select } from "@/components/ui/select";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
+import { useSettledWrite } from "@/hooks/useUrlState";
 import { PresenceIf } from "@/components/ui/presence";
 import { ThreadList } from "@/components/social/ThreadList";
 import { NewThreadModal } from "@/components/overlays/NewThreadModal";
 import { useAuth } from "@/stores/auth";
-import { cn } from "@/lib/utils";
 
 /** Lenses rather than tabs, because AniList models the three as different arguments to one field. */
 type Lens = "browse" | "search" | "subscribed";
@@ -37,23 +38,39 @@ export default function Forum() {
   const [term, setTerm] = useState(params.get("q") ?? "");
   const [composing, setComposing] = useState(false);
 
+  const scroller = useRef<HTMLDivElement>(null);
+  const view = `${lens}:${categoryId ?? "all"}:${lens === "search" ? term : ""}`;
+  useScrollMemory(scroller, "forum");
+  // The scroller outlives a lens, so a new one is brought to its top by hand.
+  useLayoutEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0;
+  }, [view]);
+
+  const latest = useRef({ params, setParams });
+  latest.current = { params, setParams };
+  const schedule = useSettledWrite();
+
   // Debounced like the media search, and the settled term is written to `?q=` so it survives Back.
   useEffect(() => {
     const timer = setTimeout(() => {
       const next = input.trim();
       setTerm(next);
-      setParams(
-        (prev) => {
-          const p = new URLSearchParams(prev);
-          if (next) p.set("q", next);
-          else p.delete("q");
-          return p;
-        },
-        { replace: true },
+      // A replace mints a new history key and ends a running Back restore, so only a real change writes.
+      if ((latest.current.params.get("q") ?? "") === next) return;
+      schedule(() =>
+        latest.current.setParams(
+          (prev) => {
+            const p = new URLSearchParams(prev);
+            if (next) p.set("q", next);
+            else p.delete("q");
+            return p;
+          },
+          { replace: true },
+        ),
       );
     }, 500);
     return () => clearTimeout(timer);
-  }, [input, setParams]);
+  }, [input, schedule]);
 
   const setLens = (next: Lens) => {
     const p = new URLSearchParams(params);
@@ -149,40 +166,40 @@ export default function Forum() {
         )}
       </div>
 
-      {/* Keyed so the previous lens unmounts: an unmounted infinite query has no observer to join a refetch. */}
-      <div
-        key={`${lens}:${categoryId ?? "all"}:${lens === "search" ? term : ""}`}
-        className={cn("min-h-0 flex-1 animate-settle overflow-y-auto px-8 py-6")}
-      >
-        {lens === "search" && term.length < 2 ? (
-          <p className="text-sm text-ink-600">{t("forum.searchPrompt")}</p>
-        ) : lens === "subscribed" && mode !== "anilist" ? (
-          <p className="text-sm text-ink-600">{t("forum.subscribedNeedsAccount")}</p>
-        ) : (
-          <ThreadList
-            queryKey={["social", "forum", lens, categoryId ?? null, lens === "search" ? term : null]}
-            fetchPage={(page) =>
-              forumThreads(
+      {/* Never keyed, since the scroll memory listens on this element for the page's whole life. */}
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+        {/* Keyed so the previous lens unmounts: an unmounted infinite query has no observer to join a refetch. */}
+        <div key={view} className="animate-settle">
+          {lens === "search" && term.length < 2 ? (
+            <p className="text-sm text-ink-600">{t("forum.searchPrompt")}</p>
+          ) : lens === "subscribed" && mode !== "anilist" ? (
+            <p className="text-sm text-ink-600">{t("forum.subscribedNeedsAccount")}</p>
+          ) : (
+            <ThreadList
+              queryKey={["social", "forum", lens, categoryId ?? null, lens === "search" ? term : null]}
+              fetchPage={(page) =>
+                forumThreads(
+                  lens === "search"
+                    ? { search: term }
+                    : lens === "subscribed"
+                      ? { subscribed: true }
+                      : { categoryId },
+                  page,
+                )
+              }
+              emptyTitle={
                 lens === "search"
-                  ? { search: term }
+                  ? t("forum.noSearchResults")
                   : lens === "subscribed"
-                    ? { subscribed: true }
-                    : { categoryId },
-                page,
-              )
-            }
-            emptyTitle={
-              lens === "search"
-                ? t("forum.noSearchResults")
-                : lens === "subscribed"
-                  ? t("forum.noSubscriptions")
-                  : t("forum.noThreads")
-            }
-            emptyHint={lens === "subscribed" ? t("forum.noSubscriptionsHint") : undefined}
-            // A search goes stale sooner than a category listing, but neither justifies a short window.
-            staleTime={lens === "search" ? 5 * 60 * 1000 : 10 * 60 * 1000}
-          />
-        )}
+                    ? t("forum.noSubscriptions")
+                    : t("forum.noThreads")
+              }
+              emptyHint={lens === "subscribed" ? t("forum.noSubscriptionsHint") : undefined}
+              // A search goes stale sooner than a category listing, but neither justifies a short window.
+              staleTime={lens === "search" ? 5 * 60 * 1000 : 10 * 60 * 1000}
+            />
+          )}
+        </div>
       </div>
 
       {/* Through `PresenceIf` so the dialog can animate out; a bare conditional only ever has an entrance. */}

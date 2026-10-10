@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate, useNavigationType, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { CheckSquare, CloudOff, RefreshCw } from "lucide-react";
 import { useAuth } from "@/stores/auth";
@@ -57,7 +57,7 @@ import { canIncrement } from "@/components/list/shared";
 import { COMPLETION_CONFIRM_REQUESTS, splitBulkPatch } from "@/lib/completion";
 import { adjacentTab } from "@/lib/navSwipe";
 import { useTabSwipe } from "@/hooks/useTabSwipe";
-import { afterBackSettles } from "@/hooks/useBackClose";
+import { useSettledWrite } from "@/hooks/useUrlState";
 import {
   CLEAR_FILTERS,
   mergeView,
@@ -123,6 +123,14 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   } = view;
   // The text filter alone keeps local state and mirrors into ?q= on a debounce, not a replaceState per keystroke.
   const [filter, setFilter] = useState(() => params.get("q") ?? "");
+  // A link to the open list, or Back to another of its entries, brings that entry's text; the page's own replaces do not.
+  const { key: entryKey } = useLocation();
+  const navigation = useNavigationType();
+  const [shownEntry, setShownEntry] = useState(entryKey);
+  if (shownEntry !== entryKey) {
+    setShownEntry(entryKey);
+    if (navigation !== "REPLACE") setFilter(params.get("q") ?? "");
+  }
   // Remembered per media type, since the screen remounts on every navigation; all three exist on the phone too.
   const [layout, setLayout] = useState<ViewMode>(() => loadViewMode(type));
   /** The table's fixed tracks overflow a phone, so the two row views draw `PhoneRow` there instead. */
@@ -158,8 +166,11 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   // Clear the selection whenever the pool it refers to changes.
   useEffect(() => setSelected(new Set()), [tab]);
 
-  // A tab is another list, so it opens at its top rather than wherever the last one was left.
+  // A tab is another list, so it opens at its top; arriving is no change, so Back keeps the place it remembered.
+  const shownTab = useRef(tab);
   useEffect(() => {
+    if (shownTab.current === tab) return;
+    shownTab.current = tab;
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [tab]);
 
@@ -174,33 +185,24 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
   // Patches waiting for the overlays' history entries to unwind, merged in call order into one write.
   const queued = useRef<{ patch: ViewPatch; draft: boolean } | null>(null);
-  // A write still waiting when the page goes would resolve against this route and replace the next page's URL.
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const schedule = useSettledWrite();
 
   /** The one writer for the URL view; it waits out any overlay's entry, which a `replace` would overwrite. */
   const setView = useCallback(
     (patch: ViewPatch, fromDraft = false) => {
-      if (queued.current) {
-        queued.current = { patch: { ...queued.current.patch, ...patch }, draft: queued.current.draft || fromDraft };
-        return;
-      }
-      queued.current = { patch, draft: fromDraft };
-      afterBackSettles(() => {
+      queued.current = queued.current
+        ? { patch: { ...queued.current.patch, ...patch }, draft: queued.current.draft || fromDraft }
+        : { patch, draft: fromDraft };
+      schedule(() => {
         const next = queued.current;
         queued.current = null;
-        if (!next || !alive.current) return;
+        if (!next) return;
         setParams((prev) => writeViewParams(prev, next.patch), { replace: true });
         // In the same batch as the write, so the list never draws the old URL between draft and commit.
         if (next.draft) setDraft({});
       });
     },
-    [setParams],
+    [setParams, schedule],
   );
 
   const editDraft = useCallback((patch: ViewPatch) => setDraft((d) => ({ ...d, ...patch })), []);
@@ -208,9 +210,12 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     if (Object.keys(draftRef.current).length > 0) setView(draftRef.current, true);
   }, [setView]);
 
+  // Read at fire time: the writer follows every navigation, and a timer must not be re-armed by one.
+  const setViewRef = useRef(setView);
+  setViewRef.current = setView;
   const flushQuery = useCallback(() => {
-    if (filter.trim() !== (paramsRef.current.get("q") ?? "")) setView({ q: filter });
-  }, [filter, setView]);
+    if (filter.trim() !== (paramsRef.current.get("q") ?? "")) setViewRef.current({ q: filter });
+  }, [filter]);
 
   // Mirror the text filter into ?q= on the same debounce the other searches use, one write when typing settles.
   useEffect(() => {

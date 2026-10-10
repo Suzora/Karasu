@@ -20,6 +20,7 @@ import { displayTitle } from "@/api/types";
 import { headline, inverse, type EntrySnapshot } from "@/lib/receipt";
 import { splitBulkPatch, withCompletion } from "@/lib/completion";
 import { membership } from "@/lib/customLists";
+import { forgetTold, noteAdded, noteRemoved, stubFromSave } from "@/lib/sessionEntries";
 import { showToast } from "@/stores/toast";
 
 /** Mutations on one media list with optimistic cache updates; a status change moves the entry locally, no refetch. */
@@ -151,6 +152,9 @@ export function useListMutations(userId: number, mediaType: MediaType) {
       };
     },
     onSuccess: (res, input, ctx) => {
+      // A first add no patch can put in the list is remembered for the discovery cards; a listed one is read from the list.
+      if (ctx?.before) forgetTold(userId, input.mediaId);
+      else noteAdded(userId, input.mediaId, stubFromSave(input, res?.entry));
       // AniList derives the overall score from the categories, so reconcile from the mutation's result, not the guess.
       if (res?.entry?.advancedScores) {
         const { score, advancedScores } = res.entry;
@@ -283,6 +287,9 @@ export function useListMutations(userId: number, mediaType: MediaType) {
       });
     },
     onSuccess: (_res, id) => {
+      // Recorded before the list forgets it, since a discovery card's response still names the title as listed.
+      const gone = qc.getQueryData<ListResult>(key)?.lists.flatMap((g) => g.entries).find((e) => e.id === id);
+      if (gone) noteRemoved(userId, gone.mediaId);
       qc.setQueryData<ListResult>(key, (old) =>
         old
           ? {
@@ -313,9 +320,10 @@ export function useListMutations(userId: number, mediaType: MediaType) {
       }
       return { removed, failed };
     },
-    onSuccess: ({ removed, failed }) => {
+    onSuccess: ({ removed, failed }, entries) => {
       if (removed.length) {
         const gone = new Set(removed);
+        for (const e of entries) if (gone.has(e.id)) noteRemoved(userId, e.mediaId);
         qc.setQueryData<ListResult>(key, (old) =>
           old
             ? {

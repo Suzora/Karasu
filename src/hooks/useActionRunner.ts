@@ -1,8 +1,9 @@
-import { useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useRef } from "react";
+import { useLocation, useNavigate, type NavigateFunction } from "react-router";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { shareText } from "@choochmeque/tauri-plugin-sharekit-api";
 import { useAuth } from "@/stores/auth";
+import { afterBackSettles } from "@/hooks/useBackClose";
 import { useListMutations } from "@/hooks/useListMutations";
 import { useManualSync } from "@/hooks/useManualSync";
 import { clearDetectionOverride, scrobbleCancel, scrobbleNow, useNowPlaying } from "@/stores/nowPlaying";
@@ -27,10 +28,23 @@ export interface ActionRunInput {
   entry: MediaListEntry | null;
 }
 
+/** On the Search page its field takes the caret, since a bare push of `/search` would reset the search the URL holds. */
+export function goToSearch(pathname: string, navigate: NavigateFunction): void {
+  if (pathname !== "/search") {
+    navigate("/search");
+    return;
+  }
+  const field = document.querySelector<HTMLInputElement>("#main [data-page-search]");
+  field?.focus();
+  field?.select();
+}
 
 /** Turns an `Action` into the effect it names, reusing the paths that already carry receipts, Undo and the queue. */
 export function useActionRunner(): (input: ActionRunInput) => ActionEffect {
   const navigate = useNavigate();
+  // Read when a deferred navigation runs, which is after the menu that chose it has unwound.
+  const pathname = useRef("");
+  pathname.current = useLocation().pathname;
   const userId = useAuth((s) => s.viewer?.id) ?? 0;
   // Both, unconditionally: the hook rules forbid choosing one by the target's media type at call time.
   const anime = useListMutations(userId, "ANIME");
@@ -46,7 +60,8 @@ export function useActionRunner(): (input: ActionRunInput) => ActionEffect {
         case "open": {
           const id =
             target.kind === "detection" ? target.mediaId : "mediaId" in target ? target.mediaId : null;
-          if (id !== null) navigate(`/media/${id}`);
+          // After the menu's history entry has unwound, or that entry stays behind the title as the stop Back lands on.
+          if (id !== null) afterBackSettles(() => navigate(`/media/${id}`));
           return done;
         }
         case "openAniList":
@@ -150,10 +165,10 @@ export function useActionRunner(): (input: ActionRunInput) => ActionEffect {
           window.dispatchEvent(new Event("open-command-palette"));
           return done;
         case "settings":
-          navigate("/settings");
+          afterBackSettles(() => navigate("/settings"));
           return done;
         case "search":
-          navigate("/search");
+          afterBackSettles(() => goToSearch(pathname.current, navigate));
           return done;
         case "sync":
           // The lock is shared, so a sync already running from the tray or the pull gesture is not started twice.

@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Link } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -9,9 +9,11 @@ import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import { saveListEntry } from "@/api/anilist";
 
 import { formatLabel } from "@/lib/format";
-import { displayTitle, type MediaListStatus } from "@/api/types";
+import { displayTitle, type MediaListStatus, type SaveEntryInput } from "@/api/types";
 import { statusColorVar } from "@/lib/statusColors";
-import { useCachedEntry } from "@/hooks/useCachedEntry";
+import { useCachedList } from "@/hooks/useCachedEntry";
+import { useListMutations } from "@/hooks/useListMutations";
+import { cardEntry, noteAdded, stubFromSave, subscribeTold, toldEntry } from "@/lib/sessionEntries";
 import { loadDefaultAddStatus } from "@/lib/defaultAddStatus";
 import { withCompletion } from "@/lib/completion";
 import { shouldBlur } from "@/lib/contentFilter";
@@ -37,31 +39,31 @@ export default function MediaCard({
   const hasProfile = viewer !== null || mode === "local";
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const userId = viewer?.id ?? 0;
 
-  const saveEntry = useMutation({
-    mutationFn: (input: Parameters<typeof saveListEntry>[0]) =>
-      saveListEntry(input, media),
+  // The viewer's own list, read and never fetched with an account: every in-app write keeps it in step, the response not.
+  const list = useCachedList(userId, media.type);
+  const listed = list?.lists.flatMap((g) => g.entries).find((e) => e.mediaId === media.id);
+  const said = useSyncExternalStore(subscribeTold, () => toldEntry(userId, media.id));
+  const entry = cardEntry(listed, said, media.mediaListEntry);
+  const { save } = useListMutations(userId, media.type);
+
+  // A first add goes out with the media object, which a new local entry needs and the list hook's save does not carry.
+  const add = useMutation({
+    mutationFn: (input: SaveEntryInput) => saveListEntry(input, media),
     onSuccess: (result, input) => {
       // Only this card's collection: saving an anime cannot change the manga list, and the broad key refetched both.
       qc.invalidateQueries({ queryKey: ["mediaList", media.type] });
-      // Patch the discovery cache locally instead of refetching (rate limit)
-      media.mediaListEntry = {
-        id: result.entry?.id ?? media.mediaListEntry?.id ?? 0,
-        status: input.status ?? media.mediaListEntry?.status ?? "PLANNING",
-        progress: input.progress ?? media.mediaListEntry?.progress ?? 0,
-        score: input.score ?? media.mediaListEntry?.score ?? 0,
-        repeat: input.repeat ?? media.mediaListEntry?.repeat ?? 0,
-        notes: input.notes ?? media.mediaListEntry?.notes ?? null,
-      };
+      noteAdded(userId, media.id, stubFromSave(input, result.entry));
     },
   });
 
-  /** Keep the local fallback: `mediaListEntry` is null in local mode, and the editor would write over the real entry. */
-  const cached = useCachedEntry(0, media.type, media.id);
-  const entry = media.mediaListEntry ?? cached ?? null;
-  // Filled before `mutate`, so the stub patched from the variables shows the totals the write carried.
-  const send = (input: EntrySaveInput | { mediaId: number; status: MediaListStatus }) =>
-    saveEntry.mutate(withCompletion(input, media, media.type, entry?.status ?? null));
+  // A listed title goes through the list's own hook, which patches the list, receipts the write and offers Undo.
+  const send = (input: EntrySaveInput | { mediaId: number; status: MediaListStatus }) => {
+    if (listed) save.mutate(input);
+    // Filled before `mutate`, so the entry remembered from the variables shows the totals the write carried.
+    else add.mutate(withCompletion(input, media, media.type, entry?.status ?? null));
+  };
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
 
@@ -116,7 +118,7 @@ export default function MediaCard({
                     status: loadDefaultAddStatus(),
                   })
                 }
-                disabled={saveEntry.isPending}
+                disabled={add.isPending || save.isPending}
                 aria-label={t("media.addDefault")}
                 title={t("media.addDefault")}
               >

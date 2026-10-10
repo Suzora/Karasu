@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { BrowserRouter, Link } from "react-router";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { entry, listResult, media } from "@/test/fixtures";
 import { signIn } from "@/test/render";
 import MediaList from "./MediaList";
@@ -19,7 +21,7 @@ vi.mock("@/api/anilist", async (original) => ({
   flushQueue: vi.fn(async () => {}),
 }));
 
-function page(url: string) {
+function page(url: string, beside?: ReactNode) {
   window.history.replaceState(null, "", "/start");
   window.history.pushState(null, "", url);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -27,6 +29,7 @@ function page(url: string) {
     <QueryClientProvider client={client}>
       <BrowserRouter>
         <MediaList type="ANIME" />
+        {beside}
       </BrowserRouter>
     </QueryClientProvider>,
   );
@@ -41,6 +44,7 @@ beforeEach(() => {
   signIn();
 });
 afterEach(async () => {
+  vi.useRealTimers();
   cleanup();
   document.documentElement.removeAttribute("data-reduce-motion");
   await waitFor(() => {
@@ -99,5 +103,83 @@ describe("MediaList header", () => {
     fireEvent.click(await screen.findByRole("button", { name: "list.clearFilter" }));
     await waitFor(() => expect(window.location.search).toBe(""));
     expect(screen.getByRole("searchbox", { name: "list.searchLabel" })).toHaveValue("");
+  });
+});
+
+describe("MediaList text filter", () => {
+  const field = () => screen.getByRole("searchbox", { name: "list.searchLabel" });
+  const toList = <Link to="/list">open list</Link>;
+  /** Past the 500 ms debounce, on a clock the test owns; installed after the list drew so the query is not faked. */
+  const settle = () => act(() => vi.advanceTimersByTimeAsync(600));
+  const clock = () => vi.useFakeTimers({ shouldAdvanceTime: true });
+
+  it("writes what is typed into ?q= once, after typing settles", async () => {
+    page("/list");
+    await screen.findByRole("searchbox", { name: "list.searchLabel" });
+    clock();
+    const replace = vi.spyOn(window.history, "replaceState");
+    await userEvent.setup({ delay: null }).type(field(), "fri");
+    expect(window.location.search).toBe("");
+    await settle();
+    expect(window.location.search).toBe("?q=fri");
+    expect(replace.mock.calls.filter(([, , url]) => String(url).includes("q=fri"))).toHaveLength(1);
+    replace.mockRestore();
+  });
+
+  /** The page's own replace changes what the router hands out; the debounce must keep the time it had. */
+  it("does not restart the typing debounce when another control writes the URL", async () => {
+    page("/list");
+    await screen.findByRole("searchbox", { name: "list.searchLabel" });
+    clock();
+    await userEvent.setup({ delay: null }).type(field(), "fri");
+    await act(() => vi.advanceTimersByTimeAsync(250));
+    fireEvent.click(screen.getByRole("tab", { name: /status\.ANIME\.PAUSED/ }));
+    await waitFor(() => expect(window.location.search).toBe("?tab=PAUSED"));
+    await act(() => vi.advanceTimersByTimeAsync(280));
+    expect(window.location.search).toContain("q=fri");
+  });
+
+  it("starts a link to the open list without the text typed on the entry it left", async () => {
+    page("/list?q=x", toList);
+    await waitFor(() => expect(field()).toHaveValue("x"));
+    clock();
+    fireEvent.click(screen.getByRole("link", { name: "open list" }));
+    await waitFor(() => expect(window.location.search).toBe(""));
+    expect(field()).toHaveValue("");
+    // The old text must not come back through the debounce, which the navigation itself used to re-arm.
+    await settle();
+    expect(window.location.search).toBe("");
+    expect(field()).toHaveValue("");
+  });
+
+  it("brings the text back with Back, and leaves that entry's URL as it was", async () => {
+    page("/list?q=x", toList);
+    await waitFor(() => expect(field()).toHaveValue("x"));
+    clock();
+    fireEvent.click(screen.getByRole("link", { name: "open list" }));
+    await waitFor(() => expect(field()).toHaveValue(""));
+    await settle();
+    act(() => window.history.back());
+    await waitFor(() => expect(window.location.search).toBe("?q=x"));
+    expect(field()).toHaveValue("x");
+    await settle();
+    expect(window.location.search).toBe("?q=x");
+  });
+
+  /** The sidebar's push, typing on the new entry, then Back: the first entry must not be written into. */
+  it("does not carry text typed on one entry into the entry Back returns to", async () => {
+    page("/list?tab=PLANNING", toList);
+    await screen.findByRole("searchbox", { name: "list.searchLabel" });
+    clock();
+    fireEvent.click(screen.getByRole("link", { name: "open list" }));
+    await waitFor(() => expect(window.location.search).toBe(""));
+    await userEvent.setup({ delay: null }).type(field(), "fri");
+    await settle();
+    expect(window.location.search).toBe("?q=fri");
+    act(() => window.history.back());
+    await waitFor(() => expect(window.location.search).toBe("?tab=PLANNING"));
+    expect(field()).toHaveValue("");
+    await settle();
+    expect(window.location.search).toBe("?tab=PLANNING");
   });
 });

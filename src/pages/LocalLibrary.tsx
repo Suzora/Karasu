@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { VirtualRows } from "@/components/list/VirtualRows";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -254,6 +255,8 @@ function LibraryView({ userId }: { userId: number }) {
 
   // One scroller for every section's VirtualRows; expand state lives here because virtual rows unmount.
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Remembered here, not in VirtualRows, because every section's rows share this one scroller.
+  useScrollMemory(scrollRef, "library");
   const [expandedRows, setExpandedRows] = useState<ReadonlySet<number>>(
     () => new Set(),
   );

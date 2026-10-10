@@ -93,7 +93,7 @@ describe("Modal", () => {
     // Giving the entry up would unwind it with a back of its own.
     expect(back).not.toHaveBeenCalled();
     back.mockRestore();
-    expect(window.history.state).toEqual({ karasuBack: expect.any(Number) });
+    expect(window.history.state).toMatchObject({ karasuBack: expect.any(Number) });
     act(() => {
       window.dispatchEvent(new PopStateEvent("popstate"));
     });

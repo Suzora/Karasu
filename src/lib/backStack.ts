@@ -42,7 +42,9 @@ export function createBackStack(h: HistoryLike) {
     /** Called when an overlay opens; the returned release is a no-op after a back-close, so cleanup may call it anyway. */
     register(close: () => void): () => void {
       const entry: Entry = { token: nextToken++, close };
-      h.pushState({ karasuBack: entry.token }, "");
+      // The covered entry's router state rides along, so a stale overlay entry reads as that page and not as a new one.
+      const covered = typeof h.state === "object" && h.state !== null ? h.state : {};
+      h.pushState({ ...covered, karasuBack: entry.token }, "");
       stack.push(entry);
       return () => {
         const i = stack.indexOf(entry);

@@ -238,4 +238,17 @@ describe("createBackStack", () => {
     stack.whenSettled(() => (ran = true));
     expect(ran).toBe(true);
   });
+
+  /** The router reads a key off every entry; one left behind by a navigation must read as the page it covers. */
+  it("gives an overlay entry the covered entry's router state, so a stale one is not a page of its own", () => {
+    const { h, entries } = fakeHistory();
+    entries[0] = { usr: null, key: "page", idx: 3 };
+    const stack = createBackStack(h);
+    stack.register(vi.fn());
+    expect(h.state).toEqual({ usr: null, key: "page", idx: 3, karasuBack: expect.any(Number) });
+    // A second overlay opened over the first still carries the page's key, under its own token.
+    stack.register(vi.fn());
+    expect(h.state).toMatchObject({ key: "page", idx: 3 });
+    expect((h.state as { karasuBack: number }).karasuBack).not.toBe((entries[1] as { karasuBack: number }).karasuBack);
+  });
 });
