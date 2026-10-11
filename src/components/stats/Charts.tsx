@@ -101,6 +101,7 @@ export function Sunburst({ data, size: fallback = 260 }: { data: Slice[]; size?:
                       to={to}
                       value={kid.value}
                       tone="fill-ink-100"
+                      halo
                     />
                   </g>
                 );
@@ -129,6 +130,7 @@ function ArcValue({
   to,
   value,
   tone,
+  halo = false,
 }: {
   c: number;
   r: number;
@@ -136,6 +138,8 @@ function ArcValue({
   to: number;
   value: number;
   tone: string;
+  /** A rim in the card's colour, for a ring whose faded fill alone leaves the ink short of 4.5:1. */
+  halo?: boolean;
 }) {
   if (((to - from) * Math.PI * r) / 180 < String(value).length * 7 + 6) return null;
   const at = polar(c, c, r, (from + to) / 2);
@@ -145,6 +149,7 @@ function ArcValue({
       y={at.y + 3}
       textAnchor="middle"
       className={`${tone} pointer-events-none text-xs font-medium tabular-nums`}
+      {...(halo ? { stroke: "var(--color-surface-900)", strokeWidth: 2.5, strokeLinejoin: "round" as const, paintOrder: "stroke" } : {})}
     >
       {value}
     </text>

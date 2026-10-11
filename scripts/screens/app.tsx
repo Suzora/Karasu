@@ -629,7 +629,7 @@ mockIPC((cmd, args) => {
         draining: false,
         queued: idle ? [] : [
           { id: 1, kind: "save", subject: REAL[0].id, fields: ["progress"], queuedAt: now - 120 },
-          { id: 2, kind: "delete", subject: REAL[1].id, fields: [], queuedAt: now - 3600 },
+          { id: 2, kind: "delete", subject: 5001, fields: [], queuedAt: now - 3600 },
         ],
         rate: limited
           ? { remaining: 0, limit: 30, observedAgoMs: 4000, throttledForMs: 38_000, throttleKind: "retryAfter" }

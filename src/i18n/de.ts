@@ -420,7 +420,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
   relation: {
     PREQUEL: "Vorgänger",
     SEQUEL: "Fortsetzung",
-    SIDE_STORY: "Side Story",
+    SIDE_STORY: "Nebengeschichte",
     SPIN_OFF: "Spin-off",
     PARENT: "Hauptserie",
     ALTERNATIVE: "Alternative",

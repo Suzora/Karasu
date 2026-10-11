@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { playerName } from "@/lib/playerName";
 import { listen } from "@tauri-apps/api/event";
 import { ChevronDown, ChevronUp, GripHorizontal } from "lucide-react";
 import DetectionSurface, { ScrobbleActions } from "@/components/media/DetectionSurface";
@@ -55,7 +56,7 @@ export default function DetectionPopup() {
   const free = !phone && drag.position !== null;
   const cover = media?.coverImage.large ?? null;
   const heading = t(playing.mediaType === "MANGA" ? "nowPlaying.headingManga" : "nowPlaying.heading", {
-    process: playing.process.replace(".exe", ""),
+    process: playerName(playing.process),
   });
 
   const toggle = () => {

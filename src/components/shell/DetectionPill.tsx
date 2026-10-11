@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useNowPlaying } from "@/stores/nowPlaying";
 import { isTauri } from "@/api/anilist";
 import { cn } from "@/lib/utils";
+import { playerName } from "@/lib/playerName";
 
 /** The centre of the titlebar: what the detector sees now; keep `pointer-events-none` so it does not swallow the drag. */
 export default function DetectionPill() {
@@ -13,7 +14,7 @@ export default function DetectionPill() {
 
   const parts = current
     ? [
-        current.process,
+        playerName(current.process),
         current.matchedTitle ?? current.parsedTitle,
         current.episode != null
           ? t(

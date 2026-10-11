@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 4d24c9a -->
+<!-- generated-through: c1a5bbc -->
 
 ### Fixed
 
@@ -84,6 +84,7 @@ tag time is then optional rather than load-bearing.
 - List and grid keys work again right after opening a page.
 - Back after removing from the editor works again.
 - A rate limit no longer looks like a missing title, and the sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
+- The titlebar names the player (mpv) instead of its file, Side Story is translated in German, and the counts on the statistics sunburst are easier to read.
 
 ### Added
 
