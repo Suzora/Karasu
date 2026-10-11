@@ -16,6 +16,10 @@ const iconButtonVariants = cva(
         /** For the action circles that sit on cover art, where the fill has to be near-opaque over unknown artwork. */
         onCover: "bg-on-cover/86 text-on-cover-edge/80 border border-surface-700 hover:text-on-cover-edge",
         success: "text-success hover:bg-success/10",
+        /** An action repeated on every row: neutral at rest, the accent only under the pointer or the focus. */
+        rowAccent: "text-ink-500 hover:bg-accent-500/14 hover:text-accent-400 focus-visible:text-accent-400",
+        /** The completing twin of `rowAccent`, in the success colour only under the pointer or the focus. */
+        rowSuccess: "text-ink-500 hover:bg-success/10 hover:text-success focus-visible:text-success",
         danger: "text-danger hover:bg-danger/10",
       },
       size: {

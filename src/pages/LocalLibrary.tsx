@@ -1063,6 +1063,7 @@ function LibraryRow({
               {t("library.ep", { n: next.episode })}
             </span>
             <Button
+              variant="row"
               size="sm"
               className="shrink-0"
               onClick={() => playEpisode(lib.mediaId, next.episode)}
@@ -1077,7 +1078,7 @@ function LibraryRow({
               {muted ? t("library.allWatched") : ""}
             </span>
             {/* The play button's own width, held invisible, so every row's columns end on the same edge in both languages. */}
-            <Button size="sm" className="invisible shrink-0" aria-hidden tabIndex={-1}>
+            <Button variant="row" size="sm" className="invisible shrink-0" aria-hidden tabIndex={-1}>
               <Play className="size-3.5" fill="currentColor" />
               {t("library.play")}
             </Button>

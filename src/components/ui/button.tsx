@@ -14,6 +14,8 @@ const buttonVariants = cva(
         outline:
           "border border-surface-700 text-ink-300 hover:bg-surface-850 hover:text-ink-100",
         ghost: "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+        /** An action repeated on every row: neutral at rest, the accent only under the pointer or the focus. */
+        row: "border border-surface-700 text-ink-300 hover:border-accent-500/55 hover:bg-accent-500/14 hover:text-accent-400 focus-visible:text-accent-400",
         // `text-surface-950` rather than white: it inverts with the theme and keeps contrast where white ink fails.
         danger: "bg-danger text-surface-950 hover:opacity-90",
         /** Destructive but not the primary action — bulk Remove, reset rows. */

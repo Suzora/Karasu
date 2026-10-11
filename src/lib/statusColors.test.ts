@@ -68,6 +68,35 @@ describe("normalizeStatusColors", () => {
     expect(isDefaultPalette(got)).toBe(false);
   });
 
+  /** Each default is retired at its own version: a palette saved before that move carries it as the default it was. */
+  it("moves the old Rewatching green from any palette saved before it was retired", () => {
+    const old = "#1a7f37";
+    expect(normalizeStatusColors({ ...DEFAULT_STATUS_COLORS, REPEATING: old }).REPEATING).toBe(DEFAULT_STATUS_COLORS.REPEATING);
+    const v2 = normalizeStatusColors({ ...DEFAULT_STATUS_COLORS, REPEATING: old, CURRENT: "#3fb950", v: 2 });
+    expect(v2.REPEATING).toBe(DEFAULT_STATUS_COLORS.REPEATING);
+    // Version 2 came after the old Watching green was retired, so there it was a choice and stays one.
+    expect(v2.CURRENT).toBe("#3fb950");
+  });
+
+  it("keeps the old Rewatching green once a write after its retirement picked it", () => {
+    const saved = serializeStatusColors({ ...DEFAULT_STATUS_COLORS, REPEATING: "#1a7f37" });
+    expect(normalizeStatusColors(JSON.parse(saved)).REPEATING).toBe("#1a7f37");
+  });
+
+  /** Watching and Rewatching sit side by side in every chart, so their defaults must not share a hue. */
+  it("gives Rewatching a hue of its own, readable on every ground", () => {
+    expect(DEFAULT_STATUS_COLORS.REPEATING.toLowerCase()).not.toBe("#1a7f37");
+    const hue = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      return (h * 60 + 360) % 360;
+    };
+    expect(Math.abs(hue(DEFAULT_STATUS_COLORS.REPEATING) - hue(DEFAULT_STATUS_COLORS.CURRENT))).toBeGreaterThanOrEqual(30);
+    const grounds = ["#0b0d12", "#12141a", "#1f232b", "#ffffff", "#f4f6f8", "#e5e8ed"];
+    expect(weakestContrast(DEFAULT_STATUS_COLORS.REPEATING, grounds)).toBeGreaterThanOrEqual(3);
+  });
+
   it("survives anything at all", () => {
     for (const junk of [null, undefined, "", 0, [], "nonsense"]) {
       expect(normalizeStatusColors(junk)).toEqual(DEFAULT_STATUS_COLORS);

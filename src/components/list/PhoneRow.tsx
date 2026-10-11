@@ -130,7 +130,7 @@ export const PhoneRow = memo(function PhoneRow({
           onClick={(e) => e.stopPropagation()}
         >
           <IconButton
-            variant="accent"
+            variant="surface"
             size="sm"
             round
             onClick={() => onPlusOne(entry)}

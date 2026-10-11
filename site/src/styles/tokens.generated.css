@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 0fd0195df8c2) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 be3296e7b4bf) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -106,7 +106,7 @@
 
   /* List-status defaults, overwritten at runtime by `stores/theme`; here so a cover ring paints on the first frame. */
   --color-status-current: #2f9e47;
-  --color-status-repeating: #1a7f37;
+  --color-status-repeating: #0e8f86;
   --color-status-completed: #4b8dd6;
   --color-status-paused: #b87a14;
   --color-status-dropped: #d1495b;

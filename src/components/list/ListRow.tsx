@@ -333,9 +333,8 @@ export const ListRow = memo(function ListRow({
       >
         {canPlayNext && (
           <IconButton
-            variant="ghost"
+            variant="rowAccent"
             size="xs"
-            className="text-accent-400"
             onClick={() => play(media.id)}
             aria-label={t("common.playNext")}
             title={t("common.playNext")}
@@ -344,7 +343,7 @@ export const ListRow = memo(function ListRow({
           </IconButton>
         )}
         <IconButton
-          variant="accent"
+          variant="rowAccent"
           size="xs"
           onClick={() => onQuickSave(entry, { progress: entry.progress + 1 })}
           disabled={!canIncrement(entry)}
@@ -355,7 +354,7 @@ export const ListRow = memo(function ListRow({
         </IconButton>
         {entry.status !== "COMPLETED" && (
           <IconButton
-            variant="success"
+            variant="rowSuccess"
             size="xs"
             onClick={() => onComplete(entry)}
             aria-label={t("common.complete")}

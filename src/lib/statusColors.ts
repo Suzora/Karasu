@@ -7,21 +7,22 @@ export type StatusPalette = Record<MediaListStatus, string>;
 
 export const DEFAULT_STATUS_COLORS: StatusPalette = {
   CURRENT: "#2f9e47",
-  REPEATING: "#1a7f37",
+  REPEATING: "#0e8f86",
   COMPLETED: "#4b8dd6",
   PAUSED: "#b87a14",
   DROPPED: "#d1495b",
   PLANNING: "#6b7280",
 };
 
-/** Defaults a release shipped and replaced; a palette saved while they were current carries them as if chosen. */
-const RETIRED_DEFAULTS: Partial<Record<MediaListStatus, string[]>> = {
-  CURRENT: ["#3fb950"],
-  PAUSED: ["#d9a13b"],
+/** Defaults a release shipped and replaced, each with the palette version that retired it. */
+const RETIRED_DEFAULTS: Partial<Record<MediaListStatus, { hex: string; retiredIn: number }[]>> = {
+  CURRENT: [{ hex: "#3fb950", retiredIn: 2 }],
+  REPEATING: [{ hex: "#1a7f37", retiredIn: 3 }],
+  PAUSED: [{ hex: "#d9a13b", retiredIn: 2 }],
 };
 
 /** Stored beside the colours, so a retired default picked after the move reads as the choice it is. */
-export const STATUS_PALETTE_VERSION = 2;
+export const STATUS_PALETTE_VERSION = 3;
 
 /** What a status colour must reach against the surfaces it sits on, the non-text contrast every mark needs. */
 export const STATUS_CONTRAST_MIN = 3;
@@ -53,14 +54,16 @@ const GROUND = /^#(?:[0-9a-f]{3}){1,2}$/i;
 export const isStatusHex = (v: unknown): v is string =>
   typeof v === "string" && HEX.test(v);
 
-/** A stored palette with each unusable entry, and a retired default in an unversioned one, set to today's default. */
+/** A stored palette with each unusable entry, and a default retired after it was saved, set to today's default. */
 export function normalizeStatusColors(stored: unknown): StatusPalette {
   const src = (stored ?? {}) as Partial<Record<string, unknown>>;
-  const legacy = src.v !== STATUS_PALETTE_VERSION;
+  // An unversioned palette predates the first move, so every retirement applies to it.
+  const version = typeof src.v === "number" ? src.v : 1;
   const out = {} as StatusPalette;
   for (const key of STATUS_COLOR_ORDER) {
     const v = src[key];
-    const retired = legacy && isStatusHex(v) && (RETIRED_DEFAULTS[key] ?? []).includes(v.toLowerCase());
+    const retired =
+      isStatusHex(v) && (RETIRED_DEFAULTS[key] ?? []).some((r) => r.hex === v.toLowerCase() && version < r.retiredIn);
     out[key] = isStatusHex(v) && !retired ? v : DEFAULT_STATUS_COLORS[key];
   }
   return out;

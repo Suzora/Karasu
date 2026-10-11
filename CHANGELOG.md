@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 3ae5f36 -->
+<!-- generated-through: d5e6501 -->
 
 ### Fixed
 
@@ -126,6 +126,7 @@ tag time is then optional rather than load-bearing.
 - Android's status and navigation bars follow the light and high-contrast themes.
 - The sync panel says in plain words what Karasu is doing right now, what it just asked AniList and what it will check next, with the request budget as a bar and a countdown while AniList holds requests back.
 - Right-clicking a title shows only what you can do with that title; Back, Reload, the palette and the other page commands are a right-click on the page.
+- The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
 
 ## 1.32.0 — 2026-10-03
 
