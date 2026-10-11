@@ -1014,6 +1014,38 @@ Prefer extracting pure logic into `src/lib/*.ts` (or a pure Rust fn) and unit
 testing it. Untestable-by-construction logic in a component is the usual reason
 a regression here is invisible until it ships.
 
+## Superpowers in this repository
+
+The Superpowers skills (obra/superpowers) are installed per machine, in
+`~/.agents/skills`, never in this repository, and they are welcome here. This
+file outranks them wherever the two disagree, and they disagree in four places:
+
+- **Specs and plans stay local.** brainstorming and writing-plans save to
+  `docs/superpowers/{specs,plans}/`, and a clone keeps that folder in
+  `.git/info/exclude`, so nothing there is committed: the repository is public,
+  and a plan is a working note, not a document. Never `git add -f` it. The
+  bundle is safe from it too, because Tailwind's scan honours
+  `.git/info/exclude`. Measured on 2026-10-11: a probe class under
+  `docs/superpowers/` left the emitted CSS byte-identical (102,355 bytes, same
+  hash), while the same file one folder up added both of its classes
+  (+379 bytes). A clone without the exclude line would carry class names from
+  its plans into a local build, so add the line before the first plan.
+- **A plan's tasks do not commit; the feature commits, once.** Where
+  writing-plans or executing-plans says "Commit", read "run the tests this task
+  touches and see them green". The feature lands as one commit through the loop
+  above: bump, verify, commit with the trailer, changelog, amend, marker. Every
+  commit is a version and a changelog line, so twelve task commits would be
+  twelve releases of nothing.
+- **Test-first means the test is seen failing first.** `npx vitest run <file>`
+  or `cargo test <name>` fails for the reason the change addresses before the
+  change exists. A new test file takes the `.dom.` name only when it needs a
+  DOM (see the two vitest projects below).
+- **Worktrees and finishing.** using-git-worktrees puts a worktree under
+  `.claude/worktrees/`, which Tailwind already skips (`@source not
+  "../../.claude"`). finishing-a-development-branch means the push gate
+  `npm run verify:full`, a pull request merged by squash, and a commit or a push
+  only when the maintainer asks for one.
+
 ## The bindings are generated, never written
 
 `src/api/bindings.ts` is what tauri-specta emits from the Rust command
