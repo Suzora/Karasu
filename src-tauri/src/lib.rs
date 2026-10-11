@@ -17,6 +17,7 @@ mod net;
 mod playback;
 mod i18n;
 mod portable;
+mod schedule;
 mod sync;
 mod titles;
 

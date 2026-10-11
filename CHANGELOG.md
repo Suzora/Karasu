@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 53eab87 -->
+<!-- generated-through: a305a9a -->
 
 ### Fixed
 
@@ -123,6 +123,7 @@ tag time is then optional rather than load-bearing.
 - The profile's lists filter fits one row on the phone.
 - Back from a title returns you to where you were.
 - Android's status and navigation bars follow the light and high-contrast themes.
+- The sync panel says in plain words what Karasu is doing right now, what it just asked AniList and what it will check next, with the request budget as a bar and a countdown while AniList holds requests back.
 
 ## 1.32.0 — 2026-10-03
 

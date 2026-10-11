@@ -615,19 +615,52 @@ mockIPC((cmd, args) => {
       return playing
         ? { process: "mpv.exe", streaming: false, mediaType: "ANIME", rawTitle: `[Grp] ${REAL[0].title} - 0${REAL[0].next}.mkv`, parsedTitle: REAL[0].title, season: 3, episode: REAL[0].next, sourceEpisode: REAL[0].next, mediaId: REAL[0].id, matchedTitle: REAL[0].title, overridden: false, progress: REAL[0].next - 1, totalEpisodes: REAL[0].episodes, episodeTitle: null }
         : null;
-    // Two edits waiting and a quiet budget, so the sync panel draws its queue rows and its header.
-    case "sync_status":
+    // A busy default (two edits, a request in flight, a full plan), plus a 429 and a quiet idle state the boards compare.
+    case "sync_status": {
+      const limited = mock === "sync-limited";
+      const idle = mock === "sync-idle";
+      const row = (seq: number, source: string, operation: string, agoS: number, ms: number, left: number, outcome = "ok", pacedMs = 0) => ({
+        seq, source, operation, startedAgoMs: agoS * 1000, durationMs: ms, pacedMs, status: outcome === "throttled" ? 429 : 200, remainingAfter: left, outcome,
+      });
       return {
         connected: true,
         draining: false,
-        queued: [
+        queued: idle ? [] : [
           { id: 1, kind: "save", subject: REAL[0].id, fields: ["progress"], queuedAt: now - 120 },
           { id: 2, kind: "delete", subject: REAL[1].id, fields: [], queuedAt: now - 3600 },
         ],
-        rate: { remaining: 27, limit: 30, observedAgoMs: 4000, throttledForMs: null, throttleKind: null },
-        recent: [],
-        traffic: { sources: [{ source: "list", total: 2 }, { source: "airing", total: 1 }], throttled: 0 },
+        rate: limited
+          ? { remaining: 0, limit: 30, observedAgoMs: 4000, throttledForMs: 38_000, throttleKind: "retryAfter" }
+          : { remaining: idle ? 29 : 21, limit: 30, observedAgoMs: idle ? 95_000 : 2000, throttledForMs: null, throttleKind: null },
+        inFlight: idle ? [] : limited
+          ? [{ source: "mediaDetail", startedAgoMs: 9000, waiting: true }]
+          : [{ source: "mediaDetail", startedAgoMs: 400, waiting: false }],
+        recent: idle
+          ? [row(4, "airing", "Page", 840, 290, 29), row(3, "list", "MediaListCollection", 1500, 610, 28)]
+          : [
+              ...(limited ? [row(9, "seasonal", "Page", 4, 120, 0, "throttled")] : []),
+              row(8, "seasonHero", "Page", 12, 340, 21),
+              row(7, "notifCount", "Viewer", 13, 180, 22),
+              row(6, "save", "SaveMediaListEntry", 50, 420, 23, "ok", 1200),
+              row(5, "siteNotifs", "Page", 95, 260, 24),
+              row(4, "airing", "Page", 840, 290, 25, "error"),
+              row(3, "list", "MediaListCollection", 1500, 610, 26),
+            ],
+        traffic: {
+          sources: [{ source: "list", total: 2 }, { source: "airing", total: 3 }, { source: "seasonHero", total: 1 }, { source: "siteNotifs", total: 2 }, { source: "save", total: 1 }, { source: "notifCount", total: 4 }],
+          throttled: limited ? 1 : 0,
+          remaining: null,
+          limit: null,
+        },
+        upcoming: [
+          { pass: "site", dueInMs: idle ? 540_000 : null, running: !idle, off: false },
+          { pass: "airing", dueInMs: 42 * 60_000, running: false, off: false },
+          { pass: "sequel", dueInMs: 5 * 3_600_000, running: false, off: false },
+          { pass: "stale", dueInMs: null, running: false, off: true },
+        ],
+        lists: [{ mediaType: "ANIME", freshForMs: idle ? 0 : 11 * 60_000 }, { mediaType: "MANGA", freshForMs: 4 * 60_000 }],
       };
+    }
     case "get_update_check_auto":
       return false;
     // Explicit art arrives blurred only where a screen asks, so the other shots keep the covers they always had.

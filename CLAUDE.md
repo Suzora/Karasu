@@ -244,6 +244,11 @@ src-tauri/src/
   sync.rs            lock-taking that survives a poisoned mutex, so a
                      supervised background loop's panic does not take every
                      later lock with it
+  schedule.rs        when each background pass (airing, site, sequel, stale)
+                     runs next, in memory only, for the sync panel's
+                     "next" rows; a new pass plans itself there and wraps
+                     its run in `schedule::running`, or the panel cannot
+                     say it exists
   widgets.rs         the home-screen widgets' projection file (widgets.json),
                      rewritten whenever the list cache moves; Widgets.kt
                      renders it with no network and no schema knowledge
@@ -717,6 +722,13 @@ the rule is: **name the spender, cache the answer, wake for a reason.**
   refresh costs a request.
 - **The bucket is per IP, not per token** (measured, see the window note), so
   the phone and the PC share one budget on one network.
+- **The sync panel reads all of this and asks for none of it.** It polls
+  `sync_status` once a second while open: the limiter's snapshot, the
+  requests in flight (`AniList::in_flight`, a drop guard per request), the
+  plan of the passes (`schedule.rs`) and each list's freshness, read as the
+  fetch stamp alone (`cached_list_fetched_at`). Every source is put into
+  words by `lib/syncSources`, and `syncSources.test.ts` fails on a source
+  the code sends without a label.
 
 Measured on the rig on 2026-09-13: a cold start fell from 8 requests in the
 first 30 s to 2 (the bell count and one airing check); a restart inside the

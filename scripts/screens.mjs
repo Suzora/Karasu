@@ -250,6 +250,8 @@ export const SCREENS = [
   } },
   { id: "d20-listenansicht", w: 1232, h: 800, route: "/list", act: (p) => p.getByRole("radio", { name: "Liste" }).first().click() },
   { id: "d18-sync", w: 1232, h: 800, route: "/list", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },
+  { id: "d87-sync-gebremst", w: 1232, h: 800, route: "/list", mock: "sync-limited", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },
+  { id: "d88-sync-ruhig", w: 1232, h: 800, route: "/list", mock: "sync-idle", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },
   {
     id: "p8-glocke",
     w: 405,

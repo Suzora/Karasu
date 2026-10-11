@@ -637,6 +637,17 @@ impl Db {
         .ok()
     }
 
+    /// Only the fetch stamp, for the sync panel's once-a-second read, which must not load a megabyte of payload.
+    pub fn cached_list_fetched_at(&self, user_id: i64, media_type: &str) -> Option<i64> {
+        let conn = self.0.guard();
+        conn.query_row(
+            "SELECT fetched_at FROM list_cache WHERE user_id = ?1 AND media_type = ?2",
+            rusqlite::params![user_id, media_type],
+            |r| r.get(0),
+        )
+        .ok()
+    }
+
     /// Marks the cached list as never fetched so the next read goes to AniList; a first add needs that.
     pub fn cache_mark_stale(&self, user_id: i64, media_type: &str) {
         let conn = self.0.guard();
@@ -2050,6 +2061,10 @@ pub(crate) mod tests {
         // A second write replaces rather than accumulating rows.
         db.cache_list(7, "ANIME", "[]").unwrap();
         assert_eq!(db.cached_list(7, "ANIME").as_deref(), Some("[]"));
+
+        // The stamp alone agrees with the stamp read beside the payload.
+        assert_eq!(db.cached_list_fetched_at(7, "ANIME"), db.cached_list_with_age(7, "ANIME").map(|(_, at)| at));
+        assert!(db.cached_list_fetched_at(7, "MANGA").is_none());
     }
 
     #[test]

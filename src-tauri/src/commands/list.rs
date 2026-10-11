@@ -997,6 +997,36 @@ pub struct SyncStatus {
     pub recent: Vec<RequestLogEntry>,
     /// Requests per source since the app started, so the panel can say who is spending the budget.
     pub traffic: crate::anilist::client::TrafficSnapshot,
+    /// Requests begun and not yet answered, oldest first.
+    #[serde(rename = "inFlight")]
+    pub in_flight: Vec<crate::anilist::client::InFlightRequest>,
+    /// When each background pass runs next.
+    pub upcoming: Vec<crate::schedule::ScheduledPass>,
+    /// How long each cached list is still served without a request; past that, the next read refreshes it.
+    pub lists: Vec<ListFreshness>,
+}
+
+#[derive(serde::Serialize, specta::Type, Debug, PartialEq)]
+pub struct ListFreshness {
+    #[serde(rename = "mediaType")]
+    pub media_type: &'static str,
+    /// Zero once stale: the next time a screen reads the list, it asks AniList.
+    #[serde(rename = "freshForMs")]
+    #[specta(type = crate::commands::Num)]
+    pub fresh_for_ms: u64,
+}
+
+/// The freshness `list_plan` would act on, per list that has a cache at all.
+fn list_freshness(stamps: &[(&'static str, Option<i64>)], now: i64) -> Vec<ListFreshness> {
+    stamps
+        .iter()
+        .filter_map(|(media_type, at)| {
+            at.map(|at| ListFreshness {
+                media_type,
+                fresh_for_ms: ((at + LIST_FRESH_SECS - now).max(0) as u64) * 1000,
+            })
+        })
+        .collect()
 }
 
 /// The state of the sync, for the panel behind the pending badge.
@@ -1031,6 +1061,14 @@ pub async fn sync_status(
         rate: api.rate_snapshot().await,
         recent: api.request_log().await,
         traffic: api.traffic_snapshot(),
+        in_flight: api.in_flight(),
+        upcoming: crate::schedule::snapshot(),
+        lists: viewer
+            .map(|user_id| {
+                let stamps = ["ANIME", "MANGA"].map(|t| (t, db.cached_list_fetched_at(user_id, t)));
+                list_freshness(&stamps, unix_now())
+            })
+            .unwrap_or_default(),
     })
 }
 
@@ -1059,7 +1097,22 @@ pub async fn flush_queue(
 
 #[cfg(test)]
 mod tests {
-    use super::{bulk_chunks, list_plan, queue_key, queue_parts, ListPlan, BULK_CHUNK, LIST_FRESH_SECS};
+    use super::{
+        bulk_chunks, list_freshness, list_plan, queue_key, queue_parts, ListFreshness, ListPlan, BULK_CHUNK,
+        LIST_FRESH_SECS,
+    };
+
+    /// The panel's countdown ends exactly where `list_plan` stops serving the cache.
+    #[test]
+    fn list_freshness_runs_out_where_the_plan_starts_refreshing() {
+        let now = 10_000;
+        let got = list_freshness(&[("ANIME", Some(now - 60)), ("MANGA", None)], now);
+        assert_eq!(got, [ListFreshness { media_type: "ANIME", fresh_for_ms: (LIST_FRESH_SECS - 60) as u64 * 1000 }]);
+        let at_edge = list_freshness(&[("ANIME", Some(now - LIST_FRESH_SECS))], now);
+        assert_eq!(at_edge[0].fresh_for_ms, 0);
+        assert_eq!(list_plan(Some(LIST_FRESH_SECS), false), ListPlan::ServeAndRefresh);
+        assert_eq!(list_freshness(&[("ANIME", Some(0))], now)[0].fresh_for_ms, 0, "a stale-marked list is due");
+    }
 
     /// A membership edit reaches the cached entry, so a list served inside its window shows the boxes as saved.
     #[test]

@@ -19,7 +19,7 @@ export function relTime(
 /** A unit `NumberFormat` per language and unit, cached because constructing one is the expensive part of every row. */
 const formatters = new Map<string, Intl.NumberFormat>();
 
-function narrow(lang: string, value: number, unit: "minute" | "hour" | "day"): string {
+function narrow(lang: string, value: number, unit: "second" | "minute" | "hour" | "day"): string {
   const key = `${lang}:${unit}`;
   let f = formatters.get(key);
   if (!f) {
@@ -38,6 +38,14 @@ function narrow(lang: string, value: number, unit: "minute" | "hour" | "day"): s
     formatters.set(key, f);
   }
   return f.format(value);
+}
+
+/** A span ahead, "38 s", "42 min", "5 h", rounded up so a wait never reads shorter than it is. */
+export function durationShort(ms: number, lang: string): string {
+  const left = Math.max(0, ms);
+  if (left < 60_000) return narrow(lang, Math.ceil(left / 1000), "second");
+  if (left < 3_600_000) return narrow(lang, Math.ceil(left / 60_000), "minute");
+  return narrow(lang, Math.ceil(left / 3_600_000), "hour");
 }
 
 /** The same, from AniList's unix *seconds*. Every timestamp in its API is one. */

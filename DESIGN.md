@@ -825,3 +825,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   and the statuses in one row that scrolls sideways, and B, a Segmented
   control for the type over a scrolling row of statuses). The filter is one
   row at every width; before, the phone wrapped it to three.
+- **2026-10-12:** The sync panel opens with one sentence of what is happening,
+  the budget bar under it (a countdown while AniList holds requests back) and
+  a line saying what the budget is, then lays everything on one time axis:
+  the last requests above, a "now" rule with what runs and what waits, and
+  the planned passes and list refreshes below (B of three mockups, over A,
+  the same three groups as stacked sections with "now" first, and C, three
+  tabs under the head). Every request names its sender in words; the raw
+  operation, timings and per-source counts fold away under Details. It grew
+  from 304 to 380 px.

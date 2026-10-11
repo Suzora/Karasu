@@ -1,4 +1,5 @@
 import { activeTitleLanguage, pickTitle, type TitleLanguage } from "@/lib/titleLanguage";
+import type { InFlightRequest, ListFreshness, ScheduledPass } from "./bindings";
 
 export interface Viewer {
   id: number;
@@ -146,6 +147,8 @@ export interface QueuedEdit {
 export interface RequestLogEntry {
   /** Monotonic within a session — a stable React key, not an AniList id. */
   seq: number;
+  /** Who sent it, as the caller named itself; `lib/syncSources` puts it into words. */
+  source: string;
   /** The root field the request asked for, never the variables: they carry notes and scores. */
   operation: string;
   startedAgoMs: number;
@@ -166,6 +169,12 @@ export interface SyncStatus {
   /** Recent traffic, newest first. */
   recent: RequestLogEntry[];
   traffic: TrafficSnapshot;
+  /** Requests begun and not yet answered, oldest first. */
+  inFlight: InFlightRequest[];
+  /** When each background pass runs next. */
+  upcoming: ScheduledPass[];
+  /** How long each cached list is still served without a request. */
+  lists: ListFreshness[];
 }
 
 /** Requests per source since the app started; the budget is shared, so the panel says who spent it. */

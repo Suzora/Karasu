@@ -1,17 +1,6 @@
-/** What the sync panel says, kept out of the component because a wrong precedence or subject is invisible on screen. */
+/** Reading a queued edit, kept out of the component because a wrong subject is invisible on screen. */
 
-import type { QueuedEdit, SyncStatus } from "@/api/types";
-
-/** The sync states by precedence; keep `offline` separate from `idle`, or the panel calls a local list "synced". */
-export type SyncPhase = "offline" | "draining" | "throttled" | "waiting" | "idle";
-
-export function syncPhase(status: SyncStatus): SyncPhase {
-  if (!status.connected) return "offline";
-  if (status.draining) return "draining";
-  if (status.rate.throttledForMs != null) return "throttled";
-  if (status.queued.length > 0) return "waiting";
-  return "idle";
-}
+import type { QueuedEdit } from "@/api/types";
 
 /** An entry as the panel needs it: both ids, so neither is guessed at. */
 export interface QueueSubject {

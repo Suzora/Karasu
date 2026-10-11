@@ -57,7 +57,7 @@ describe("versionOnly", () => {
 describe("scope", () => {
   it("sends a frontend change to vitest alone and a crate change to cargo alone", () => {
     expect(scope(changed("src/lib/fuzzy.ts", "src/components/shell/Sidebar.tsx"))).toEqual({ rust: false, frontend: true });
-    expect(scope(changed("src-tauri/src/alerts/site.rs", "src-tauri/Cargo.toml"))).toEqual({ rust: true, frontend: false });
+    expect(scope(changed("src-tauri/src/playback/scrobbler.rs", "src-tauri/Cargo.toml"))).toEqual({ rust: true, frontend: false });
   });
 
   it("sends a crate file a test reads raw to both", () => {

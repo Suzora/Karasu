@@ -15,6 +15,8 @@ export const RAW_READ_GLOBS = [
   "/.github/workflows/*.yml",
   "/packaging/fdroid/dev.kyu.karasu.yml",
   "/src-tauri/src/commands/prefs.rs",
+  "/src-tauri/src/identify.rs",
+  "/src-tauri/src/{alerts,anilist,commands}/*.rs",
 ];
 
 const escape = (s) => s.replace(/[.+^$()|[\]\\?]/g, "\\$&");

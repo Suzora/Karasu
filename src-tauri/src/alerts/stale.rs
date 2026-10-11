@@ -19,9 +19,18 @@ pub fn spawn(app: AppHandle) {
     crate::logging::supervise("stale", move || {
         let app = app.clone();
         async move {
+            crate::schedule::plan("stale", STARTUP_DELAY);
             tokio::time::sleep(STARTUP_DELAY).await;
             loop {
-                check(&app);
+                {
+                    let _running = crate::schedule::running("stale");
+                    check(&app);
+                }
+                if app.state::<Db>().kv_get("stale_notify").as_deref() == Some("1") {
+                    crate::schedule::plan("stale", CHECK_INTERVAL);
+                } else {
+                    crate::schedule::off("stale");
+                }
                 tokio::time::sleep(CHECK_INTERVAL).await;
             }
         }

@@ -35,9 +35,18 @@ pub fn spawn(app: AppHandle) {
     crate::logging::supervise("sequel", move || {
         let app = app.clone();
         async move {
+            crate::schedule::plan("sequel", STARTUP_DELAY);
             tokio::time::sleep(STARTUP_DELAY).await;
             loop {
-                check(&app).await;
+                {
+                    let _running = crate::schedule::running("sequel");
+                    check(&app).await;
+                }
+                if app.state::<Db>().kv_get("sequel_notify").as_deref() == Some("1") {
+                    crate::schedule::plan("sequel", CHECK_INTERVAL);
+                } else {
+                    crate::schedule::off("sequel");
+                }
                 tokio::time::sleep(CHECK_INTERVAL).await;
             }
         }

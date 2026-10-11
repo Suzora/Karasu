@@ -123,13 +123,38 @@ pub fn spawn(app: AppHandle) {
     crate::logging::supervise("site", move || {
         let app = app.clone();
         async move {
+            crate::schedule::plan("site", STARTUP_DELAY);
             tokio::time::sleep(STARTUP_DELAY).await;
             loop {
-                check(&app).await;
+                let due = {
+                    let db = app.state::<Db>();
+                    due_in_ms(interval_min(&db), last_check_ms(&db), crate::alerts::notify::now_ms())
+                };
+                if due == Some(0) {
+                    let _running = crate::schedule::running("site");
+                    check(&app).await;
+                } else {
+                    check(&app).await;
+                }
+                let db = app.state::<Db>();
+                match due_in_ms(interval_min(&db), last_check_ms(&db), crate::alerts::notify::now_ms()) {
+                    // The tick decides when it actually asks, so the plan never promises a run sooner than the next tick.
+                    Some(ms) => crate::schedule::plan("site", Duration::from_millis(ms as u64).max(TICK)),
+                    None => crate::schedule::off("site"),
+                }
                 tokio::time::sleep(TICK).await;
             }
         }
     });
+}
+
+fn last_check_ms(db: &Db) -> i64 {
+    db.kv_get(LAST_CHECK_KEY).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0)
+}
+
+/// How long until `check` would ask AniList, or none while the setting is off; zero means the next tick asks.
+fn due_in_ms(interval_min: i64, last_ms: i64, now_ms: i64) -> Option<i64> {
+    (interval_min > 0).then(|| (last_ms + interval_min * 60_000 - now_ms).max(0))
 }
 
 async fn check(app: &AppHandle) {
@@ -138,11 +163,7 @@ async fn check(app: &AppHandle) {
     if interval == 0 {
         return;
     }
-    let last = db
-        .kv_get(LAST_CHECK_KEY)
-        .and_then(|s| s.parse::<i64>().ok())
-        .unwrap_or(0);
-    if crate::alerts::notify::now_ms() - last < interval * 60_000 {
+    if due_in_ms(interval, last_check_ms(&db), crate::alerts::notify::now_ms()) != Some(0) {
         return;
     }
     let Some(token) = crate::anilist::auth::load_token() else {
@@ -521,6 +542,16 @@ pub(crate) fn job_verdict(status: u16, body: &Value) -> JobVerdict {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The due time the sync panel shows is the very rule `check` gates on.
+    #[test]
+    fn the_check_is_due_once_the_interval_has_passed_and_never_while_off() {
+        assert_eq!(due_in_ms(0, 0, 10_000_000), None);
+        assert_eq!(due_in_ms(15, 1_000_000, 1_000_000), Some(900_000));
+        assert_eq!(due_in_ms(15, 1_000_000, 1_000_000 + 899_999), Some(1));
+        assert_eq!(due_in_ms(15, 1_000_000, 1_000_000 + 900_000), Some(0));
+        assert_eq!(due_in_ms(15, 0, 5_000_000), Some(0));
+    }
 
     /// A background pass must never mark the user's site feed seen.
     #[test]

@@ -439,6 +439,14 @@ export type HotkeyStatus = {
 	configurable: boolean,
 };
 
+/**  A request in progress as the sync panel shows it. */
+export type InFlightRequest = {
+	source: string,
+	startedAgoMs: number,
+	/**  Still held back by the budget rather than out on the wire. */
+	waiting: boolean,
+};
+
 export type JellyfinBackground = {
 	enabled: boolean,
 	/**  Whether this platform has the service at all (Android only), so the pane can leave the rows out elsewhere. */
@@ -542,6 +550,12 @@ export type LinuxInfo = {
 	desktop: string | null,
 	/**  `XDG_SESSION_TYPE`; under Wayland one application cannot read another's window titles at all. */
 	session: string | null,
+};
+
+export type ListFreshness = {
+	mediaType: string,
+	/**  Zero once stale: the next time a screen reads the list, it asks AniList. */
+	freshForMs: number,
 };
 
 export type ListResult = {
@@ -739,6 +753,17 @@ export type ScanSummary_Serialize = {
 	matched: number,
 };
 
+/**  One pass as the sync panel shows it. */
+export type ScheduledPass = {
+	/**  The pass's own name (`airing`, `site`, `sequel`, `stale`); the frontend maps it to a label. */
+	pass: string,
+	/**  Until its next run, or none while it is running or switched off. */
+	dueInMs: number | null,
+	running: boolean,
+	/**  Switched off in Settings; listed anyway, so its absence from the plan is explained rather than unexplained. */
+	off: boolean,
+};
+
 export type ScrobbleSettings = {
 	enabled: boolean,
 	/**  true = require confirmation in the UI before updating */
@@ -798,6 +823,12 @@ export type SyncStatus = {
 	recent: RequestLogEntry[],
 	/**  Requests per source since the app started, so the panel can say who is spending the budget. */
 	traffic: TrafficSnapshot,
+	/**  Requests begun and not yet answered, oldest first. */
+	inFlight: InFlightRequest[],
+	/**  When each background pass runs next. */
+	upcoming: ScheduledPass[],
+	/**  How long each cached list is still served without a request; past that, the next read refreshes it. */
+	lists: ListFreshness[],
 };
 
 /**  The parse a correction is keyed on: what the release name said it was. */

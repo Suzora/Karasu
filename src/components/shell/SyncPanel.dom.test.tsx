@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { SyncStatus } from "@/api/types";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
+import { durationShort } from "@/lib/relTime";
 
 /** The one command the panel wraps; `isTauri` is false under jsdom and the hook gates on it, so the module is mocked. */
 const status = vi.fn<() => Promise<SyncStatus>>();
@@ -21,6 +22,9 @@ const IDLE: SyncStatus = {
   queued: [],
   recent: [],
   traffic: { sources: [], throttled: 0, remaining: 24, limit: 30 },
+  inFlight: [],
+  upcoming: [],
+  lists: [],
   rate: {
     remaining: 24,
     limit: 30,
@@ -76,16 +80,24 @@ describe("SyncPanel", () => {
     await waitFor(() => expect(trigger).toHaveFocus());
   });
 
-  /** Proves a failed read renders as one, since the empty state would call an unreadable queue "nothing waiting". */
-  it("renders a failed read rather than the empty state", async () => {
+  /** Proves a failed read renders as one, since the reassuring headline would call an unreadable state "synced". */
+  it("renders a failed read rather than the synced headline", async () => {
     status.mockRejectedValue(new Error("database is locked"));
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
     await waitFor(() => expect(screen.getByText(/database is locked/)).toBeInTheDocument());
-    expect(screen.queryByText("syncPanel.empty")).toBeNull();
+    expect(screen.queryByText("syncPanel.hlSynced")).toBeNull();
   });
 
-  /** Proves the row says "unmeasured" rather than rendering the seed as a measurement. */
+  it("opens on one sentence and the budget it has measured", async () => {
+    renderWithProviders(panel());
+    fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
+    await waitFor(() => expect(screen.getByText("syncPanel.hlSynced")).toBeInTheDocument());
+    expect(screen.getByText('syncPanel.budgetLeft:{"left":24,"limit":30}')).toBeInTheDocument();
+    expect(screen.getByText("syncPanel.budgetHint")).toBeInTheDocument();
+  });
+
+  /** Proves the line says "unmeasured" rather than rendering the seed as a measurement. */
   it("says the budget is unmeasured rather than inventing one", async () => {
     status.mockResolvedValue({
       ...IDLE,
@@ -93,23 +105,19 @@ describe("SyncPanel", () => {
     });
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
-    await waitFor(() =>
-      expect(screen.getByText("syncPanel.headroomUnknown")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("syncPanel.budgetUnknown")).toBeInTheDocument());
   });
 
   /** Pins both `ThrottleKind` branches, so a real 429 never renders as the app pacing itself. */
-  it("names a 429 and a self-imposed pause differently", async () => {
+  it("names a 429 and a self-imposed pause differently, with the wait rounded up", async () => {
     status.mockResolvedValue({
       ...IDLE,
       rate: { ...IDLE.rate, throttledForMs: 117_400, throttleKind: "retryAfter" },
     });
     const { unmount } = renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
-    // Rounded up; a countdown that reaches 0 while the client is still parked is worse than over-reporting.
-    await waitFor(() =>
-      expect(screen.getByText('syncPanel.throttleLimited:{"s":118}')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("syncPanel.hlLimited")).toBeInTheDocument());
+    expect(screen.getByText(durationShort(117_400, "en"))).toBeInTheDocument();
     unmount();
 
     status.mockResolvedValue({
@@ -118,55 +126,76 @@ describe("SyncPanel", () => {
     });
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
+    await waitFor(() => expect(screen.getByText("syncPanel.hlPacing")).toBeInTheDocument());
+  });
+
+  it("says who is asking AniList right now", async () => {
+    status.mockResolvedValue({ ...IDLE, inFlight: [{ source: "airing", startedAgoMs: 300, waiting: false }] });
+    renderWithProviders(panel());
+    fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
     await waitFor(() =>
-      expect(screen.getByText('syncPanel.throttlePacing:{"s":1}')).toBeInTheDocument(),
+      expect(screen.getByText('syncPanel.hlAsking:{"source":"syncPanel.src_airing"}')).toBeInTheDocument(),
     );
   });
 
-  /** Proves traffic shows with an empty queue, and pacing is broken out because self-delay looks like a slow AniList. */
-  it("shows recent traffic even with an empty queue", async () => {
+  /** The plan reads top to bottom as what happens next, a switched-off pass last. */
+  it("lists the planned passes soonest first", async () => {
     status.mockResolvedValue({
       ...IDLE,
-      recent: [
-        {
-          seq: 2,
-          operation: "MediaListCollection",
-          startedAgoMs: 1_200,
-          durationMs: 940,
-          pacedMs: 0,
-          status: 200,
-          remainingAfter: 28,
-          outcome: "ok",
-        },
-        {
-          seq: 1,
-          operation: "Page",
-          startedAgoMs: 9_000,
-          durationMs: 1_100,
-          pacedMs: 800,
-          status: 200,
-          remainingAfter: 29,
-          outcome: "ok",
-        },
+      upcoming: [
+        { pass: "stale", dueInMs: null, running: false, off: true },
+        { pass: "sequel", dueInMs: 3_600_000, running: false, off: false },
+        { pass: "airing", dueInMs: 60_000, running: false, off: false },
       ],
+      lists: [{ mediaType: "ANIME", freshForMs: 0 }],
     });
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
+    await waitFor(() => expect(screen.getByText("syncPanel.src_sequel")).toBeInTheDocument());
+    const order = ["syncPanel.listANIME", "syncPanel.src_airing", "syncPanel.src_sequel", "syncPanel.src_stale"].map((k) =>
+      screen.getByText(k),
+    );
+    for (let i = 1; i < order.length; i++) {
+      expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    expect(screen.getByText("syncPanel.listStale")).toBeInTheDocument();
+    expect(screen.getByText("syncPanel.nextOff")).toBeInTheDocument();
+  });
 
-    await waitFor(() => expect(screen.getByText("MediaListCollection")).toBeInTheDocument());
-    expect(screen.getByText("syncPanel.empty")).toBeInTheDocument();
-    expect(screen.getByText('syncPanel.tookMs:{"ms":940}')).toBeInTheDocument();
+  /** Senders read in words; the raw operation and timings wait under Details, where a bug report finds them. */
+  it("names each request's sender and folds the raw figures away", async () => {
+    const req = (seq: number, source: string, operation: string, pacedMs: number) => ({
+      seq,
+      source,
+      operation,
+      startedAgoMs: 1_200 * seq,
+      durationMs: 940,
+      pacedMs,
+      status: 200,
+      remainingAfter: 28,
+      outcome: "ok" as const,
+    });
+    status.mockResolvedValue({ ...IDLE, recent: [req(2, "list", "MediaListCollection", 0), req(1, "gql:Foo", "Foo", 800)] });
+    renderWithProviders(panel());
+    fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
+
+    await waitFor(() => expect(screen.getByText("syncPanel.src_list")).toBeInTheDocument());
+    // A source without a label still shows, as its raw name.
+    expect(screen.getByText("gql:Foo")).toBeInTheDocument();
+    expect(screen.queryByText(/MediaListCollection/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "syncPanel.secDetails" }));
+    await waitFor(() => expect(screen.getByText(/MediaListCollection/)).toBeInTheDocument());
     // Only the row that waited carries the pacing figure; a column on every healthy row would bury it.
     expect(screen.getByText('syncPanel.paced:{"ms":800}')).toBeInTheDocument();
     expect(screen.queryByText('syncPanel.paced:{"ms":0}')).toBeNull();
-    // And the reading's age, which the panel computed and discarded before.
-    expect(screen.getByText("syncPanel.measuredNow")).toBeInTheDocument();
   });
 
   /** A limited or failed request is said in words, since its colour alone tells a reader nothing. */
   it("names a limited and a failed request beside the healthy dot", async () => {
     const req = (seq: number, outcome: "ok" | "throttled" | "error") => ({
       seq,
+      source: "airing",
       operation: `Op${seq}`,
       startedAgoMs: 1_000,
       durationMs: 100,
@@ -178,9 +207,8 @@ describe("SyncPanel", () => {
     status.mockResolvedValue({ ...IDLE, recent: [req(3, "error"), req(2, "throttled"), req(1, "ok")] });
     renderWithProviders(panel());
     fireEvent.click(screen.getByRole("button", { name: "Show sync details" }));
-    await waitFor(() => expect(screen.getByText("Op3")).toBeInTheDocument());
-    expect(screen.getByText("syncPanel.outcomeFailed")).toBeInTheDocument();
-    expect(screen.getByText("syncPanel.outcomeLimited")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByText(/syncPanel.outcomeFailed/).length).toBeGreaterThan(0));
+    expect(screen.getAllByText(/syncPanel.outcomeLimited/).length).toBeGreaterThan(0);
   });
 
   it("labels a queued row by what it changes", async () => {

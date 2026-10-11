@@ -101,11 +101,13 @@ pub fn spawn(app: AppHandle) {
     crate::logging::supervise("airing", move || {
         let app = app.clone();
         async move {
+            crate::schedule::plan("airing", STARTUP_DELAY);
             tokio::time::sleep(STARTUP_DELAY).await;
             // A replan only re-times the sleep; only a slept-through wake is a reason to ask AniList again.
             let mut due = true;
             loop {
                 if due {
+                    let _running = crate::schedule::running("airing");
                     check(&app).await;
                 }
                 let wake = {
@@ -121,6 +123,11 @@ pub fn spawn(app: AppHandle) {
                     plan_next_wake(&borrowed, last, now_secs())
                 };
                 crate::logging::debug("airing", format!("next check in {} min", wake.as_secs() / 60));
+                if app.state::<Db>().kv_get("airing_notify").as_deref() == Some("0") {
+                    crate::schedule::off("airing");
+                } else {
+                    crate::schedule::plan("airing", wake);
+                }
                 // A list refresh can bring an episode closer than this sleep, so it re-times rather than waits it out.
                 due = tokio::select! {
                     _ = tokio::time::sleep(wake) => true,

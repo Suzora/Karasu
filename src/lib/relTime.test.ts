@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { relTime, relTimeFromSeconds } from "./relTime";
+import { durationShort, relTime, relTimeFromSeconds } from "./relTime";
 
 // A fixed clock, so the thresholds are asserted rather than approximated.
 const NOW = Date.UTC(2026, 0, 15, 12, 0, 0);
@@ -64,5 +64,18 @@ describe("relTimeFromSeconds", () => {
     expect(relTimeFromSeconds(secs, "en", "now", NOW)).toBe(
       relTime(secs * 1000, "en", "now", NOW),
     );
+  });
+});
+
+describe("durationShort", () => {
+  it("counts seconds under a minute, then minutes, then hours, rounding up so a wait never reads shorter than it is", () => {
+    expect(durationShort(38_000, "en")).toBe(new Intl.NumberFormat("en", { style: "unit", unit: "second", unitDisplay: "narrow" }).format(38));
+    expect(durationShort(150, "en")).toBe(new Intl.NumberFormat("en", { style: "unit", unit: "second", unitDisplay: "narrow" }).format(1));
+    expect(durationShort(41 * 60_000 + 1, "en")).toBe(new Intl.NumberFormat("en", { style: "unit", unit: "minute", unitDisplay: "narrow" }).format(42));
+    expect(durationShort(5 * 3_600_000, "de")).toBe(new Intl.NumberFormat("de", { style: "unit", unit: "hour", unitDisplay: "short" }).format(5));
+  });
+
+  it("calls nothing left zero seconds rather than going negative", () => {
+    expect(durationShort(-5, "en")).toBe(new Intl.NumberFormat("en", { style: "unit", unit: "second", unitDisplay: "narrow" }).format(0));
   });
 });

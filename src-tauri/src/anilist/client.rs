@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, VecDeque};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Duration;
 use tokio::sync::Mutex;
 // Monotonic, so a user moving their clock cannot invent or erase a throttle.
@@ -209,6 +209,49 @@ pub struct AniList {
     traffic: std::sync::Mutex<Traffic>,
     /// The last token probe's verdict and when it was reached; `token_alive` reads it, `PROBE_TTL` ages it.
     probe: Mutex<Option<(Instant, bool)>>,
+    /// Requests begun and not yet finished, so the sync panel can say what is happening now.
+    flights: std::sync::Mutex<Vec<Flight>>,
+    next_flight: AtomicU64,
+}
+
+struct Flight {
+    id: u64,
+    source: Source,
+    started: Instant,
+    /// Set once pacing let it go; before that it is waiting on the budget, not on AniList.
+    sent: bool,
+}
+
+/// A request in progress as the sync panel shows it.
+#[derive(serde::Serialize, specta::Type, Debug, PartialEq)]
+pub struct InFlightRequest {
+    pub source: String,
+    #[serde(rename = "startedAgoMs")]
+    #[specta(type = crate::commands::Num)]
+    pub started_ago_ms: u64,
+    /// Still held back by the budget rather than out on the wire.
+    pub waiting: bool,
+}
+
+/// Removes its request from `flights` however `query_with` ends, an early return, an error or a dropped future.
+struct FlightGuard<'a> {
+    flights: &'a std::sync::Mutex<Vec<Flight>>,
+    id: u64,
+}
+
+impl FlightGuard<'_> {
+    fn sent(&self) {
+        let mut f = self.flights.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(flight) = f.iter_mut().find(|x| x.id == self.id) {
+            flight.sent = true;
+        }
+    }
+}
+
+impl Drop for FlightGuard<'_> {
+    fn drop(&mut self) {
+        self.flights.lock().unwrap_or_else(|e| e.into_inner()).retain(|f| f.id != self.id);
+    }
 }
 
 /// Who sent a request, as the caller named itself: a background pass, a list command, or a screen through the passthrough.
@@ -487,7 +530,35 @@ impl AniList {
             log: Mutex::new(VecDeque::with_capacity(LOG_CAP)),
             traffic: std::sync::Mutex::new(Traffic::default()),
             probe: Mutex::new(None),
+            flights: std::sync::Mutex::new(Vec::new()),
+            next_flight: AtomicU64::new(0),
         }
+    }
+
+    fn begin(&self, source: &str) -> FlightGuard<'_> {
+        let id = self.next_flight.fetch_add(1, Ordering::Relaxed);
+        self.flights.lock().unwrap_or_else(|e| e.into_inner()).push(Flight {
+            id,
+            source: source.to_string(),
+            started: Instant::now(),
+            sent: false,
+        });
+        FlightGuard { flights: &self.flights, id }
+    }
+
+    /// The requests in progress, oldest first.
+    pub fn in_flight(&self) -> Vec<InFlightRequest> {
+        let now = Instant::now();
+        self.flights
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .iter()
+            .map(|f| InFlightRequest {
+                source: f.source.clone(),
+                started_ago_ms: now.duration_since(f.started).as_millis() as u64,
+                waiting: !f.sent,
+            })
+            .collect()
     }
 
     /// Whether `token` still works, decided by one probe and remembered for `PROBE_TTL`; `None` must not sign anyone out.
@@ -636,6 +707,7 @@ impl AniList {
         variables: Value,
         probe: Probe,
     ) -> Result<Value, ApiError> {
+        let flight = self.begin(source);
         // Pace into the budget in short re-checking slices; each decision and its `park` are one critical section on purpose.
         let started = Instant::now();
         loop {
@@ -668,6 +740,7 @@ impl AniList {
             };
             tokio::time::sleep(d).await;
         }
+        flight.sent();
         // Recorded per request so the panel can separate our own pacing from AniList being slow.
         let paced = started.elapsed();
         let operation = operation_name(query);
@@ -847,6 +920,28 @@ impl AniList {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A request is listed from its first pacing slice until it ends, however it ends.
+    #[test]
+    fn a_request_in_flight_leaves_the_list_however_it_ends() {
+        let api = AniList::new(None);
+        {
+            let flight = api.begin("airing");
+            let now = api.in_flight();
+            assert_eq!(now.len(), 1);
+            assert_eq!(now[0].source, "airing");
+            assert!(now[0].waiting, "paced, not yet sent");
+            flight.sent();
+            assert!(!api.in_flight()[0].waiting);
+        }
+        assert!(api.in_flight().is_empty());
+        let died = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _flight = api.begin("site");
+            panic!("mid-request");
+        }));
+        assert!(died.is_err());
+        assert!(api.in_flight().is_empty(), "a panic must not leave a ghost request");
+    }
 
     /// The tallies count per source and per window, and the report line empties the window but not the totals.
     #[test]
