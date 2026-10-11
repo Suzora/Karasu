@@ -1,14 +1,15 @@
-import { useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Link } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Check, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import { saveListEntry } from "@/api/anilist";
 
 import { formatLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { displayTitle, type MediaListStatus, type SaveEntryInput } from "@/api/types";
 import { statusColorVar } from "@/lib/statusColors";
 import { useCachedList } from "@/hooks/useCachedEntry";
@@ -82,6 +83,18 @@ export default function MediaCard({
       data-media-id={media.id}
       data-media-type={media.type}
       data-media-title={displayTitle(media.title)}
+      // A status point on the art, not a circle beside the pencil: it is no control, and the action corner holds controls.
+      overlay={
+        entry && (
+          <span
+            role="img"
+            aria-label={t(`status.${media.type}.${entry.status}`)}
+            title={t(`status.${media.type}.${entry.status}`)}
+            className={cn("absolute top-2 size-2.5 rounded-full ring-2 ring-on-cover", media.isAdult ? "right-12" : "right-2")}
+            style={{ background: statusColorVar(entry.status) }}
+          />
+        )
+      }
       actions={
         hasProfile && (
           <>
@@ -97,17 +110,8 @@ export default function MediaCard({
             >
               <Pencil className="size-3.5" />
             </IconButton>
-            {entry ? (
-              // Tinted by the ring's colour, so the badge and the border say the same thing.
-              <span
-                className="grid size-7.5 place-items-center rounded-full border tint-fill-on-cover @max-cover-pair:hidden"
-                style={{ "--tint": statusColorVar(entry.status) } as CSSProperties}
-                title={t(`status.${media.type}.${entry.status}`)}
-              >
-                <Check className="size-3.5" />
-              </span>
-            ) : (
-              // The neutral circle: adding to Planning is not the same weight as a +1, and the accent is reserved for that.
+            {/* The neutral circle: adding to Planning is not the same weight as a +1, and the accent is reserved for that. */}
+            {!entry && (
               <IconButton
                 variant="onCover"
                 size="sm"

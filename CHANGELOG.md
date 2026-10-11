@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: d5e6501 -->
+<!-- generated-through: f17071d -->
 
 ### Fixed
 
@@ -127,6 +127,7 @@ tag time is then optional rather than load-bearing.
 - The sync panel says in plain words what Karasu is doing right now, what it just asked AniList and what it will check next, with the request budget as a bar and a countdown while AniList holds requests back.
 - Right-clicking a title shows only what you can do with that title; Back, Reload, the palette and the other page commands are a right-click on the page.
 - The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
+- On season and search cards, a title on your list shows a small status dot instead of a check that looked like a button.
 
 ## 1.32.0 — 2026-10-03
 

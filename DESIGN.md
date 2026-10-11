@@ -850,3 +850,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   - On the desktop, Search folds its filters behind one "Filter" control
     and the forum's categories become one select, as on the phone; this
     replaces the desktop half of the 2026-09-26 forum entry.
+- **2026-10-12:** A card for a title already on the list marks it with a
+  status point in the cover's top corner, beside the 18+ badge where there
+  is one, named for screen readers and titled for the pointer (C of three
+  mockups, over A, the status as a word in the status colour on the meta
+  line, and B, a tinted status label on the art, which a phone's narrow
+  cover cut short). The status ring stays; the action corner holds buttons
+  alone.

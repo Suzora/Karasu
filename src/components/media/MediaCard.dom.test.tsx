@@ -91,12 +91,24 @@ describe("MediaCard in the account-free profile", () => {
     expect(screen.getByRole("button", { name: "media.addDefault" })).not.toHaveClass("@max-cover-pair:hidden");
   });
 
-  it("keeps the editor for a listed title, and lets the status badge go, since a badge is no control", async () => {
+  /** The listed mark is no control, so it sits on the art as a status point and leaves the action corner to buttons. */
+  it("marks a listed title with a status point outside the action corner, named for screen readers", async () => {
     const { queryClient } = renderWithProviders(<MediaCard media={media()} />);
     queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
-    const badge = await screen.findByTitle("status.ANIME.CURRENT");
-    expect(badge).toHaveClass("@max-cover-pair:hidden");
-    expect(screen.getByRole("button", { name: "common.edit" })).not.toHaveClass("@max-cover-pair:hidden");
+    const mark = await screen.findByRole("img", { name: "status.ANIME.CURRENT" });
+    expect(mark).toHaveAttribute("title", "status.ANIME.CURRENT");
+    expect(mark).toHaveClass("top-2");
+    // Never beside the pencil, where it read as a second button.
+    const edit = screen.getByRole("button", { name: "common.edit" });
+    expect(edit.parentElement?.contains(mark)).toBe(false);
+    expect(edit).not.toHaveClass("@max-cover-pair:hidden");
+  });
+
+  it("moves the status point aside for the 18+ badge in the same corner", async () => {
+    const { queryClient } = renderWithProviders(<MediaCard media={media({ isAdult: true })} />);
+    queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
+    const mark = await screen.findByRole("img", { name: "status.ANIME.CURRENT" });
+    expect(mark).not.toHaveClass("right-2");
   });
 
   /** A title genuinely absent must still offer the quick add. */
