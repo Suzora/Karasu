@@ -7,6 +7,10 @@ description: How Karasu mockups are made and shown to the maintainer. Use before
 
 The maintainer's standing rule: **every change to how a screen is arranged gets three mockups to choose between before any code**. A restyle that moves nothing gets a before/after board instead. DESIGN.md is the brief and outranks any other design guidance, including this skill's defaults.
 
+## With Impeccable
+
+Impeccable's `shape` may frame the UX question before the mockups, and its `critique` may grade the boards before they go out. Its `live` and `generate` variants are sketches; the three boards below stay the hand-off. CLAUDE.md, "Impeccable in this repository", has the rest.
+
 ## The harness
 
 `scripts/screens.mjs` renders the real `App` — titlebar, sidebar or bottom bar, overlays — over a mocked backend (`scripts/screens/app.tsx`), in Chromium at `/opt/pw-browsers/chromium`. Real banners and covers for three titles are fetched from AniList into `scripts/screens/.cache/` on first use and are never committed; everything it writes goes to `scripts/screens/.out/`.

@@ -1058,6 +1058,40 @@ file outranks them wherever the two disagree, and they disagree in four places:
   `npm run verify:full`, a pull request merged by squash, and a commit or a push
   only when the maintainer asks for one.
 
+## Impeccable in this repository
+
+Impeccable (pbakaus/impeccable, installed on 2026-10-12) is the design
+skill: `critique` and `audit` to review a surface, `shape` to plan UX before
+code, and the refinement commands (`clarify`, `distill`, `layout`, `polish`,
+`harden`, `quieter`, `adapt`, `typeset`) to act on what a review found. Like
+the Superpowers it lives per machine in `~/.agents/skills`, never in this
+repository. DESIGN.md and this file outrank it, and they disagree in five
+places:
+
+- **Refinement, never redesign.** Karasu is an evolution of one identity
+  (DESIGN.md, "Principles"), so Impeccable works on the incumbent code as
+  its authority. Its redesign path, which replaces DESIGN.md, and the
+  commands that argue with "dark, dense, quiet" (`bolder`, `overdrive`,
+  `delight`, `colorize`) run only on the maintainer's word. A finding that
+  contradicts an entry in DESIGN.md's decision log is a question for that
+  log, not a fix.
+- **The app is an Operate surface, the website a Persuade one.** Name the
+  mode when a review starts, since the heuristics it scores differ.
+- **Arrangement changes still get three mockups.** `shape` may come before
+  them and `live` or `generate` may explore, but what the maintainer
+  chooses from is the boards of the `karasu-mockups` skill.
+- **Its files stay local.** `.impeccable/` (critique snapshots, detector
+  config) is in `.git/info/exclude` like `docs/superpowers/`, and Tailwind's
+  scan honours that file. There is no PRODUCT.md yet; `init` would write one
+  only once the maintainer decides where it lives.
+- **A command does not commit.** The change it leads to lands as one commit
+  through the commit loop, with its screens shot before and after.
+
+The detector runs on its own: `impeccable detect --json <dir-or-url>` over
+`src/components` and `src/pages`, over the screens harness while it serves,
+or over `npm --prefix site run preview`. Its findings are leads, checked
+against the style audit and DESIGN.md before anything changes.
+
 ## The bindings are generated, never written
 
 `src/api/bindings.ts` is what tauri-specta emits from the Rust command
