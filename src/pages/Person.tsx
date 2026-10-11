@@ -124,7 +124,6 @@ export default function Person({ kind }: { kind: Kind }) {
       <Frame>
         <ErrorState
           error={q.error}
-          visual={<StruckQuery query={id} />}
           onRetry={() => q.refetch()}
         />
       </Frame>

@@ -147,7 +147,6 @@ export default function AnimeDetail() {
         <ErrorState
           error={error}
           onRetry={() => refetch()}
-          visual={<StruckQuery query={id ?? ""} />}
         />
       </div>,
     );

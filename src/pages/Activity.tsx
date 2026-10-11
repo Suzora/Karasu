@@ -44,7 +44,6 @@ export default function Activity() {
         {!query.isLoading && failed && (
           <ErrorState
             error={query.error}
-            visual={<StruckQuery query={`#${id ?? ""}`} />}
             onRetry={() => query.refetch()}
           />
         )}

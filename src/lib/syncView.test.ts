@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { QueuedEdit, SyncStatus } from "@/api/types";
-import { budgetMeter, headlineTone, syncHeadline, upcomingRows } from "./syncView";
+import { budgetMeter, headlineTone, syncAlert, syncHeadline, upcomingRows } from "./syncView";
 
 const quiet = {
   remaining: 24,
@@ -65,6 +65,19 @@ describe("syncHeadline", () => {
     expect(syncHeadline(s)).toEqual({ kind: "pacing", waitMs: 5_000 });
   });
 
+  /** A request that never reached AniList is the connection, and the newest request is the current truth. */
+  it("calls AniList unreachable while the newest request failed at the connection", () => {
+    const failed = { seq: 2, source: "list", operation: "Page", startedAgoMs: 500, durationMs: 0, pacedMs: 0, status: null, remainingAfter: null, outcome: "error" as const };
+    expect(syncHeadline(status({ recent: [failed], queued: [edit(1)] }))).toEqual({ kind: "unreachable" });
+    // An answer that came back with an error is AniList speaking, not the connection failing.
+    expect(syncHeadline(status({ recent: [{ ...failed, status: 500 }] }))).toEqual({ kind: "synced" });
+    // A later success ends it.
+    expect(syncHeadline(status({ recent: [{ ...failed, seq: 3, status: 200, outcome: "ok" as const }, failed] }))).toEqual({ kind: "synced" });
+    // AniList's own wait still outranks it, since the wait is the thing that ends.
+    const limited = { ...quiet, throttledForMs: 9_000, throttleKind: "retryAfter" as const };
+    expect(syncHeadline(status({ recent: [failed], rate: limited }))).toEqual({ kind: "limited", waitMs: 9_000 });
+  });
+
   it("reports a backlog nobody is sending", () => {
     expect(syncHeadline(status({ queued: [edit(1)] }))).toEqual({ kind: "queued", count: 1 });
   });
@@ -74,6 +87,19 @@ describe("syncHeadline", () => {
     expect(headlineTone({ kind: "limited", waitMs: 1 })).toBe("warn");
     expect(headlineTone({ kind: "offline" })).toBe("off");
     expect(headlineTone({ kind: "asking", source: "x", more: 0 })).toBe("busy");
+  });
+});
+
+describe("syncAlert", () => {
+  /** The sidebar's one line names a wait or a lost connection; everything calmer stays the list's own wording. */
+  it("raises only the two states the sidebar must not call synced", () => {
+    expect(syncAlert(status({ rate: { ...quiet, throttledForMs: 38_000, throttleKind: "retryAfter" } }))).toEqual({ kind: "limited", waitMs: 38_000 });
+    const failed = { seq: 1, source: "airing", operation: "Page", startedAgoMs: 1, durationMs: 0, pacedMs: 0, status: null, remainingAfter: null, outcome: "error" as const };
+    expect(syncAlert(status({ recent: [failed] }))).toEqual({ kind: "unreachable" });
+    expect(syncAlert(status({ queued: [edit(1)] }))).toBeNull();
+    expect(syncAlert(status({ rate: { ...quiet, throttledForMs: 400, throttleKind: "preflight" } }))).toBeNull();
+    expect(syncAlert(status({ connected: false }))).toBeNull();
+    expect(syncAlert(undefined)).toBeNull();
   });
 });
 

@@ -617,7 +617,9 @@ mockIPC((cmd, args) => {
         : null;
     // A busy default (two edits, a request in flight, a full plan), plus a 429 and a quiet idle state the boards compare.
     case "sync_status": {
-      const limited = mock === "sync-limited";
+      // The page-level throttle and offline mocks report it here too, so the sidebar and the error page agree with them.
+      const limited = mock === "sync-limited" || mock === "throttled";
+      const lost = mock === "offline";
       const idle = mock === "sync-idle";
       const row = (seq: number, source: string, operation: string, agoS: number, ms: number, left: number, outcome = "ok", pacedMs = 0) => ({
         seq, source, operation, startedAgoMs: agoS * 1000, durationMs: ms, pacedMs, status: outcome === "throttled" ? 429 : 200, remainingAfter: left, outcome,
@@ -635,7 +637,9 @@ mockIPC((cmd, args) => {
         inFlight: idle ? [] : limited
           ? [{ source: "mediaDetail", startedAgoMs: 9000, waiting: true }]
           : [{ source: "mediaDetail", startedAgoMs: 400, waiting: false }],
-        recent: idle
+        recent: lost
+          ? [{ ...row(9, "mediaDetail", "Media", 3, 0, 0, "error"), status: null, remainingAfter: null }]
+          : idle
           ? [row(4, "airing", "Page", 840, 290, 29), row(3, "list", "MediaListCollection", 1500, 610, 28)]
           : [
               ...(limited ? [row(9, "seasonal", "Page", 4, 120, 0, "throttled")] : []),

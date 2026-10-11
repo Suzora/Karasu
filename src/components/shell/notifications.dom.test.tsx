@@ -421,10 +421,10 @@ describe("notifications", () => {
   it("says AniList failed rather than that everything is read, and asks again on Retry alone", async () => {
     const user = userEvent.setup({ delay: null });
     signIn();
-    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    vi.mocked(siteNotifications).mockRejectedValueOnce("AniList answered 500");
     renderWithProviders(<Notifications />);
     const alert = await screen.findByRole("alert");
-    expect(within(alert).getByText('common.error:{"message":"common.rateLimited"}')).toBeInTheDocument();
+    expect(within(alert).getByText('common.error:{"message":"AniList answered 500"}')).toBeInTheDocument();
     expect(screen.queryByText("notif.empty")).toBeNull();
     expect(siteNotifications).toHaveBeenCalledTimes(1);
     data.site = [follow(7, "Hoshi")];
@@ -442,9 +442,9 @@ describe("notifications", () => {
     data.more = [follow(8, "Mikan")];
     renderWithProviders(<Notifications />);
     expect(await screen.findByText("Hoshi")).toBeInTheDocument();
-    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    vi.mocked(siteNotifications).mockRejectedValueOnce("AniList answered 500");
     await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
+    expect(await screen.findByRole("alert")).toHaveTextContent('common.error:{"message":"AniList answered 500"}');
     expect(screen.getByText("Hoshi")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "common.retry" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
@@ -458,11 +458,11 @@ describe("notifications", () => {
     const user = userEvent.setup({ delay: null });
     signIn();
     data.local = [local(1, HOUR)];
-    vi.mocked(siteNotifications).mockRejectedValueOnce("anilist.rateLimited");
+    vi.mocked(siteNotifications).mockRejectedValueOnce("AniList answered 500");
     renderWithProviders(<Bell />);
     await user.click(screen.getByRole("button", { name: BELL }));
     const panel = await screen.findByRole("dialog", { name: "notif.title" });
-    expect(await within(panel).findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
+    expect(await within(panel).findByRole("alert")).toHaveTextContent('common.error:{"message":"AniList answered 500"}');
     expect(within(panel).getByText("Local 1")).toBeInTheDocument();
     expect(siteNotifications).toHaveBeenCalledTimes(1);
   });

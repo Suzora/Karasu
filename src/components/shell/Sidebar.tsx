@@ -42,6 +42,12 @@ import SyncPanel from "./SyncPanel";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
+import { syncAlert, type SyncAlert } from "@/lib/syncView";
+import { durationShort } from "@/lib/relTime";
+
+/** Slower than the open panel's second: the line only has to catch a wait or a lost connection, not count it down live. */
+const SYNC_LINE_POLL_MS = 5_000;
 
 /** The rail is the state change: `useRailMarker` slides one marker between items rather than each growing its own. */
 const itemClass =
@@ -183,11 +189,16 @@ function Item({
 /** "Is my data safe?" without a click: anything unsent outranks everything else, whatever the last sync said. */
 function syncLine(
   t: TFunction,
+  lang: string,
   local: boolean,
   pending: number,
   syncedAt: number | null,
-): { text: string; accent: boolean } {
+  alert: SyncAlert | null,
+): { text: string; accent: boolean; danger?: boolean } {
   if (local) return { text: t("sync.local"), accent: false };
+  // A wait or a lost connection outranks the last fetch's age, which would otherwise read "synced" through both.
+  if (alert?.kind === "limited") return { text: t("sync.limited", { t: durationShort(alert.waitMs, lang) }), accent: true };
+  if (alert?.kind === "unreachable") return { text: t("sync.unreachable"), accent: false, danger: true };
   if (pending > 0)
     return {
       text: pending === 1 ? t("sync.queuedOne") : t("sync.queuedMany", { n: pending }),
@@ -211,22 +222,24 @@ function Account({
   syncedAt: number | null;
   collapsed: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const viewer = useAuth((s) => s.viewer);
   const mode = useAuth((s) => s.mode);
+  // The limiter's local reading, no AniList request, so the line can say what the sync panel says; never in local mode.
+  const alert = syncAlert(useSyncStatus(mode === "anilist", SYNC_LINE_POLL_MS).data);
 
   if (mode === "none") return null;
 
   const name = viewer?.name ?? t("sync.localProfile");
   const avatar = viewer?.avatar?.large ?? null;
   const local = mode === "local";
-  const sync = syncLine(t, local, pending, syncedAt);
+  const sync = syncLine(t, i18n.language, local, pending, syncedAt, alert);
 
   const line = (
     <span
       className={cn(
         "flex items-center gap-1.25 text-2xs leading-snug",
-        sync.accent ? "text-accent-400" : "text-ink-600",
+        sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600",
       )}
     >
       <span className="size-1.25 shrink-0 rounded-full bg-current" />
@@ -277,7 +290,7 @@ function Account({
               title={sync.text}
               className={cn(
                 "grid size-6 place-items-center rounded-inner",
-                sync.accent ? "text-accent-400" : "text-ink-600",
+                sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600",
               )}
             >
               {pending > 0 ? (

@@ -60,6 +60,8 @@ function headlineText(h: Headline, t: T): string {
       return t("syncPanel.hlOffline");
     case "limited":
       return t("syncPanel.hlLimited");
+    case "unreachable":
+      return t("syncPanel.hlUnreachable");
     case "sending":
       return t("syncPanel.hlSending", { count: h.count });
     case "pacing":
@@ -133,6 +135,7 @@ function HeadlineBlock({ data }: { data: SyncStatus }) {
     tone === "calm" ? <CircleCheck aria-hidden className="size-4 text-success" />
     : tone === "off" ? <CloudOff aria-hidden className="size-4 text-ink-500" />
     : h.kind === "limited" ? <Hourglass aria-hidden className="size-4 text-danger" />
+    : h.kind === "unreachable" ? <CloudOff aria-hidden className="size-4 text-danger" />
     : h.kind === "queued" ? <CloudUpload aria-hidden className="size-4 text-accent-400" />
     : <Spinner className="size-4 text-accent-400" />;
   const measured = data.rate.observedAgoMs;

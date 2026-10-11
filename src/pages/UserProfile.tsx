@@ -102,7 +102,6 @@ export default function UserProfile() {
         <div className="px-8 pt-7">
           <ErrorState
             error={profile.error}
-            visual={<StruckQuery query={name} />}
             onRetry={() => profile.refetch()}
           />
         </div>

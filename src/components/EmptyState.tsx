@@ -1,9 +1,12 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { LucideIcon } from "lucide-react";
+import { Hourglass, type LucideIcon } from "lucide-react";
 import KarasuMark from "@/components/KarasuMark";
 import { Button } from "@/components/ui/button";
 import { backendErrorText } from "@/lib/backendError";
+import { isRateLimited } from "@/lib/apiError";
+import { durationShort } from "@/lib/relTime";
+import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { cn } from "@/lib/utils";
 
 /** An empty surface, said out loud; each visual differs on purpose, and only here does the corvid show itself. */
@@ -67,6 +70,7 @@ export function ErrorState({
       void out.finally(() => setPending(false));
     }
   };
+  if (isRateLimited(error)) return <RateLimited inline={inline} onRetry={onRetry && retry} pending={pending} className={className} />;
   const message = title ? title(reason) : t("common.error", { message: reason });
   if (inline) {
     return (
@@ -94,6 +98,61 @@ export function ErrorState({
             </Button>
           )
         }
+      />
+    </div>
+  );
+}
+
+/** A rate limit is a wait that ends: the limiter's countdown, and Retry held until it is over, never pressed for the user. */
+function RateLimited({
+  inline,
+  onRetry,
+  pending,
+  className,
+}: {
+  inline: boolean;
+  onRetry?: () => void;
+  pending: boolean;
+  className?: string;
+}) {
+  const { t, i18n } = useTranslation();
+  // A local read of the limiter, no AniList request; it polls only while this state is on screen.
+  const wait = useSyncStatus(true).data?.rate.throttledForMs ?? null;
+  const waiting = wait != null && wait > 0;
+  const held = waiting || pending;
+  const press = () => {
+    if (!held) onRetry?.();
+  };
+  const when = waiting ? t("common.rateLimitedWait", { t: durationShort(wait, i18n.language) }) : t("common.rateLimitedReady");
+  const button = onRetry && (
+    <Button
+      variant={inline ? "ghost" : "outline"}
+      size={inline ? "sm" : "control"}
+      onClick={press}
+      aria-disabled={held || undefined}
+      aria-busy={pending || undefined}
+    >
+      {t("common.retry")}
+    </Button>
+  );
+  if (inline) {
+    return (
+      <div role="alert" className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-300", className)}>
+        <Hourglass aria-hidden className="size-4 shrink-0 text-accent-400" />
+        <span className="min-w-0">
+          {t("common.rateLimitedTitle")} <span className="tabular-nums text-ink-500">{when}</span>
+        </span>
+        {button}
+      </div>
+    );
+  }
+  return (
+    <div role="alert" className={className}>
+      <EmptyState
+        icon={Hourglass}
+        title={t("common.rateLimitedTitle")}
+        hint={<span className="tabular-nums">{when}</span>}
+        actions={button}
       />
     </div>
   );

@@ -435,7 +435,6 @@ export default function Thread() {
       <Frame>
         <ErrorState
           error={th.error}
-          visual={<StruckQuery query={id} />}
           onRetry={() => th.refetch()}
         />
       </Frame>

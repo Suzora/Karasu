@@ -29,7 +29,7 @@ describe("Activity", () => {
   it("offers Retry when the request failed, and never calls the activity gone", async () => {
     answer.next = () => Promise.reject("anilist.rateLimited");
     mount();
-    expect(await screen.findByRole("alert")).toHaveTextContent('common.error:{"message":"common.rateLimited"}');
+    expect(await screen.findByRole("alert")).toHaveTextContent("common.rateLimitedTitle");
     expect(screen.getByRole("button", { name: "common.retry" })).toBeInTheDocument();
     expect(screen.queryByText("social.activityGone")).toBeNull();
   });

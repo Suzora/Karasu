@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: cd6021e -->
+<!-- generated-through: 05f8a82 -->
 
 ### Fixed
 
@@ -83,6 +83,7 @@ tag time is then optional rather than load-bearing.
 - On Linux, clicking a sidebar link no longer freezes or closes the window; page changes there switch without the cross-fade.
 - List and grid keys work again right after opening a page.
 - Back after removing from the editor works again.
+- A rate limit no longer looks like a missing title, and the sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
 
 ### Added
 

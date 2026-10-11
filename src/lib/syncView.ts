@@ -6,6 +6,7 @@ import type { RateSnapshot, SyncStatus } from "@/api/types";
 export type Headline =
   | { kind: "offline" }
   | { kind: "limited"; waitMs: number }
+  | { kind: "unreachable" }
   | { kind: "sending"; count: number }
   | { kind: "pacing"; waitMs: number }
   | { kind: "asking"; source: string; more: number }
@@ -17,6 +18,7 @@ export function syncHeadline(status: SyncStatus): Headline {
   if (!status.connected) return { kind: "offline" };
   const { throttledForMs, throttleKind } = status.rate;
   if (throttledForMs != null && throttleKind === "retryAfter") return { kind: "limited", waitMs: throttledForMs };
+  if (lostConnection(status)) return { kind: "unreachable" };
   if (status.draining) return { kind: "sending", count: status.queued.length };
   if (throttledForMs != null) return { kind: "pacing", waitMs: throttledForMs };
   if (status.inFlight.length > 0) {
@@ -25,6 +27,22 @@ export function syncHeadline(status: SyncStatus): Headline {
   }
   if (status.queued.length > 0) return { kind: "queued", count: status.queued.length };
   return { kind: "synced" };
+}
+
+/** The newest request never got an answer, so AniList could not be reached; the next answer that arrives ends it. */
+function lostConnection(status: SyncStatus): boolean {
+  const newest = status.recent[0];
+  return newest != null && newest.outcome === "error" && newest.status == null;
+}
+
+/** The two states the sidebar's one line must not call synced; everything calmer keeps the list's own wording. */
+export type SyncAlert = { kind: "limited"; waitMs: number } | { kind: "unreachable" };
+
+export function syncAlert(status: SyncStatus | undefined): SyncAlert | null {
+  if (!status) return null;
+  const h = syncHeadline(status);
+  if (h.kind === "limited" || h.kind === "unreachable") return h;
+  return null;
 }
 
 export type HeadlineTone = "calm" | "busy" | "warn" | "off";
@@ -36,6 +54,7 @@ export function headlineTone(h: Headline): HeadlineTone {
     case "offline":
       return "off";
     case "limited":
+    case "unreachable":
     case "queued":
       return "warn";
     case "sending":
