@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { Route, Routes, useLocation, useNavigate, type NavigateFunction } from "react-router";
 import type { ThreadPage, ThreadSummary } from "@/api/social";
 import { forgetPlaces } from "@/lib/scrollMemory";
@@ -47,12 +47,12 @@ function Nav() {
   return null;
 }
 
-/** Every history key the router has shown, in order: a replace mints a new one even when the URL stays the same. */
+/** Every history key the router has shown, recorded in the commit that shows it so no assertion runs ahead. */
 const keys: string[] = [];
 
 function Probe() {
   const { key, pathname, search } = useLocation();
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (keys[keys.length - 1] !== key) keys.push(key);
   }, [key]);
   return <output aria-label="where">{pathname + search}</output>;
