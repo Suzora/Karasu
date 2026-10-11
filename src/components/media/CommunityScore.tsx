@@ -127,7 +127,7 @@ export function CommunityScore({
           </span>
         </div>
       )}
-      <p className="mt-1 text-2xs text-ink-600">{votes > 0 ? t("detail.scoreBarsHint") : t("entry.scoreHint")}</p>
+      <p className="mt-1 text-xs text-ink-600">{votes > 0 ? t("detail.scoreBarsHint") : t("entry.scoreHint")}</p>
     </div>
   );
 }

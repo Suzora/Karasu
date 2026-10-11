@@ -465,7 +465,7 @@ export function DetectionCorrectionsSection() {
               >
                 {labelOf(row)}
               </Link>
-              <span className="mt-0.5 block truncate text-2xs text-ink-600">
+              <span className="mt-0.5 block truncate text-xs text-ink-600">
                 {t("settings.correctionsFrom", { title: row.title })}
                 {row.season > 0 && ` · S${row.season}`}
                 {row.episodeOffset !== 0 &&

@@ -265,7 +265,7 @@ export function NotifFeed({
             {!item.read && unreadMark()}
           </span>
           <span className="mt-0.5 block text-xs text-ink-500">{item.body}</span>
-          <span className="mt-0.5 block text-2xs text-ink-600">{rowTime(item.createdMs)}</span>
+          <span className="mt-0.5 block text-xs text-ink-600">{rowTime(item.createdMs)}</span>
         </span>
         {/* Two rows that look identical must not behave differently: a row with nowhere to go omits the chevron. */}
         {item.mediaId != null && <ChevronRight aria-hidden className="mt-1 size-3.5 shrink-0 text-ink-600" />}
@@ -305,11 +305,11 @@ export function NotifFeed({
           </span>
           {row.subject && <SubjectLine subject={row.subject} id={`${id}-subject`} hidden={spoken} />}
           {row.detail && (
-            <span id={`${id}-detail`} aria-hidden={spoken} className="mt-0.5 block truncate text-2xs text-ink-600">
+            <span id={`${id}-detail`} aria-hidden={spoken} className="mt-0.5 block truncate text-xs text-ink-600">
               {row.detail}
             </span>
           )}
-          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-2xs text-ink-600">
+          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-600">
             {rowTime(row.createdAt * 1000)}
           </span>
         </span>
@@ -382,7 +382,7 @@ export function NotifFeed({
             {groupVerb(label, t)}
           </span>
           <SubjectsLine subjects={subjects} more={more} id={`${id}-subject`} hidden={spoken} />
-          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-2xs text-ink-600">
+          <span id={`${id}-time`} aria-hidden={spoken} className="mt-0.5 block text-xs text-ink-600">
             {rowTime(g.atMs)}
           </span>
         </span>

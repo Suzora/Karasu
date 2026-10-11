@@ -45,7 +45,7 @@ function sheetGroups(android: boolean): { label: string; items: NavItem[] }[] {
 }
 
 const slotClass =
-  "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-control py-1.5 text-2xs font-medium transition-surface";
+  "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-control py-1.5 text-xs font-medium transition-surface";
 
 export default function BottomBar() {
   const { t } = useTranslation();

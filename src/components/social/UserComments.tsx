@@ -111,7 +111,7 @@ export function UserComments({
             <span className="min-w-0 truncate text-sm font-medium text-ink-100">
               {c.thread?.title ?? t("social.untitledThread")}
             </span>
-            <span className="ml-auto flex shrink-0 items-center gap-3 text-2xs text-ink-600">
+            <span className="ml-auto flex shrink-0 items-center gap-3 text-xs text-ink-600">
               {(c.likeCount ?? 0) > 0 && (
                 <span className="flex items-center gap-1">
                   <Heart className="size-3.5" /> {c.likeCount}

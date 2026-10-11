@@ -218,7 +218,7 @@ export default function SignInMerge() {
       {phase === "blocked" ? (
         <div className="space-y-2">
           <p className="text-sm text-ink-300">{t("merge.blocked")}</p>
-          <p className="text-2xs text-ink-600">{t("merge.laterHint")}</p>
+          <p className="text-xs text-ink-600">{t("merge.laterHint")}</p>
         </div>
       ) : phase === "done" ? (
         <div className="space-y-4">
@@ -291,7 +291,7 @@ export default function SignInMerge() {
               {t("merge.progress", { done: progress, total: shown.length })}
             </p>
           ) : (
-            <p className="text-2xs text-ink-600">{t("merge.laterHint")}</p>
+            <p className="text-xs text-ink-600">{t("merge.laterHint")}</p>
           )}
         </div>
       )}

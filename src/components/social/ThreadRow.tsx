@@ -35,7 +35,7 @@ export function ThreadRow({ thread }: { thread: ThreadSummary }) {
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-ink-600">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
         <span>{thread.user?.name}</span>
         <span className="flex items-center gap-1">
           <MessageSquare className="size-3.5" />

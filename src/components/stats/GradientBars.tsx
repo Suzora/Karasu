@@ -26,7 +26,7 @@ export function GradientBars({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      {hint && <p className="mt-1 text-2xs text-ink-600">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-ink-600">{hint}</p>}
       <div className="mt-4 flex flex-1 flex-col justify-around gap-2.5">
         {rows.map((r, i) => (
           <div key={r.label}>
@@ -34,7 +34,7 @@ export function GradientBars({
               <span className="min-w-0 truncate text-ink-300">{r.label}</span>
               <span className="shrink-0 tabular-nums text-ink-100">
                 {r.text}
-                {r.sub && <span className="ml-1.5 text-2xs text-ink-600">{r.sub}</span>}
+                {r.sub && <span className="ml-1.5 text-xs text-ink-600">{r.sub}</span>}
               </span>
             </div>
             <div className="mt-1 h-2 rounded-mark bg-surface-800" aria-hidden="true">

@@ -66,7 +66,7 @@ export function QuickEditor({
             average={media.averageScore}
           />
           <More media={media} entry={entry} onSave={onWrite} />
-          <p className="text-center text-2xs text-ink-600">{t("detail.quickSaveHint")}</p>
+          <p className="text-center text-xs text-ink-600">{t("detail.quickSaveHint")}</p>
         </>
       )}
     </div>
@@ -112,7 +112,7 @@ export function StatusTiles({
             <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: statusColorVar(s) }} />
             <span className="flex min-w-0 max-w-full flex-col items-center leading-tight">
               <span className="break-words">{t(`status.${type}.${s}`)}</span>
-              {marked && <span className="break-words text-2xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
+              {marked && <span className="break-words text-xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
             </span>
           </button>
         );

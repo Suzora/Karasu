@@ -154,7 +154,7 @@ export function LibrarySplitsSection() {
                 >
                   {m ? displayTitle(m.title) : `#${row.mediaId}`}
                 </Link>
-                <span className="mt-0.5 block truncate text-2xs text-ink-600">
+                <span className="mt-0.5 block truncate text-xs text-ink-600">
                   {row.title}
                   {row.season > 0 && ` · S${row.season}`}
                   {" · "}

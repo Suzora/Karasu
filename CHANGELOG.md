@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: d4816e0 -->
+<!-- generated-through: 4d24c9a -->
 
 ### Fixed
 
@@ -130,6 +130,7 @@ tag time is then optional rather than load-bearing.
 - On season and search cards, a title on your list shows a small status dot instead of a check that looked like a button.
 - Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change at once, with Undo, instead of a form with a Save button.
 - On the desktop, search filters fold behind one Filter button, and the forum picks its category from one field instead of seventeen chips.
+- Hints, timestamps and the lines under titles are easier to read, at 12 instead of 10 px.
 
 ## 1.32.0 — 2026-10-03
 

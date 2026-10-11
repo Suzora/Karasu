@@ -326,7 +326,7 @@ function Favourites({ user }: { user: UserProfileData }) {
               {list.map((p) => (
                 <Link key={p.id} to={`${base}/${p.id}`} className="w-20 shrink-0 text-center">
                   <Avatar src={p.image?.medium} name={p.name.full ?? ""} size="2xl" />
-                  <p className="mt-1.5 line-clamp-2 text-2xs leading-snug text-ink-500">
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-500">
                     {p.name.full}
                   </p>
                 </Link>

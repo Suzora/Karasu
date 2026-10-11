@@ -75,7 +75,7 @@ export function CommentTree({
                   size="sm"
                   nameClassName="text-xs font-medium text-ink-300"
                   sub={
-                    <span className="block text-2xs text-ink-600">
+                    <span className="block text-xs text-ink-600">
                       {relTimeFromSeconds(c.createdAt, i18n.language, t("notif.now"))}
                     </span>
                   }
@@ -120,7 +120,7 @@ export function CommentTree({
           {c.hiddenReplies > 0 && c.depth === 1 && (
             <button
               onClick={() => void openUrl(c.siteUrl)}
-              className="mt-2 text-2xs text-accent-400 hover:underline"
+              className="mt-2 text-xs text-accent-400 hover:underline"
             >
               {t("social.deeperReplies", { n: c.hiddenReplies })}
             </button>

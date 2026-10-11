@@ -126,7 +126,7 @@ export function MenuRow({
 
 /** A trailing note on a row, such as the tab a preset opens. */
 export function MenuRowNote({ children }: { children: ReactNode }) {
-  return <span className="shrink-0 text-2xs text-ink-600">{children}</span>;
+  return <span className="shrink-0 text-xs text-ink-600">{children}</span>;
 }
 
 /** The rule between two groups of rows. */

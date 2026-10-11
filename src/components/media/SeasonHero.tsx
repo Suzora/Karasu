@@ -152,7 +152,7 @@ export default function SeasonHero() {
               </Link>
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-2xs text-on-cover-edge/85 ink-halo">
+              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-on-cover-edge/85 ink-halo">
                 {current.format && <span>{formatLabel(current.format, t)}</span>}
                 <EpisodeLine media={current} />
                 {current.averageScore != null && (

@@ -157,7 +157,9 @@ export const GridCard = memo(function GridCard({
         ) : (
           <>
             {entry.progress}
-            {max ? ` / ${max}` : ""} {unit}
+            {max ? ` / ${max}` : ""}
+            {/* On a narrow card the numbers stand alone rather than wrap the word onto a second line. */}
+            <span className="@max-cover-meta:hidden"> {unit}</span>
           </>
         )}
       </CoverMeta>

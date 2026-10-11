@@ -456,7 +456,7 @@ function LibraryView({ userId }: { userId: number }) {
           <button
             type="button"
             onClick={change}
-            className="shrink-0 text-2xs font-medium text-accent-400 hover:underline"
+            className="shrink-0 text-xs font-medium text-accent-400 hover:underline"
           >
             {t("library.change")}
           </button>
@@ -601,7 +601,7 @@ function DetectedOffList({
       <p className="mb-1 text-xs font-medium uppercase tracking-eyebrow text-ink-600">
         {t("library.detectedOffList")}
       </p>
-      <p className="mb-3 text-2xs text-ink-600">
+      <p className="mb-3 text-xs text-ink-600">
         {t("library.detectedOffListHint")}
       </p>
       <VirtualRows
@@ -832,7 +832,7 @@ function Unplaced({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-2 text-2xs font-medium text-accent-400 hover:underline"
+          className="mt-2 text-xs font-medium text-accent-400 hover:underline"
         >
           {expanded
             ? t("library.showFewer")

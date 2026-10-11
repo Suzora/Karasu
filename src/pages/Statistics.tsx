@@ -562,7 +562,7 @@ function GenresTagsView({
         {radarGenres.length > 2 && (
           <Card className="flex h-full flex-col">
             <CardTitle>{t("stats.genreShape")}</CardTitle>
-            <p className="mt-1 text-2xs text-ink-600">{t("stats.genreShapeHint")}</p>
+            <p className="mt-1 text-xs text-ink-600">{t("stats.genreShapeHint")}</p>
             <div className="mt-2 flex flex-1 items-center justify-center">
               <div className="w-full max-w-72">
                 <RadarChart locale={i18n.language}
@@ -793,7 +793,7 @@ function YearsView({
       {released.length > 1 && (
         <Card className="flex h-full flex-col">
           <CardTitle>{t("stats.releaseYears")}</CardTitle>
-          <p className="mt-1 text-2xs text-ink-600">{t("stats.releaseYearsHint")}</p>
+          <p className="mt-1 text-xs text-ink-600">{t("stats.releaseYearsHint")}</p>
           <div className="mt-4 flex flex-1 items-center">
             <AreaChart
               data={released.map((d) => ({
@@ -807,7 +807,7 @@ function YearsView({
       {started.length > 1 && (
         <Card className="flex h-full flex-col">
           <CardTitle>{t("stats.startYears")}</CardTitle>
-          <p className="mt-1 text-2xs text-ink-600">{t("stats.startYearsHint")}</p>
+          <p className="mt-1 text-xs text-ink-600">{t("stats.startYearsHint")}</p>
           <div className="mt-4 flex flex-1 items-center">
             <AreaChart
               data={started.map((d) => ({
@@ -919,7 +919,7 @@ function OverviewCharts({
       {breakdown.length > 0 && (
         <Card className="flex h-full flex-col">
           <CardTitle>{t("stats.breakdown")}</CardTitle>
-          <p className="mt-1 text-2xs text-ink-600">{t("stats.breakdownHint")}</p>
+          <p className="mt-1 text-xs text-ink-600">{t("stats.breakdownHint")}</p>
           {/* Chart beside its key, the key dropping beneath only where the card is too narrow to read it beside the ring. */}
           <div className="mt-3 flex flex-1 flex-wrap items-center gap-6">
             <div className="w-40 shrink-0 sm:w-48">

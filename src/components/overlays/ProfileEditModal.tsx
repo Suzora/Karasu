@@ -95,7 +95,7 @@ export function ProfileEditModal({
             textareaClassName="min-h-44"
             footer={
               <div className="flex w-full items-center justify-between">
-                <p className="text-2xs text-ink-600">{t("social.bioMarkdownHint")}</p>
+                <p className="text-xs text-ink-600">{t("social.bioMarkdownHint")}</p>
                 {left < POST_MAX * 0.15 && (
                   <span className={cn("text-2xs tabular-nums", tooLong ? "text-danger" : "text-ink-600")}>
                     {left}

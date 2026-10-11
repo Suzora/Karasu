@@ -45,6 +45,8 @@
   --container-cover-actions: 7.5rem;
   /* The narrowest cover that still holds two of them; below it a cover keeps one. */
   --container-cover-pair: 4.75rem;
+  /* The narrowest card whose progress line holds its unit word on one line; narrower, the numbers stand alone. */
+  --container-cover-meta: 6.5rem;
   /* The narrowest section that holds two chart cards side by side with every count and legend label whole. */
   --container-chart-pair: 48rem;
   /* The narrowest legend that holds two columns of a label beside its count; narrower, it takes one. */

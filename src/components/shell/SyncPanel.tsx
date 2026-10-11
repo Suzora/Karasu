@@ -178,7 +178,7 @@ function HeadlineBlock({ data }: { data: SyncStatus }) {
           </span>
         )}
       </p>
-      <p className="mt-1 text-2xs text-ink-600">{t("syncPanel.budgetHint")}</p>
+      <p className="mt-1 text-xs text-ink-600">{t("syncPanel.budgetHint")}</p>
     </div>
   );
 }
@@ -301,7 +301,7 @@ function DetailsBlock({ data }: { data: SyncStatus }) {
       <Disclosure summary={<span className="text-2xs font-semibold uppercase text-ink-600">{t("syncPanel.secDetails")}</span>}>
         <ul className="max-h-36 overflow-y-auto pt-1">
           {data.recent.map((r) => (
-            <li key={r.seq} className="flex items-baseline gap-2 py-0.5 text-2xs">
+            <li key={r.seq} className="flex items-baseline gap-2 py-0.5 text-xs">
               <span className="min-w-0 flex-1 truncate text-ink-300">
                 {r.source} · {r.operation}
               </span>
@@ -311,7 +311,7 @@ function DetailsBlock({ data }: { data: SyncStatus }) {
             </li>
           ))}
         </ul>
-        <h4 className="pb-0.5 pt-2 text-2xs text-ink-600">{t("syncPanel.secBySource")}</h4>
+        <h4 className="pb-0.5 pt-2 text-xs text-ink-600">{t("syncPanel.secBySource")}</h4>
         <ul className="max-h-28 overflow-y-auto">
           {[...data.traffic.sources]
             .sort((a, b) => b.total - a.total)
@@ -322,7 +322,7 @@ function DetailsBlock({ data }: { data: SyncStatus }) {
               </li>
             ))}
           {data.traffic.throttled > 0 && (
-            <li className="pt-1 text-2xs text-danger">{t("syncPanel.throttled429", { n: data.traffic.throttled })}</li>
+            <li className="pt-1 text-xs text-danger">{t("syncPanel.throttled429", { n: data.traffic.throttled })}</li>
           )}
         </ul>
       </Disclosure>
@@ -383,11 +383,11 @@ function SyncPanelBody({ api }: { api: PopoverApi }) {
               {title ??
                 (edit.subject == null ? t("syncPanel.rowUnparsed") : t("syncPanel.rowUntitled", { id: edit.subject }))}
             </span>
-            <span className="mt-0.5 block truncate text-2xs text-ink-500">
+            <span className="mt-0.5 block truncate text-xs text-ink-500">
               {edit.kind === "delete" ? t("syncPanel.rowDelete") : fields || t("syncPanel.rowSave")}
             </span>
           </span>
-          <span className="mt-0.5 shrink-0 text-2xs text-ink-600">
+          <span className="mt-0.5 shrink-0 text-xs text-ink-600">
             {relTimeFromSeconds(edit.queuedAt, i18n.language, t("notif.now"))}
           </span>
         </button>

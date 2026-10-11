@@ -165,7 +165,7 @@ function ListRows({ type, shape }: { type: MediaType; shape: ListShape }) {
           )}
         </ul>
       ) : (
-        <p className="text-2xs text-ink-600">{t("settings.alCustomListsNone")}</p>
+        <p className="text-xs text-ink-600">{t("settings.alCustomListsNone")}</p>
       )}
       <NameForm
         shape={shape}
@@ -265,7 +265,7 @@ function NameForm({
         )}
       </div>
       {shown && (
-        <p id={errorId} className="mt-1 text-2xs text-danger">
+        <p id={errorId} className="mt-1 text-xs text-danger">
           {problemText(shown, t)}
         </p>
       )}

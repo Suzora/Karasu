@@ -35,7 +35,7 @@ export function DotPlot({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      {hint && <p className="mt-1 text-2xs text-ink-600">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-ink-600">{hint}</p>}
 
       <div className="mt-4 flex flex-1 flex-col justify-around gap-3">
         {rows.map((r, i) => (

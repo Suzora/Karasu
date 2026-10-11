@@ -227,7 +227,7 @@ export default function Person({ kind }: { kind: Kind }) {
           )}
 
           {ch?.name.alternative?.length ? (
-            <p className="mt-3 text-2xs text-ink-600">
+            <p className="mt-3 text-xs text-ink-600">
               {t("person.alsoKnownAs", { names: ch.name.alternative.join(", ") })}
             </p>
           ) : null}
@@ -263,7 +263,7 @@ export default function Person({ kind }: { kind: Kind }) {
             {st.characters.nodes.map((c) => (
               <Link key={c.id} to={`/character/${c.id}`} className="w-20 shrink-0 text-center">
                 <Avatar src={c.image?.medium} name={c.name.full ?? ""} size="2xl" />
-                <p className="mt-1.5 line-clamp-2 text-2xs leading-snug text-ink-500">
+                <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-500">
                   {c.name.full}
                 </p>
               </Link>
@@ -298,7 +298,7 @@ function VoiceActors({ edges }: { edges: NonNullable<CharacterDetail["media"]>["
         {list.map((va) => (
           <Link key={va.id} to={`/staff/${va.id}`} className="w-20 shrink-0 text-center">
             <Avatar src={va.image} name={va.name} size="2xl" />
-            <p className="mt-1.5 line-clamp-2 text-2xs leading-snug text-ink-500">{va.name}</p>
+            <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-500">{va.name}</p>
           </Link>
         ))}
       </div>

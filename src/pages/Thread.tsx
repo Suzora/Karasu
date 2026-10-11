@@ -493,7 +493,7 @@ export default function Thread() {
           </Button>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs text-ink-600">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
           {data.user && (
             <Link to={`/user/${encodeURIComponent(data.user.name)}`}>
               <UserLockup
@@ -583,7 +583,7 @@ export default function Thread() {
                   }}
                   className="flex items-center gap-1.5"
                 >
-                  <label className="text-2xs text-ink-600" htmlFor="thread-page">
+                  <label className="text-xs text-ink-600" htmlFor="thread-page">
                     {t("social.pageOf", { max: maxPage })}
                   </label>
                   <Input
@@ -614,7 +614,7 @@ export default function Thread() {
               </Button>
             )}
             {newest.isFetching && (
-              <span className="text-2xs text-ink-600">{t("social.jumping")}</span>
+              <span className="text-xs text-ink-600">{t("social.jumping")}</span>
             )}
           </div>
         )}
@@ -632,7 +632,7 @@ export default function Thread() {
               <>
                 {/* Say so whenever the cap decided what arrived: "tree" brings a conversation, "capped" misses the newest. */}
                 {newest.data && newest.data.via !== "page" && (
-                  <p className="mb-3 rounded-control border border-gold/30 bg-gold/8 px-3 py-2 text-2xs leading-relaxed text-ink-300">
+                  <p className="mb-3 rounded-control border border-gold/30 bg-gold/8 px-3 py-2 text-xs leading-relaxed text-ink-300">
                     {newest.data.via === "comment"
                       ? t(
                           anchor && !anchor.exact

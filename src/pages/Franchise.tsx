@@ -279,7 +279,7 @@ export default function Franchise() {
             </div>
 
             {data.truncated && (
-              <p className="absolute left-3 top-3 rounded-inner border border-hair bg-surface-850/90 px-2 py-1 text-2xs text-ink-600">
+              <p className="absolute left-3 top-3 rounded-inner border border-hair bg-surface-850/90 px-2 py-1 text-xs text-ink-600">
                 {t("franchise.truncated")}
               </p>
             )}

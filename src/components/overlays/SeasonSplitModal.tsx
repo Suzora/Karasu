@@ -142,7 +142,7 @@ export function SeasonSplitModal({
       </div>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm text-ink-100">{c.label}</span>
-        <span className="block text-2xs text-ink-600">
+        <span className="block text-xs text-ink-600">
           {[
             c.episodes !== null ? t("library.splitEpisodes", { n: c.episodes }) : null,
             c.year,

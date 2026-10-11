@@ -26,7 +26,7 @@ export function Heatmap({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      {hint && <p className="mt-1 text-2xs text-ink-600">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-ink-600">{hint}</p>}
 
       <div className="mt-4 space-y-1">
         <div className="grid grid-cols-[2.5rem_repeat(12,1fr)] gap-1">

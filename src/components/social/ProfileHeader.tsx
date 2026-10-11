@@ -86,7 +86,7 @@ export function ProfileHeader({ user }: { user: UserProfile }) {
 
   // A profile reached by an old link should say it was renamed rather than look like a different person.
   const previousNames = user.previousNames.length > 0 && (
-    <p className="mt-1 flex items-center gap-1 text-2xs text-ink-600">
+    <p className="mt-1 flex items-center gap-1 text-xs text-ink-600">
       <Sparkles className="size-3.5" />
       {t("social.previouslyKnownAs", {
         names: user.previousNames

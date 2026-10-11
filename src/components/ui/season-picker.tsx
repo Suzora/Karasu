@@ -119,7 +119,7 @@ export default function SeasonPicker({
                 )}
               >
                 {t(`season.${s}`)}
-                <span className="mt-0.5 block font-brand-jp text-2xs text-ink-600">
+                <span className="mt-0.5 block font-brand-jp text-xs text-ink-600">
                   {SEASON_KANJI[s]}
                 </span>
               </button>

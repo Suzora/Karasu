@@ -107,7 +107,7 @@ export default function RecommendedSection({
     <section>
       <SectionHeader icon={Sparkles} title={title} />
       {/* Not `meta`: that slot is `shrink-0` for short phrases, and this sentence there scrolled the whole page sideways. */}
-      <p className="mt-1.5 text-2xs text-ink-600">
+      <p className="mt-1.5 text-xs text-ink-600">
         {t("dashboard.recommendedHint")}
       </p>
       <div className="mt-4 media-grid gap-y-5 gap-x-4">
@@ -115,7 +115,7 @@ export default function RecommendedSection({
           <div key={r.media.id}>
             <MediaCard media={r.media} />
             <div className="mt-1 flex items-start justify-between gap-1.5">
-              <p className="line-clamp-2 flex-1 text-2xs text-ink-600">
+              <p className="line-clamp-2 flex-1 text-xs text-ink-600">
                 {t("dashboard.becauseYouFinished", {
                   title: titleOf.get(r.topSeedId) ?? "?",
                 })}

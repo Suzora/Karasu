@@ -121,7 +121,7 @@ export default function MatchPicker({
       bodyClassName="flex flex-col overflow-hidden p-0"
       footer={
         <>
-          {error && <span className="mr-auto min-w-0 flex-1 truncate text-2xs text-danger">{error}</span>}
+          {error && <span className="mr-auto min-w-0 flex-1 truncate text-xs text-danger">{error}</span>}
           {onClear && (
             <Button variant="ghost" size="control" className={cn(!error && "mr-auto")} onClick={onClear}>
               <X className="size-3.5" />
@@ -147,7 +147,7 @@ export default function MatchPicker({
         {/* Only where an episode number is on the table; a library correction settles a whole title. */}
         {detectedEpisode != null && (
           <div className="mt-2 flex items-center gap-2">
-            <label className="text-2xs text-ink-500" htmlFor="pick-episode">
+            <label className="text-xs text-ink-500" htmlFor="pick-episode">
               {t("library.reallyEpisode", { n: detectedEpisode })}
             </label>
             <Input
@@ -244,7 +244,7 @@ function ResultRow({
       trailing={isCurrent && <span className="shrink-0 text-2xs text-accent-400">{t("library.currentMatch")}</span>}
     >
       <span className="block truncate">{displayTitle(media.title)}</span>
-      <span className="mt-0.5 block text-2xs text-ink-600">
+      <span className="mt-0.5 block text-xs text-ink-600">
         {[
           // `formatLabel`, not the raw enum: no AniList enum reaches the screen.
           formatLabel(media.format, t),

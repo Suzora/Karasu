@@ -334,7 +334,7 @@ export default function Search() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="text-2xs font-medium text-accent-400 hover:underline"
+                  className="text-xs font-medium text-accent-400 hover:underline"
                 >
                   {t("list.clearFilter")}
                 </button>

@@ -49,7 +49,7 @@ export function DayHeatmap({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      {hint && <p className="mt-1 text-2xs text-ink-600">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-ink-600">{hint}</p>}
 
       {/* Scrolls in its own container, never the page body; cells shrunk to fit a year are unreadable. */}
       <div className="mt-4 overflow-x-auto">

@@ -449,7 +449,7 @@ function Birthdays({ userId, settled }: { userId: number; settled: boolean }) {
               <span className="block truncate text-xs font-medium text-ink-100">
                 {p.name.full}
               </span>
-              <span className="block text-2xs text-ink-600">
+              <span className="block text-xs text-ink-600">
                 {p.kind === "character"
                   ? t("dashboard.birthdayCharacter")
                   : t("dashboard.birthdayStaff")}

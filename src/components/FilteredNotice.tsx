@@ -25,7 +25,7 @@ export function FilteredNotice({
     <Link
       to="/settings?pane=appearance"
       className={cn(
-        "inline-block text-2xs font-medium text-accent-400 hover:underline",
+        "inline-block text-xs font-medium text-accent-400 hover:underline",
         className,
       )}
     >

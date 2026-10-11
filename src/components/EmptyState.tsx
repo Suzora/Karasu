@@ -31,7 +31,7 @@ export function EmptyState({
       {Icon ? <Icon aria-hidden className="size-8 text-ink-600" /> : visual}
       <p className="mt-4 text-base font-medium text-ink-300">{title}</p>
       {hint && (
-        <p className="mt-1 max-w-80 text-2xs leading-relaxed text-ink-600">
+        <p className="mt-1 max-w-80 text-xs leading-relaxed text-ink-600">
           {hint}
         </p>
       )}

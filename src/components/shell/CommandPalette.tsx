@@ -344,7 +344,7 @@ export default function CommandPalette() {
                             >
                               <span className={cn("block truncate", item.labelNative && "font-brand-jp")}>{item.label}</span>
                               {item.second && (
-                                <span className={cn("block truncate text-2xs text-ink-600", item.second.native && "font-brand-jp")}>
+                                <span className={cn("block truncate text-xs text-ink-600", item.second.native && "font-brand-jp")}>
                                   {item.second.text}
                                 </span>
                               )}
@@ -373,7 +373,7 @@ export default function CommandPalette() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-auto px-2.5 pb-1 pt-3 text-2xs text-ink-600">{t("palette.typeHint")}</p>
+              <p className="mt-auto px-2.5 pb-1 pt-3 text-xs text-ink-600">{t("palette.typeHint")}</p>
             </section>
           )}
         </div>

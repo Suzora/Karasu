@@ -180,9 +180,9 @@ export function CoverCell({
   );
 }
 
-/** The quiet third line under a cover — progress, or format and year. */
+/** The quiet third line under a cover — progress, or format and year; its own container, so a part can yield to width. */
 export function CoverMeta({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-0.5 text-2xs tabular-nums text-ink-600">{children}</p>
+    <p className="@container mt-0.5 text-xs tabular-nums text-ink-600">{children}</p>
   );
 }

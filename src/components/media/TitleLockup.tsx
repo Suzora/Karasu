@@ -37,7 +37,7 @@ export function TitleLockup({
         {main}
       </p>
       {second && (
-        <p className={cn("truncate text-ink-600", second.native && "font-brand-jp", dense ? "dense-text" : "text-2xs")}>
+        <p className={cn("truncate text-ink-600", second.native && "font-brand-jp", dense ? "dense-text" : "text-xs")}>
           {second.text}
         </p>
       )}

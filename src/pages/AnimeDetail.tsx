@@ -601,7 +601,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
                         <span className="block truncate text-xs text-ink-100">
                           {c.node.name.full}
                         </span>
-                        <span className="block text-2xs text-ink-600">
+                        <span className="block text-xs text-ink-600">
                           {characterRoleLabel(c.role, t)}
                         </span>
                       </span>
@@ -640,7 +640,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
                     <span className="block truncate text-xs text-ink-100">
                       {s.node.name.full}
                     </span>
-                    <span className="block truncate text-2xs text-ink-600">{s.role}</span>
+                    <span className="block truncate text-xs text-ink-600">{s.role}</span>
                   </span>
                 </Link>
               ))}
@@ -811,7 +811,7 @@ function ReviewCard({
             size="sm"
             nameClassName="text-xs font-medium text-ink-300"
             sub={
-              <span className="block text-2xs text-ink-600">
+              <span className="block text-xs text-ink-600">
                 {relTimeFromSeconds(r.createdAt, i18n.language, t("notif.now"))}
               </span>
             }
@@ -840,7 +840,7 @@ function ReviewCard({
       </DisclosurePanel>
 
       <div className="mt-2 flex items-center gap-1.5">
-        <span className="mr-1 text-2xs text-ink-600">
+        <span className="mr-1 text-xs text-ink-600">
           {t("review.helpful", { up: r.rating ?? 0, total: r.ratingAmount ?? 0 })}
         </span>
         {canVote && (
@@ -911,7 +911,7 @@ function TrendSection({ mediaId }: { mediaId: number }) {
             <p className="text-xs text-ink-600">{t("detail.trendNone")}</p>
           ) : (
             <>
-              <p className="mb-2 text-2xs text-ink-600">{t("detail.trendHint")}</p>
+              <p className="mb-2 text-xs text-ink-600">{t("detail.trendHint")}</p>
               <Suspense fallback={<Shimmer className="h-24 w-full rounded-control" />}>
                 <AreaChart data={points} />
               </Suspense>

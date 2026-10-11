@@ -138,7 +138,7 @@ export function MultiFilterSelect({
           )}
           <ul className="max-h-72 overflow-y-auto p-1">
             {shown.length === 0 && (
-              <li className="px-2 py-3 text-center text-2xs text-ink-600">
+              <li className="px-2 py-3 text-center text-xs text-ink-600">
                 {t("search.noOptions")}
               </li>
             )}
@@ -174,12 +174,12 @@ export function MultiFilterSelect({
             })}
           </ul>
           <div className="flex items-center justify-between border-t border-hair px-2.5 py-1.5">
-            <span className="text-2xs text-ink-600">{t("search.cycleHint")}</span>
+            <span className="text-xs text-ink-600">{t("search.cycleHint")}</span>
             {!isEmpty(value) && (
               <button
                 type="button"
                 onClick={() => onChange({ include: [], exclude: [] })}
-                className="text-2xs text-accent-400 hover:underline"
+                className="text-xs text-accent-400 hover:underline"
               >
                 {t("search.clearFilter")}
               </button>

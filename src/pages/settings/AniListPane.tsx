@@ -398,7 +398,7 @@ export function AniListListOptionsSection() {
               <p className="text-xs font-medium text-ink-300">
                 {t("settings.alCustomLists")}
               </p>
-              <p className="mt-1 text-2xs text-ink-600">
+              <p className="mt-1 text-xs text-ink-600">
                 {t("settings.alCustomListsHint")}
               </p>
               <CustomListManager options={mlo} />

@@ -214,7 +214,7 @@ export default function DetectionSurface({
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-ink-100">{titleNode}</p>
           {second && (
-            <p className={cn("truncate text-2xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
+            <p className={cn("truncate text-xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
           )}
           {(labelText || playing.episodeTitle) && (
             <p className="truncate text-xs text-ink-300">
@@ -223,7 +223,7 @@ export default function DetectionSurface({
               {playing.episodeTitle}
             </p>
           )}
-          {metaText && <p className="truncate text-2xs text-ink-500">{metaText}</p>}
+          {metaText && <p className="truncate text-xs text-ink-500">{metaText}</p>}
           {/* Keyed on the phase so each state fades in; a silent text swap is easy to miss while looking at it. */}
           <div key={scrobble.phase} className="mt-1 animate-fade-in">
             <ScrobbleStatus countdown={countdown.label} compact={false} />
@@ -249,7 +249,7 @@ function ScrobbleStatus({
   // Compact keeps the countdown and nothing else: the sentences below need room the collapsed strip does not have.
   if (compact) {
     return countdown ? (
-      <p className="truncate text-2xs tabular-nums text-ink-500">{countdown}</p>
+      <p className="truncate text-xs tabular-nums text-ink-500">{countdown}</p>
     ) : null;
   }
 

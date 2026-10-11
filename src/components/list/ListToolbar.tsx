@@ -547,7 +547,7 @@ function FilterPanel({
           {t("list.resetFilters")}
         </Button>
         {narrowed && (
-          <span className="text-2xs tabular-nums text-ink-500">{t("list.matchTitles", { shown, total })}</span>
+          <span className="text-xs tabular-nums text-ink-500">{t("list.matchTitles", { shown, total })}</span>
         )}
         <Button size="sm" className="ml-auto" onClick={onDone}>
           {t("common.done")}
@@ -679,7 +679,7 @@ function FilterChips({
       <button
         type="button"
         onClick={() => onChange(CLEAR_FILTERS)}
-        className="ml-1 shrink-0 whitespace-nowrap rounded-inner px-1 text-2xs font-medium text-accent-400 hover:text-accent-500 focus-visible:outline-2 focus-visible:outline-accent-500"
+        className="ml-1 shrink-0 whitespace-nowrap rounded-inner px-1 text-xs font-medium text-accent-400 hover:text-accent-500 focus-visible:outline-2 focus-visible:outline-accent-500"
       >
         {t("list.resetFilters")}
       </button>

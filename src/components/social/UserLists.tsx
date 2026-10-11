@@ -123,7 +123,7 @@ export function UserLists({ user }: { user: UserProfile }) {
           {" · "}
           {t("social.affinityShared", { n: match.shared })}
           {match.disagreements.length > 0 && (
-            <span className="mt-1 block text-2xs text-ink-600">
+            <span className="mt-1 block text-xs text-ink-600">
               {t("social.affinityDisagree")}{" "}
               {match.disagreements
                 .map((d) => titleOf.get(d.mediaId))

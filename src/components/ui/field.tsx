@@ -21,9 +21,9 @@ export function Field({
   const labelId = useId();
   const labelClass = "block text-xs font-medium text-ink-300";
   const note = error ? (
-    <p className="mt-1 text-2xs text-danger">{error}</p>
+    <p className="mt-1 text-xs text-danger">{error}</p>
   ) : (
-    hint && <p className="mt-1 text-2xs text-ink-600">{hint}</p>
+    hint && <p className="mt-1 text-xs text-ink-600">{hint}</p>
   );
   if (htmlFor)
     return (

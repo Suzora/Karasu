@@ -119,7 +119,7 @@ export const PhoneRow = memo(function PhoneRow({
           >
             {displayTitle(media.title)}
           </span>
-          <span className="mt-0.5 block truncate text-2xs tabular-nums text-ink-600">{meta.join(" · ")}</span>
+          <span className="mt-0.5 block truncate text-xs tabular-nums text-ink-600">{meta.join(" · ")}</span>
         </span>
       </Link>
 

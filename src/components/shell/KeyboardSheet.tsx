@@ -49,7 +49,7 @@ export default function KeyboardSheet() {
           </section>
         ))}
       </div>
-      <p className="mt-4 text-2xs leading-relaxed text-ink-600">
+      <p className="mt-4 text-xs leading-relaxed text-ink-600">
         {t("keys.footnote")}
       </p>
     </Modal>

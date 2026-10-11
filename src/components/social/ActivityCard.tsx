@@ -97,7 +97,7 @@ function ActivityReplies({ activityId }: { activityId: number }) {
           error={q.error}
           title={(reason) => t("social.repliesFailed", { message: reason })}
           onRetry={() => q.refetch()}
-          className="text-2xs"
+          className="text-xs"
         />
       )}
       {q.data?.map((r) => (
@@ -113,7 +113,7 @@ function ActivityReplies({ activityId }: { activityId: number }) {
                 size="sm"
                 nameClassName="text-xs font-medium text-ink-300"
                 sub={
-                  <span className="block text-2xs text-ink-600">
+                  <span className="block text-xs text-ink-600">
                     {relTimeFromSeconds(r.createdAt, i18n.language, t("notif.now"))}
                   </span>
                 }
@@ -131,7 +131,7 @@ function ActivityReplies({ activityId }: { activityId: number }) {
         </div>
       ))}
       {!q.isLoading && !q.error && !q.data?.length && (
-        <p className="text-2xs text-ink-600">{t("social.noReplies")}</p>
+        <p className="text-xs text-ink-600">{t("social.noReplies")}</p>
       )}
 
       {mode === "anilist" && (
@@ -213,7 +213,7 @@ export function ActivityCard({
               src={item.user.avatar?.medium}
               size="sm"
               nameClassName="text-xs font-medium text-ink-300"
-              sub={<span className="block text-2xs text-ink-600">{when}</span>}
+              sub={<span className="block text-xs text-ink-600">{when}</span>}
             />
           </Link>
           <div className="flex shrink-0 items-center gap-2">

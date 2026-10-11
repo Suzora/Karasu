@@ -50,7 +50,7 @@ export function ScoreBars({
           />
           <span className="text-xs text-ink-600">/ {max}</span>
         </div>
-        <p className="mt-1.5 text-2xs text-ink-600">{t("entry.scoreHintInput")}</p>
+        <p className="mt-1.5 text-xs text-ink-600">{t("entry.scoreHintInput")}</p>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export function ScoreBars({
           );
         })}
       </div>
-      <p className="mt-1.5 text-2xs text-ink-600">{t("entry.scoreHint")}</p>
+      <p className="mt-1.5 text-xs text-ink-600">{t("entry.scoreHint")}</p>
     </div>
   );
 }

@@ -27,7 +27,7 @@ export function UserRow({ user }: { user: SocialUser }) {
           nameClassName="text-sm"
           sub={
             badgeKey ? (
-              <span className="block text-2xs text-ink-600">
+              <span className="block text-xs text-ink-600">
                 {badgeKey === "social.badgeMutual"
                   ? t("social.badgeMutual")
                   : t("social.badgeFollowsYou")}

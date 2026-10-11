@@ -84,7 +84,7 @@ export default function About() {
             {android ? t("about.descriptionAndroid") : t("about.description")}
           </p>
           {version && (
-            <p className="mt-4 text-2xs tabular-nums text-ink-600">
+            <p className="mt-4 text-xs tabular-nums text-ink-600">
               {t("about.version", { version })}
             </p>
           )}
@@ -199,7 +199,7 @@ function DiagnosticsSection() {
         </Button>
       </div>
       {failed && <p className="mt-2 text-sm text-danger">{t("about.copyFailed")}</p>}
-      <p className="mt-2 text-2xs text-ink-600">{t("about.reportHint")}</p>
+      <p className="mt-2 text-xs text-ink-600">{t("about.reportHint")}</p>
     </Card>
   );
 }

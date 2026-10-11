@@ -415,7 +415,7 @@ function TitleLanguageRow() {
           {main}
         </p>
         {second && (
-          <p className={cn("truncate text-2xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
+          <p className={cn("truncate text-xs text-ink-600", second.native && "font-brand-jp")}>{second.text}</p>
         )}
       </div>
     </div>

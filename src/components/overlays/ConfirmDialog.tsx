@@ -67,7 +67,7 @@ export default function ConfirmDialog({
               {!!extra && extra > 0 && <li className="text-ink-600">{t("confirm.andMore", { n: extra })}</li>}
             </ul>
           )}
-          {note && <p className="mt-2 text-2xs leading-relaxed text-ink-600">{note}</p>}
+          {note && <p className="mt-2 text-xs leading-relaxed text-ink-600">{note}</p>}
           {children}
         </div>
       )}

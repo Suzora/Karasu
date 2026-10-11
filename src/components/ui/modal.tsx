@@ -127,7 +127,7 @@ export function Modal({
                 <h2 id={titleId} className="text-base text-ink-100">
                   {title}
                 </h2>
-                {description && <div className="mt-0.5 truncate text-2xs text-ink-600">{description}</div>}
+                {description && <div className="mt-0.5 truncate text-xs text-ink-600">{description}</div>}
               </div>
               {!alert && dismissable && (
                 <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("window.close")}>

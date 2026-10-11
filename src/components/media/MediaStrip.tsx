@@ -47,13 +47,13 @@ export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
                 />
               )}
             </div>
-            <p className="mt-1.5 line-clamp-2 text-2xs leading-snug text-ink-500 group-hover:text-ink-300">
+            <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-500 group-hover:text-ink-300">
               {displayTitle(e.node.title)}
             </p>
             {role && (
               <p
                 className={cn(
-                  "mt-0.5 truncate text-2xs",
+                  "mt-0.5 truncate text-xs",
                   main ? "text-accent-400" : "text-ink-600",
                 )}
                 title={role}

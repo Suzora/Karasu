@@ -29,7 +29,7 @@ export function ScoreColumns({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      <p className="mt-1 text-2xs text-ink-600">{hint}</p>
+      <p className="mt-1 text-xs text-ink-600">{hint}</p>
       {/* `flex-1` absorbs the row's slack; keep `items-stretch`, or the columns stay content-sized and it pools above. */}
       <div className="mt-4 flex flex-1 items-stretch gap-1.75">
         {columns.map(({ step, count }) => {

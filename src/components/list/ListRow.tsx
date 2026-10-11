@@ -183,7 +183,7 @@ export const ListRow = memo(function ListRow({
             {displayTitle(media.title)}
           </span>
           {secondary.length > 0 && (
-            <span className="min-w-0 flex-1 truncate text-2xs text-ink-600">
+            <span className="min-w-0 flex-1 truncate text-xs text-ink-600">
               {secondary.join(" · ")}
             </span>
           )}
@@ -197,7 +197,7 @@ export const ListRow = memo(function ListRow({
         >
           <TitleLockup title={media.title} />
           {secondary.length > 0 && (
-            <p className="mt-0.5 truncate text-2xs text-ink-600">
+            <p className="mt-0.5 truncate text-xs text-ink-600">
               {secondary.join(" · ")}
             </p>
           )}
@@ -312,7 +312,7 @@ export const ListRow = memo(function ListRow({
 
       <div className="overflow-hidden">
         {shows(tier, "dates") && (
-          <div className="text-2xs leading-tight tabular-nums text-ink-600">
+          <div className="text-xs leading-tight tabular-nums text-ink-600">
             <p className="truncate">{fuzzyDate(entry.startedAt, i18n.language)}</p>
             <p className="truncate">
               {fuzzyDate(entry.completedAt, i18n.language)}

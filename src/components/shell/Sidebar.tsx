@@ -238,7 +238,7 @@ function Account({
   const line = (
     <span
       className={cn(
-        "flex items-center gap-1.25 text-2xs leading-snug",
+        "flex items-center gap-1.25 text-xs leading-snug",
         sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600",
       )}
     >

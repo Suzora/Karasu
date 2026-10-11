@@ -1053,7 +1053,7 @@ export function QueueSection() {
                   <span className="block truncate text-xs text-ink-100">
                     {label(edit)}
                   </span>
-                  <span className="mt-0.5 block truncate text-2xs text-ink-600">
+                  <span className="mt-0.5 block truncate text-xs text-ink-600">
                     {edit.kind === "delete"
                       ? t("settings.queueKindDelete")
                       : edit.fields

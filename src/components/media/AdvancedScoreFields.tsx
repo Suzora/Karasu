@@ -28,7 +28,7 @@ export function AdvancedScoreFields({
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
         <span className="text-ink-500">{t("entry.advancedScores")}</span>
         {anyScored(rows.map((r) => r.value)) && (
-          <span className="text-2xs text-ink-600">
+          <span className="text-xs text-ink-600">
             {t("entry.advancedDerived", { score: formatMeanScore(format, overall, i18n.language) })}
           </span>
         )}
