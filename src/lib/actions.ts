@@ -296,7 +296,8 @@ export function resolveActions(target: ActionTarget, ctx: ActionContext): Action
     if (ctx.share) out.push(act("share", "link"));
   }
   if (ctx.hasSelection) out.push(act("copySelection", "link"));
-  out.push(...chrome(ctx));
+  // A title's menu is about the title; the page's commands come only with the page, or where nothing else would.
+  if (target.kind === "page" || out.length === 0) out.push(...chrome(ctx));
 
   // A stable sort, so the order inside a group stays the order each builder chose.
   return out.sort(

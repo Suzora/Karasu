@@ -834,3 +834,19 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   tabs under the head). Every request names its sender in words; the raw
   operation, timings and per-source counts fold away under Details. It grew
   from 304 to 380 px.
+- **2026-10-12:** Decided from the first Impeccable critique, each built
+  through its own mockups or before/after board:
+  - The list's pencil opens the quick editor with "More" unfolded, and the
+    separate edit dialog goes: one editor, saved as it is touched.
+  - A right-click on a title offers the title's actions and links only;
+    Back, Forward, Reload, the palette, Settings, Search and Sync stay for
+    a right-click on the page itself.
+  - A card's "on your list" mark leaves the action corner and becomes a
+    status mark on the cover, so that corner holds buttons alone.
+  - An action repeated on every row (the list's +1, the library's Play)
+    is a neutral icon button that takes the accent on hover and focus;
+    the accent stays for the one primary action of a region.
+  - The default Rewatching colour moves away from Watching's green.
+  - On the desktop, Search folds its filters behind one "Filter" control
+    and the forum's categories become one select, as on the phone; this
+    replaces the desktop half of the 2026-09-26 forum entry.

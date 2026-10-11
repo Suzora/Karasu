@@ -15,13 +15,15 @@ describe("resolveActions, entry", () => {
       "setScore",
       "removeFromList",
       "openAniList",
-      "search",
-      "back",
-      "forward",
-      "reload",
-      "palette",
-      "settings",
     ]);
+  });
+
+  /** A title's menu is about the title; the page's own commands would push it past what a glance can take in. */
+  it("leaves the page's commands to a right-click on the page", () => {
+    const menu = ids(entry());
+    for (const id of ["search", "sync", "back", "forward", "reload", "palette", "settings"]) {
+      expect(menu).not.toContain(id);
+    }
   });
 
   it("drops the increment at the last episode", () => {
@@ -61,16 +63,7 @@ describe("resolveActions, entry", () => {
 describe("resolveActions, without an account", () => {
   it("offers nothing that writes to a list", () => {
     const menu = ids(entry(), ctx({ signedIn: false }));
-    expect(menu).toEqual([
-      "open",
-      "openAniList",
-      "search",
-      "back",
-      "forward",
-      "reload",
-      "palette",
-      "settings",
-    ]);
+    expect(menu).toEqual(["open", "openAniList"]);
   });
 });
 
@@ -145,9 +138,25 @@ describe("resolveActions, shape", () => {
   });
 
   it("leaves out what a browser cannot do", () => {
-    const menu = ids(entry(), ctx({ tauri: false }));
-    expect(menu).not.toContain("openAniList");
-    expect(menu).not.toContain("reload");
+    expect(ids(entry(), ctx({ tauri: false }))).not.toContain("openAniList");
+    expect(ids({ kind: "page" }, ctx({ tauri: false }))).not.toContain("reload");
+  });
+
+  it("gives the page, and only the page, its commands", () => {
+    expect(ids({ kind: "page" }, ctx({ canSync: true }))).toEqual([
+      "search",
+      "sync",
+      "back",
+      "forward",
+      "reload",
+      "palette",
+      "settings",
+    ]);
+  });
+
+  /** A target with nothing of its own still opens a menu, so a right-click never does nothing. */
+  it("falls back to the page's commands where a target has none of its own", () => {
+    expect(ids({ kind: "detection", mediaId: 4 })).toContain("back");
   });
 
   it("never interleaves groups, which is what lets a renderer count its separators", () => {
