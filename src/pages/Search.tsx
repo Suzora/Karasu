@@ -123,7 +123,7 @@ export default function Search() {
   const phone = usePhoneShell();
   // Phone only: the filter chips collapse behind this; desktop has the room and keeps its inline row.
   const [filtersOpen, setFiltersOpen] = useState(false);
-  // The phone fold must pop out as well as in; a bare conditional cuts it away mid-frame on collapse.
+  // The fold must pop out as well as in; a bare conditional cuts it away mid-frame on collapse.
   const filterPanel = usePresence(filtersOpen);
   const type: MediaType = isMediaScope(scope) ? scope : "ANIME";
 
@@ -317,7 +317,8 @@ export default function Search() {
               </span>
             )}
           </div>
-          {isMediaScope(scope) && phone && (
+          {/* One control on every width: nine open filters over the results was a wall before the first answer. */}
+          {isMediaScope(scope) && (
             <div className="mt-2.5 flex items-center gap-2.5">
               <Pill
                 active={filtersOpen}
@@ -340,11 +341,11 @@ export default function Search() {
               )}
             </div>
           )}
-          {isMediaScope(scope) && (!phone || filterPanel.mounted) && (
+          {isMediaScope(scope) && filterPanel.mounted && (
             <div
               className={cn(
                 "mt-2.5 flex flex-wrap gap-2",
-                phone && (filterPanel.leaving ? "animate-pop-out" : "animate-pop-in"),
+                filterPanel.leaving ? "animate-pop-out" : "animate-pop-in",
               )}
             >
               <MultiFilterSelect

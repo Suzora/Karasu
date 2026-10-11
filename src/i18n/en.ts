@@ -740,7 +740,6 @@ export const en = {
     lensBrowse: "Browse",
     lensSearch: "Search",
     lensSubscribed: "Subscribed",
-    allCategories: "All",
     category: "Category",
     categoryAll: "Category: all",
     searchPlaceholder: "Search thread titles…",

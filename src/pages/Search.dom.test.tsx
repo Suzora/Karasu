@@ -165,3 +165,16 @@ describe("Search on the way back", () => {
   });
 });
 
+/** Nine filters stood open over the results on the desktop; they fold behind one control there as on the phone. */
+describe("Search filters", () => {
+  it("folds the filters behind one control that counts what is active", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Search />, { route: "/search?status=FINISHED" });
+    expect(screen.queryByRole("combobox", { name: "search.statusLabel" })).toBeNull();
+    const toggle = screen.getByRole("button", { name: /search\.filters/ });
+    expect(toggle).toHaveTextContent("(1)");
+    await user.click(toggle);
+    expect(await screen.findByRole("combobox", { name: "search.statusLabel" })).toHaveValue("FINISHED");
+  });
+});
+

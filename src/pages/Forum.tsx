@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ui/search-field";
 import { Pill } from "@/components/ui/pill";
 import { Select } from "@/components/ui/select";
+import { FilterSelect } from "@/components/ui/filter-select";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useSettledWrite } from "@/hooks/useUrlState";
@@ -107,7 +108,7 @@ export default function Forum() {
           )}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {LENSES.map((l) => (
             <Pill key={l} active={lens === l} onClick={() => setLens(l)}>
               {l === "browse"
@@ -117,6 +118,17 @@ export default function Forum() {
                   : t("forum.lensSubscribed")}
             </Pill>
           ))}
+          {/* One labelled filter in the filters' own shape, where seventeen chips took two rows. */}
+          {lens === "browse" && !phone && (
+            <FilterSelect
+              label={t("forum.category")}
+              value={categoryId ? String(categoryId) : ""}
+              onChange={(v) => setCategory(v ? Number(v) : undefined)}
+              placeholder={t("search.any")}
+              options={THREAD_CATEGORIES.map((c) => ({ value: String(c.id), label: c.name }))}
+              className="ml-3"
+            />
+          )}
         </div>
 
         {lens === "search" && (
@@ -147,22 +159,6 @@ export default function Forum() {
               </option>
             ))}
           </Select>
-        )}
-        {lens === "browse" && !phone && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <Pill active={categoryId === undefined} onClick={() => setCategory(undefined)}>
-              {t("forum.allCategories")}
-            </Pill>
-            {THREAD_CATEGORIES.map((c) => (
-              <Pill
-                key={c.id}
-                active={categoryId === c.id}
-                onClick={() => setCategory(c.id)}
-              >
-                {c.name}
-              </Pill>
-            ))}
-          </div>
         )}
       </div>
 

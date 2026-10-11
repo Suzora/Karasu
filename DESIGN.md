@@ -867,3 +867,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   editor with "More" unfolded in a dialog, a side panel or a dropdown, was
   rejected outright as taking too much room. On the phone it is a sheet in
   the same order, one column. The detail page keeps its quick editor.
+- **2026-10-12:** On the desktop, Search's filters fold behind one
+  "Filter (n)" control that unfolds them above the results, the phone's own
+  pattern on every width (A of three mockups, over B, a popover like the
+  list's toolbar, and C, genre, year and sort left open with the rest
+  behind "More filters"). The forum's category is one labelled filter in
+  the filter bars' shape, right after the lenses (C of three, over A, a
+  native select at the row's end, and B, a native select on a row of its
+  own); the phone keeps its native select.

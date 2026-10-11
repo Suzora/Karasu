@@ -200,3 +200,16 @@ describe("Forum and its ?q=", () => {
     expect(keys).toHaveLength(2);
   });
 });
+
+/** Seventeen category chips took two rows on the desktop; they are one labelled filter beside the lenses now. */
+describe("Forum categories", () => {
+  it("picks a category from one field beside the lenses, never a row of chips", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/forum" });
+    expect(screen.queryByRole("button", { name: "Anime" })).toBeNull();
+    const field = screen.getByRole("combobox", { name: "forum.category" });
+    await user.selectOptions(field, "Anime");
+    await waitFor(() => expect(where()).toHaveTextContent(/cat=\d+/));
+  });
+});
+

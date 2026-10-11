@@ -742,7 +742,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     lensBrowse: "Stöbern",
     lensSearch: "Suche",
     lensSubscribed: "Abonniert",
-    allCategories: "Alle",
     category: "Kategorie",
     categoryAll: "Kategorie: Alle",
     searchPlaceholder: "Thread-Titel suchen …",

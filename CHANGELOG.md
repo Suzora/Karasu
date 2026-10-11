@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: b9ef54b -->
+<!-- generated-through: d4816e0 -->
 
 ### Fixed
 
@@ -129,6 +129,7 @@ tag time is then optional rather than load-bearing.
 - The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
 - On season and search cards, a title on your list shows a small status dot instead of a check that looked like a button.
 - Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change at once, with Undo, instead of a form with a Save button.
+- On the desktop, search filters fold behind one Filter button, and the forum picks its category from one field instead of seventeen chips.
 
 ## 1.32.0 — 2026-10-03
 
