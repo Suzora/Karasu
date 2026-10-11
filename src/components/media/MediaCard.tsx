@@ -10,7 +10,7 @@ import { saveListEntry } from "@/api/anilist";
 
 import { formatLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { displayTitle, type MediaListStatus, type SaveEntryInput } from "@/api/types";
+import { displayTitle, type SaveEntryInput } from "@/api/types";
 import { statusColorVar } from "@/lib/statusColors";
 import { useCachedList } from "@/hooks/useCachedEntry";
 import { useListMutations } from "@/hooks/useListMutations";
@@ -21,8 +21,7 @@ import { shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import type { MediaWithListStatus } from "@/api/queries";
 import { useAuth } from "@/stores/auth";
-import EntryEditModal from "@/components/media/LazyEntryEditModal";
-import type { EntrySaveInput } from "@/components/media/EntryEditModal";
+import EntryDialog from "@/components/media/LazyEntryDialog";
 import { PresenceIf } from "@/components/ui/presence";
 
 /** Card for discovery grids (search, season): quick add and full editing straight from the results. */
@@ -60,7 +59,7 @@ export default function MediaCard({
   });
 
   // A listed title goes through the list's own hook, which patches the list, receipts the write and offers Undo.
-  const send = (input: EntrySaveInput | { mediaId: number; status: MediaListStatus }) => {
+  const send = (input: SaveEntryInput) => {
     if (listed) save.mutate(input);
     // Filled before `mutate`, so the entry remembered from the variables shows the totals the write carried.
     else add.mutate(withCompletion(input, media, media.type, entry?.status ?? null));
@@ -149,15 +148,13 @@ export default function MediaCard({
 
       <PresenceIf when={editing}>
         {(leaving) => (
-          <EntryEditModal
+          <EntryDialog
             leaving={leaving}
             media={media}
             entry={entry}
             onClose={() => setEditing(false)}
-            onSave={(input: EntrySaveInput) => {
-              send(input);
-              setEditing(false);
-            }}
+            onAdd={(status) => send({ mediaId: media.id, status })}
+            onWrite={(patch) => send({ mediaId: media.id, ...patch })}
           />
         )}
       </PresenceIf>

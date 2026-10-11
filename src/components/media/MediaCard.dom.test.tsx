@@ -186,9 +186,13 @@ describe("MediaCard with an AniList account", () => {
     await screen.findByTitle("status.ANIME.COMPLETED");
 
     await user.click(screen.getByRole("button", { name: "common.edit" }));
-    await user.click(await screen.findByRole("button", { name: "common.save" }));
+    // The editor opens on the list's entry, never the response's stale stub.
+    expect(await screen.findByRole("spinbutton", { name: "common.progress" })).toHaveValue(28);
+    expect(screen.getByRole("button", { name: "status.ANIME.COMPLETED" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "7" }));
 
-    expect(saveListEntry).toHaveBeenCalledWith(expect.objectContaining({ mediaId: 1, status: "COMPLETED", progress: 28 }));
+    expect(saveListEntry).toHaveBeenCalledWith(expect.objectContaining({ mediaId: 1, score: 7 }));
+    expect(saveListEntry).not.toHaveBeenCalledWith(expect.objectContaining({ status: "CURRENT" }));
   });
 
   it("keeps a title the loaded list lacks as the response says, since a hidden entry or one added elsewhere is listed", async () => {

@@ -5,8 +5,8 @@ import { Presence } from "@/components/ui/presence";
 import ActionSheet from "@/components/shell/ActionSheet";
 import ContextMenu from "@/components/shell/ContextMenu";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
-import EntryEditModal from "@/components/media/LazyEntryEditModal";
-import type { EntrySaveInput } from "@/components/media/EntryEditModal";
+import EntryDialog from "@/components/media/LazyEntryDialog";
+import type { EntryPatch } from "@/lib/entryPatch";
 import { findCachedMedia } from "@/hooks/useCachedMedia";
 import { useActionRunner, type ActionOverlay } from "@/hooks/useActionRunner";
 import { useListMutations } from "@/hooks/useListMutations";
@@ -245,9 +245,8 @@ export default function ActionHost() {
     setOpen(null);
   };
 
-  const save = (input: EntrySaveInput) => {
-    list.save.mutate(input);
-    closeAll();
+  const save = (patch: EntryPatch) => {
+    if (editing) list.save.mutate({ mediaId: editing.mediaId, ...patch });
   };
 
   const remove = () => {
@@ -293,11 +292,11 @@ export default function ActionHost() {
       </Presence>
 
       {open && editing && overlay === "edit" && (
-        <EntryEditModal
+        <EntryDialog
           media={{ ...editing.media, type: open.mediaType }}
-          entry={{ ...editing, notes: editing.notes }}
+          entry={editing}
           tagSuggestions={suggestions}
-          onSave={save}
+          onWrite={save}
           onDelete={remove}
           onClose={closeAll}
         />

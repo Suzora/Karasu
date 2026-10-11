@@ -187,6 +187,12 @@ export const SCREENS = [
   { id: "d40-jellyfin-aus", w: 1232, h: 1000, route: "/settings?pane=detection", mock: "jellyfin-out", act: toCard("Jellyfin-Server") },
   { id: "d6-sortierung", w: 1232, h: 800, route: "/list", act: (p) => p.locator('[aria-label^="Sortierung"], [aria-label^="Sort:"]').first().click() },
   { id: "p6-aktionen", w: 405, h: 860, phone: true, route: "/list", act: (p) => longPress(p, p.locator("[data-media-id]").nth(1)) },
+  { id: "d89-editor-liste", w: 1232, h: 800, route: "/list", act: async (p) => {
+    await p.getByRole("radio", { name: "Liste" }).first().click();
+    await p.waitForTimeout(400);
+    await p.getByRole("button", { name: "Bearbeiten" }).nth(1).click();
+  } },
+  { id: "p62-editor-liste", w: 405, h: 860, phone: true, route: "/list", act: (p) => p.getByRole("button", { name: "Bearbeiten" }).first().click() },
   { id: "d7-bearbeiten", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Bearbeiten") },
   { id: "d8-bestaetigen", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Von der Liste entfernen") },
   { id: "d9-cover", w: 1232, h: 800, route: "/media/178789", act: (p) => p.getByRole("button", { name: "Cover im Vollbild ansehen" }).first().click() },

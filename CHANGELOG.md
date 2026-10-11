@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f17071d -->
+<!-- generated-through: b9ef54b -->
 
 ### Fixed
 
@@ -128,6 +128,7 @@ tag time is then optional rather than load-bearing.
 - Right-clicking a title shows only what you can do with that title; Back, Reload, the palette and the other page commands are a right-click on the page.
 - The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
 - On season and search cards, a title on your list shows a small status dot instead of a check that looked like a button.
+- Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change at once, with Undo, instead of a form with a Save button.
 
 ## 1.32.0 — 2026-10-03
 

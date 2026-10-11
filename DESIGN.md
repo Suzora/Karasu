@@ -836,8 +836,8 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   from 304 to 380 px.
 - **2026-10-12:** Decided from the first Impeccable critique, each built
   through its own mockups or before/after board:
-  - The list's pencil opens the quick editor with "More" unfolded, and the
-    separate edit dialog goes: one editor, saved as it is touched.
+  - One editor, saved as it is touched (superseded the same day, see the
+    next entry for its shape).
   - A right-click on a title offers the title's actions and links only;
     Back, Forward, Reload, the palette, Settings, Search and Sync stay for
     a right-click on the page itself.
@@ -857,3 +857,13 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   line, and B, a tinted status label on the art, which a phone's narrow
   cover cut short). The status ring stays; the action corner holds buttons
   alone.
+- **2026-10-12:** The entry editor every list, card, franchise rail and
+  context menu opens is one compact dialog, saved as it is touched with a
+  receipt and Undo, and fits an 800 px window without scrolling: on the
+  left the quick editor's status tiles, the progress stepper and the flat
+  score bar; on the right tabs for notes, dates and custom lists; Remove at
+  the foot (A of three mockups, over B, one column with the same tabs, and
+  C, two columns with everything open). A first round of three, the quick
+  editor with "More" unfolded in a dialog, a side panel or a dropdown, was
+  rejected outright as taking too much room. On the phone it is a sheet in
+  the same order, one column. The detail page keeps its quick editor.

@@ -22,7 +22,7 @@ import { useCachedEntry } from "@/hooks/useCachedEntry";
 import { useListMutations } from "@/hooks/useListMutations";
 import { displayTitle, STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import BackButton from "@/components/shell/BackButton";
-import EntryEditModal from "@/components/media/LazyEntryEditModal";
+import EntryDialog from "@/components/media/LazyEntryDialog";
 import { Presence } from "@/components/ui/presence";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -304,7 +304,7 @@ export default function Franchise() {
         </div>
       )}
 
-      {/* Through Presence like every other EntryEditModal call site, so the editor has an exit animation. */}
+      {/* Through Presence like every other EntryDialog call site, so the editor has an exit animation. */}
       <Presence value={editing}>
         {(mediaId, leaving) => (
           <EntryEditor
@@ -578,15 +578,12 @@ function EntryEditor({
   if (!entry) return null;
 
   return (
-    <EntryEditModal
+    <EntryDialog
       leaving={leaving}
       media={{ ...entry.media, type }}
       entry={entry}
       onClose={onClose}
-      onSave={(input) => {
-        save.mutate(input);
-        onClose();
-      }}
+      onWrite={(patch) => save.mutate({ mediaId: entry.mediaId, ...patch })}
       onDelete={() => {
         remove.mutate(entry.id);
         onClose();

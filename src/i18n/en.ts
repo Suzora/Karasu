@@ -311,7 +311,6 @@ export const en = {
     save: "Save",
     saved: "Saved ✓",
     cancel: "Cancel",
-    add: "Add",
     remove: "Remove",
     confirmRemove: "Really remove?",
     retry: "Try again",
@@ -689,7 +688,6 @@ export const en = {
     viewGallery: "Gallery",
     viewThumbs: "Thumbnails",
     viewList: "List",
-    progressMax: "Progress (max. {{max}})",
   },
   search: {
     title: "Search",
@@ -1074,6 +1072,10 @@ export const en = {
     removeFailed: "Couldn't remove that entry",
   },
   entry: {
+    savedHint: "Every change is saved at once and can be undone.",
+    more: "More for this entry",
+    tabNotes: "Notes",
+    tabDates: "Dates",
     scoreHint: "Pick the score you gave again to clear it.",
     scoreHintInput: "Leave the field empty to clear the score.",
     startDate: "Started",

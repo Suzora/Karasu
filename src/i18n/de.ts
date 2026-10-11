@@ -313,7 +313,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     save: "Speichern",
     saved: "Gespeichert ✓",
     cancel: "Abbrechen",
-    add: "Hinzufügen",
     remove: "Entfernen",
     confirmRemove: "Wirklich entfernen?",
     retry: "Erneut versuchen",
@@ -691,7 +690,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     viewGallery: "Galerie",
     viewThumbs: "Miniaturen",
     viewList: "Liste",
-    progressMax: "Fortschritt (max. {{max}})",
   },
   search: {
     title: "Suche",
@@ -1078,6 +1076,10 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     removeFailed: "Eintrag konnte nicht entfernt werden",
   },
   entry: {
+    savedHint: "Jede Änderung wird sofort gespeichert und lässt sich rückgängig machen.",
+    more: "Mehr zu diesem Eintrag",
+    tabNotes: "Notizen",
+    tabDates: "Daten",
     scoreHint: "Wähle die vergebene Bewertung noch einmal, um sie zu löschen.",
     scoreHintInput: "Feld leer lassen, um die Bewertung zu löschen.",
     startDate: "Begonnen",

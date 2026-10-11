@@ -23,7 +23,7 @@ import {
   type MediaType,
 } from "@/api/types";
 import { useListMutations } from "@/hooks/useListMutations";
-import EntryEditModal from "@/components/media/LazyEntryEditModal";
+import EntryDialog from "@/components/media/LazyEntryDialog";
 import { CoverGridSkeleton } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { isTyping } from "@/components/shell/KeyboardSheet";
@@ -870,24 +870,27 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
       {/* Presence rather than a bare conditional: the dialog keeps its entry while it animates away. */}
       <Presence value={editing}>
-        {(entry, leaving) => (
-          <EntryEditModal
-            leaving={leaving}
-            media={{ ...entry.media, type }}
-            entry={entry}
-            tagSuggestions={allTags}
-            customListNames={listNames}
-            onClose={() => setEditing(null)}
-            onSave={(input) => {
-              save.mutate(input);
-              setEditing(null);
-            }}
-            onDelete={() => {
-              remove.mutate(entry.id);
-              setEditing(null);
-            }}
-          />
-        )}
+        {(opened, leaving) => {
+          // The list's current copy, so an Undo or a write landing while the dialog is open shows in it.
+          const entry = byStatus.get(opened.status)?.find((e) => e.id === opened.id)
+            ?? [...byStatus.values()].flat().find((e) => e.id === opened.id)
+            ?? opened;
+          return (
+            <EntryDialog
+              leaving={leaving}
+              media={{ ...entry.media, type }}
+              entry={entry}
+              tagSuggestions={allTags}
+              customListNames={listNames}
+              onClose={() => setEditing(null)}
+              onWrite={(patch) => save.mutate({ mediaId: entry.mediaId, ...patch })}
+              onDelete={() => {
+                remove.mutate(entry.id);
+                setEditing(null);
+              }}
+            />
+          );
+        }}
       </Presence>
 
       <Presence value={removing}>

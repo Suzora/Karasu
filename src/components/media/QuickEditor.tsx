@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus } from "lucide-react";
 import type { MediaDetail } from "@/api/queries";
-import { maxProgress, STATUS_ORDER, type MediaListStatus, type SaveEntryInput } from "@/api/types";
+import { maxProgress, STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
+import type { EntryPatch } from "@/lib/entryPatch";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
 import { IconButton } from "@/components/ui/icon-button";
@@ -23,7 +24,7 @@ export interface QuickEntry {
   notes: string | null;
 }
 
-export type EntryPatch = Omit<SaveEntryInput, "mediaId">;
+export type { EntryPatch } from "@/lib/entryPatch";
 
 /** The detail page's entry editor: status, progress and score save as they are touched; the rest waits for Save. */
 export function QuickEditor({
@@ -47,39 +48,17 @@ export function QuickEditor({
     <div className="space-y-4">
       <div role="group" aria-label={entry ? t("common.status") : t("detail.addAs")}>
         {!entry && <p className="mb-2 text-sm text-ink-500">{t("detail.addAs")}</p>}
-        <div className="grid grid-cols-3 gap-1.5">
-          {STATUS_ORDER.map((s) => {
-            const current = entry?.status === s;
-            const preset = !entry && defaultStatus === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                aria-pressed={current}
-                onClick={() => onStatus(s)}
-                // A stacked tile, the dot above the name, so a German status reads whole instead of cut at the tile's edge.
-                className={cn(
-                  "flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-control px-2 py-2 text-center text-xs font-medium transition-surface",
-                  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-500",
-                  "border",
-                  current || preset ? "tint-fill text-ink-100" : "border-surface-700 text-ink-300 hover:border-surface-600 hover:text-ink-100",
-                )}
-                style={current || preset ? ({ "--tint": statusColorVar(s) } as CSSProperties) : undefined}
-              >
-                <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: statusColorVar(s) }} />
-                <span className="flex min-w-0 max-w-full flex-col items-center leading-tight">
-                  <span className="break-words">{t(`status.${media.type}.${s}`)}</span>
-                  {preset && <span className="break-words text-2xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <StatusTiles type={media.type} current={entry?.status ?? null} preset={entry ? null : (defaultStatus ?? null)} onPick={onStatus} />
       </div>
 
       {entry && (
         <>
-          <Progress media={media} value={entry.progress} onCommit={(progress) => onWrite({ progress })} />
+          <ProgressStepper
+            label={media.type === "MANGA" ? t("common.chapters") : t("common.progress")}
+            value={entry.progress}
+            total={maxProgress(media)}
+            onCommit={(progress) => onWrite({ progress })}
+          />
           <CommunityScore
             value={entry.score}
             onChange={(score) => onWrite({ score })}
@@ -94,11 +73,71 @@ export function QuickEditor({
   );
 }
 
-/** The count with a step either side; a step saves at once, a typed count once the field is left. */
-function Progress({ media, value, onCommit }: { media: MediaDetail; value: number; onCommit: (n: number) => void }) {
+/** The six statuses as stacked tiles, the dot above the name, so a German status reads whole at any width. */
+export function StatusTiles({
+  type,
+  current,
+  preset,
+  onPick,
+  compact = false,
+}: {
+  type: MediaType;
+  current: MediaListStatus | null;
+  /** The status an add uses unless another is chosen, marked in place among the others. */
+  preset: MediaListStatus | null;
+  onPick: (status: MediaListStatus) => void;
+  /** The dialog's shorter tiles; the detail page's sheet keeps the taller ones a finger needs. */
+  compact?: boolean;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {STATUS_ORDER.map((s) => {
+        const on = current === s;
+        const marked = !current && preset === s;
+        return (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onPick(s)}
+            className={cn(
+              "flex min-w-0 flex-col items-center justify-center gap-1 rounded-control border px-2 text-center text-xs font-medium transition-surface",
+              compact ? "min-h-11 py-1.5" : "min-h-14 py-2",
+              "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent-500",
+              on || marked ? "tint-fill text-ink-100" : "border-surface-700 text-ink-300 hover:border-surface-600 hover:text-ink-100",
+            )}
+            style={on || marked ? ({ "--tint": statusColorVar(s) } as CSSProperties) : undefined}
+          >
+            <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: statusColorVar(s) }} />
+            <span className="flex min-w-0 max-w-full flex-col items-center leading-tight">
+              <span className="break-words">{t(`status.${type}.${s}`)}</span>
+              {marked && <span className="break-words text-2xs font-normal text-ink-500">{t("detail.defaultStatus")}</span>}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A count with a step either side; a step saves at once, a typed count once the field is left. */
+export function ProgressStepper({
+  label,
+  value,
+  total,
+  onCommit,
+  compact = false,
+}: {
+  label: string;
+  value: number;
+  total: number | null;
+  onCommit: (n: number) => void;
+  /** The dialog's control height; the detail page's sheet keeps the 44 px a finger needs. */
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
   const id = useId();
-  const total = maxProgress(media);
   const [typed, setTyped] = useState(value);
   // What was last committed or received, so leaving the field unchanged writes nothing.
   const committed = useRef(value);
@@ -115,11 +154,12 @@ function Progress({ media, value, onCommit }: { media: MediaDetail; value: numbe
   const pending = useRef({ typed, commit });
   pending.current = { typed, commit };
   useEffect(() => () => pending.current.commit(pending.current.typed), []);
+  const box = compact ? "size-8.5 rounded-control" : "size-11 rounded-panel";
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm text-ink-500">
-        {media.type === "MANGA" ? t("common.chapters") : t("common.progress")}
+      <label htmlFor={id} className={cn("block text-ink-500", compact ? "mb-1 text-xs" : "mb-1.5 text-sm")}>
+        {label}
       </label>
       <div className="flex items-center gap-2">
         <IconButton
@@ -127,11 +167,16 @@ function Progress({ media, value, onCommit }: { media: MediaDetail; value: numbe
           disabled={value <= 0}
           // From the last commit, not the prop: a typed count committed by this same press's blur is the base.
           onClick={() => commit(Math.max(0, committed.current - 1))}
-          className="size-11 rounded-panel border border-surface-700 bg-surface-900 text-ink-100"
+          className={cn(box, "border border-surface-700 bg-surface-900 text-ink-100")}
         >
           <Minus className="size-4" />
         </IconButton>
-        <div className="flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 field-shell rounded-panel border border-surface-700 bg-surface-950 focus-within:border-accent-500">
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center justify-center gap-1.5 field-shell border border-surface-700 bg-surface-950 focus-within:border-accent-500",
+            compact ? "h-8.5 rounded-control" : "h-11 rounded-panel",
+          )}
+        >
           <NumberInput
             id={id}
             value={typed}
@@ -139,7 +184,10 @@ function Progress({ media, value, onCommit }: { media: MediaDetail; value: numbe
             onChange={setTyped}
             onBlur={() => commit(typed)}
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            className="h-auto w-14 border-0 bg-transparent px-0 text-right text-lg font-semibold tabular-nums [&::-webkit-inner-spin-button]:appearance-none"
+            className={cn(
+              "h-auto w-14 border-0 bg-transparent px-0 text-right font-semibold tabular-nums [&::-webkit-inner-spin-button]:appearance-none",
+              compact ? "text-base" : "text-lg",
+            )}
           />
           {total !== null && <span className="text-sm text-ink-500">/ {total}</span>}
         </div>
@@ -148,7 +196,7 @@ function Progress({ media, value, onCommit }: { media: MediaDetail; value: numbe
           variant="accent"
           disabled={total !== null && value >= total}
           onClick={() => commit(total !== null ? Math.min(total, committed.current + 1) : committed.current + 1)}
-          className="size-11 rounded-panel"
+          className={box}
         >
           <Plus className="size-4" />
         </IconButton>
