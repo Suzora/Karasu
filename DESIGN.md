@@ -148,8 +148,8 @@ panel-wash shadow-float`.
 
 | Step | Use |
 |---|---|
-| `text-2xs` (10 px) | labels (`uppercase tracking-eyebrow text-ink-600`), badges, counts |
-| `text-xs` (12 px) | dense rows, secondary lines, chips |
+| `text-2xs` (10 px) | labels (`uppercase tracking-eyebrow text-ink-600`), badges, counts, the dense `xs` chip |
+| `text-xs` (12 px) | dense rows, secondary lines, sentences and hints, chips from `sm` up |
 | `text-ui` (13 px) | the shell's panels, toolbars and dense titles |
 | `text-sm` (14 px) | body, controls |
 | `text-base` (16 px) | card titles |
@@ -891,3 +891,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   maintainer's addition of the hover; over A, hiding them, and C, one
   sentence in their place). The phone's More sheet writes the reason under
   the row, since a touch has no hover. `lib/navLock` is the one rule.
+- **2026-10-12:** The `xs` chip stays at 10 px: it is the dense chip for
+  short words in tight rows (genres, tags, forum categories, a profile's
+  badges), and the type table now says so beside the 12 px rule for
+  chips from `sm` up, which had read as a contradiction. The Advanced
+  settings pane stays red in the pane list: it holds the risky operations
+  and opens on a warning, so the colour is the warning's first line, not a
+  fault (asked after the first Impeccable critique, kept).
