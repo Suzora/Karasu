@@ -28,16 +28,19 @@ Builds:
         npm rustup
     init:
       - rustup toolchain install 1.97.1 --profile minimal --target aarch64-linux-android
-      - cd ../../../.. && npm ci && rm -f node_modules/playwright-core/lib/webp_codec.wasm
-        node_modules/@typescript/typescript-linux-x64/lib/tsc node_modules/@astrojs/compiler/dist/astro.wasm
-        node_modules/source-map/lib/mappings.wasm node_modules/oxc-parser/parser.wasm32-wasip1.wasm
+      - cd ../../../..
+      - npm ci
+      - rm -f node_modules/playwright-core/lib/webp_codec.wasm node_modules/@typescript/typescript-linux-x64/lib/tsc
+        node_modules/@astrojs/compiler/dist/astro.wasm node_modules/source-map/lib/mappings.wasm
+        node_modules/oxc-parser/parser.wasm32-wasip1.wasm
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
     prebuild: sed -i -e '/REQUEST_INSTALL_PACKAGES/d' src/main/AndroidManifest.xml
     build:
       - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
-      - export RUSTFLAGS="--remap-path-prefix=$(cd ../../../.. && pwd)=/build --remap-path-prefix=$HOME/.cargo=/cargo"
       - ln -s "$(command -v gradle)" ../gradlew
-      - cd ../../../.. && npx tauri android build --apk --target aarch64 --split-per-abi
+      - cd ../../../..
+      - export RUSTFLAGS="--remap-path-prefix=$PWD=/build --remap-path-prefix=$HOME/.cargo=/cargo"
+      - npx tauri android build --apk --target aarch64 --split-per-abi
     ndk: r27b
 
 AutoUpdateMode: Version

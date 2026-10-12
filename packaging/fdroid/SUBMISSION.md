@@ -56,9 +56,12 @@ from the PyPI release of fdroidserver 2.4.5 (whose newer `ruamel.yaml` wraps
 differently again). The first merge request's CI failed on that alone, a long
 `UpdateCheckData` the 2.4.5 run had left on one line.
 
-A phase's commands run joined with `; ` in **one** shell (`prepare_source` in
-fdroidserver's `common.py`), so a `cd` in one line carries into the next, while
-each phase starts afresh in `subdir`.
+Every command is its own list entry, never chained with `;` or `&&`, as the
+reviewer asked in the first merge request. A phase's entries still run joined
+with `; ` in **one** `bash -e` shell (`prepare_source` in fdroidserver's
+`common.py` for `init`, `build.py` for `build`), so a `cd` carries into the
+entries after it and a failing entry stops the phase, while each phase starts
+afresh in `subdir`. So each phase climbs to the root exactly once.
 
 - **`subdir: src-tauri/gen/android/app`** is four levels deep, so every step
   that needs the repository root climbs `../../../..`.
@@ -72,9 +75,8 @@ each phase starts afresh in `subdir`.
 - **`init`** has Debian's rustup install the pinned toolchain (1.97.1, the
   one `rust-toolchain.toml` names, which `src/lib/toolchain.test.ts` holds the
   recipe to) with the Android target; Debian's rustup puts `cargo` and `rustc`
-  on `PATH` itself, so no phase sources `~/.cargo/env`. Then, in one line, it
-  climbs to the root, runs `npm ci` and deletes five
-  files `npm ci` brings
+  on `PATH` itself, so no phase sources `~/.cargo/env`. Then it climbs to the
+  root once, runs `npm ci` and deletes five files `npm ci` brings
   that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
   7's native `tsc`, react-scan's Astro compiler, the bundle visualizer's
   source-map WebAssembly and the style audit's `oxc-parser` WebAssembly
@@ -84,12 +86,12 @@ each phase starts afresh in `subdir`.
   later `oxc-parser` began to ship). `rm -f` rather than `scandelete`, because a `scandelete` entry
   that no longer matches fails the build, while a file that moves or leaves is
   nothing to `rm -f`; a newly flagged file still fails the scan.
-- **`build`** exports `KARASU_NO_SELF_UPDATE`,
-  `KARASU_UNSIGNED` and the path remap in the same command list as the build,
-  because fdroidserver runs every phase in a shell of its own. It stands a link
-  to the build server's `gradle` in for the Gradle wrapper, which fdroidserver
-  deletes from every Gradle project before building and which
-  `tauri android build` calls, then builds the arm64 APK.
+- **`build`** exports `KARASU_NO_SELF_UPDATE` and `KARASU_UNSIGNED` in the
+  same phase as the build, because fdroidserver runs every phase in a shell of
+  its own. Still in `subdir`, it stands a link to the build server's `gradle`
+  in for the Gradle wrapper, which fdroidserver deletes from every Gradle
+  project before building and which `tauri android build` calls; then it
+  climbs to the root, sets the path remap from `$PWD` and builds the arm64 APK.
 - **`prebuild`** deletes `REQUEST_INSTALL_PACKAGES` from the manifest. The
   permission exists for the in-app updater, which this build compiles out,
   and an app on F-Droid that may install packages is the first thing a
@@ -119,8 +121,8 @@ user's `PATH` there is derived, not seen), and the whole Android build. The
 merge request's CI is that check; run `fdroid rewritemeta dev.kyu.karasu` and
 `fdroid lint dev.kyu.karasu` on the filled file in an fdroiddata checkout before
 opening it, with fdroidserver from `master` and `ruamel.yaml==0.18.10`, and
-expect no diff. The first merge request's build also showed why `init` deletes
-in the same line as `npm ci`: as two lines each starting with `cd ../../../..`,
+expect no diff. The first merge request's build also showed why each phase
+climbs to the root once: with two entries each starting with `cd ../../../..`,
 the second climbed out of the source tree, the deletions found nothing, and the
 scan stopped the build on all five files.
 
