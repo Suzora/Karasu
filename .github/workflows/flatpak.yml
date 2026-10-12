@@ -59,6 +59,8 @@ jobs:
       # Flathub's own linter, from the same Builder app its reviewers run.
       - name: Lint the manifest
         run: |
+          # The sandbox's root may not write into a folder another user owns, and the linter keeps its state here.
+          chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y --noninteractive flathub org.flatpak.Builder
           flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest flatpak-out/io.github.Suzora.Karasu.yml
