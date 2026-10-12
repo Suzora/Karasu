@@ -1,4 +1,4 @@
-<# Fills the fdroiddata recipe from one tag: version name and code, and the commit; F-Droid signs the build itself. #>
+<# Fills the fdroiddata recipe from one tag: version name and code, and the commit as a full hash. #>
 
 param(
     [Parameter(Mandatory = $true)][string]$Tag,
@@ -21,10 +21,12 @@ $commitNumber = [int]$commitMatch.Groups[1].Value
 $core = ($Tag -replace "^v", "")
 $versionName = "$core.$commitNumber"
 $versionCode = 1000000 + $commitNumber
+$commit = git -C $repoRoot rev-parse "${Tag}^{commit}"
+if ($LASTEXITCODE -ne 0) { throw "Cannot resolve $Tag to a commit" }
 
 # UTF-8 said outright: Windows PowerShell reads a file without a BOM in the ANSI codepage, which breaks every dash.
 $recipe = Get-Content (Join-Path $repoRoot "packaging/fdroid/dev.kyu.karasu.yml") -Raw -Encoding UTF8
-$recipe = $recipe.Replace("VERSION_TO_FILL", $versionName).Replace("VERSIONCODE_TO_FILL", "$versionCode").Replace("TAG_TO_FILL", $Tag)
+$recipe = $recipe.Replace("VERSION_TO_FILL", $versionName).Replace("VERSIONCODE_TO_FILL", "$versionCode").Replace("COMMIT_TO_FILL", $commit)
 [IO.File]::WriteAllText((Join-Path $OutDir "dev.kyu.karasu.yml"), $recipe, [Text.UTF8Encoding]::new($false))
 
 Write-Output "fdroid-recipe: $Tag -> $versionName ($versionCode) in $OutDir"

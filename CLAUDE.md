@@ -394,6 +394,17 @@ Two more, decided by the maintainer in August 2026:
   (PreMiD, MAL-Sync, WebNowPlaying, KDE's browser integration) ships an
   extension; Taiga's UI Automation reader is the one exception, and it wakes
   the browser's accessibility engine for the whole browser session.
+- **A Flathub submission.** Decided by the maintainer on 2026-10-12, after
+  reading Flathub's Generative AI policy: a Flathub manifest must not contain
+  AI-generated or AI-assisted content, disclosure or not, and no AI tool may
+  open the submission pull request or write its text, commits or replies.
+  Karasu's manifest was written in agent sessions, and writing it again by
+  hand was judged not worth it. The Flatpak build stays as it is (the
+  manifest, `flatpak-manifest.ps1`, the `Flatpak` workflow on every Stable
+  tag, the sandbox branches keyed on `portable::flatpak_id`) and is published
+  nowhere. Do not propose the submission again unless the maintainer reopens
+  it. F-Droid has no such rule (its interim policy, fdroid/admin#699, is
+  Debian's "neither endorses nor prohibits"), so its submission stands.
 
 **The log is a deliberate exception to the first of those, decided by the
 maintainer.** With verbose logging on, `karasu.log` records what detection saw —

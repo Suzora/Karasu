@@ -83,7 +83,8 @@ What a neighbouring product could not truthfully claim:
   history screen, cost tracking of a collection, Plex or Emby, RSS or
   torrent feeds, a browser extension, Windows code signing and winget.
 - Distribution: GitHub releases (installer, AppImage, .deb, .rpm, APKs),
-  Flathub and F-Droid recipes under `packaging/`; an in-app updater on the
+  an F-Droid recipe and a Flatpak build (not submitted to Flathub) under
+  `packaging/`; an in-app updater on the
   desktop and on Android outside the stores.
 
 ## Brand Commitments

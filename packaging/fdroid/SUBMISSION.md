@@ -18,7 +18,8 @@ over each other; a user who switches uninstalls first.
   CI), `npm ci`, `npx tauri android build --apk --target aarch64
   --split-per-abi`. `scripts/release/fdroid-recipe.ps1 -Tag vX.Y.Z` fills the
   version name, the code (`1000000 + COMMIT_NUMBER`, the formula in
-  `build.gradle.kts`) and the commit.
+  `build.gradle.kts`) and the commit as a full hash, which the merge-request
+  template asks for in place of a tag.
 - Two build-time switches the recipe sets, both honoured by the tree:
   `KARASU_NO_SELF_UPDATE` (the APK updater is compiled out, so it neither
   checks nor installs) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an

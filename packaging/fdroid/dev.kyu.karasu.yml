@@ -20,7 +20,7 @@ Repo: https://github.com/Suzora/Karasu
 Builds:
   - versionName: VERSION_TO_FILL
     versionCode: VERSIONCODE_TO_FILL
-    commit: TAG_TO_FILL
+    commit: COMMIT_TO_FILL
     subdir: src-tauri/gen/android/app
     sudo:
       - apt-get update

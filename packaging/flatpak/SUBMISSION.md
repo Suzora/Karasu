@@ -1,5 +1,12 @@
 # Flathub submission
 
+**Not submitted, decided by the maintainer on 2026-10-12.** Flathub's
+Generative AI policy forbids AI-generated or AI-assisted content in a
+manifest and AI help with the submission itself, and this manifest was
+written with an agent; CLAUDE.md, "Explicitly rejected", has the reasons.
+What follows records the build as it stands and how a submission would go,
+should the decision ever be reopened.
+
 What is here and what the maintainer still has to do by hand. The repo side is
 complete: `io.github.Suzora.Karasu.yml` is the manifest, built from source;
 `io.github.Suzora.Karasu.metainfo.xml` the AppStream data;

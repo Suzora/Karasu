@@ -21,9 +21,10 @@ needing a hosted backend.
 
 ## Before the stores
 
-Flathub and F-Droid are submitted with the next Stable, whose date is not
-set (maintainer, 2026-10-05). What stands between the tree and the two
-requests, each detailed in its `packaging/*/SUBMISSION.md`:
+F-Droid is submitted with 1.44.0, the Stable tagged on 2026-10-12, as
+`packaging/fdroid/SUBMISSION.md` describes. Flathub is not: the maintainer
+dropped that submission the same day (CLAUDE.md, "Explicitly rejected").
+What stands between the tree and the F-Droid listing:
 
 - **F-Droid's own build of the recipe.** The update check, the Node pin, the
   scanner's four deletions, the `NonFreeNet` label and the rewritemeta form are
