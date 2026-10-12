@@ -297,7 +297,7 @@ export default function Calendar() {
       </div>
 
       {/* The week grid draws only where its columns fit; the stable gutter keeps the scrollbar from flipping that. */}
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 [scrollbar-gutter:stable]">
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 [scrollbar-gutter:stable] float-clear">
         {!error && behind != null && <ErrorState inline error={behind} onRetry={retryBehind} className="mb-3" />}
         {error ? (
           <ErrorState error={error} onRetry={() => active.refetch()} />

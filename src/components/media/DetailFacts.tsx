@@ -99,14 +99,14 @@ export function NextEpisode({ data, bar = false, className }: { data: MediaDetai
       >
         <CalendarClock aria-hidden className="size-4 shrink-0 text-accent-400" />
         <span className="min-w-0 flex-1 text-ink-100">{t("detail.nextEpisode", { n: next.episode, date })}</span>
-        {left && <span className="shrink-0 text-xs text-ink-500">{left}</span>}
+        {left && <span className="shrink-0 text-xs text-ink-500">{t("detail.airsIn", { left })}</span>}
       </div>
     );
   }
   return (
     <p className={cn("text-sm text-accent-400", className)}>
       {t("detail.nextEpisode", { n: next.episode, date })}
-      {left && <span className="ml-2 text-ink-500">({left})</span>}
+      {left && <span className="ml-2 text-ink-500">({t("detail.airsIn", { left })})</span>}
     </p>
   );
 }

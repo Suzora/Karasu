@@ -716,7 +716,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
         />
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-12 pt-1">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-12 pt-1 float-clear">
         {/* Above the grid, since VirtualGrid takes entries only; the whole-list count, so it does not jump per tab. */}
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
         {entries.length === 0 ? (

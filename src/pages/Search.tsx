@@ -435,7 +435,7 @@ export default function Search() {
         </div>
       </div>
 
-      <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
         {scope === "USERS" && <UserSearchResults term={term} />}
         {(scope === "CHARACTERS" || scope === "STAFF") && (
           <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} />

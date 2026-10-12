@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: c1a5bbc -->
+<!-- generated-through: a38e684 -->
 
 ### Fixed
 
@@ -85,6 +85,7 @@ tag time is then optional rather than load-bearing.
 - Back after removing from the editor works again.
 - A rate limit no longer looks like a missing title, and the sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
 - The titlebar names the player (mpv) instead of its file, Side Story is translated in German, and the counts on the statistics sunburst are easier to read.
+- The last row of a list can scroll clear of the detection window, and the title page says the next episode airs in its countdown and how long is left to finish.
 
 ### Added
 

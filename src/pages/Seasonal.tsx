@@ -121,7 +121,7 @@ export default function Seasonal() {
         </div>
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
         {error && (
           <ErrorState
             error={error}

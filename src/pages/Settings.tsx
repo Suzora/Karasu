@@ -342,7 +342,7 @@ export default function Settings() {
       </nav>
 
       {/* Keyed on the pane so switching replays `settle`; a swap in place looks like the page not reacting. */}
-      <div key={active} className="min-w-0 flex-1 animate-settle overflow-y-auto">
+      <div key={active} className="min-w-0 flex-1 animate-settle overflow-y-auto float-clear">
         <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">{rendered}</div>
       </div>
     </div>

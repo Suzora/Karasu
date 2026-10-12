@@ -463,7 +463,7 @@ function LibraryView({ userId }: { userId: number }) {
         </div>
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-10">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-10 float-clear">
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
         {rows.length === 0 && !unmatched?.length ? (
           <EmptyState

@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 c29c5e823944) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 0122a88a9e05) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -344,6 +344,15 @@
   from {
     opacity: 0;
     transform: scale(0.86);
+  }
+}
+
+/* Room at a scroller's end for what floats over the bottom corner, so the last row can scroll clear of it. */
+@utility float-clear {
+  &::after {
+    content: "";
+    display: block;
+    height: var(--float-inset, 0px);
   }
 }
 

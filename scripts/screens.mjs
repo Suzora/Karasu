@@ -157,6 +157,7 @@ export const SCREENS = [
   { id: "p27-backups", w: 405, h: 800, phone: true, route: "/settings?pane=data", act: toCard("Backups") },
   { id: "p28-erkennung-schmal", w: 320, h: 900, phone: true, route: "/settings?pane=detection", act: toCard("Mediensitzungen") },
   { id: "d41-social", w: 1232, h: 800, route: "/social" },
+  { id: "d93-social-fokus", w: 1232, h: 800, route: "/social", act: (p) => p.locator("textarea").first().click() },
   { id: "d42-profil", w: 1232, h: 800, route: "/user/Kyusetzu" },
   { id: "d43-forum", w: 1232, h: 800, route: "/forum" },
   { id: "d44-thread", w: 1232, h: 1100, route: "/thread/44" },
@@ -193,6 +194,8 @@ export const SCREENS = [
     await p.getByRole("button", { name: "Bearbeiten" }).nth(1).click();
   } },
   { id: "p62-editor-liste", w: 405, h: 860, phone: true, route: "/list", act: (p) => p.getByRole("button", { name: "Bearbeiten" }).first().click() },
+  { id: "d92-erkennung-listenende", w: 1232, h: 800, route: "/list", playing: true, act: (p) => p.evaluate(() => document.querySelectorAll(".overflow-y-auto").forEach((el) => (el.scrollTop = el.scrollHeight))) },
+  { id: "p63-erkennung-listenende", w: 405, h: 860, phone: true, route: "/list", playing: true, act: (p) => p.evaluate(() => document.querySelectorAll(".overflow-y-auto").forEach((el) => (el.scrollTop = el.scrollHeight))) },
   { id: "d7-bearbeiten", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Bearbeiten") },
   { id: "d8-bestaetigen", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Von der Liste entfernen") },
   { id: "d9-cover", w: 1232, h: 800, route: "/media/178789", act: (p) => p.getByRole("button", { name: "Cover im Vollbild ansehen" }).first().click() },

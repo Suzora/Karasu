@@ -375,6 +375,15 @@
   }
 }
 
+/* Room at a scroller's end for what floats over the bottom corner, so the last row can scroll clear of it. */
+@utility float-clear {
+  &::after {
+    content: "";
+    display: block;
+    height: var(--float-inset, 0px);
+  }
+}
+
 @utility chart-in {
   transform-box: fill-box;
   transform-origin: center;

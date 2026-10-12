@@ -163,7 +163,7 @@ export default function Forum() {
       </div>
 
       {/* Never keyed, since the scroll memory listens on this element for the page's whole life. */}
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
         {/* Keyed so the previous lens unmounts: an unmounted infinite query has no observer to join a refetch. */}
         <div key={view} className="animate-settle">
           {lens === "search" && term.length < 2 ? (

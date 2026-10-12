@@ -26,6 +26,7 @@ import Sidebar from "@/components/shell/Sidebar";
 import BottomBar from "@/components/shell/BottomBar";
 import PullToSync from "@/components/shell/PullToSync";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { useFloatInset } from "@/hooks/useFloatInset";
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { internalRoute } from "@/lib/anilistUrl";
 import SessionExpired from "@/components/shell/SessionExpired";
@@ -109,6 +110,8 @@ export default function App() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const phone = usePhoneShell();
+  const floatStack = useRef<HTMLDivElement>(null);
+  useFloatInset(floatStack);
   const init = useAuth((s) => s.init);
   const initNowPlaying = useNowPlaying((s) => s.init);
   const refreshLibrary = useLibrary((s) => s.refresh);
@@ -242,7 +245,7 @@ export default function App() {
           id="main"
           // `-1` so the skip link can move focus here; a link to an unfocusable target scrolls without moving the caret.
           tabIndex={-1}
-          className="min-w-0 flex-1 animate-settle overflow-y-auto outline-none"
+          className="min-w-0 flex-1 animate-settle overflow-y-auto outline-none float-clear"
         >
           {/* Inside the keyed `<main>`, so each page's arrival reads the place its own history entry was left at. */}
           <MainPlace main={mainRef} />
@@ -286,6 +289,7 @@ export default function App() {
       {phone && <PullToSync />}
       {/* One bottom-right stack for both while they float here; the popup leaves it on its own once dragged. */}
       <div
+        ref={floatStack}
         className={cn(
           "pointer-events-none fixed bottom-[calc(1rem+var(--shell-bottom,0px))] z-30 flex flex-col gap-2",
           // On the phone the stack takes the content's own 16 px edges; on the desktop it hugs the corner.
