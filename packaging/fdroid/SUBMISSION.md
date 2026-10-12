@@ -49,7 +49,15 @@ over each other; a user who switches uninstalls first.
 
 The recipe carries no comments, because fdroiddata's CI runs `fdroid
 rewritemeta` and fails a file it would rewrite; it is kept in exactly that
-form, so the reasons are here.
+form, so the reasons are here. The form is the CI's own: fdroidserver's
+`master` on Debian trixie, whose `ruamel.yaml` 0.18.10 wraps lines differently
+from the PyPI release of fdroidserver 2.4.5 (whose newer `ruamel.yaml` wraps
+differently again). The first merge request's CI failed on that alone, a long
+`UpdateCheckData` the 2.4.5 run had left on one line.
+
+A phase's commands run joined with `; ` in **one** shell (`prepare_source` in
+fdroidserver's `common.py`), so a `cd` in one line carries into the next, while
+each phase starts afresh in `subdir`.
 
 - **`subdir: src-tauri/gen/android/app`** is four levels deep, so every step
   that needs the repository root climbs `../../../..`.
@@ -57,7 +65,8 @@ form, so the reasons are here.
   against its published sha256: `engines.node` asks for 22, and the build
   server's Debian ships an older Node.
 - **`init`** installs the pinned Rust as the build user with the Android
-  target, runs `npm ci` at the root, and deletes five files `npm ci` brings
+  target, then in one line climbs to the root, runs `npm ci` and deletes five
+  files `npm ci` brings
   that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
   7's native `tsc`, react-scan's Astro compiler, the bundle visualizer's
   source-map WebAssembly and the style audit's `oxc-parser` WebAssembly
@@ -100,7 +109,11 @@ the `gradle` link standing in for the wrapper (that `gradle` is on the build
 user's `PATH` there is derived, not seen), and the whole Android build. The
 merge request's CI is that check; run `fdroid rewritemeta dev.kyu.karasu` and
 `fdroid lint dev.kyu.karasu` on the filled file in an fdroiddata checkout before
-opening it, and expect no diff.
+opening it, with fdroidserver from `master` and `ruamel.yaml==0.18.10`, and
+expect no diff. The first merge request's build also showed why `init` deletes
+in the same line as `npm ci`: as two lines each starting with `cd ../../../..`,
+the second climbed out of the source tree, the deletions found nothing, and the
+scan stopped the build on all five files.
 
 ## What to know before the first build
 

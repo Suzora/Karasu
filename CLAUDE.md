@@ -2167,11 +2167,16 @@ costs nothing, where a `scandelete` entry that matches nothing fails the build,
 and a newly flagged file still fails the scan, which is the useful direction.
 With that entry in place the scan counted 0. The recipe is written in the form
 `fdroid rewritemeta` produces (no comments, its key order, its line wrapping),
-because fdroiddata's CI fails a file it would rewrite; the reasons live in
+as fdroiddata's CI runs it (fdroidserver `master`, Debian's `ruamel.yaml`
+0.18.10, which wraps differently from the PyPI 2.4.5 the recipe was first
+checked with), because that CI fails a file it would rewrite; the reasons live in
 `packaging/fdroid/SUBMISSION.md`. A review of 2026-10-06 found the recipe had
 never been able to build: `subdir` is four levels deep and `init` climbed three,
 so `npm ci` ran in `src-tauri`; the switches were exported in `prebuild`, and
-every phase is its own shell, so they never reached the build; and `gradle: yes`
+every phase is its own shell, so they never reached the build (while the lines
+of one phase share a shell, so a second `cd ../../../..` in `init` climbed out of
+the tree and the deletions missed, which the first merge request's build
+showed on 2026-10-12); and `gradle: yes`
 beside `output:` made fdroidserver run a second `assembleRelease` for every
 Rust target. **F-Droid signs its own build,
 decided by the maintainer on 2026-10-03**, so the recipe carries no

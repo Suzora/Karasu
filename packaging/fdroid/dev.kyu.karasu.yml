@@ -36,10 +36,9 @@ Builds:
       - curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.97.1 --profile
         minimal
       - . $HOME/.cargo/env && rustup target add aarch64-linux-android
-      - cd ../../../.. && npm ci
-      - cd ../../../.. && rm -f node_modules/playwright-core/lib/webp_codec.wasm node_modules/@typescript/typescript-linux-x64/lib/tsc
-        node_modules/@astrojs/compiler/dist/astro.wasm node_modules/source-map/lib/mappings.wasm
-        node_modules/oxc-parser/parser.wasm32-wasip1.wasm
+      - cd ../../../.. && npm ci && rm -f node_modules/playwright-core/lib/webp_codec.wasm
+        node_modules/@typescript/typescript-linux-x64/lib/tsc node_modules/@astrojs/compiler/dist/astro.wasm
+        node_modules/source-map/lib/mappings.wasm node_modules/oxc-parser/parser.wasm32-wasip1.wasm
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
     prebuild: sed -i -e '/REQUEST_INSTALL_PACKAGES/d' src/main/AndroidManifest.xml
     build:
@@ -54,6 +53,7 @@ AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
 VercodeOperation:
   - '%c + 1000000'
-UpdateCheckData: src-tauri/src/commands/update.rs|COMMIT_NUMBER:\s*u32\s*=\s*(\d+);|.|FULL_VERSION:\s*&str\s*=\s*"([^"]+)";
+UpdateCheckData: 
+  src-tauri/src/commands/update.rs|COMMIT_NUMBER:\s*u32\s*=\s*(\d+);|.|FULL_VERSION:\s*&str\s*=\s*"([^"]+)";
 CurrentVersion: VERSION_TO_FILL
 CurrentVersionCode: VERSIONCODE_TO_FILL
