@@ -2159,7 +2159,9 @@ a character. Node 22 comes from nodejs.org pinned by its sha256, because
 `npm ci` as `fdroid build` does after `init`, fdroidserver 2.4.5's scanner
 flagged four files on 2026-10-06, all tooling the build never runs (a
 Playwright codec, TypeScript 7's native `tsc`, react-scan's Astro compiler and
-the visualizer's source-map), and the frontend built without them, so `init`
+the visualizer's source-map), and a fifth on 2026-10-12 over `v1.44.0`
+(`oxc-parser`'s WebAssembly fallback, which the style audit's parser began to
+ship), and the frontend built without them, so `init`
 deletes them with `rm -f` after `npm ci`: a file that later moves or leaves
 costs nothing, where a `scandelete` entry that matches nothing fails the build,
 and a newly flagged file still fails the scan, which is the useful direction.

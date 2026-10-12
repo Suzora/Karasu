@@ -57,12 +57,14 @@ form, so the reasons are here.
   against its published sha256: `engines.node` asks for 22, and the build
   server's Debian ships an older Node.
 - **`init`** installs the pinned Rust as the build user with the Android
-  target, runs `npm ci` at the root, and deletes four files `npm ci` brings
+  target, runs `npm ci` at the root, and deletes five files `npm ci` brings
   that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
-  7's native `tsc`, react-scan's Astro compiler and the bundle visualizer's
-  source-map WebAssembly. None of them runs in the build; the frontend built
-  without them, and the scan counted 0 with them gone (fdroidserver 2.4.5, on
-  2026-10-06). `rm -f` rather than `scandelete`, because a `scandelete` entry
+  7's native `tsc`, react-scan's Astro compiler, the bundle visualizer's
+  source-map WebAssembly and the style audit's `oxc-parser` WebAssembly
+  fallback. None of them runs in the build; the frontend built without them,
+  and the scan counted 0 with them gone (fdroidserver 2.4.5, on 2026-10-06 for
+  the first four, and on 2026-10-12 over `v1.44.0` for the fifth, which a
+  later `oxc-parser` began to ship). `rm -f` rather than `scandelete`, because a `scandelete` entry
   that no longer matches fails the build, while a file that moves or leaves is
   nothing to `rm -f`; a newly flagged file still fails the scan.
 - **`build`** sources Cargo's environment and exports `KARASU_NO_SELF_UPDATE`,
@@ -92,7 +94,7 @@ form, so the reasons are here.
 Checked locally: `fdroid lint` and `fdroid rewritemeta` (clean against
 fdroiddata's categories and anti-features), the update check applied to
 `update.rs` (`1000806` / `1.40.1.806` for that commit), `npm ci` under Node
-22.23.3 and the frontend build without the four files, and the scan. Not
+22.23.3 and the frontend build without the five files, and the scan. Not
 checked, because only the build server runs it: the `sudo` steps on its Debian,
 the `gradle` link standing in for the wrapper (that `gradle` is on the build
 user's `PATH` there is derived, not seen), and the whole Android build. The
