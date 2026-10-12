@@ -76,16 +76,23 @@ afresh in `subdir`. So each phase climbs to the root exactly once.
   one `rust-toolchain.toml` names, which `src/lib/toolchain.test.ts` holds the
   recipe to) with the Android target; Debian's rustup puts `cargo` and `rustc`
   on `PATH` itself, so no phase sources `~/.cargo/env`. Then it climbs to the
-  root once, runs `npm ci` and deletes five files `npm ci` brings
-  that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
-  7's native `tsc`, react-scan's Astro compiler, the bundle visualizer's
-  source-map WebAssembly and the style audit's `oxc-parser` WebAssembly
-  fallback. None of them runs in the build; the frontend built without them,
-  and the scan counted 0 with them gone (fdroidserver 2.4.5, on 2026-10-06 for
-  the first four, and on 2026-10-12 over `v1.44.0` for the fifth, which a
-  later `oxc-parser` began to ship). `rm -f` rather than `scandelete`, because a `scandelete` entry
-  that no longer matches fails the build, while a file that moves or leaves is
-  nothing to `rm -f`; a newly flagged file still fails the scan.
+  root once and runs `npm ci`.
+- **`scandelete`** names the five packages whose files `npm ci` brings and
+  fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript 7's
+  native `tsc`, react-scan's Astro compiler, the bundle visualizer's source-map
+  WebAssembly and the style audit's `oxc-parser` WebAssembly fallback. None of
+  them runs in the build, and the frontend builds without them. The scanner
+  deletes what it flags under those folders and logs each one as `Removing …`;
+  a scan of `v1.44.0` after `npm ci` removed exactly the five and counted 0
+  (2026-10-12). The reviewer asked for `scandelete` over the `rm -f` in `init`
+  the recipe first had, because the scanner then shows what it removed. The
+  price is strictness: an entry that matches nothing, or under which nothing
+  is flagged, fails the build ("Non-exist" / "Unused scandelete path"), so a
+  dependency update that drops one of these files needs its line removed.
+  The entries name package folders rather than files, so a file renamed
+  inside its package still matches; note that a folder entry is a prefix, so
+  `node_modules/source-map` also covers `source-map-js`, where nothing is
+  flagged.
 - **`build`** exports `KARASU_NO_SELF_UPDATE` and `KARASU_UNSIGNED` in the
   same phase as the build, because fdroidserver runs every phase in a shell of
   its own. Still in `subdir`, it stands a link to the build server's `gradle`
@@ -114,7 +121,7 @@ Checked locally: `fdroid lint` and `fdroid rewritemeta` (clean against
 fdroiddata's categories and anti-features), the update check applied to
 `update.rs` (`1000806` / `1.40.1.806` for that commit), `npm ci` under Node
 22.23.3 and again under Debian trixie's Node 20.19.2 with npm 9.2.0, the
-frontend build without the five files, and the scan. Not
+frontend build without the five files, and the scan with `scandelete`. Not
 checked, because only the build server runs it: the `sudo` steps on its Debian,
 the `gradle` link standing in for the wrapper (that `gradle` is on the build
 user's `PATH` there is derived, not seen), and the whole Android build. The
@@ -124,7 +131,8 @@ opening it, with fdroidserver from `master` and `ruamel.yaml==0.18.10`, and
 expect no diff. The first merge request's build also showed why each phase
 climbs to the root once: with two entries each starting with `cd ../../../..`,
 the second climbed out of the source tree, the deletions found nothing, and the
-scan stopped the build on all five files.
+scan stopped the build on all five files (the recipe deleted them with `rm -f`
+then, before the reviewer asked for `scandelete`).
 
 ## What to know before the first build
 

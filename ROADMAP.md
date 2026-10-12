@@ -27,7 +27,7 @@ dropped that submission the same day (CLAUDE.md, "Explicitly rejected").
 What stands between the tree and the F-Droid listing:
 
 - **F-Droid's own build of the recipe.** The update check, the Node pin, the
-  scanner's five deletions, the `NonFreeNet` label and the rewritemeta form are
+  scanner's five `scandelete` entries, the `NonFreeNet` label and the rewritemeta form are
   settled and checked locally; the whole recipe, the Gradle wrapper's stand-in
   above all, runs only on F-Droid's build server after the submission.
 
