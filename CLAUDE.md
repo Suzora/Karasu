@@ -1082,8 +1082,9 @@ places:
   chooses from is the boards of the `karasu-mockups` skill.
 - **Its files stay local.** `.impeccable/` (critique snapshots, detector
   config) is in `.git/info/exclude` like `docs/superpowers/`, and Tailwind's
-  scan honours that file. There is no PRODUCT.md yet; `init` would write one
-  only once the maintainer decides where it lives.
+  scan honours that file. PRODUCT.md at the root is committed: who Karasu is
+  for, in which order, and why, written with the maintainer on 2026-10-12;
+  `init` updates it rather than writing a second one.
 - **A command does not commit.** The change it leads to lands as one commit
   through the commit loop, with its screens shot before and after.
 
