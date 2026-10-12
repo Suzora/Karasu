@@ -1,22 +1,13 @@
 import { Feathers } from "@/components/Feathers";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
-import { AniList } from "@/sections/AniList";
 import { Faq } from "@/sections/Faq";
-import { Features } from "@/sections/Features";
-import { FinalCta } from "@/sections/FinalCta";
 import { Gallery } from "@/sections/Gallery";
 import { Hero } from "@/sections/Hero";
-import { Library } from "@/sections/Library";
-import { Offline } from "@/sections/Offline";
-import { OpenSource } from "@/sections/OpenSource";
-import { Platforms } from "@/sections/Platforms";
-import { Problem } from "@/sections/Problem";
-import { Scrobbling } from "@/sections/Scrobbling";
-import { Statistics } from "@/sections/Statistics";
-import { TrustStrip } from "@/sections/TrustStrip";
+import { Join } from "@/sections/Join";
+import { Showcase } from "@/sections/Showcase";
 
-/** The landing page, top to bottom. */
+/** The landing page, top to bottom: the pitch and downloads, the app beside its changelog, the gallery, the call to join, the FAQ. */
 export function App() {
   return (
     <>
@@ -27,19 +18,10 @@ export function App() {
       <Nav />
       <main id="main">
         <Hero />
-        <TrustStrip />
-        <Problem />
-        <Scrobbling />
-        <Library />
-        <Offline />
-        <Statistics />
-        <Features />
+        <Showcase />
         <Gallery />
-        <Platforms />
-        <AniList />
-        <OpenSource />
+        <Join />
         <Faq />
-        <FinalCta />
       </main>
       <Footer />
     </>

@@ -29,10 +29,9 @@ export const LINKS = {
 } as const;
 
 export const NAV = [
-  { id: "features", label: "Features" },
-  { id: "how-it-works", label: "How it works" },
+  { id: "changes", label: "What changed" },
   { id: "screenshots", label: "Screenshots" },
-  { id: "platforms", label: "Platforms" },
+  { id: "join", label: "Get involved" },
   { id: "faq", label: "FAQ" },
 ] as const;
 

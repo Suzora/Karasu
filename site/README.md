@@ -6,18 +6,19 @@ root `CLAUDE.md` under "The website".
 
 ## Stack
 
-Vite 8 + React 19 + TypeScript, Tailwind v4 on the app's own design tokens,
-`motion` for the orchestrated scenes. One page, pre-rendered to static HTML
-(`scripts/prerender.mjs`) so it reads without JavaScript; `motion` drives
-forward from the pre-rendered end state, so nothing flashes and reduced motion
-simply keeps the end state.
+Vite 8 + React 19 + TypeScript, Tailwind v4 on the app's own design tokens.
+One short page, pre-rendered to static HTML (`scripts/prerender.mjs`) so it
+reads without JavaScript. Its "What changed" card is `virtual:changes`, which
+`vite.config.ts` fills at build time from the repository's `CHANGELOG.md`
+through `scripts/changes.mjs` (tested by `changes.test.mjs`, run by `check`),
+so nobody keeps it by hand and `pages.yml` redeploys on a changelog push.
 
 ## Scripts
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server on <http://localhost:4321/Karasu/>; `#sample` shows the token and type sample |
-| `npm run check` | The gate: typecheck plus "is `tokens.generated.css` fresh" |
+| `npm run check` | The gate: typecheck, "is `tokens.generated.css` fresh", and the changelog reader's tests |
 | `npm run sync` | Regenerate `src/styles/tokens.generated.css` from `../src/app/index.css` |
 | `npm run build` | Client build, SSR build, prerender, `verify-dist` |
 | `npm run preview` | Serve `dist/client` on port 4322 |
@@ -59,6 +60,6 @@ CONTENT-AUDIT.md        every claim on the page and the file that makes it true
 ## Review checkpoints
 
 Nothing on the page is final until the maintainer has seen it. The order:
-structure, tokens and type, the hero scene, the full desktop page, the
+structure, tokens and type, the full desktop page, the
 screenshot session, mobile and ultrawide, the copy against the audit, then
 Lighthouse and the first deploy.

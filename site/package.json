@@ -7,7 +7,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
-    "check": "tsc --noEmit && node scripts/sync-tokens.mjs --check",
+    "check": "tsc --noEmit && node scripts/sync-tokens.mjs --check && node --test scripts/changes.test.mjs",
     "sync": "node scripts/sync-tokens.mjs",
     "build": "vite build --outDir dist/client && vite build --ssr src/entry-server.tsx --outDir dist/server && node scripts/prerender.mjs && node scripts/verify-dist.mjs",
     "preview": "vite preview --outDir dist/client",
@@ -18,7 +18,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.52.0",
-    "motion": "^13.5.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0"

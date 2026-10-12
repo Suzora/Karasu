@@ -1,46 +1,59 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Lightbox } from "@/components/Lightbox";
 import { Screenshot } from "@/components/Screenshot";
-import { Reveal, Section } from "@/components/Section";
+import { Eyebrow } from "@/components/Section";
 import { Pill } from "@/components/ui/pill";
 import { SHOTS, type Shot } from "@/content/screenshots";
-import { staggerDelay } from "@/lib/motion";
+import { cn } from "@/lib/cn";
 
-type Kind = Shot["kind"];
-const LABEL: Record<Kind, string> = { desktop: "Desktop", phone: "Phone" };
+const pick = (ids: string[]) => ids.map((id) => SHOTS.find((s) => s.id === id)!);
 
-export function Gallery() {
-  const kinds = useMemo(() => Array.from(new Set(SHOTS.map((s) => s.kind))), []);
-  const [kind, setKind] = useState<Kind>(kinds[0] ?? "desktop");
-  const [open, setOpen] = useState<number | null>(null);
-  const shots = useMemo(() => SHOTS.filter((s) => s.kind === kind), [kind]);
+const DESKTOP = pick(["overview", "now-playing", "seasonal", "calendar", "stats-overview", "franchise"]);
+const PHONE = pick(["phone-overview", "phone-list", "phone-detail", "phone-search"]);
 
+/** A thumbnail that opens the lightbox, with its caption under it. */
+function Thumb({ shot, onOpen, className }: { shot: Shot; onOpen: () => void; className?: string }) {
   return (
-    <Section
-      id="screenshots"
-      wash="w2"
-      eyebrow="Screenshots"
-      title="The app, as it is."
-      lede="Every image here is a capture of the app as it ships — nothing mocked, nothing planned. Click one to see it at full size."
-    >
-      {kinds.length > 1 && (
-        <div className="mt-8 flex gap-2" role="group" aria-label="Filter screenshots">
-          {kinds.map((k) => (
-            <Pill key={k} active={kind === k} onClick={() => setKind(k)}>
-              {LABEL[k]}
+    <figure className={className}>
+      <Screenshot shot={shot} onClick={onOpen} sizes="24rem" />
+      <figcaption className="mt-2 text-xs leading-snug text-ink-500">{shot.caption}</figcaption>
+    </figure>
+  );
+}
+
+/** A chosen handful of real captures, desktop or Android by a toggle; a click opens the lightbox with the rest of that kind. */
+export function Gallery() {
+  const [kind, setKind] = useState<"desktop" | "phone">("desktop");
+  const [open, setOpen] = useState<number | null>(null);
+  const shots = kind === "desktop" ? DESKTOP : PHONE;
+  return (
+    <section id="screenshots" aria-labelledby="screenshots-title" className="scroll-mt-16 px-5 pt-16 lg:pt-20">
+      <div className="container-site">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Eyebrow>Screenshots</Eyebrow>
+            <h2 id="screenshots-title" className="mt-3 font-brand text-h3 font-bold text-ink-100">
+              The app, as it is
+            </h2>
+          </div>
+          <div className="flex gap-2" role="group" aria-label="Which screenshots">
+            <Pill active={kind === "desktop"} onClick={() => setKind("desktop")}>
+              Desktop
             </Pill>
-          ))}
+            <Pill active={kind === "phone"} onClick={() => setKind("phone")}>
+              Android
+            </Pill>
+          </div>
         </div>
-      )}
-      <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {shots.map((s, i) => (
-          <Reveal as="li" key={s.id} delay={staggerDelay(i)}>
-            <Screenshot shot={s} onClick={() => setOpen(i)} sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw" />
-            <p className="mt-2 text-xs text-ink-500">{s.caption}</p>
-          </Reveal>
-        ))}
-      </ul>
+        <ul className={cn("mt-8 grid gap-5", kind === "desktop" ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-2 md:grid-cols-4")}>
+          {shots.map((s, i) => (
+            <li key={s.id}>
+              <Thumb shot={s} onOpen={() => setOpen(i)} />
+            </li>
+          ))}
+        </ul>
+      </div>
       <Lightbox shots={shots} index={open} onClose={() => setOpen(null)} onIndex={setOpen} />
-    </Section>
+    </section>
   );
 }

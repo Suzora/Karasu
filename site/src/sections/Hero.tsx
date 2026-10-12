@@ -1,46 +1,43 @@
-import { ScrollText, MonitorSmartphone, UserRoundX } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { LINKS } from "@/site.config";
-import { HeroScene } from "./hero/HeroScene";
 import { Eyebrow } from "@/components/Section";
+import release from "@/generated/release.json";
+import { LINKS } from "@/site.config";
 
-const FACTS = [
-  { icon: MonitorSmartphone, text: "Windows · Linux · Android" },
-  { icon: ScrollText, text: "AGPL-3.0 licensed" },
-  { icon: UserRoundX, text: "No account needed to start" },
-] as const;
-
+/** The pitch and the three downloads, with every caveat a first install meets said beside the button. */
 export function Hero() {
   return (
-    <section id="top" aria-labelledby="hero-title" className="hero relative overflow-hidden">
-      <div className="container-site grid items-center gap-12 px-5 pb-20 pt-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10 lg:pb-28 lg:pt-24 2xl:gap-16 2xl:pb-32 2xl:pt-28">
-        <div className="relative">
-          <Eyebrow>Free · open source · built for AniList</Eyebrow>
-          <h1 id="hero-title" className="mt-4 font-brand text-display font-bold text-ink-100">
-            A modern anime &amp; manga tracker, built exclusively for AniList.
-          </h1>
-          <p className="mt-5 max-w-lg text-lede text-ink-300">
-            Karasu watches what you play and read and keeps your AniList progress in sync —
-            an episode with no buttons to press, a chapter with one at most.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href={LINKS.latest} size="lg">
-              Download Karasu
-            </ButtonLink>
-            <ButtonLink href={LINKS.repo} variant="outline" size="lg">
-              View on GitHub
-            </ButtonLink>
-          </div>
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-500">
-            {FACTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2">
-                <Icon className="size-4 text-ink-600" aria-hidden="true" />
-                {text}
-              </li>
-            ))}
-          </ul>
+    <section id="top" aria-labelledby="hero-title" className="hero relative">
+      <div className="container-site flex flex-col items-start px-5 pb-14 pt-14 md:items-center md:pt-20 md:text-center lg:pb-16 lg:pt-24">
+        <Eyebrow>Free · open source · for AniList</Eyebrow>
+        <h1 id="hero-title" className="mt-4 max-w-4xl font-brand text-display font-bold text-ink-100">
+          The AniList client that writes your episodes for you
+        </h1>
+        <p className="mt-5 max-w-2xl text-lede text-ink-300">
+          Your lists, the season, the airing calendar, statistics, the feed and the forum in one quick
+          window, and detection that brings your list up to date when an episode ends.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3 md:justify-center">
+          <ButtonLink href={release.assets.windows} size="lg">
+            Download for Windows
+          </ButtonLink>
+          <ButtonLink href={release.assets.linux} variant="outline" size="lg">
+            Linux
+          </ButtonLink>
+          <ButtonLink href={release.assets.androidArm64} variant="outline" size="lg">
+            Android
+          </ButtonLink>
         </div>
-        <HeroScene />
+        <p className="mt-4 max-w-2xl text-xs leading-relaxed text-ink-500">
+          Version {release.version}. The Windows installer is not code-signed, so SmartScreen may warn on first
+          run · Linux is an experimental AppImage · Android is a sideloaded APK · no macOS ·{" "}
+          <a href={release.assets.sums} className="text-accent-400 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-accent-500">
+            checksums
+          </a>{" "}
+          ·{" "}
+          <a href={LINKS.releases} className="text-accent-400 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-accent-500">
+            every download
+          </a>
+        </p>
       </div>
     </section>
   );

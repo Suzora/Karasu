@@ -1,6 +1,6 @@
 name: Website
 
-# Deploys site/ to GitHub Pages on a site push, a dispatch (release.yml sends one per Stable tag) or a hand-made release.
+# Deploys site/ on a site or changelog push, a dispatch (one per Stable tag from release.yml) or a hand-made release.
 on:
   push:
     branches: ["main"]
@@ -8,6 +8,7 @@ on:
       - "site/**"
       - ".github/workflows/pages.yml"
       - "src/app/index.css"
+      - "CHANGELOG.md"
   release:
     types: [published]
   workflow_dispatch:

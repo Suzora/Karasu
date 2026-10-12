@@ -1924,8 +1924,9 @@ async update the real code makes after an await warns instead.
 
 The public site lives in `site/` and deploys to
 https://suzora.github.io/Karasu/ through `.github/workflows/pages.yml` — on
-a push to `main` that touches `site/**` or `src/app/index.css`, on a dispatch,
-or on a release published by hand. It is its own npm project with its own
+a push to `main` that touches `site/**`, `src/app/index.css` or `CHANGELOG.md`
+(the page's "What changed" card reads it at build time), on a dispatch, or on
+a release published by hand. It is its own npm project with its own
 lockfile and `node_modules`; nothing under `site/` is imported by the app, and
 the app's vitest projects cannot see it (`src/**` only). Layout, stack and the
 review checkpoints are in `site/README.md`.
@@ -1941,8 +1942,8 @@ and Reproducible checks the same way (see "Packaging beyond the release
 page"). The `release` trigger stays for a release someone publishes by hand.
 
 - **Site-only commits do not bump the version and do not run the app loop.**
-  The gate is `npm --prefix site run check` (typecheck plus the token
-  freshness check), then a prose commit with the `Co-Authored-By` trailer.
+  The gate is `npm --prefix site run check` (typecheck, the token
+  freshness check and the changelog reader's tests), then a prose commit with the `Co-Authored-By` trailer.
   `scripts/changelog.mjs` drops `site/` paths by itself, so no
   `Changelog: skip` is needed. A commit that touches both the app and the
   site goes through the normal six commands, and its changelog line describes

@@ -898,3 +898,28 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   settings pane stays red in the pane list: it holds the risky operations
   and opens on a warning, so the colour is the warning's first line, not a
   fault (asked after the first Impeccable critique, kept).
+- **2026-10-12:** The website is one short page, rethought after the
+  first Impeccable critique. Its goal is to bring people in: install it,
+  report what breaks, join the community. Its first readers are AniList
+  power users. The page has a centred pitch, then the three downloads
+  with every caveat beside them (no code signing, experimental Linux,
+  sideloaded APK, no macOS). Below that sit the anime grid screenshot and
+  a "What changed" card, which reads the newest Added, Changed and Fixed
+  line from `CHANGELOG.md` at build time. After them come a panel asking
+  people to try it and report back, and the FAQ. C2 of three variants of
+  the "everything on one page" structure won, over C1 (the feed beside
+  the pitch, which left a gap under the buttons) and C3 (a full-width
+  screenshot with the changes laid on its edge). That structure had won
+  over a comparison with anilist.co and an open testing programme.
+  Removed: the animated hero scene, the trust strip, the eleven feature
+  sections, the gallery, the platform cards and the closing call to
+  action, together with the `motion` dependency. Kept: the honesty, the
+  feathers and the tokens.
+- **2026-10-12:** The website gains a gallery, "The app, as it is",
+  between the changelog card and the join panel: six desktop captures in
+  three columns, with a toggle to four Android ones, each opening in the
+  lightbox. B of three mockups won, over A (one strip of desktop and
+  phone shots scrolled sideways, five visible at a time) and C (the big
+  screenshot switched by thumbnails, with a phone laid over its corner).
+  On the desktop the changelog card now takes the screenshot's height and
+  fades out whatever does not fit.

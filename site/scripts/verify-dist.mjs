@@ -82,8 +82,8 @@ for (const page of ["index.html", "404.html"]) {
 }
 
 // Budgets. The JavaScript budget is for what the page loads before it can
-// run: the entry and every chunk it preloads. Chunks fetched on demand (the
-// hero's `motion`) are listed but not counted.
+// run: the entry and every chunk it preloads. Chunks fetched on demand (none
+// today) are listed but not counted.
 const indexHtml = readFileSync(path.join(CLIENT, "index.html"), "utf8");
 const initial = new Set(
   [...indexHtml.matchAll(/<(?:script[^>]+src|link[^>]+rel="modulepreload"[^>]+href)="([^"]+)"/g)].map((m) =>

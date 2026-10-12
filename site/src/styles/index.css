@@ -32,9 +32,6 @@
   --text-h2: clamp(1.75rem, 1.3rem + 1.15vw, 2.5rem);
   --text-h2--line-height: 1.12;
   --text-h2--letter-spacing: -0.025em;
-  --text-cta: clamp(2rem, 1.4rem + 1.6vw, 3rem);
-  --text-cta--line-height: 1.1;
-  --text-cta--letter-spacing: -0.03em;
   --text-lede: clamp(1rem, 0.94rem + 0.2vw, 1.125rem);
   --text-lede--line-height: 1.6;
 
@@ -47,9 +44,6 @@
   --text-h3--line-height: 1.15;
   --text-h3--letter-spacing: -0.02em;
 
-  /* The hero stage's ground: the Wrapped poster's, a step below the page
-     (POSTER_BG in src/pages/Wrapped.tsx), so the stage reads as a well. */
-  --color-stage: #07090d;
 
   /* The phone screenshot's bezel: a device corner, not a panel's. */
   --radius-device: 1.75rem;
@@ -218,7 +212,7 @@ body {
 
 /* --- Hero --------------------------------------------------------------- */
 
-/* The About page's wash, so the stage sits in light rather than on a flat
+/* The About page's wash, so the pitch sits in light rather than on a flat
    page (src/pages/About.tsx). */
 .hero::before {
   content: "";
@@ -227,106 +221,6 @@ body {
   height: 28rem;
   pointer-events: none;
   background: radial-gradient(40rem 20rem at 50% -20%, rgba(var(--w1), 0.16), transparent 70%);
-}
-
-/* The stage: the Wrapped poster's ground and its three washes
-   (src/pages/Wrapped.tsx), with the 1px catch-light along the top. */
-.hero-stage {
-  background:
-    radial-gradient(90% 90% at 0% 0%, rgba(var(--w1), 0.16), transparent 60%),
-    radial-gradient(70% 70% at 100% 100%, rgba(var(--accent-rgb), 0.13), transparent 60%),
-    radial-gradient(60% 60% at 50% 45%, rgba(var(--w2), 0.07), transparent 65%),
-    var(--color-stage);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    var(--shadow-shot);
-}
-
-.hero-dot {
-  background: var(--color-ink-600);
-}
-.hero-rail {
-  background: var(--color-accent-500);
-}
-
-/* Which line of copy each layer shows is decided by the phase alone. The
-   static render (the server's) reads as the finished scene. */
-.hero-stage .st {
-  display: none;
-}
-.hero-stage[data-phase="static"] .st-pill-live,
-.hero-stage[data-phase="detected"] .st-pill-live,
-.hero-stage[data-phase="locked"] .st-pill-live,
-.hero-stage[data-phase="filling"] .st-pill-live,
-.hero-stage[data-phase="done"] .st-pill-live,
-.hero-stage[data-phase="static"] .st-eyebrow-live,
-.hero-stage[data-phase="detected"] .st-eyebrow-live,
-.hero-stage[data-phase="locked"] .st-eyebrow-live,
-.hero-stage[data-phase="filling"] .st-eyebrow-live,
-.hero-stage[data-phase="done"] .st-eyebrow-live,
-.hero-stage[data-phase="idle"] .st-pill-idle,
-.hero-stage[data-phase="idle"] .st-eyebrow-idle,
-.hero-stage[data-phase="idle"] .st-status-idle,
-.hero-stage[data-phase="detected"] .st-status-idle,
-.hero-stage[data-phase="locked"] .st-status-locked,
-.hero-stage[data-phase="filling"] .st-status-filling,
-.hero-stage[data-phase="static"] .st-status-done,
-.hero-stage[data-phase="done"] .st-status-done {
-  display: inline-flex;
-}
-.hero-stage[data-phase="static"] .hero-dot,
-.hero-stage[data-phase="detected"] .hero-dot,
-.hero-stage[data-phase="locked"] .hero-dot,
-.hero-stage[data-phase="filling"] .hero-dot,
-.hero-stage[data-phase="done"] .hero-dot {
-  background: var(--color-accent-500);
-  animation: blip 2.4s ease-in-out infinite;
-}
-.hero-stage[data-phase="static"] .hero-rail,
-.hero-stage[data-phase="done"] .hero-rail {
-  background: var(--color-success);
-}
-/* The three idle loops, once the scene has landed — the app's cap of three. */
-.hero-stage[data-phase="done"] .hero-mark {
-  animation: idleFloat 6s ease-in-out infinite;
-}
-.hero-stage[data-phase="done"] .hero-card {
-  animation: idleGlow 4.5s ease-in-out infinite;
-}
-
-/* The start state, only where JavaScript will drive the scene forward and
-   motion is welcome. The server's markup is the finished scene; these rules
-   rewind it for the first paint so nothing flashes before the script runs.
-   `static` and `idle` look identical on purpose: the takeover is invisible. */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-js] .hero-stage[data-phase="static"] .hero-mark,
-  html[data-js] .hero-stage[data-phase="static"] .hero-sight,
-  html[data-js] .hero-stage[data-phase="static"] .hero-chip,
-  html[data-js] .hero-stage[data-phase="idle"] .hero-chip {
-    opacity: 0;
-  }
-  html[data-js] .hero-stage[data-phase="static"] .hero-rail {
-    transform: scaleX(0);
-  }
-  html[data-js] .hero-stage[data-phase="static"] .hero-ring {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-  }
-  html[data-js] .hero-stage[data-phase="static"] .hero-dot {
-    background: var(--color-ink-600);
-    animation: none;
-  }
-  html[data-js] .hero-stage[data-phase="static"] .st {
-    display: none;
-  }
-  html[data-js] .hero-stage[data-phase="static"] .st-pill-idle,
-  html[data-js] .hero-stage[data-phase="static"] .st-eyebrow-idle,
-  html[data-js] .hero-stage[data-phase="static"] .st-status-idle {
-    display: inline-flex;
-  }
-  html[data-js] .hero-stage[data-phase="static"] .hero-rail {
-    background: var(--color-accent-500);
-  }
 }
 
 /* --- Reveal ------------------------------------------------------------- */
@@ -342,75 +236,12 @@ body {
   }
 }
 
-/* --- Flow diagram -------------------------------------------------------- */
-
-/* The connector after each step but the last: a hairline that draws in
-   after the row is revealed, one step after another. Vertical spine below
-   `md`, horizontal rule from it. */
-.flow-step:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  background: linear-gradient(90deg, var(--color-surface-600), var(--color-surface-800));
-  left: 1.375rem;
-  top: 2.75rem;
-  bottom: -1.5rem;
-  width: 1px;
-  transform-origin: top;
-}
-@media (min-width: 48rem) {
-  .flow-step:not(:last-child)::after {
-    top: 1.375rem;
-    left: 2.75rem;
-    right: -1rem;
-    bottom: auto;
-    width: auto;
-    height: 1px;
-    transform-origin: left;
-  }
-}
-.flow-success .flow-step > span {
-  color: var(--color-success);
-}
-@media (prefers-reduced-motion: no-preference) {
-  html[data-js] .flow:not([data-revealed]) .flow-step::after {
-    transform: scaleY(0);
-  }
-  html[data-js] .flow[data-revealed] .flow-step::after {
-    transform: none;
-    transition: transform 520ms var(--ease-out-expo) calc(var(--i, 0) * 110ms + 200ms);
-  }
-  /* The steps themselves arrive one after another, each just before the
-     connector that leaves it starts to draw — the row builds left to right. */
-  html[data-js] .flow:not([data-revealed]) .flow-step > * {
-    opacity: 0;
-  }
-  html[data-js] .flow[data-revealed] .flow-step > * {
-    animation: riseIn 320ms var(--ease-out-expo) both;
-    animation-delay: calc(var(--i, 0) * 110ms);
-  }
-  @media (min-width: 48rem) {
-    html[data-js] .flow:not([data-revealed]) .flow-step::after {
-      transform: scaleX(0);
-    }
-  }
-}
-
-/* --- Final call to action ------------------------------------------------ */
-.cta::before {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 26rem;
-  pointer-events: none;
-  background: radial-gradient(40rem 20rem at 50% 120%, rgba(var(--accent-rgb), 0.14), transparent 70%);
-}
-
 /* --- High contrast ------------------------------------------------------ */
 
 /* The generated tokens already swap the palette and drop the float shadow
    and catch-light. What is the site's own goes the same way: the washes and
    the feathers are light and colour behind text, which no contrast ratio can
-   promise, and the stage becomes a panel with an edge. */
+   promise. */
 @media (prefers-contrast: more) {
   :root {
     --shot-shadow: transparent;
@@ -418,12 +249,7 @@ body {
   }
   .feathers,
   .wash::before,
-  .hero::before,
-  .cta::before {
+  .hero::before {
     display: none;
-  }
-  .hero-stage {
-    background: var(--color-surface-900);
-    box-shadow: inset 0 0 0 1px var(--color-surface-600);
   }
 }

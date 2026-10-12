@@ -12,7 +12,27 @@ Status: **confirmed** (read in the code), **partial** (true with the stated
 limit, and the page states it), **mock** (a drawn stand-in, labelled as
 such in the code and showing no invented data).
 
-## Hero, trust strip, footer
+## The page of 2026-10-12
+
+The page was rebuilt as one short page (pitch and downloads, the app beside
+its changelog, a gallery of real captures, the call to join, the FAQ; DESIGN.md, 2026-10-12). The
+sections it dropped took their rows with them; the rows below that keep an
+old heading are the ones the FAQ, the footer or the head still state.
+
+| # | Claim | Evidence | Status |
+|---|---|---|---|
+| 93 | "The AniList client that writes your episodes for you" | `src-tauri/src/playback/scrobbler.rs` `drive_session` writes once the threshold passes (rows 13, 17); AniList only (`CLAUDE.md` Project) | confirmed |
+| 94 | "Your lists, the season, the airing calendar, statistics, the feed and the forum in one quick window" | `src/pages/` (`MediaList`, `Seasonal`, `Calendar`, `Statistics`, `Social`, `Forum`), one window (`src/app/App.tsx`) | confirmed |
+| 95 | "detection that brings your list up to date when an episode ends" | rows 13, 17 and 23 (two thirds of the runtime by default, which is the end for the purpose of the sentence; the FAQ gives the exact rule) | partial (the FAQ states the threshold) |
+| 96 | The three downloads (Windows installer, Linux AppImage, Android arm64 APK), the version, the checksums and "every download" | `site/src/generated/release.json` (row 63), `site.config.ts` `LINKS.releases` | confirmed |
+| 97 | "not code-signed, so SmartScreen may warn on first run · Linux is an experimental AppImage · Android is a sideloaded APK · no macOS" | rows 57, 61, 62, 59 and 72 | confirmed |
+| 98 | The screenshot beside the changelog: the anime list in grid view | `site/scripts/shots.config.mjs` `anime-grid`, captured as the Screenshots section says | confirmed (real capture) |
+| 99 | "What changed": the newest Added, Changed and Fixed line, "In the Nightly", "Since 1.32.0, not yet in a Stable release" | read at build time from `CHANGELOG.md` by `site/scripts/changes.mjs` (tested by `changes.test.mjs`): the `Unreleased` section's last line of each kind, or the newest release's when it is empty; `since` is the newest `## x.y.z` heading; `pages.yml` deploys on a `CHANGELOG.md` push so the card follows `main` | confirmed |
+| 100 | "Karasu is built by one maintainer with whoever joins in" | `CLAUDE.md` preamble (one maintainer reviews every change), `CONTRIBUTING.md` | confirmed |
+| 101 | The three calls to join: the Discord, the bug report form, the source on GitHub | row 79 | confirmed |
+| 102 | "The app, as it is": six desktop and four Android captures with their captions, opened full size in the lightbox | `site/src/sections/Gallery.tsx` picks them from `site/src/content/screenshots.ts`; captions and alt texts are row 81's, the captures the Screenshots section's | confirmed (real captures) |
+
+## Footer, the head and the social card
 
 | # | Claim on the page | Evidence | Status |
 |---|---|---|---|
@@ -21,42 +41,21 @@ such in the code and showing no invented data).
 | 3 | "Free · open source · built for AniList"; "AGPL-3.0 licensed, no paid tier"; "Every commit is public" | `LICENSE` (AGPL-3.0), public repository | confirmed |
 | 4 | "Windows · Linux · Android" | `.github/workflows/release.yml` (NSIS, AppImage, two APKs) | confirmed |
 | 5 | "No account needed to start"; "Start with a local list, no account" | `src/stores/auth.ts` `ProfileMode = "anilist" \| "local" \| "none"`, `enableLocal`; `src/components/shell/FirstRun.tsx` | confirmed |
-| 6 | "Implicit OAuth, no client secret" | `CLAUDE.md` hard constraints; `src-tauri/src/commands/auth.rs` `BUILTIN_ANILIST_CLIENT_ID`; `src-tauri/src/anilist/login.rs` | confirmed |
 | 7 | "No telemetry, no analytics, no backend, no account of ours" | exhaustive grep of `src/` and `src-tauri/src/` for sentry/posthog/plausible/mixpanel/amplitude/gtag/crashlytics/telemetry/analytics: no hits in code; `SECURITY.md` "no hosted backend"; `CLAUDE.md` hard constraint | confirmed |
 | 8 | "AGPL-3.0 licensed · © 2026 Kyu and Karasu contributors" | `LICENSE` (AGPL-3.0), `README.md` "License", `src-tauri/tauri.conf.json` `copyright` | confirmed |
 | 9 | "not affiliated with or endorsed by AniList" | no affiliation exists; public API with a public client id | confirmed |
 | 10 | "SN Pro is used under the SIL Open Font License 1.1" | `site/public/fonts/OFL.txt` (from `@fontsource/sn-pro`) | confirmed |
-| 11 | The hero scene: mpv, "Anime Title", "Updated to episode 1" | a drawn scene in the app's Now Playing recipe (`src/components/media/DetectionSurface.tsx`, drawn by `src/components/shell/DetectionPopup.tsx`), neutral titles, no data | mock |
 
-## The problem, and how it works
+## Detection, as the FAQ states it
 
 | # | Claim | Evidence | Status |
 |---|---|---|---|
-| 12 | Sources: system media sessions, player or browser window, an mpv pipe, your own Jellyfin server | `src-tauri/src/playback/detection/mod.rs` (`detect_playback` order: mpv IPC → Jellyfin → windows → media sessions); `media_session/smtc.rs`, `media_session/mpris.rs`, `mpv_ipc.rs`, `jellyfin.rs` | confirmed |
 | 13 | "A scrobble can raise your progress, never lower it, and it re-checks your list a moment before it writes." | `scrobbler.rs` `would_regress` and the pre-write re-check against the live cache (`Outcome::Refused(AlreadyWatched)`); `CLAUDE.md` "list_cache has one owner" | confirmed |
 | 14 | "Turn on the confirmation toast and every update waits for one click on the desktop. A chapter from a site Karasu does not name always waits for one." | `src-tauri/src/alerts/notify.rs` action toast (Windows `tauri_winrt_notification` button, Linux `notify-rust` action); mobile returns "action toasts are desktop-only"; setting "Ask before updating" in `src/pages/settings/DetectionPane.tsx`; the chapter that always asks: `scrobbler.rs` `cautious` (`a_generic_detection_always_asks_and_never_lifts_a_gap_block`) | confirmed, desktop only (stated) |
-| 15 | Flow: release-name parser, fuzzy matcher, relations data for season splits and redirects | `src-tauri/src/playback/recognition/parser.rs`, `recognition/matcher.rs`, `src-tauri/src/playback/relations.rs` (erengy/anime-relations, cached 7 days) | confirmed |
-| 16 | "A receipt with an undo lands in the app" | `src/lib/receipt.ts`, `src/hooks/useListMutations.ts` | confirmed (undo declines for custom lists and advanced scores — the Features row says "ten fields") |
 | 17 | "After two thirds of the runtime … or the minutes you set" | `scrobbler.rs` threshold: setting in minutes, else 2/3 of episode length; `src/i18n/en.ts` "0 = automatic (two thirds of the episode length)" | confirmed |
-| 18 | "A pause defers, it does not cancel" | `CLAUDE.md` note measured 2026-09-03 with mpv; `scrobbler.rs` `EMPTY_TICK_GRACE` | confirmed |
-| 19 | "An unclear season is yours to settle … offers the sequels" | `CLAUDE.md` "The season is inert for matching unless the title carries it"; `scrobbler.rs` `BlockReason::UnknownSeason`; the match picker offers sequels | confirmed |
-| 20 | Players: mpv, VLC, MPC-HC, MPC-BE, PotPlayer, SMPlayer | `src-tauri/src/playback/detection/profiles.rs` | confirmed |
-| 21 | Browsers: Chrome, Firefox, Edge, Brave, Opera, Vivaldi, Zen, LibreWolf, Waterfox, Helium | `profiles.rs` | confirmed |
-| 22 | Streaming sites: Bilibili, ADN; manga sites: MANGA Plus, "Any site, for what you are reading (asks first)" | `profiles.rs` `SITES`, `MANGA_MARKERS` and `match_site`, the `bilibili_names_series_and_episode` and `adn_cuts_its_dub_list` tests; tab titles measured 2026-10-05 (`CLAUDE.md`). Any other site: the tab each browser window shows (`detection/mod.rs` `chapter_tabs`), read by `detection/browser.rs` `chapter_tab` and kept by `scrobbler.rs` `generic_refusal`, held by `a_chapter_tab_of_a_series_being_read_is_detected`, `a_chapter_page_of_an_unrelated_series_is_not` and `a_jump_past_the_next_chapters_is_not_detected`; it asks first (`cautious`, `a_generic_detection_always_asks_and_never_lifts_a_gap_block`). The unofficial readers left the list on 2026-10-07 by the maintainer's call, and the rule names no site. Netflix left the list on 2026-10-05, since its tab reads only "Netflix"; Crunchyroll followed on 2026-10-06 by the maintainer's call, since its German watch page named no episode number. Its profile stays for titles that spell one | confirmed |
 | 23 | "Windows has all of these. Linux reads media sessions, mpv and Jellyfin, and no window titles; Android reads Jellyfin." | `detection/mod.rs` non-Windows `enumerate_windows` returns empty ("Wayland forbids…"); `mpv_ipc.rs` mobile stub; `src/pages/Settings.tsx` `ANDROID_DESKTOP_ONLY` | confirmed |
-| 24 | The Now Playing screenshot: "Katanagatari … E3 … Progress will update in 32 min 56 s" | captured 2026-10-03 on the rig (1.32.8.771) with a real mpv window (`--force-media-title`) and confirmation on; `karasu.log` shows the match and the session, and no write | confirmed (real capture) |
 
-## Local library
-
-| # | Claim | Evidence | Status |
-|---|---|---|---|
-| 25 | "Up to 20,000 files, six levels deep" | `src-tauri/src/library.rs` `MAX_FILES = 20_000`, `MAX_DEPTH = 6` | confirmed |
-| 26 | Match reads exact / close / yours | `library.rs` score 1.0 exact short-circuit; `CLAUDE.md` schema v8/v9 | confirmed |
-| 27 | "The first episode past your progress"; "Plays it in your default player, or in mpv if you point Karasu at it" | `library.rs` `play_next`, `open_path` (mpv binary if configured, else the OS opener) | confirmed |
-| 28 | Corrections stick; seasons can be split (Karasu proposes the split through `plan_redirect`, the user confirms it — relations only hint, `library.rs`); unplaced titles get a suggestion applied only when confirmed | `CLAUDE.md` schema v9 (`library_override` never cleared by a scan), v11 (`library_redirect`), v10 (`library_suggestion`); `src-tauri/src/identify.rs` | confirmed |
-| 29 | "Karasu never downloads anything." | `CLAUDE.md` "Explicitly rejected": RSS/torrent feeds and anything piracy-adjacent | confirmed |
-
-## Offline
+## Offline, as the FAQ states it
 
 | # | Claim | Evidence | Status |
 |---|---|---|---|
@@ -65,40 +64,13 @@ such in the code and showing no invented data).
 | 32 | Edits queued, per account, inspectable and discardable in Settings, sent in order on return | `db.rs` `offline_queue` with `user_id` (schema v16); `src-tauri/src/commands/list.rs` drain paths; `QueueSection` (defined in `AdvancedPane.tsx`, rendered in the Import & export pane, `src/lib/settingsPanes.ts` `data`) | confirmed |
 | 33 | "'Queued' is never 'saved' — the receipt says which" | `CLAUDE.md` invariant "Queued is not success", `Outcome::{Landed, Queued, Refused}`; `useListMutations.ts` receipt text | confirmed |
 
-## Statistics
+## Android, as the FAQ states it
 
 | # | Claim | Evidence | Status |
 |---|---|---|---|
-| 34 | Five tabs: overview, ratings, years, genres and tags, people and studios | `src/pages/Statistics.tsx` | confirmed |
-| 35 | Charts drawn by hand in SVG: radar, sunburst, treemap, area, dot plot, gradient bars, heatmaps; no chart library | `src/components/stats/Charts.tsx`, `AreaChart.tsx`, `DotPlot.tsx`, `GradientBars.tsx`, `Heatmap.tsx`, `DayHeatmap.tsx`; `CLAUDE.md` Charts note | confirmed |
-| 36 | "Your scores against the crowd … computed from your cached list" | `Statistics.tsx` `ScoreDeltaSummary` | confirmed |
-| 37 | "A poster of your year or season in five crops, exported as PNG or JPEG at up to 3×" | `src/pages/Wrapped.tsx` `PresetKey` (five), export format and scale; `src/lib/wrapped.ts` `availableSeasons` | confirmed |
-| 38 | "Half of it is drawn from the list Karasu already holds — the sunburst, your watch time, your scores against the crowd — and the rest is AniList's own statistics, fetched once and kept for half an hour" | `src/pages/Statistics.tsx`: the sunburst, watch time and `ScoreDeltaSummary` come from the cached `mediaList`; the ratings, years, genres and people tabs come from `useQuery` → `userStatistics` (`USER_STATS_QUERY` in `src/api/queries.ts`, `staleTime` 30 min in memory, plus the on-disk query cache's one-hour TTL for a reopened app); local mode is cache-only (`LocalStatistics`). The earlier wording "costs no requests and is there offline too" was wrong and was replaced on 2026-09-06 | confirmed |
-
-## Features
-
-| # | Claim | Evidence | Status |
-|---|---|---|---|
-| 39 | Scores in the account's format: 100-point, 10-point with or without decimals, five stars, three smileys | `src/lib/scoreFormat.ts`; `CLAUDE.md` "Scores live in the account's scoreFormat, end to end" | confirmed |
-| 40 | Custom lists, advanced scores, tags, notes, dates, rewatches, volumes | `src/components/media/EntryEditModal.tsx`; `src/lib/customLists.ts`, `advancedScores.ts` | confirmed |
-| 41 | Bulk edit; undo for ten fields | `src/components/list/BulkBar.tsx`, `bulk_save_list_entries`; `src/lib/receipt.ts` (ten reversible fields, two irreversible) | confirmed |
-| 42 | Presets, tri-state filters, typo-tolerant search | `src/lib/presets.ts`, `src/lib/multiFilter.ts`, `src/lib/fuzzy.ts` | confirmed |
-| 43 | Covers or rows, 1 to 40 covers per row, lists that stay quick at any size | `src/lib/viewMode.ts`; `src/stores/theme.ts` `COVER_COLS_MIN/MAX`; `@tanstack/react-virtual` in `VirtualGrid.tsx`/`VirtualRows.tsx` | confirmed |
-| 44 | Manga in chapters and volumes; continue-reading row; on Windows a chapter on MANGA Plus is recognised, and on any other site a chapter of a manga you are reading, in the tab a browser window shows, is recognised and asks before it counts | list fields `progress`/`progressVolumes` (schema v7); `src/pages/Dashboard.tsx` continue-reading; MANGA Plus: `profiles.rs` `MANGA_MARKERS`/`match_manga` (`manga_plus_chapter`); any other site: `detection/browser.rs` `chapter_tab`, `detection/mod.rs` `chapter_tabs` (every browser window's shown tab, `every_chapter_window_is_offered_front_first`), `scrobbler.rs` `match_pool` (Reading and Rereading only), `generic_refusal`, `now_from` (`an_unrelated_chapter_page_in_front_does_not_hide_one_being_read`) and `cautious` (`a_generic_detection_always_asks_and_never_lifts_a_gap_block`); window detection Windows only | confirmed |
-| 45 | Airing notifications; opt-in sequel and on-hold reminders; AniList notifications in the same bell, grouped in bursts | `src-tauri/src/alerts/airing.rs`, `sequel.rs` (off by default), `stale.rs` (off by default), `site.rs`; `src/lib/notifGroups.ts` | confirmed |
-| 46 | Tray icon with Scrobble now, Sync now and the detection switch | `src-tauri/src/lib.rs` tray menu (desktop only) | confirmed |
-| 47 | Optional background check every 15, 30 or 60 minutes, or any interval you type | `src/pages/settings/AniListPane.tsx` presets plus the custom field (15–720 min); `alerts/site.rs` `notif_bg_interval_min` | confirmed |
 | 48 | Android: sideloaded APK; the list, statistics, notifications, social pages; Jellyfin detection; four widgets from the cache with no network; background job with the app closed; share an anilist.co link | `release.yml` APK legs; `src-tauri/gen/android/.../Widgets.kt` + `src-tauri/src/widgets.rs`; `NotifJob.kt` + `src-tauri/src/background.rs`; `MainActivity.kt` SEND→VIEW; `AndroidManifest.xml` | confirmed |
-| 49 | Widgets: Airing Today, Continue Watching, Continue Reading, This Week | manifest receivers `Widgets$AiringToday`, `Widgets$ContinueWatching`, `Widgets$ContinueReading`, `Widgets$Week` | confirmed |
-| 50 | Seasonal page with a picker that reaches four years back (`src/components/ui/season-picker.tsx`, `latest - 3 … latest`, opened from the season title); Monday-first calendar with iCal export; franchise graph with pan and zoom; recommendations weighted by your scores; search across anime, manga, users, characters, staff, studios | `src/pages/Seasonal.tsx`; `src/lib/calendar.ts`, `src/lib/ical.ts`; `src/pages/Franchise.tsx`, `usePanZoom.ts`; `src/lib/recommend.ts`; `src/pages/Search.tsx` scopes | confirmed |
-| 51 | Activity feed, profiles with follow and affinity, forum threads and comments with permalinks (`src/lib/threadJump.ts`, `?comment=`), text posts, likes, replies; character, staff and studio pages (`src/app/App.tsx` routes, `src/pages/Person.tsx`) | `src/api/social.ts`; `src/pages/Social.tsx`, `UserProfile.tsx`, `Forum.tsx`, `Thread.tsx`; `src/lib/affinity.ts` | confirmed |
-| 52 | "Nothing social is kept on your machine … every further page is a button rather than a scroll" | `CLAUDE.md` "No local activity store", "Paging is a button, never a scroll" | confirmed |
-| 53 | Discord: off until switched on; title, episode/chapter, timer; buttons to the project and to the title on AniList (`discord.rs` button constants); never your AniList name; filtered titles never broadcast | `src-tauri/src/discord.rs` (`discord_enabled == "1"`, nothing seeds it; payload fields; content-filter guard) | confirmed |
-| 54 | Export MAL XML and JSON in either mode; import into a local list; daily local backup on by default; portable mode | `src/pages/settings/AdvancedPane.tsx` (export both modes, import local only); `src-tauri/src/backups.rs` (`read_enabled` default on, 7 kept); `src-tauri/src/portable.rs` | confirmed |
-| 55 | "connect AniList later and Karasu merges the two" | `src/lib/mergeDecision.ts`, `src/components/overlays/SignInMerge.tsx` | confirmed |
-| 56 | The Discord card, the notifications and social panels, the "yours to keep" panel | drawn, labelled in code, neutral titles | mock |
 
-## Platforms
+## Platforms, as the downloads line and the FAQ state them
 
 | # | Claim | Evidence | Status |
 |---|---|---|---|
@@ -109,7 +81,6 @@ such in the code and showing no invented data).
 | 61 | Linux: AppImage x86_64 that updates itself, or a .deb and an .rpm for the package manager; the AppImage carries its own WebKitGTK, the packages depend on webkit2gtk-4.1; MPRIS, mpv, Jellyfin; updater for a running AppImage; no window titles, no manga detection; tray needs a StatusNotifier host or closing quits | `release.yml` build-linux (ubuntu-22.04); `release-notes.ps1` boilerplate; `tauri.conf.json` `bundle.linux.{deb,rpm}.depends`, and the AppImage's own `usr/lib/libwebkit2gtk-4.1.so.0`; `tauri.conf.json` `bundle.targets` carries `deb` and `rpm` since 1.18.1, and `platforms.ts` draws their links only once a Stable release carries them (`release-info.mjs` leaves them null before); `mpris.rs`; `detection/mod.rs`; `lib.rs` `tray_present` | confirmed |
 | 62 | "Stable … used every day by the maintainer; Experimental … built by CI, not used every day"; Linux Experimental | maintainer's statement, 2026-09-05; every Linux check in the repo is CI or a throwaway crate (`CLAUDE.md`) | confirmed (maintainer) |
 | 63 | "Version 1.0.0, released 2026-09-05"; the four asset links and the checksums | `site/src/generated/release.json` ← GitHub `releases/latest` via `site/scripts/release-info.mjs` (run by `pages.yml` with the workflow token; the committed file is the fallback) | confirmed |
-| 64 | Updates: Stable channel by default, checked once a day; Nightly one switch away in Settings → Desktop → Updates | `commands/update.rs` `stored_channel` default `stable` (schema v19 seeds `prerelease` for existing installs), `UPDATE_CHECK_THROTTLE_MS`; `src/pages/settings/AdvancedPane.tsx` `UpdatesSection` rendered in the Desktop pane (on Android in the Account pane, `Settings.tsx` `ANDROID_EXTRA_SECTIONS`) | confirmed |
 
 ## AniList, open source, FAQ
 
@@ -117,9 +88,6 @@ such in the code and showing no invented data).
 |---|---|---|---|
 | 65 | Reads and writes through the public GraphQL API; a token, never a password; no client secret | `src-tauri/src/anilist/client.rs`, `login.rs` (implicit grant) | confirmed |
 | 66 | Token kept in the OS credential store; an encrypted file in portable mode; the Android Keystore; never handed back to the web view (the browser hand-off is `src/hooks/useAniListLogin.ts` `openUrl`; the manual fallback in `commands/auth.rs` `anilist_connect` takes a pasted token once, and nothing returns it — `anilist_session` answers the cached viewer only) | `src-tauri/src/anilist/auth.rs` (keyring; DPAPI/XChaCha20 portable files); `src-tauri/src/keystore.rs`; `CLAUDE.md` hard constraint | confirmed |
-| 67 | "AniList allows about thirty requests a minute. Karasu batches, caches and never fetches on scroll" | `CLAUDE.md` rate-limit constraint and stepped-window measurement; `anilist/client.rs` limiter; no `IntersectionObserver` fetch anywhere | confirmed |
-| 68 | "Developed with heavy AI assistance, and every change reviewed by a human maintainer" | `CLAUDE.md` preamble; `README.md` "Built with AI" | confirmed |
-| 69 | Stack: Tauri 2, Rust, React 19 + TypeScript, Vite, Tailwind CSS v4, SQLite, TanStack Query, AniList GraphQL | `package.json`, `src-tauri/Cargo.toml`, `CLAUDE.md` Project | confirmed |
 | 70 | FAQ "What does Karasu talk to?": AniList API and image servers; GitHub for updates; the relations data on GitHub at most weekly; your Jellyfin server; Discord's local socket; bio images through a bounded proxy so those hosts learn your IP | `anilist/client.rs`; `tauri.conf.json` CSP `img-src *.anilist.co`; `commands/update.rs`; `playback/relations.rs` (7-day cache); `detection/jellyfin.rs`; `discord.rs`; `commands/images.rs` + `net.rs` (bounded, no cookies/referer, private hosts refused) | confirmed |
 | 71 | FAQ "Can Karasu work offline?" | rows 30–33 | confirmed |
 | 72 | FAQ "Which platforms?" and "no macOS build" | rows 57–61; `CLAUDE.md` "macOS is deliberately not covered" | confirmed |
@@ -133,24 +101,15 @@ description in row 80); the rest below were true but had no row.
 
 | # | Claim | Evidence | Status |
 |---|---|---|---|
-| 74 | Flow step "Your settings apply — threshold, confirmation, corrections and offsets" | `scrobbler.rs` threshold; `alerts/notify.rs` toast; `db.rs` `detection_override` (schema v12) and `episode_offset` (v13), consulted by `build_now_playing` | confirmed |
-| 75 | "Release names are parsed the same way detection parses them" | `src-tauri/src/library.rs` calls `recognition::parser::parse` | confirmed |
-| 76 | "Tailwind CSS v4 — one design-token file, the same one this site uses" | `site/scripts/sync-tokens.mjs` generates `tokens.generated.css` from `src/app/index.css`; `CLAUDE.md` "Tokens are generated, never copied" | confirmed |
 | 77 | FAQ "every release is built there from a tagged commit" | `.github/workflows/release.yml` `tags: ["v*"]` | confirmed |
 | 78 | FAQ "Signing in happens on anilist.co in your browser, which hands Karasu a token" | `src/hooks/useAniListLogin.ts` `openUrl`; the paste fallback in `commands/auth.rs` `anilist_connect` for a browser that cannot call back | confirmed |
 | 79 | The external links: Discord invite, the two issue templates, "Nightly builds" at `releases/tag/latest`, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE | `site/src/site.config.ts` against `README.md` (invite), `.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`, `commands/update.rs` and `release.yml` (the `latest` tag), the four files at the repository root; every link answered 200 on 2026-09-06 | confirmed |
 | 80 | The head: title, meta description ("notices what you play — and, on Windows, what you read"), Open Graph, JSON-LD `SoftwareApplication` (`UtilitiesApplication`, price 0, author Kyu, AGPL-3.0, `softwareVersion` from `release.json`) | `site/src/head.ts`, `site/src/site.config.ts`; rows 1–4, 8, 63; manga detection is window-title based and so Windows-only (`profiles.rs`), which is why the description names Windows | confirmed |
 | 81 | Screenshot captions and alt texts: "Command palette (Ctrl+K)", "Monday-first" calendar, the Seasonal switcher, "Everything" on the calendar, the year in review's shape, format and size choices, the phone's status sheet over the community's scores | `src/components/shell/CommandPalette.tsx` (Ctrl+K), `src/lib/calendar.ts` (Monday first), `src/components/ui/season-picker.tsx`, the calendar's scope filter, `src/pages/Wrapped.tsx`, `StatusMenu` and `CommunityScore` (`lib/scoreDistribution`); `site/scripts/shots.config.mjs` is the source, `site/src/content/screenshots.ts` the generated copy | confirmed |
-| 82 | Gallery "a capture of the app as it ships"; Features "Each of these is in the current release" | desktop captures of 1.32.8.771 and phone captures of the release APK 1.32.6.769, both 2026-10-03; every feature named is on `main` and in the Nightly, and in the next Stable tag | confirmed |
 | 83 | FAQ "Windows has every feature. Android has the list, statistics, notifications, widgets, the social pages and its own updater, but no local library and no tray" | `src/pages/Settings.tsx` hides the Library and Desktop panes on Android; `src-tauri/src/apk_update.rs`; `lib.rs` tray is desktop-only; rows 48, 60 | confirmed |
-| 84 | "Right-click a title for everything you can do to it; the palette and the phone's long press offer the same list" | `src/lib/actions.ts` resolves one action list; `src/components/shell/ActionHost.tsx` owns right-click and the 500 ms press and draws `ContextMenu.tsx` or `ActionSheet.tsx`; `CommandPalette.tsx` reads the same resolver (1.12–1.16) | confirmed |
-| 85 | Android: "Pull a list down to sync, hold a title for its actions, swipe up from the bar for the palette" | `src/hooks/usePullToSync.ts` + `src/lib/pullToSync.ts`; row 84; `src/components/shell/BottomBar.tsx` + `src/lib/navSwipe.ts`; measured on the maintainer's phone on 2026-09-19 (PR #27) | confirmed |
-| 86 | Android "updates itself: the APK for your device downloads over Wi-Fi and opens the installer when you tap" | `src-tauri/src/apk_update.rs` (metered network refused unless `apk_download_metered`, sha256 and signing-certificate checks), `UpdateInstaller.kt`, `src/pages/About.tsx` `ApkUpdatePanel`, the bell row, the start prompt (1.11) | confirmed |
-| 87 | Now Playing caption: "the floating window, an episode detected in mpv" | `src/components/shell/DetectionPopup.tsx` (floats on every route, drags and resizes on desktop, `lib/detectionLayout`), `src/components/media/DetectionSurface.tsx` (cover, season and episode, the episode's name, the three verbs in the header) (1.16–1.17) | confirmed |
 | 88 | How it works: "From play to updated, without you"; "Six steps, all of them Karasu's. The only one you take is the first — and for a chapter from a site Karasu does not name, one confirmation." | `scrobbler.rs` `drive_session` writes once the threshold passes (rows 13, 17); a chapter from a site Karasu does not name always asks (`cautious`, `a_generic_detection_always_asks_and_never_lifts_a_gap_block`); MANGA Plus does not | confirmed |
 | 89 | FAQ "What is Karasu?": "updates your progress on AniList by itself, asking once first for a chapter from a site it does not name" | row 88; the About text says the same (`src/i18n/en.ts` `about.description`) | confirmed |
 | 90 | The social card (`site/public/og.png`, drawn by `site/scripts/og-image.mjs`) repeats the hero's sentence | row 2 | confirmed |
-| 91 | The problem: "Karasu turns them into none — or, for a chapter from a site it does not name, one confirmation." | rows 13, 17 and 88: `scrobbler.rs` `drive_session` writes once the threshold passes; a chapter from a site Karasu does not name always asks (`cautious`); MANGA Plus does not | confirmed |
 | 92 | FAQ "Does it update my AniList progress automatically?": two thirds, your minutes or a toast; "A chapter from a site Karasu does not name always asks first." | rows 14, 17 and 88 | confirmed |
 
 ## Screenshots
