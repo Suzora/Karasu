@@ -2163,12 +2163,11 @@ flagged four files on 2026-10-06, all tooling the build never runs (a
 Playwright codec, TypeScript 7's native `tsc`, react-scan's Astro compiler and
 the visualizer's source-map), and a fifth on 2026-10-12 over `v1.44.0`
 (`oxc-parser`'s WebAssembly fallback, which the style audit's parser began to
-ship), and the frontend built without them, so the recipe's `scandelete`
-names their five packages and the scanner deletes and logs them; F-Droid's
-reviewer asked for that over the `rm -f` in `init` the recipe first had. The
-price: an entry that matches nothing, or under which nothing is flagged,
-fails the build, so a dependency update that drops one of these files needs
-its line removed. With those entries the scan counted 0. The recipe is written in the form
+ship), and the frontend built without them, so the recipe's `scandelete:
+node_modules` lets the scanner delete and log them; F-Droid's reviewer asked
+for that over the `rm -f` in `init` the recipe first had, and narrowed our five
+package entries to the one folder himself. That entry fails the build only if
+nothing under `node_modules` is flagged at all. With it the scan counted 0. The recipe is written in the form
 `fdroid rewritemeta` produces (no comments, its key order, its line wrapping),
 as fdroiddata's CI runs it (fdroidserver `master`, Debian's `ruamel.yaml`
 0.18.10, which wraps differently from the PyPI 2.4.5 the recipe was first

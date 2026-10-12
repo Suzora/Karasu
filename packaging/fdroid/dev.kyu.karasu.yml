@@ -33,11 +33,7 @@ Builds:
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
     prebuild: sed -i -e '/REQUEST_INSTALL_PACKAGES/d' src/main/AndroidManifest.xml
     scandelete:
-      - node_modules/@astrojs/compiler
-      - node_modules/@typescript/typescript-linux-x64
-      - node_modules/oxc-parser
-      - node_modules/playwright-core
-      - node_modules/source-map
+      - node_modules
     build:
       - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
       - ln -s "$(command -v gradle)" ../gradlew
