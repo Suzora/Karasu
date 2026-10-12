@@ -2154,8 +2154,10 @@ instead of falling back to debug signing). Its update check reads the tags
 (`UpdateCheckData`: the code from `COMMIT_NUMBER` plus the 1,000,000 base
 through `VercodeOperation`, the name from `FULL_VERSION`), since F-Droid's
 build refuses an APK whose version name or code differs from the recipe's by
-a character. Node 22 comes from nodejs.org pinned by its sha256, because
-`engines.node` asks for it and Debian ships older. Run over the tree after
+a character. Node, npm and rustup come from the build server's Debian
+(trixie), as F-Droid's reviewer asked on 2026-10-12: trixie's Node 20.19 sits
+below the 22.12 `engines.node` names, `npm ci` only warns, and the frontend
+built byte-identical under it. Run over the tree after
 `npm ci` as `fdroid build` does after `init`, fdroidserver 2.4.5's scanner
 flagged four files on 2026-10-06, all tooling the build never runs (a
 Playwright codec, TypeScript 7's native `tsc`, react-scan's Astro compiler and

@@ -35,6 +35,6 @@ describe("the Rust toolchain pin", () => {
   });
 
   it("is what the F-Droid recipe asks rustup for", () => {
-    expect(RECIPE["/packaging/fdroid/dev.kyu.karasu.yml"]).toContain(`--default-toolchain ${pin}`);
+    expect(RECIPE["/packaging/fdroid/dev.kyu.karasu.yml"]).toContain(`rustup toolchain install ${pin} `);
   });
 });

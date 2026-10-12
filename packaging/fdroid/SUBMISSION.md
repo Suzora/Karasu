@@ -43,7 +43,8 @@ over each other; a user who switches uninstalls first.
 2. Fork <https://gitlab.com/fdroid/fdroiddata>, add the filled file as
    `metadata/dev.kyu.karasu.yml`, open a merge request. Their CI runs
    `fdroid build` on it; expect a round of questions about the `sudo:` steps
-   (Node and Rust are not in the base image) and the anti-feature list.
+   and the anti-feature list. The first review asked for Node and rustup
+   from Debian rather than from their vendors, which the recipe now does.
 
 ## Why each step of the recipe is there
 
@@ -61,11 +62,18 @@ each phase starts afresh in `subdir`.
 
 - **`subdir: src-tauri/gen/android/app`** is four levels deep, so every step
   that needs the repository root climbs `../../../..`.
-- **`sudo`** installs the build tools and Node 22 from nodejs.org, checked
-  against its published sha256: `engines.node` asks for 22, and the build
-  server's Debian ships an older Node.
-- **`init`** installs the pinned Rust as the build user with the Android
-  target, then in one line climbs to the root, runs `npm ci` and deletes five
+- **`sudo`** installs the build tools, Node and npm, and rustup, all from the
+  build server's Debian (trixie), as the reviewer asked in the first merge
+  request: nothing is fetched from a vendor's site. Trixie's Node is 20.19 and
+  its npm 9.2, below the 22.12 `engines.node` names; `npm ci` warns about it
+  and goes on, and with exactly those versions the frontend built byte for
+  byte as it does under a current Node (checked on 2026-10-12 over `v1.44.0`).
+  Vite 8 itself asks for 20.19 or later.
+- **`init`** has Debian's rustup install the pinned toolchain (1.97.1, the
+  one `rust-toolchain.toml` names, which `src/lib/toolchain.test.ts` holds the
+  recipe to) with the Android target; Debian's rustup puts `cargo` and `rustc`
+  on `PATH` itself, so no phase sources `~/.cargo/env`. Then, in one line, it
+  climbs to the root, runs `npm ci` and deletes five
   files `npm ci` brings
   that fdroidserver's scanner flags: Playwright's WebAssembly codec, TypeScript
   7's native `tsc`, react-scan's Astro compiler, the bundle visualizer's
@@ -76,7 +84,7 @@ each phase starts afresh in `subdir`.
   later `oxc-parser` began to ship). `rm -f` rather than `scandelete`, because a `scandelete` entry
   that no longer matches fails the build, while a file that moves or leaves is
   nothing to `rm -f`; a newly flagged file still fails the scan.
-- **`build`** sources Cargo's environment and exports `KARASU_NO_SELF_UPDATE`,
+- **`build`** exports `KARASU_NO_SELF_UPDATE`,
   `KARASU_UNSIGNED` and the path remap in the same command list as the build,
   because fdroidserver runs every phase in a shell of its own. It stands a link
   to the build server's `gradle` in for the Gradle wrapper, which fdroidserver
@@ -103,7 +111,8 @@ each phase starts afresh in `subdir`.
 Checked locally: `fdroid lint` and `fdroid rewritemeta` (clean against
 fdroiddata's categories and anti-features), the update check applied to
 `update.rs` (`1000806` / `1.40.1.806` for that commit), `npm ci` under Node
-22.23.3 and the frontend build without the five files, and the scan. Not
+22.23.3 and again under Debian trixie's Node 20.19.2 with npm 9.2.0, the
+frontend build without the five files, and the scan. Not
 checked, because only the build server runs it: the `sudo` steps on its Debian,
 the `gradle` link standing in for the wrapper (that `gradle` is on the build
 user's `PATH` there is derived, not seen), and the whole Android build. The

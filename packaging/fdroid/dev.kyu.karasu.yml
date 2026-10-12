@@ -24,25 +24,16 @@ Builds:
     subdir: src-tauri/gen/android/app
     sudo:
       - apt-get update
-      - apt-get install -y --no-install-recommends curl ca-certificates build-essential
-        pkg-config xz-utils
-      - curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.xz
-      - echo "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de  /tmp/node.tar.xz"
-        | sha256sum -c -
-      - tar -xJf /tmp/node.tar.xz -C /opt
-      - ln -sf /opt/node-v22.23.3-linux-x64/bin/node /opt/node-v22.23.3-linux-x64/bin/npm
-        /opt/node-v22.23.3-linux-x64/bin/npx /usr/local/bin/
+      - apt-get install -y --no-install-recommends build-essential pkg-config nodejs
+        npm rustup
     init:
-      - curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.97.1 --profile
-        minimal
-      - . $HOME/.cargo/env && rustup target add aarch64-linux-android
+      - rustup toolchain install 1.97.1 --profile minimal --target aarch64-linux-android
       - cd ../../../.. && npm ci && rm -f node_modules/playwright-core/lib/webp_codec.wasm
         node_modules/@typescript/typescript-linux-x64/lib/tsc node_modules/@astrojs/compiler/dist/astro.wasm
         node_modules/source-map/lib/mappings.wasm node_modules/oxc-parser/parser.wasm32-wasip1.wasm
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
     prebuild: sed -i -e '/REQUEST_INSTALL_PACKAGES/d' src/main/AndroidManifest.xml
     build:
-      - . $HOME/.cargo/env
       - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1
       - export RUSTFLAGS="--remap-path-prefix=$(cd ../../../.. && pwd)=/build --remap-path-prefix=$HOME/.cargo=/cargo"
       - ln -s "$(command -v gradle)" ../gradlew
