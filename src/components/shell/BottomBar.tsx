@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Bell as BellIcon, Command, Info, LayoutGrid, RefreshCw, Settings, X } from "lucide-react";
+import { Bell as BellIcon, Command, Info, LayoutGrid, Lock, RefreshCw, Settings, X } from "lucide-react";
 import { GROUPS, visibleGroups, type NavItem } from "@/components/shell/Sidebar";
 import { cn } from "@/lib/utils";
+import { navLock } from "@/lib/navLock";
+import { useAuth } from "@/stores/auth";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import NotifSheet from "@/components/shell/NotifSheet";
 import { afterBackSettles } from "@/hooks/useBackClose";
@@ -50,6 +52,7 @@ const slotClass =
 export default function BottomBar() {
   const { t } = useTranslation();
   const android = isAndroid(usePlatform((s) => s.info));
+  const mode = useAuth((s) => s.mode);
   const [moreOpen, setMoreOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { pathname } = useLocation();
@@ -104,7 +107,21 @@ export default function BottomBar() {
             <MenuGroupLabel>{t(g.label)}</MenuGroupLabel>
             {/* One destination per row, not a tile grid: labels get their full width and the whole row is the touch target. */}
             <div className="flex flex-col gap-0.5">
-              {g.items.map((item) => (
+              {g.items.map((item) => {
+                const lock = navLock(item.to, mode);
+                // A touch has no hover, so the reason a place is shut is written under it rather than tucked in a tooltip.
+                if (lock)
+                  return (
+                    <div key={item.to} role="link" aria-disabled="true" className={cn(menuRowClass({}), "opacity-60")}>
+                      <MenuRowBody icon={item.icon} trailing={<Lock aria-hidden className="size-3.5 text-ink-600" />}>
+                        <span className="block text-ink-500">{t(item.key)}</span>
+                        <span className="block text-xs text-ink-600">
+                          {lock === "anilist" ? t("nav.needsAniList") : t("nav.needsProfile")}
+                        </span>
+                      </MenuRowBody>
+                    </div>
+                  );
+                return (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -117,7 +134,8 @@ export default function BottomBar() {
                     </MenuRowBody>
                   )}
                 </NavLink>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

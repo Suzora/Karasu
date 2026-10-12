@@ -3,6 +3,8 @@ import { en } from "./en";
 /** German, typed against the English object so a missing or misspelled key is a type error at the line that omits it. */
 export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protokoll, Aufteilung, Wrapped; „folgen“ nur als Verb.
   nav: {
+    needsAniList: "Nur mit einem AniList-Konto",
+    needsProfile: "Braucht ein AniList-Konto oder ein lokales Profil",
     groupLibrary: "Bibliothek",
     groupDiscover: "Entdecken",
     groupInsight: "Einblicke",

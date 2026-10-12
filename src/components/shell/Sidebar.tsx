@@ -28,6 +28,7 @@ import {
   Users,
   MessagesSquare,
   type LucideIcon,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { loadCollapsed, saveCollapsed } from "@/lib/sidebarWidth";
@@ -44,6 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { syncAlert, type SyncAlert } from "@/lib/syncView";
+import { navLock } from "@/lib/navLock";
 import { durationShort } from "@/lib/relTime";
 
 /** Slower than the open panel's second: the line only has to catch a wait or a lost connection, not count it down live. */
@@ -157,14 +159,36 @@ function Item({
   item,
   count,
   collapsed,
+  lock,
 }: {
   item: NavItem;
   count?: number | null;
   collapsed: boolean;
+  /** What the place needs that this profile lacks; it stays in the rail, greyed, and says so on hover and focus. */
+  lock?: "anilist" | "profile" | null;
 }) {
   const { t } = useTranslation();
   const Icon = item.icon;
   const label = t(item.key);
+  if (lock) {
+    const reason = lock === "anilist" ? t("nav.needsAniList") : t("nav.needsProfile");
+    return (
+      <Tooltip label={collapsed ? `${label} · ${reason}` : reason}>
+        {/* Not a link: there is nothing behind it yet, but it keeps a stop for the keyboard so the reason can be read. */}
+        <span
+          role="link"
+          aria-disabled="true"
+          aria-label={label}
+          tabIndex={0}
+          className={cn(itemClass, "cursor-default text-ink-600 opacity-60", collapsed && collapsedItemClass)}
+        >
+          <Icon className="size-4 shrink-0" />
+          {!collapsed && <span className={labelClass}>{label}</span>}
+          {!collapsed && <Lock aria-hidden className="ml-auto size-3.5 shrink-0" />}
+        </span>
+      </Tooltip>
+    );
+  }
   return named(
     collapsed,
     label,
@@ -414,6 +438,7 @@ export default function Sidebar() {
                 item={item}
                 collapsed={collapsed}
                 count={item.count ? counts[item.count] : undefined}
+                lock={navLock(item.to, mode)}
               />
             ))}
           </div>

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: cb541b5 -->
+<!-- generated-through: ce47914 -->
 
 ### Fixed
 
@@ -135,6 +135,7 @@ tag time is then optional rather than load-bearing.
 - Hints, timestamps and the lines under titles are easier to read, at 12 instead of 10 px.
 - On the desktop, the formatting toolbar of a post, thread, review or bio appears once you start writing.
 - An empty favourites section on your own profile says what favourites are and offers the editor right there.
+- Places that need an AniList account stay in the sidebar, greyed out, and say so when you point at them.
 
 ## 1.32.0 — 2026-10-03
 

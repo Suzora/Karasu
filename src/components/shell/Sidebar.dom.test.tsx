@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Sidebar from "./Sidebar";
-import { renderWithProviders, signIn } from "@/test/render";
+import { renderWithProviders, signIn, useLocalProfile } from "@/test/render";
 import { saveCollapsed } from "@/lib/sidebarWidth";
 
 afterEach(() => {
@@ -62,3 +62,22 @@ describe("Sidebar", () => {
     expect(screen.getAllByText("nav.calendar")).toHaveLength(1);
   });
 });
+
+/** A place the profile cannot open stays in the rail, greyed, and says on hover what it needs. */
+describe("Sidebar without an account", () => {
+  it("greys out the AniList-only places and names what they need", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ delay: null });
+    useLocalProfile();
+    renderWithProviders(<Sidebar />);
+    expect(document.querySelector('a[href="/social"]')).toBeNull();
+    const social = screen.getByRole("link", { name: "nav.social" });
+    expect(social).toHaveAttribute("aria-disabled", "true");
+    await user.hover(social);
+    await pastTooltipDelay();
+    expect(screen.getByText("nav.needsAniList")).toBeInTheDocument();
+    // A local profile has statistics of its own, so that place stays open.
+    expect(screen.getByRole("link", { name: "nav.stats" })).not.toHaveAttribute("aria-disabled");
+  });
+});
+

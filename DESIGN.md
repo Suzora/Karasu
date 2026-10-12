@@ -881,3 +881,13 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   composer already did (C of three mockups, over A, the phone's six marks
   and More, and B, all thirteen always shown in four groups). The phone
   keeps its folded row at all times.
+- **2026-10-12:** An own profile with no favourites offers "Edit
+  favourites" inside its empty state, under a sentence on what favourites
+  are, and nowhere else (B of three mockups, over A, the button alone in
+  the empty state, and C, a "Favourites" header row carrying it always).
+  A place the profile in use cannot open stays in the sidebar, greyed with
+  a lock, and says on hover and focus what it needs: Activities and
+  Wrapped an AniList account, Statistics any profile (B of three, with the
+  maintainer's addition of the hover; over A, hiding them, and C, one
+  sentence in their place). The phone's More sheet writes the reason under
+  the row, since a touch has no hover. `lib/navLock` is the one rule.

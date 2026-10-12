@@ -1,6 +1,8 @@
 /** English, the source of truth for the key shape; `de.ts` is typed `typeof en`, so a missing German key fails tsc. */
 export const en = {
   nav: {
+    needsAniList: "Only with an AniList account",
+    needsProfile: "Needs an AniList account or a local profile",
     groupLibrary: "Library",
     groupDiscover: "Discover",
     groupInsight: "Insight",

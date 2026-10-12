@@ -256,6 +256,7 @@ export const SCREENS = [
   { id: "p11-benachrichtigungen", w: 405, h: 860, phone: true, route: "/notifications" },
   { id: "d16-erster-start", w: 1232, h: 800, route: "/", out: true },
   { id: "p9-erster-start", w: 405, h: 860, phone: true, route: "/", out: true },
+  { id: "p64-mehr-ohne-konto", w: 405, h: 860, phone: true, route: "/search", out: true, act: (p) => p.getByText("Mehr", { exact: true }).last().click() },
   { id: "d17-erkennung", w: 1232, h: 800, route: "/list", playing: true },
   { id: "p10-erkennung", w: 405, h: 860, phone: true, route: "/list", playing: true },
   { id: "d19-auswahl", w: 1232, h: 800, route: "/list", act: async (p) => {
