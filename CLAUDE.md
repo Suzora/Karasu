@@ -824,8 +824,11 @@ Linux target, the larger in all four, read 316.4, 17.5, 27.0 and 507.0 KiB, and
 three budgets came down to 326, 28 and 523 after the startup work of that week
 (no top-level await, the pages one click away loaded on idle, Motion replaced
 by CSS, entities decoded by the browser) took the window's wait from 405.1 KiB.
-The stylesheet's stays at 18, since 3 % over its reading rounds up past it. A
-raise names its reason in the commit) — then
+The stylesheet's stays at 18, since 3 % over its reading rounds up past it.
+On 2026-10-12 the day's sync panel, entry dialog and copy took the figures to
+329.8, 17.9, 28.4 and 527.1 KiB, and the maintainer set the window's budget to
+500 KiB and all script to 700, with the largest lazy chunk at 30, to leave room
+for a while. A raise names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
 with warnings denied, **cargo deny** (advisories, licences, bans, sources

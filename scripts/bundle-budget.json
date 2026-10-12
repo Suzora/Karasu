@@ -1,19 +1,19 @@
 {
-  "rule": "Each budget was set 3 % over the larger of the two build targets' measurement when it was last set, rounded up to a KiB; measured is the latest reading, and raising a budget needs its reason in the commit.",
+  "rule": "Set by the maintainer on 2026-10-12 with room to grow: the window's script at 500 KiB, all script at 700 KiB, the largest lazy chunk 3 % over its reading, the stylesheet unchanged; measured is the latest reading, and raising a budget needs its reason in the commit.",
   "measured": {
-    "date": "2026-10-06",
-    "target": "safari15, the Linux and Android build, which is the larger in all four",
+    "date": "2026-10-12",
+    "target": "safari15, the Linux and Android build",
     "bytes": {
-      "initialJs": 323950,
-      "initialCss": 17941,
-      "largestLazy": 27683,
-      "totalJs": 519206
+      "initialJs": 337707,
+      "initialCss": 18289,
+      "largestLazy": 29081,
+      "totalJs": 539753
     }
   },
   "budget": {
-    "initialJs": 333824,
+    "initialJs": 512000,
     "initialCss": 18432,
-    "largestLazy": 28672,
-    "totalJs": 535552
+    "largestLazy": 30720,
+    "totalJs": 716800
   }
 }
