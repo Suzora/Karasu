@@ -64,78 +64,72 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 4d20519 -->
+<!-- generated-through: ea8dcb0 -->
 
-### Fixed
+## 1.44.0 — 2026-10-12
 
-- On Linux, choosing the library folder, saving the Wrapped poster, exporting (calendar, backups, diagnostics) and importing no longer freeze the window.
-- On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square.
-- A detail page no longer scrolls sideways on a phone, and the community score chart writes counts from 10,000 up as "22k".
-- A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
-- A detail page no longer jumps when it finishes loading: its placeholder now has the page's banner height, and on a phone the page's layout too.
-- In a narrow window the detail page's community chart no longer runs its counts together, and its status legend no longer cuts names short.
-- On Android the background-notification settings offer the battery exemption themselves instead of linking to a Jellyfin row that only exists with a server connected.
-- In the notifications, a row about someone's activity and that person's name are now two separate controls, so a screen reader can reach both.
-- The "how much you agree" line on another user's Lists tab no longer disappears on the phone after a while.
-- A custom-list membership you just saved no longer snaps back when the list screen is reopened soon after.
-- Opening a title from a cover moves the cover into the detail page again instead of only fading.
-- A bulk edit on the manga list no longer reverts on screen until the next sync.
-- On Linux, clicking a sidebar link no longer freezes or closes the window; page changes there switch without the cross-fade.
-- List and grid keys work again right after opening a page.
-- Back after removing from the editor works again.
-- A rate limit no longer looks like a missing title, and the sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
-- The titlebar names the player (mpv) instead of its file, Side Story is translated in German, and the counts on the statistics sunburst are easier to read.
-- The last row of a list can scroll clear of the detection window, and the title page says the next episode airs in its countdown and how long is left to finish.
+The second Stable release since 1.0.0, and what the Nightly gained in the
+nine days after 1.32.0: titles in the language you choose everywhere Karasu
+writes one, notifications that say what they are about, a Compare tab on
+other users' profiles, custom lists you can manage from Settings, one compact
+dialog for editing an entry, a sync panel that says what Karasu is doing and
+what it will do next, and Back that returns you to where you were. Karasu
+starts lighter, reads more clearly at 12 px, works with a keyboard and a
+screen reader throughout, and on Linux no longer freezes on a file dialog or
+a sidebar click.
+
+Around the app: the website is one short page with the downloads, a gallery
+of real captures and what changed lately, and Karasu now builds as a Flatpak
+from source for Flathub.
 
 ### Added
 
-- Settings → Appearance has a title language — English, Romaji or the original — for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included; the link from the AniList account settings now lands on it.
-- Notifications about an activity or a forum comment now say which one: the list entry with its cover, the post or the comment, with spoilers hidden and nothing past your content filter.
+- Settings → Appearance has a title language — English, Romaji or the original — for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included ([#50](https://github.com/Suzora/Karasu/issues/50), [#51](https://github.com/Suzora/Karasu/issues/51)).
+- Notifications about an activity or a forum comment say which one: the list entry with its cover, the post or the comment, with spoilers hidden and nothing past your content filter. The system notification names the newest one (who did what, never what anyone wrote) instead of only counting them.
 - Mute new-episode notifications for a single show from its context menu; Settings lists the muted shows.
-- On a Wayland desktop the global hotkey now goes through the desktop's own shortcut portal (GNOME 48+, KDE Plasma, Hyprland), with its status shown in Settings.
 - A Compare tab on other users' profiles shows how much your scores agree, where you disagree most and what they rated that you have not seen.
 - Custom lists can be created, renamed and deleted in Settings, with every entry's membership checked and put back after the change.
+- The sync panel says in plain words what Karasu is doing right now, what it just asked AniList and which checks come next, with the request budget as a bar and a countdown while AniList holds requests back.
+- Back from a title returns you to the list, search, season, calendar, library or forum as you left it: the same filters, the same entry, the same scroll position.
+- On a Wayland desktop the global hotkey goes through the desktop's own shortcut portal (GNOME 48+, KDE Plasma, Hyprland), with its status shown in Settings.
+- Browser detection recognises Bilibili, and shows Disney+ and Prime Video titles as playing (series only, no episode updates).
+- A chapter in any browser tab is recognised for a manga you are reading, and always asks before it updates ([#56](https://github.com/Suzora/Karasu/issues/56)).
 
 ### Changed
 
-- The background notification check now names the newest AniList notification (who did what, never what anyone wrote) instead of only counting them.
-- Browser detection now recognises Bilibili, shows Disney+ and Prime Video titles as playing (series only, no episode updates), and no longer claims Netflix, whose tab never names the episode.
-- The app's code loads at start in a few larger pieces instead of seventy-five small ones, and about 20 KiB smaller.
-- The detail, search and season pages load after the first paint, which makes the start about 33 KiB lighter.
-- The app's code is about 44 KiB smaller after dropping the animation library the notification toast used; the toast looks and behaves as before.
-- A store build (Flathub, F-Droid) no longer offers an update check; the store delivers its updates.
-- With verbose logging on, the log says why a playing media session was not recognised, and which browser windows hold its title.
-- Manga detection names only official readers, and a chapter on any other site is recognised for a manga you are reading, always with a confirmation.
-- When Karasu will ask before updating ("Ask before updating" on, or a chapter from a site it does not name), the now-playing card counts down to asking instead of promising an update.
-- A failed load says what went wrong and offers Retry.
-- Numbers, scores, dates and durations read the way your language writes them.
-- Buttons that open another page are one Tab stop.
-- German copy uses one word per thing and counts properly.
-- Keyboard focus stays in the palette and lands on the new page.
-- The bell and the sync panel speak their counts, and the panel is a popover.
-- The list search and the composer name their keys the way your keyboard does.
-- List rows: the checkbox works, and receipts lead with what happened.
-- The detail page, its editors and dialogs.
-- The quick editor's status tiles show the whole German name.
-- Settings: fields you can retype, rows that don't misfire, controls with names.
-- An open settings pane on the phone says which pane it is.
-- The content filter is one control with its levels named.
-- Social controls get names and finger-sized targets.
-- Statistics: real format names, readable charts, one title size.
-- Overview, calendar, library, person page and Wrapped.
-- The profile's lists filter fits one row on the phone.
-- Back from a title returns you to where you were.
-- Android's status and navigation bars follow the light and high-contrast themes.
-- The sync panel says in plain words what Karasu is doing right now, what it just asked AniList and what it will check next, with the request budget as a bar and a countdown while AniList holds requests back.
-- Right-clicking a title shows only what you can do with that title; Back, Reload, the palette and the other page commands are a right-click on the page.
-- The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
+- Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change as you make it, with Undo, instead of a form with a Save button.
+- A title without an AniList banner shows its prequel's (or another relative's) banner, or its cover's colour, instead of a blurred cover.
+- Right-clicking a title shows only what you can do with that title; Back, Reload and the other page commands are a right-click on the page.
 - On season and search cards, a title on your list shows a small status dot instead of a check that looked like a button.
-- Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change at once, with Undo, instead of a form with a Save button.
-- On the desktop, search filters fold behind one Filter button, and the forum picks its category from one field instead of seventeen chips.
-- Hints, timestamps and the lines under titles are easier to read, at 12 instead of 10 px.
-- On the desktop, the formatting toolbar of a post, thread, review or bio appears once you start writing.
-- An empty favourites section on your own profile says what favourites are and offers the editor right there.
-- Places that need an AniList account stay in the sidebar, greyed out, and say so when you point at them.
+- The +1, complete and Play buttons on every row are quiet until you point at them, and Rewatching is teal instead of a second green.
+- Places that need an AniList account stay in the sidebar, greyed out, and say what they need when you point at them.
+- On the desktop, search filters fold behind one Filter button, the forum picks its category from one field, and the formatting toolbar of a post or a review appears once you start writing.
+- Hints, timestamps and the lines under titles are set at 12 instead of 10 px, and numbers, scores, dates and durations read the way your language writes them.
+- Keyboard and screen reader: every control has a name, buttons that open another page are one Tab stop, focus lands on the new page and stays in the palette, the bell and the sync panel speak their counts, and small controls have finger-sized targets on touch screens.
+- Statistics name formats as "Film" and "Special", colour a status breakdown in the status colours, and keep chart labels readable at any size.
+- A failed load says what went wrong and offers Retry, and a rate limit says how long the wait is instead of looking like a missing title.
+- When Karasu will ask before updating, the now-playing card counts down to asking instead of promising an update.
+- Adult art is veiled the same way everywhere while the blur is on; the related titles, the franchise graph, the random pick and the activity feed showed it unblurred.
+- Android's status and navigation bars follow the light and high-contrast themes.
+- Karasu starts with less to load: the app's code arrives in a few larger pieces, the detail, search and season pages load after the first paint, and the animation library is gone, about 100 KiB less in all. The Windows program is about 3 MB smaller.
+- A store build (Flathub, F-Droid) leaves updates to the store.
+- Manga detection names only official readers; Netflix is no longer claimed, since its tab never names the episode.
+
+### Fixed
+
+- On Linux, choosing the library folder, saving the Wrapped poster, exporting (calendar, backups, diagnostics) and importing no longer freeze the window ([#62](https://github.com/Suzora/Karasu/issues/62), [#68](https://github.com/Suzora/Karasu/issues/68)).
+- On Linux, clicking a sidebar link no longer freezes or closes the window; page changes there switch without the cross-fade ([#54](https://github.com/Suzora/Karasu/issues/54), [#55](https://github.com/Suzora/Karasu/issues/55)).
+- A detail page no longer scrolls sideways on a phone or jumps when it finishes loading, and its community chart no longer runs its counts together in a narrow window.
+- On Android, the Search page's scope chips and Wrapped's export options no longer show scrollbars and a white corner square ([#48](https://github.com/Suzora/Karasu/issues/48)).
+- On Android, the background-notification settings offer the battery exemption themselves instead of pointing at a Jellyfin row that only exists with a server connected ([#52](https://github.com/Suzora/Karasu/issues/52)).
+- A custom-list membership you just saved no longer snaps back when the list screen is reopened soon after.
+- A bulk edit on the manga list no longer reverts on screen until the next sync.
+- The "how much you agree" line on another user's Lists tab no longer disappears on the phone after a while.
+- Opening a title from a cover moves the cover into the detail page again instead of only fading.
+- In list selection, a row's checkbox toggles once; the calendar no longer marks an upcoming episode with the same check as a watched one.
+- Settings fields keep what you type and save once you leave them, instead of on every keystroke.
+- The sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
+- The titlebar names the player (mpv) instead of its file, Side Story is translated in German, and the last row of a list can scroll clear of the detection window.
 
 ## 1.32.0 — 2026-10-03
 
