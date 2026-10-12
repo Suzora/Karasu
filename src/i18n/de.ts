@@ -1298,6 +1298,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     noFollowersSelf: "Dir folgt noch niemand",
     noFollowingSelf: "Du folgst noch niemandem",
     noFavouritesSelf: "Du hast noch keine Favoriten gewählt",
+    noFavouritesSelfHint: "Anime, Manga, Figuren, Staff und Studios, die du magst, erscheinen hier und auf AniList.",
     noThreadsCreatedSelf: "Du hast noch keinen Thread erstellt",
     noUserCommentsSelf: "Du hast noch nichts im Forum geschrieben",
     forumLens: "Forenbeiträge",

@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f1568b0 -->
+<!-- generated-through: cb541b5 -->
 
 ### Fixed
 
@@ -134,6 +134,7 @@ tag time is then optional rather than load-bearing.
 - On the desktop, search filters fold behind one Filter button, and the forum picks its category from one field instead of seventeen chips.
 - Hints, timestamps and the lines under titles are easier to read, at 12 instead of 10 px.
 - On the desktop, the formatting toolbar of a post, thread, review or bio appears once you start writing.
+- An empty favourites section on your own profile says what favourites are and offers the editor right there.
 
 ## 1.32.0 — 2026-10-03
 

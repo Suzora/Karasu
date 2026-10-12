@@ -1288,6 +1288,7 @@ export const en = {
     noFollowersSelf: "Nobody follows you yet",
     noFollowingSelf: "You aren't following anyone yet",
     noFavouritesSelf: "You haven't picked any favourites",
+    noFavouritesSelfHint: "Anime, manga, characters, staff and studios you love show here and on AniList.",
     noThreadsCreatedSelf: "You haven't started a thread",
     noUserCommentsSelf: "You haven't commented in the forum",
     forumLens: "Forum posts",

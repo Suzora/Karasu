@@ -170,3 +170,14 @@ describe("the profile's Compare tab", () => {
   });
 });
 
+/** On the viewer's own empty favourites the action sat at the far edge; it belongs where the eye already is. */
+describe("the profile's empty favourites", () => {
+  it("offers the editor inside the empty state, with a word on what favourites are, and nowhere else", async () => {
+    const viewer = signIn();
+    profile.mockResolvedValue(person(viewer.id, viewer.name));
+    mount(viewer.name, "overview");
+    expect(await screen.findByText("social.noFavouritesSelfHint")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /social\.editFavourites/ })).toHaveLength(1);
+  });
+});
+

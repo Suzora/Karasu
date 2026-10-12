@@ -272,14 +272,14 @@ function Favourites({ user }: { user: UserProfileData }) {
   const empty =
     !anime.length && !manga.length && !characters.length && !staff.length && !studios.length;
 
-  const editButton = self ? (
-    <div className="flex justify-end">
-      <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-        <Pencil className="size-3.5" />
-        {t("social.editFavourites")}
-      </Button>
-    </div>
-  ) : null;
+  const pencil = (
+    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+      <Pencil className="size-3.5" />
+      {t("social.editFavourites")}
+    </Button>
+  );
+  // With nothing to show, the action belongs in the empty state, where the eye already is, and not at the far edge.
+  const editButton = self && !empty ? <div className="flex justify-end">{pencil}</div> : null;
 
   return (
     <div className="space-y-6">
@@ -290,6 +290,8 @@ function Favourites({ user }: { user: UserProfileData }) {
         <EmptyState
           visual={<CoverOutline />}
           title={self ? t("social.noFavouritesSelf") : t("social.noFavourites", { name: user.name })}
+          hint={self ? t("social.noFavouritesSelfHint") : undefined}
+          actions={self ? pencil : undefined}
         />
       )}
 
