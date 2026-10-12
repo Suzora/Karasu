@@ -201,7 +201,8 @@ export function MarkdownTextarea({
   if (!folded && moreAnchor !== null) setMoreAnchor(null);
   const previewing = preview === "toggle" && showPreview;
   const source = previewSource ?? value;
-  const toolbarShown = !compact || active || value.length > 0;
+  // On the desktop the marks arrive with the writing, so an idle composer is a field and not a strip of thirteen.
+  const toolbarShown = (phone && !compact) || active || value.length > 0;
 
   const previewPanel = (
     <div

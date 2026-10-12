@@ -64,7 +64,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: a38e684 -->
+<!-- generated-through: f1568b0 -->
 
 ### Fixed
 
@@ -133,6 +133,7 @@ tag time is then optional rather than load-bearing.
 - Editing an entry from a list, a card, the franchise view or the right-click menu opens one compact dialog that saves every change at once, with Undo, instead of a form with a Save button.
 - On the desktop, search filters fold behind one Filter button, and the forum picks its category from one field instead of seventeen chips.
 - Hints, timestamps and the lines under titles are easier to read, at 12 instead of 10 px.
+- On the desktop, the formatting toolbar of a post, thread, review or bio appears once you start writing.
 
 ## 1.32.0 — 2026-10-03
 

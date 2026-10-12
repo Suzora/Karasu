@@ -875,3 +875,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   the filter bars' shape, right after the lenses (C of three, over A, a
   native select at the row's end, and B, a native select on a row of its
   own); the phone keeps its native select.
+- **2026-10-12:** On the desktop, a full markdown composer (an activity,
+  a thread, a review, a bio) shows its toolbar only while the field is
+  focused or holds text, all thirteen marks then, as a reply's compact
+  composer already did (C of three mockups, over A, the phone's six marks
+  and More, and B, all thirteen always shown in four groups). The phone
+  keeps its folded row at all times.

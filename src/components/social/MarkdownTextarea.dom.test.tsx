@@ -39,6 +39,7 @@ function select(start: number, end: number) {
 describe("MarkdownTextarea", () => {
   it("names every toolbar button", () => {
     render(<Harness />);
+    fireEvent.focus(field());
     const toolbar = screen.getByRole("toolbar", { name: "composer.toolbar" });
     const buttons = toolbar.querySelectorAll("button");
     expect(buttons.length).toBe(13);
@@ -107,6 +108,19 @@ describe("MarkdownTextarea", () => {
     // The toggle is disabled on a blank draft, so this reaches the sentence through the side-by-side form instead.
     render(<Harness initial="" preview="side" previewEmpty="nothing here" />);
     expect(screen.getByText("nothing here")).toBeInTheDocument();
+  });
+
+  /** Thirteen marks stood over the feed before anyone wrote a word; on the desktop they arrive with the writing. */
+  it("keeps the full toolbar away until the field is focused or holds text, then shows all of it", () => {
+    const { unmount } = render(<Harness />);
+    expect(screen.queryByRole("toolbar")).toBeNull();
+    fireEvent.focus(field());
+    expect(screen.getByRole("toolbar").querySelectorAll("button").length).toBe(13);
+    fireEvent.blur(field());
+    expect(screen.queryByRole("toolbar")).toBeNull();
+    unmount();
+    render(<Harness initial="a draft" />);
+    expect(screen.getByRole("toolbar")).toBeInTheDocument();
   });
 
   it("compact: no toolbar until the field is focused or has text, and a subset when it is", () => {
