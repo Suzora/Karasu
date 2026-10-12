@@ -71,6 +71,12 @@ form, so the reasons are here.
   to the build server's `gradle` in for the Gradle wrapper, which fdroidserver
   deletes from every Gradle project before building and which
   `tauri android build` calls, then builds the arm64 APK.
+- **`prebuild`** deletes `REQUEST_INSTALL_PACKAGES` from the manifest. The
+  permission exists for the in-app updater, which this build compiles out,
+  and an app on F-Droid that may install packages is the first thing a
+  reviewer asks about. The line sits outside Tauri's generated markers, so
+  `tauri android build` leaves the deletion alone; no plugin donates the
+  permission back, which only the build server's merged manifest can confirm.
 - **No `gradle:` key.** With `output:` set the build method is raw, so
   fdroidserver takes the APK `tauri android build` wrote instead of running its
   own `assembleRelease` across every Rust target in a fresh shell.

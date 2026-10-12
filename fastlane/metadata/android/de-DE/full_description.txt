@@ -6,4 +6,4 @@ Vier Widgets auf dem Startbildschirm zeigen, was heute läuft, was du gerade sch
 
 Erkennung auf Android heißt Jellyfin: Trag deinen Server ein, und die dort laufende Episode zählt bis zum Update herunter — auf Wunsch auch bei ausgeschaltetem Bildschirm, wenn du den Tracking-Dienst erlaubst.
 
-Karasu holt seine Updates selbst von den GitHub-Releases und installiert sie über den Systeminstaller; es sendet nichts irgendwohin außer an AniList und den Jellyfin-Server, den du eingerichtet hast.
+Aus F-Droid installiert, bekommt Karasu seine Updates von F-Droid; die APK aus den GitHub-Releases holt ihre eigenen und öffnet den Systeminstaller. Karasu spricht mit AniList, mit dem Jellyfin-Server, den du eingerichtet hast, einmal pro Woche mit GitHub für die Daten der Community, wie Episoden über Staffeln hinweg zählen, und, wenn du ein Profil öffnest, mit den Hosts der Bilder in dessen Bio, über einen eigenen, begrenzten Abruf. Einen eigenen Server oder Analysen gibt es nicht.

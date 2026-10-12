@@ -40,6 +40,7 @@ Builds:
       - cd ../../../.. && rm -f node_modules/playwright-core/lib/webp_codec.wasm node_modules/@typescript/typescript-linux-x64/lib/tsc
         node_modules/@astrojs/compiler/dist/astro.wasm node_modules/source-map/lib/mappings.wasm
     output: build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk
+    prebuild: sed -i -e '/REQUEST_INSTALL_PACKAGES/d' src/main/AndroidManifest.xml
     build:
       - . $HOME/.cargo/env
       - export KARASU_NO_SELF_UPDATE=1 KARASU_UNSIGNED=1

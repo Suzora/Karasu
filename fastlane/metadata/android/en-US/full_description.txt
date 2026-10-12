@@ -6,4 +6,4 @@ Four home-screen widgets show what is airing today, what you are watching and re
 
 Detection on Android is Jellyfin: point Karasu at your server and the episode playing there counts down to an update, with the screen off if you allow the tracking service to run.
 
-Karasu fetches its own updates from GitHub releases and installs them through the system installer; it never sends anything anywhere but AniList and the Jellyfin server you configured.
+Installed from F-Droid, Karasu gets its updates from F-Droid; the APK from the GitHub releases fetches its own and opens the system installer. Karasu talks to AniList, to the Jellyfin server you set up, to GitHub once a week for the community's data on how episodes carry across seasons, and, when you open a profile, to the hosts of the images in its bio, through a bounded fetch of its own. It has no server of its own and no analytics.
