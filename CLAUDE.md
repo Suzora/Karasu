@@ -910,10 +910,16 @@ Added, Changed, Fixed, Removed or Security, text in a group that is not a
 `- ` bullet or its two-space continuation, or releases out of order. That
 fails the build, so `changelogRead.test.ts` reads the real file to say so
 first; CI ignores `*.md`, so a hand edit is checked by the gate and the push
-gate, not by a CI run of its own. The project skill
-`.claude/skills/karasu-changelog` puts these rules in order for writing a
-commit's line, curating a Stable and F-Droid's fastlane changelog; for the
-short store text it hands drafting to the `app-store-changelog` skill.
+gate, not by a CI run of its own.
+
+**Every changelog line, trailer and curated release follows the project
+skill `.claude/skills/karasu-changelog`**, decided by the maintainer on
+2026-10-13: it holds the procedure he expects for a commit's subject or
+`Changelog:` trailer, for curating a Stable (the range named by its tag,
+since the `latest` tag breaks `git describe`, and an audit for commits left
+out) and for F-Droid's fastlane changelog. Load it before writing any of
+them. The short store text is drafted with the global `app-store-changelog`
+skill and then fitted to the house rules, which that skill does not know.
 
 For build-affecting changes — dependencies, `tauri.conf.json`, anything in the
 bundle — also run `npm run tauri build` as a smoke check. On Windows only the
@@ -2186,7 +2192,11 @@ the token and the GPU path were not exercised there. `SUBMISSION.md` there has
 the request's steps and what the sandbox changes. **F-Droid**: `packaging/fdroid/dev.kyu.karasu.yml`
 is the fdroiddata recipe, `scripts/release/fdroid-recipe.ps1 -Tag` fills its
 version, code and commit, `fastlane/metadata/android/{en-US,de-DE}` is the
-listing F-Droid reads at the tag. The recipe sets two build-time switches:
+listing F-Droid reads at the tag. Every Stable tag carries
+`changelogs/<versionCode>.txt` in both locales (`1000000 + COMMIT_NUMBER`
+of the tagged build), at most 500 characters, German in the du form,
+written in the curate commit because F-Droid reads the metadata at the tag
+(decided on 2026-10-13; the `karasu-changelog` skill has the procedure). The recipe sets two build-time switches:
 `KARASU_NO_SELF_UPDATE` (`self_update_disabled` in `commands/update.rs`;
 F-Droid forbids self-updating apps, so the check and the install both stand
 down) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an unsigned release

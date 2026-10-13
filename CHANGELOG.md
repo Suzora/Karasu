@@ -17,8 +17,13 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 2. open a fresh empty `## Unreleased` above it, carrying a
    `<!-- generated-through: <sha> -->` marker so the generator knows where to
    resume,
-3. and make sure `package.json` already says the same version — the workflow
-   refuses a tag whose version disagrees with the commit it points at.
+3. make sure `package.json` already says the same version — the workflow
+   refuses a tag whose version disagrees with the commit it points at,
+4. and, in the same commit, write F-Droid's
+   `fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt`
+   (at most 500 characters each) and check the section against
+   `git log v<previous>..HEAD` for anything left out; the project skill
+   `.claude/skills/karasu-changelog` has both procedures.
 
 Commit subjects are the real record and are written to be read; this file is the
 short version, grouped by what it means for someone using the app. The app

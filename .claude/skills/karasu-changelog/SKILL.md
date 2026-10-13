@@ -45,7 +45,7 @@ So every line is read on its own, out of its commit's context, by someone using 
 
    `app-store-changelog`'s `scripts/collect_release_changes.sh v<previous> HEAD` gives the same list with the files touched.
 2. **Run an omission audit.** Every commit in the range is either covered by a line or genuinely internal. Say which commits you left out, and why.
-3. **Rewrite the Unreleased section into the release section** using the header's three steps:
+3. **Rewrite the Unreleased section into the release section** using the header's release steps (the fourth, the fastlane texts and the audit, is below):
    - Rename it to `## <version> — <YYYY-MM-DD>`. No brackets and no fourth number, or the tag build throws.
    - Open a fresh `## Unreleased` above it, carrying the `<!-- generated-through: <sha> -->` marker.
    - Check that `package.json` already says that version.
