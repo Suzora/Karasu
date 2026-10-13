@@ -910,7 +910,10 @@ Added, Changed, Fixed, Removed or Security, text in a group that is not a
 `- ` bullet or its two-space continuation, or releases out of order. That
 fails the build, so `changelogRead.test.ts` reads the real file to say so
 first; CI ignores `*.md`, so a hand edit is checked by the gate and the push
-gate, not by a CI run of its own.
+gate, not by a CI run of its own. The project skill
+`.claude/skills/karasu-changelog` puts these rules in order for writing a
+commit's line, curating a Stable and F-Droid's fastlane changelog; for the
+short store text it hands drafting to the `app-store-changelog` skill.
 
 For build-affecting changes — dependencies, `tauri.conf.json`, anything in the
 bundle — also run `npm run tauri build` as a smoke check. On Windows only the
