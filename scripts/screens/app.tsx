@@ -1,4 +1,5 @@
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
+import changelog from "virtual:changelog";
 
 // The real App, shell included, over a mocked backend; `scripts/screens.mjs` drives it and names the parameters.
 mockWindows("main");
@@ -605,6 +606,17 @@ mockIPC((cmd, args) => {
       return { hasBuiltinClientId: true, customClientId: null, callbackUrl: "http://127.0.0.1:53682/callback" };
     case "app_version":
       return "screens";
+    // Up to date unless a `neu-` mock names a build that just updated, so no other screen opens on the changelog.
+    case "get_whats_new": {
+      // Versions read off the bundled releases, so the two mocks keep their meaning after every Stable.
+      const lines = changelog.unreleased.groups.flatMap((g) => g.lines.map((l) => l.id));
+      const [newest, before] = changelog.releases.map((r) => r.version ?? "0.0.0");
+      const nightlyAfter = (v: string, commit: number) => v.replace(/\.(\d+)$/, (_, p) => `.${Number(p) + 1}.${commit}`);
+      if (mock === "neu-stable") return { current: `${newest}.900`, version: `${before}.800`, lines, channel: "stable" };
+      // A Nightly user from after the older release, now past the newer one: two lines seen, the newer release crossed.
+      if (mock === "neu-nightly") return { current: nightlyAfter(newest, 990), version: nightlyAfter(before, 850), lines: lines.slice(0, 2), channel: "prerelease" };
+      return { current: "screens", version: "screens", lines: [], channel: "stable" };
+    }
     case "get_library_episodes":
       return {};
     case "get_text_scale":

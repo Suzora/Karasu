@@ -143,6 +143,10 @@ export const commands = {
 	saveText: (contents: string, defaultName: string, filterLabel: string, extension: string) => typedError<boolean, string>(__TAURI_INVOKE("save_text", { contents, defaultName, filterLabel, extension })),
 	/**  The running four-part version, shown in the About window. */
 	appVersion: () => __TAURI_INVOKE<string>("app_version"),
+	/**  The stored "seen" mark beside the running build and the update channel, read once at start. */
+	getWhatsNew: () => __TAURI_INVOKE<WhatsNewSeen>("get_whats_new"),
+	/**  Marks the running build as seen with the Unreleased line ids it showed; the version is always the running one. */
+	setWhatsNewSeen: (lines: string[]) => typedError<null, string>(__TAURI_INVOKE("set_whats_new_seen", { lines })),
 	/**  Compares the running version against the selected channel's manifest; `force: false` respects the daily throttle. */
 	checkForUpdates: (force: boolean) => typedError<UpdateInfo, string>(__TAURI_INVOKE("check_for_updates", { force })),
 	getUpdateChannel: () => __TAURI_INVOKE<string>("get_update_channel"),
@@ -873,6 +877,18 @@ export type UpdateInfo = {
 	isNewer: boolean,
 	/**  The selected channel has no release to compare against, which is not the same as "up to date". */
 	channelEmpty: boolean,
+};
+
+/**  The stored "seen" mark beside the running build, which is all the frontend needs to decide what is new. */
+export type WhatsNewSeen = {
+	/**  The running four-part version. */
+	current: string,
+	/**  The build that last recorded the mark; none on an install that upgraded into it and has seen nothing yet. */
+	version: string | null,
+	/**  The Unreleased line ids recorded with it; none when nothing was recorded, empty when none were shown. */
+	lines: string[] | null,
+	/**  The update channel, `stable` or `prerelease`: a Stable build reads as a Nightly only to a Nightly user. */
+	channel: string,
 };
 
 /* Tauri Specta runtime */

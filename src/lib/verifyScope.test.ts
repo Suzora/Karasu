@@ -37,6 +37,13 @@ describe("versionOnly", () => {
     expect(versionOnly("src-tauri/src/commands/update.rs", rs, rs.replace("827;", "828;").replace("1.41.13.827", "1.41.14.828"))).toBe(true);
   });
 
+  it("calls the changelog marker the commit loop re-points a bump too, and a new line a change", () => {
+    const md = "# Changelog\n\n## Unreleased\n\n<!-- generated-through: d71187f -->\n\n### Fixed\n\n- A fix.\n";
+    expect(versionOnly("CHANGELOG.md", md, md.replace("d71187f", "79acbe2"))).toBe(true);
+    expect(versionOnly("CHANGELOG.md", md, md.replace("d71187f", "79acbe2").replace("- A fix.", "- A fix.\n- Another."))).toBe(false);
+    expect(scope([{ path: "CHANGELOG.md", versionOnly: true }])).toEqual({ rust: false, frontend: false });
+  });
+
   it("calls anything beside the bump a change", () => {
     const toml = files["src-tauri/Cargo.toml"][0];
     expect(versionOnly("src-tauri/Cargo.toml", toml, toml.replace('serde = "1"', 'serde = "2"'))).toBe(false);
@@ -81,6 +88,7 @@ describe("scope", () => {
       "scripts/verify-scope.mjs",
       ".github/workflows/ci.yml",
       "THIRD-PARTY-NOTICES.md",
+      "CHANGELOG.md",
       "index.html",
       "src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/MainActivity.kt",
       "src-tauri/gen/android/app/src/main/res/layout/karasu_widget.xml",

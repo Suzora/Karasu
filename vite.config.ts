@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import path from "node:path";
+import { changelogPlugin } from "./scripts/changelog-read.mjs";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -18,6 +19,8 @@ export default defineConfig(async ({ command, mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
+    // The "What's new" dialog reads CHANGELOG.md as data, parsed at build time so a malformed file fails the build.
+    changelogPlugin({ file: path.resolve(import.meta.dirname, "CHANGELOG.md") }),
     // @ts-expect-error process is a nodejs global
     ...(command === "serve" && process.env.KARASU_SCAN ? [reactScan()] : []),
     // `npm run build:analyze`: a treemap of what each chunk is made of, under dist-stats/, opened by hand.

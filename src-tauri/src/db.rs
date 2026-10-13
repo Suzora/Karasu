@@ -234,6 +234,18 @@ CREATE INDEX IF NOT EXISTS query_cache_media ON query_cache (media_id);
 PRAGMA user_version = 20;
 ";
 
+/// Schema v21: an existing install seeds no What's new mark, so its first start with this build shows what changed.
+const MIGRATION_V21: &str = "PRAGMA user_version = 21;";
+
+/// v21 for a database that did not exist before it: the running build is the one it has seen, so nothing is new.
+fn migration_v21_fresh() -> String {
+    format!(
+        "INSERT INTO kv (key, value) VALUES ('{}', '{}') ON CONFLICT(key) DO NOTHING;\nPRAGMA user_version = 21;",
+        crate::commands::WHATS_NEW_VERSION_KEY,
+        crate::commands::FULL_VERSION
+    )
+}
+
 /// One detection correction: what was detected, and what it really is.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -451,6 +463,14 @@ impl Db {
         }
         if version < 20 {
             apply(&conn, 20, MIGRATION_V20)?;
+        }
+        if version < 21 {
+            // v19's rule again: 0 means created just now, so this build is the one it has already seen.
+            if version == 0 {
+                apply(&conn, 21, &migration_v21_fresh())?;
+            } else {
+                apply(&conn, 21, MIGRATION_V21)?;
+            }
         }
         Ok(Db(Mutex::new(conn)))
     }
@@ -1460,6 +1480,7 @@ pub(crate) mod tests {
         // The fresh-database arm, which is what an in-memory database is.
         conn.execute_batch(MIGRATION_V19_FRESH).unwrap();
         conn.execute_batch(MIGRATION_V20).unwrap();
+        conn.execute_batch(&migration_v21_fresh()).unwrap();
         Db(Mutex::new(conn))
     }
 
@@ -1627,6 +1648,56 @@ pub(crate) mod tests {
         conn.execute_batch(MIGRATION_V19).unwrap();
         let db = Db(Mutex::new(conn));
         assert_eq!(db.kv_get("update_channel").as_deref(), Some("stable"));
+    }
+
+    /// Proves `open` marks a new file as having seen this build and leaves a file that arrived at v20 with nothing seen.
+    #[test]
+    fn v21_decides_by_the_version_the_file_arrived_with() {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!(
+            "karasu-v21-{}-{stamp}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A database written by a v20 build, then opened by this one: its first start should show what changed.
+        {
+            let conn = Connection::open(dir.join("karasu.db")).unwrap();
+            conn.execute_batch(MIGRATIONS).unwrap();
+            for step in [
+                MIGRATION_V2, MIGRATION_V3, MIGRATION_V4, MIGRATION_V5, MIGRATION_V6,
+                MIGRATION_V7, MIGRATION_V8, MIGRATION_V9, MIGRATION_V10, MIGRATION_V11,
+                MIGRATION_V12, MIGRATION_V13, MIGRATION_V14, MIGRATION_V15, MIGRATION_V16,
+                MIGRATION_V17, MIGRATION_V18, MIGRATION_V19, MIGRATION_V20,
+            ] {
+                conn.execute_batch(step).unwrap();
+            }
+        }
+        let upgraded = Db::open(dir.clone()).unwrap();
+        assert_eq!(upgraded.kv_get("whats_new_version"), None);
+        assert_eq!(upgraded.schema_version(), 21);
+        drop(upgraded);
+
+        // A database that did not exist until this open: nothing is new to it.
+        let fresh_dir = dir.join("fresh");
+        let fresh = Db::open(fresh_dir.clone()).unwrap();
+        assert_eq!(
+            fresh.kv_get("whats_new_version").as_deref(),
+            Some(crate::commands::FULL_VERSION)
+        );
+        assert_eq!(fresh.schema_version(), 21);
+        fresh.kv_set("whats_new_version", "1.0.0.1").unwrap();
+        drop(fresh);
+
+        // Opening it again runs no step, so a mark recorded since stays as it was.
+        let reopened = Db::open(fresh_dir).unwrap();
+        assert_eq!(reopened.kv_get("whats_new_version").as_deref(), Some("1.0.0.1"));
+        drop(reopened);
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     /// Proves a correction carries an episode offset, defaulting to the same numbering every pre-v13 row meant.
@@ -1846,7 +1917,7 @@ pub(crate) mod tests {
         let version: i64 = conn
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(version, 20, "and must end up fully migrated");
+        assert_eq!(version, 21, "and must end up fully migrated");
         drop(conn);
 
         // Every other `ALTER TABLE ADD COLUMN` step needs the same proof: the column present, the version behind.
@@ -1870,7 +1941,7 @@ pub(crate) mod tests {
             let version: i64 = conn
                 .query_row("PRAGMA user_version", [], |r| r.get(0))
                 .unwrap();
-            assert_eq!(version, 20);
+            assert_eq!(version, 21);
         }
 
         let _ = std::fs::remove_dir_all(&dir);

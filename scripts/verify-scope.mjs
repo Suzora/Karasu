@@ -10,6 +10,7 @@ export const RAW_READ_GLOBS = [
   "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
   "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
   "/THIRD-PARTY-NOTICES.md",
+  "/CHANGELOG.md",
   "/src-tauri/gen/android/app/src/main/assets/THIRD-PARTY-NOTICES.md",
   "/rust-toolchain.toml",
   "/.github/workflows/*.yml",
@@ -46,9 +47,12 @@ export function globToRegExp(glob) {
 const RAW_READ = RAW_READ_GLOBS.map(globToRegExp);
 const isRawRead = (path) => RAW_READ.some((re) => re.test(`/${path}`));
 
-/** Whether a file's change from `before` to `after` is a version bump alone, judged by the patterns bump-version writes. */
+/** What the commit loop rewrites after a commit and no test reads: CHANGELOG.md's marker, re-pointed after the amend. */
+const BOOKKEEPING = { "CHANGELOG.md": [/<!-- generated-through: [0-9a-f]{7,40} -->/g] };
+
+/** Whether a file's change is a version bump or the changelog marker alone, judged by the patterns that write them. */
 export function versionOnly(path, before, after) {
-  const patterns = VERSION_PATTERNS[path];
+  const patterns = VERSION_PATTERNS[path] ?? BOOKKEEPING[path];
   if (!patterns || before == null || after == null) return false;
   const flat = (text) => patterns.reduce((t, p) => t.replace(p, "<version>"), text.replace(/\r\n/g, "\n"));
   return before !== after && flat(before) === flat(after);

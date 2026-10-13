@@ -923,3 +923,14 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   screenshot switched by thumbnails, with a phone laid over its corner).
   On the desktop the changelog card now takes the screenshot's height and
   fades out whatever does not fit.
+- **2026-10-13:** After an update Karasu shows once, over the first screen,
+  what changed: CHANGELOG.md word for word in English, compact (the first
+  five lines without the intro, then "Show all N changes" for the whole
+  section; six lines or fewer show whole), with a release a Nightly user
+  crossed as a fold under the new lines (C of three mockups, over A,
+  everything stacked with the intro first, and B, the groups on tabs). At
+  the maintainer's word, About opens exactly the same view, not a list of
+  its own, and no text sits in a frame: the folds are plain rows. About's
+  entry is a "Changelog" button beside "Check for updates" (C of three,
+  over A, a link after the version line, and B, a card of its own); a store
+  build keeps it in its shortened Updates card.

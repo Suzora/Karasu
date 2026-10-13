@@ -487,6 +487,8 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::save_image,
             commands::save_text,
             commands::app_version,
+            commands::get_whats_new,
+            commands::set_whats_new_seen,
             commands::check_for_updates,
             commands::get_update_channel,
             commands::set_update_channel,

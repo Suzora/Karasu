@@ -104,7 +104,8 @@ Fold the result in with `git commit --amend --no-edit`, then run
 commit. The subject is the changelog line; a `Changelog: Fixed: …` trailer
 replaces it when the reader needs the effect rather than the change, and
 `Changelog: skip` leaves a commit out. Docs-, CI- and scripts-only commits
-drop out by themselves.
+drop out by themselves. The app shows these lines as written, after an update
+and under About, so write each one for someone using the app.
 
 One commit per feature. For anything touching dependencies,
 `tauri.conf.json`, or the bundle, also run `npm run tauri build` as a smoke

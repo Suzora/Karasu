@@ -61,6 +61,7 @@ src/
                      phone's NotifSheet and the NotifFeed rows both share with
                      the notifications page), command palette, keyboard
                      sheet, global keys, toast, first run, session expired, the
+                     what's-new gate (the changelog once after an update), the
                      sync panel, the pull-to-sync indicator, the detection pill
                      and the floating detection window, and the action host,
                      which owns right-click and long press and renders the context
@@ -69,7 +70,7 @@ src/
     media/           anything that renders a title or edits an entry
     overlays/        modal flows (confirm, preset, random pick, sign-in merge,
                      profile edit, match picker, favourites, new thread,
-                     season split, cover viewer, review composer)
+                     season split, cover viewer, review composer, what's new)
     list/            the parts MediaList draws (the header's ListToolbar and
                      the phone's ListMoreMenu, virtual grid, rows, bulk bar)
                      plus VirtualRows, the flat-list twin of VirtualGrid — the
@@ -111,7 +112,7 @@ src/
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          109 of the 133 frontend-facing commands, by subject:
+  commands/          111 of the 135 frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
                      update. The other 24 are the library scanner's 15 in
                      `library.rs` and the Android updater's 9 in
@@ -271,7 +272,9 @@ scripts/             bump-version.mjs (every commit), anilist-query.mjs
                      place and view), changelog.mjs
                      (appends the Unreleased section from the commits since
                      its `generated-through` marker; a `Changelog:` trailer
-                     overrules the subject), ratelimit-probe.mjs (re-measures
+                     overrules the subject), changelog-read.mjs (the same
+                     file read back as data for the What's new dialog, served
+                     as `virtual:changelog` at build time), ratelimit-probe.mjs (re-measures
                      the shape of AniList's rate window — stepped, see the
                      notes — one unauthenticated request per sample, needs
                      real egress to graphql.anilist.co), browser-measure.mjs
@@ -462,7 +465,7 @@ of AniList's own list fields, it costs nothing to carry, and the local list has
 stored it since schema v7. The rejected idea is tracking **purchases**, which
 would need price data the app has no source for.
 
-The schema is at **v20**. `library_match` (v8) holds the scanner's per-title
+The schema is at **v21**. `library_match` (v8) holds the scanner's per-title
 match confidence, which is what the local library's `exact` / `close` column
 reads. v9 adds `library_override` — the user's corrections, keyed on the parsed
 `(title, season)` with `season = -1` for a release name that carried none, and
@@ -557,6 +560,18 @@ the allowlist: feeds, activities (the bell's `siteNotifSubjects` among
 them), replies, threads, comments, notifications, favourites, search, and
 every mutation. The list itself is
 not here — it has its own 15-minute window in `fetch_media_list` (below).
+
+v21 seeds kv `whats_new_version` with the running build for a new install
+only, the v19 rule again: `open` decides by the pre-migration
+`user_version`, so a fresh install shows no What's new, while an existing
+one, which gets no seed, shows its first start with the feature what this
+build brought. The mark is that version plus `whats_new_lines`, the ids of
+the Unreleased lines the build carried (`get_whats_new`, which also answers
+the update channel, so a Stable build after a Nightly mark reads as a
+Nightly only on the Nightly channel, and `set_whats_new_seen`, which writes
+`FULL_VERSION` itself and refuses anything but at most a thousand line ids). Never write a second
+`FULL_VERSION: &str = "…"` text into `commands/update.rs`: F-Droid's
+`UpdateCheckData` reads the first one by regex.
 
 **AniList has two name spaces for a custom list, and only one is writable.**
 `MediaListCollection.lists[].name` is a *display* value: it upper-cases the
@@ -873,7 +888,29 @@ declined to, and a changelog kept by hand is one that silently goes stale. The
 commit subject is the changelog line; add a `Changelog: Fixed: …` trailer when
 the subject describes the change and the reader needs the effect, or
 `Changelog: skip` to leave a commit out. Version-only, docs-only, CI-only and
-scripts-only commits drop out without a trailer.
+scripts-only commits drop out without a trailer. The marker that
+`--marker-head` re-points rides along uncommitted into the next commit, and
+the gate's scope counts a marker-only change of CHANGELOG.md as bookkeeping,
+like a version bump, so it starts no suite.
+
+**The app shows that file, word for word and in English.** After an update
+Karasu opens What's new once over the first screen, and About's Changelog
+button opens the same view: `scripts/changelog-read.mjs` parses CHANGELOG.md
+at build time into `virtual:changelog` (Unreleased, the two newest releases,
+and `newestCut` naming the first one left out; older ones are a link to
+GitHub), a lazy chunk of about 10 KiB, and `lib/whatsNew` decides what a
+start shows. So every line is read on its own, out of its commit's context:
+write subjects and `Changelog:` trailers that make sense to someone using the
+app. A line's id is a hash of its plain text (case, spacing, markup and the
+final full stop evened out), which is how a Nightly shows only the lines it
+has not shown before; rewording a line that already shipped in a Nightly
+shows it again to Nightly users. The reader takes the headings
+`release-notes.ps1` takes and throws on anything else: a `### ` that is not
+Added, Changed, Fixed, Removed or Security, text in a group that is not a
+`- ` bullet or its two-space continuation, or releases out of order. That
+fails the build, so `changelogRead.test.ts` reads the real file to say so
+first; CI ignores `*.md`, so a hand edit is checked by the gate and the push
+gate, not by a CI run of its own.
 
 For build-affecting changes — dependencies, `tauri.conf.json`, anything in the
 bundle — also run `npm run tauri build` as a smoke check. On Windows only the
@@ -1187,7 +1224,7 @@ went from 2.0 s to **14.1 s**. Needing a DOM is a decision, so it is spelled out
 in the filename. `src/test/render.tsx` holds the provider wrapper and the
 sign-in helpers; it imports Testing Library, so nothing in the node project may
 import it. `src/test/fixtures.ts` holds the complete, typed `media`, `entry`,
-`listResult`, `nowPlaying` and `idleScrobble` builders both projects use — a
+`listResult`, `nowPlaying`, `idleScrobble`, `changeSection` and `changelog` builders both projects use — a
 test overrides the field it is about rather than spelling a sixteen-field
 literal — and `src/test/{markdown,markup,actions}.ts` the readers the split
 suites share. The node project runs on worker threads without isolation (one
@@ -1219,7 +1256,7 @@ so an agent's own `npx vitest run` gets Vitest's failures-only `agent`
 reporter; `verify.mjs` asks for `default` because it parses that. `npm run
 test:changed` (and `vitest related`) follow imports only, so the tests that
 read files through `import.meta.glob(…?raw)` — `i18nKeys`, `tokens`,
-`notices`, `toolchain`, `notifSchedule`, `verifyScope` — never come along for
+`notices`, `toolchain`, `notifSchedule`, `verifyScope`, `syncSources`, `changelogRead` — never come along for
 a change to the files they read; the commit gate's scope (above) is the
 selection that knows them. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
 measured against jsdom on 2026-09-19 and lost: tests 5.9 → 2.9 s, but the

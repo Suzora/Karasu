@@ -8,10 +8,10 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 882;
+pub const COMMIT_NUMBER: u32 = 883;
 
 /// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
-pub const FULL_VERSION: &str = "1.44.9.882";
+pub const FULL_VERSION: &str = "1.45.0.883";
 
 /// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {
@@ -23,6 +23,84 @@ pub fn app_version_string() -> String {
 #[specta::specta]
 pub fn app_version() -> String {
     app_version_string()
+}
+
+// --- What's new ----------------------------------------------------------------
+
+/// The build that last recorded the What's new mark; seeded on a fresh install, absent on one that upgraded into it.
+pub(crate) const WHATS_NEW_VERSION_KEY: &str = "whats_new_version";
+
+/// The Unreleased line ids that build showed, space-joined; an empty value means recorded, none shown.
+pub(crate) const WHATS_NEW_LINES_KEY: &str = "whats_new_lines";
+
+/// The stored "seen" mark beside the running build, which is all the frontend needs to decide what is new.
+#[derive(serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WhatsNewSeen {
+    /// The running four-part version.
+    pub current: String,
+    /// The build that last recorded the mark; none on an install that upgraded into it and has seen nothing yet.
+    pub version: Option<String>,
+    /// The Unreleased line ids recorded with it; none when nothing was recorded, empty when none were shown.
+    pub lines: Option<Vec<String>>,
+    /// The update channel, `stable` or `prerelease`: a Stable build reads as a Nightly only to a Nightly user.
+    pub channel: String,
+}
+
+/// More ids than any changelog holds, so a runaway caller cannot grow one kv row without bound.
+const WHATS_NEW_MAX_LINES: usize = 1000;
+
+/// The longest duplicate count an id may carry, which with the line cap bounds the row's size.
+const WHATS_NEW_MAX_COUNT_DIGITS: usize = 4;
+
+/// Whether `id` has the shape the frontend's line hash gives it: eight lowercase hex digits, then maybe `-` and a count.
+fn is_line_id(id: &str) -> bool {
+    let (hash, count) = match id.split_once('-') {
+        Some((hash, count)) => (hash, Some(count)),
+        None => (id, None),
+    };
+    hash.len() == 8
+        && hash.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        && count.is_none_or(|c| (1..=WHATS_NEW_MAX_COUNT_DIGITS).contains(&c.len()) && c.bytes().all(|b| b.is_ascii_digit()))
+}
+
+/// Reads the mark as `get_whats_new` answers it.
+pub(crate) fn whats_new_seen(db: &Db) -> WhatsNewSeen {
+    WhatsNewSeen {
+        current: app_version_string(),
+        version: db.kv_get(WHATS_NEW_VERSION_KEY),
+        lines: db
+            .kv_get(WHATS_NEW_LINES_KEY)
+            .map(|s| s.split_whitespace().map(str::to_string).collect()),
+        channel: stored_channel(db),
+    }
+}
+
+/// Records the running build as seen with the line ids it showed, refusing anything that is not a line id.
+pub(crate) fn record_whats_new(db: &Db, lines: &[String]) -> Result<(), String> {
+    if lines.len() > WHATS_NEW_MAX_LINES {
+        return Err("Too many changelog lines".into());
+    }
+    if !lines.iter().all(|id| is_line_id(id)) {
+        return Err("Not a changelog line id".into());
+    }
+    // The lines first, so a failure between the two keeps the old version and the next start judges this build again.
+    db.kv_set(WHATS_NEW_LINES_KEY, &lines.join(" "))?;
+    db.kv_set(WHATS_NEW_VERSION_KEY, FULL_VERSION)
+}
+
+/// The stored "seen" mark beside the running build and the update channel, read once at start.
+#[tauri::command]
+#[specta::specta]
+pub fn get_whats_new(db: State<'_, Db>) -> WhatsNewSeen {
+    whats_new_seen(&db)
+}
+
+/// Marks the running build as seen with the Unreleased line ids it showed; the version is always the running one.
+#[tauri::command]
+#[specta::specta]
+pub fn set_whats_new_seen(db: State<'_, Db>, lines: Vec<String>) -> Result<(), String> {
+    record_whats_new(&db, &lines)
 }
 
 // --- Update check ------------------------------------------------------------
@@ -429,6 +507,78 @@ mod tests {
         // Case-insensitive, and missing fields must not block.
         assert!(media_blocked(&json!({ "genres": ["ECCHI"] }), "strict"));
         assert!(!media_blocked(&json!({}), "strict"));
+    }
+
+    /// Owned ids from literals, the shape the command receives.
+    fn ids(v: &[&str]) -> Vec<String> {
+        v.iter().map(|s| s.to_string()).collect()
+    }
+
+    /// An install that upgraded into v21 has neither key, so it has seen nothing and recorded nothing.
+    #[test]
+    fn an_install_without_a_mark_has_seen_nothing() {
+        use super::{whats_new_seen, FULL_VERSION, WHATS_NEW_VERSION_KEY};
+        let db = crate::db::tests::mem_db();
+        db.kv_delete(WHATS_NEW_VERSION_KEY);
+        let seen = whats_new_seen(&db);
+        assert_eq!(seen.current, FULL_VERSION);
+        assert_eq!(seen.version, None);
+        assert_eq!(seen.lines, None);
+        assert_eq!(seen.channel, "stable");
+    }
+
+    /// The channel comes along, so a Stable build can tell a Nightly user from a Stable one with a Nightly mark.
+    #[test]
+    fn the_mark_carries_the_update_channel() {
+        use super::whats_new_seen;
+        let db = crate::db::tests::mem_db();
+        db.kv_set("update_channel", "prerelease").unwrap();
+        assert_eq!(whats_new_seen(&db).channel, "prerelease");
+    }
+
+    /// A record reads back as the running build and its ids, a numbered duplicate included, and the next one replaces it.
+    #[test]
+    fn a_record_reads_back_and_the_next_one_replaces_it() {
+        use super::{record_whats_new, whats_new_seen, FULL_VERSION, WHATS_NEW_VERSION_KEY};
+        let db = crate::db::tests::mem_db();
+        db.kv_delete(WHATS_NEW_VERSION_KEY);
+        record_whats_new(&db, &ids(&["0123abcd", "deadbeef", "deadbeef-2"])).unwrap();
+        let seen = whats_new_seen(&db);
+        assert_eq!(seen.version.as_deref(), Some(FULL_VERSION));
+        assert_eq!(seen.lines, Some(ids(&["0123abcd", "deadbeef", "deadbeef-2"])));
+
+        record_whats_new(&db, &ids(&["ffffffff"])).unwrap();
+        assert_eq!(whats_new_seen(&db).lines, Some(ids(&["ffffffff"])));
+    }
+
+    /// An empty record is still a record: the build showed no Unreleased lines.
+    #[test]
+    fn an_empty_record_reads_as_none_shown() {
+        use super::{record_whats_new, whats_new_seen, FULL_VERSION, WHATS_NEW_LINES_KEY, WHATS_NEW_VERSION_KEY};
+        let db = crate::db::tests::mem_db();
+        db.kv_delete(WHATS_NEW_VERSION_KEY);
+        record_whats_new(&db, &[]).unwrap();
+        assert_eq!(db.kv_get(WHATS_NEW_LINES_KEY).as_deref(), Some(""));
+        let seen = whats_new_seen(&db);
+        assert_eq!(seen.version.as_deref(), Some(FULL_VERSION));
+        assert_eq!(seen.lines, Some(vec![]));
+    }
+
+    /// A malformed id or more than a thousand are refused, and a refusal writes neither key.
+    #[test]
+    fn a_bad_record_is_refused_and_writes_nothing() {
+        use super::{record_whats_new, WHATS_NEW_LINES_KEY, WHATS_NEW_VERSION_KEY};
+        let db = crate::db::tests::mem_db();
+        db.kv_delete(WHATS_NEW_VERSION_KEY);
+        for bad in ["ABCDEF12", "abcdef1", "zzzzzzzz", "abcdef12-", "abcdef12-x", "abcdef123", "abcdef12-2-3", "abcdef12-12345", ""] {
+            assert!(record_whats_new(&db, &ids(&["0123abcd", bad])).is_err(), "{bad:?} must be refused");
+        }
+        let many: Vec<String> = (0..1001).map(|i| format!("{i:08x}")).collect();
+        assert!(record_whats_new(&db, &many).is_err(), "1001 ids must be refused");
+        assert_eq!(db.kv_get(WHATS_NEW_VERSION_KEY), None);
+        assert_eq!(db.kv_get(WHATS_NEW_LINES_KEY), None);
+
+        assert!(record_whats_new(&db, &many[..1000]).is_ok(), "a thousand is the limit, not past it");
     }
 }
 

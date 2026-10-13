@@ -39,6 +39,7 @@ import { useViewTransitions } from "@/hooks/useViewTransitions";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import ActionHost from "@/components/shell/ActionHost";
 import SignInMerge from "@/components/overlays/SignInMerge";
+import { WhatsNewAtStart } from "@/components/shell/WhatsNewAtStart";
 import Dashboard from "@/pages/Dashboard";
 import MediaList from "@/pages/MediaList";
 import { DetailSkeleton } from "@/components/Skeleton";
@@ -228,6 +229,7 @@ export default function App() {
       {/* Right-click and long press are one resolver with two renderers; the host owns both events. */}
       <ActionHost />
       <SignInMerge />
+      <WhatsNewAtStart />
       <Toast />
       {/* The titlebar is desktop window furniture; the phone has the system status bar above and the bell in the bottom bar. */}
       {!phone && <Titlebar />}

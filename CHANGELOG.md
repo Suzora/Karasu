@@ -21,7 +21,9 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
    refuses a tag whose version disagrees with the commit it points at.
 
 Commit subjects are the real record and are written to be read; this file is the
-short version, grouped by what it means for someone using the app.
+short version, grouped by what it means for someone using the app. The app
+shows its lines as written, once after an update and under About, so each line
+has to make sense on its own.
 
 **How this file is maintained: by `scripts/changelog.mjs`, not by hand.**
 Keeping two records of the same work in step by hand is the kind of chore that
@@ -64,7 +66,11 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: ea8dcb0 -->
+<!-- generated-through: 476b813 -->
+
+### Added
+
+- After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
 
 ## 1.44.0 — 2026-10-12
 

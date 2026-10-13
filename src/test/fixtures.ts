@@ -1,5 +1,6 @@
 import type { ListResult, Media, MediaListEntry, MediaListGroup } from "@/api/types";
 import type { NowPlaying, ScrobbleState } from "@/stores/nowPlaying";
+import type { ChangeSection, Changelog, GroupKind } from "@/lib/whatsNew";
 
 /** Complete, typed fixtures for both vitest projects; nothing here touches the DOM, React or Testing Library. */
 
@@ -92,4 +93,27 @@ export function idleScrobble(over: Partial<ScrobbleState> = {}): ScrobbleState {
     asks: false,
     ...over,
   };
+}
+
+/** A changelog section with one plain line per text given, its ids readable as `version/kind/index`. */
+export function changeSection(
+  version: string | null,
+  groups: Partial<Record<GroupKind, string[]>> = { added: ["A line."] },
+  over: Partial<ChangeSection> = {},
+): ChangeSection {
+  return {
+    version,
+    date: version ? "2026-10-12" : null,
+    intro: [],
+    groups: (Object.entries(groups) as [GroupKind, string[]][]).map(([kind, texts]) => ({
+      kind,
+      lines: texts.map((text, i) => ({ id: `${version ?? "unreleased"}/${kind}/${i}`, text: [{ type: "text", text }] })),
+    })),
+    ...over,
+  };
+}
+
+/** What a Nightly after 1.44.0 bundles: an empty Unreleased section, two releases, and 1.0.0 left out. */
+export function changelog(over: Partial<Changelog> = {}): Changelog {
+  return { unreleased: changeSection(null, {}), releases: [changeSection("1.44.0"), changeSection("1.32.0")], newestCut: "1.0.0", ...over };
 }

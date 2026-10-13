@@ -13,6 +13,7 @@ import {
   Download,
   ExternalLink,
   RotateCw,
+  ScrollText,
   Users,
 } from "lucide-react";
 import {
@@ -43,6 +44,9 @@ import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { backendErrorText } from "@/lib/backendError";
 import { formatDecimal } from "@/lib/format";
+import LazyWhatsNew, { loadChangelog } from "@/components/overlays/LazyWhatsNew";
+import { usePresentValue } from "@/hooks/usePresence";
+import type { Changelog } from "@/lib/whatsNew";
 
 const REPO_URL = "https://github.com/Suzora/Karasu";
 const DISCORD_HANDLE = "Kyusetzu";
@@ -55,6 +59,8 @@ export default function About() {
   const { t } = useTranslation();
   const android = isAndroid(usePlatform((s) => s.info));
   const [version, setVersion] = useState<string | null>(null);
+  const [changelog, setChangelog] = useState<Changelog | null>(null);
+  const shownChangelog = usePresentValue(changelog);
 
   useEffect(() => {
     if (isTauri) appVersion().then(setVersion).catch(() => {});
@@ -92,7 +98,7 @@ export default function About() {
 
       <div className="mt-8 space-y-6">
 
-      <UpdateSection />
+      <UpdateSection onChangelog={() => void loadChangelog().then(setChangelog).catch(() => {})} />
 
       <DiagnosticsSection />
 
@@ -135,6 +141,9 @@ export default function About() {
       </Card>
       </div>
       </div>
+      {shownChangelog.value && (
+        <LazyWhatsNew log={shownChangelog.value} leaving={shownChangelog.leaving} onClose={() => setChangelog(null)} />
+      )}
     </div>
   );
 }
@@ -320,7 +329,17 @@ function ApkUpdatePanel({ tick }: { tick: number }) {
   );
 }
 
-function UpdateSection() {
+/** The changelog button, beside the update check or alone in a store build's card. */
+function ChangelogButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Button variant="outline" onClick={onClick}>
+      <ScrollText className="size-4" /> {t("about.changelog")}
+    </Button>
+  );
+}
+
+function UpdateSection({ onChangelog }: { onChangelog: () => void }) {
   const { t } = useTranslation();
   const platform = usePlatform((s) => s.info);
   const [busy, setBusy] = useState(false);
@@ -390,6 +409,9 @@ function UpdateSection() {
       <Card>
         <CardTitle>{t("about.updates")}</CardTitle>
         <p className="mt-3 text-sm text-ink-500">{t("about.storeUpdates")}</p>
+        <div className="mt-3">
+          <ChangelogButton onClick={onChangelog} />
+        </div>
       </Card>
     );
   }
@@ -402,6 +424,8 @@ function UpdateSection() {
           <Spinner spinning={busy} className="size-4" />{" "}
           {busy ? t("about.checking") : t("about.checkUpdates")}
         </Button>
+
+        <ChangelogButton onClick={onChangelog} />
 
         {downloading && (
           <span className="flex items-center gap-1.5 text-sm text-ink-500">

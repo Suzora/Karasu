@@ -332,6 +332,10 @@ export const setApkDownloadMetered = (enabled: boolean) =>
 
 /** Full four-part app version (MAJOR.MINOR.PATCH.COMMIT#) for the About page. */
 export const appVersion = () => commands.appVersion();
+/** The stored What's new mark beside the running version; `lines` null means none were recorded yet. */
+export const getWhatsNew = () => commands.getWhatsNew();
+/** Marks the running build as seen with the Unreleased line ids it showed; Rust supplies the version. */
+export const setWhatsNewSeen = (lines: string[]) => unwrap(commands.setWhatsNewSeen(lines));
 /** The OS accent as `#rrggbb`, or null where the platform has none to publish. */
 export const systemAccent = () => commands.systemAccent();
 

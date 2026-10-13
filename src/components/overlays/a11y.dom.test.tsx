@@ -8,8 +8,9 @@ import { NewThreadModal } from "./NewThreadModal";
 import { SeasonSplitModal } from "./SeasonSplitModal";
 import { ReviewComposerModal } from "./ReviewComposerModal";
 import { ProfileEditModal } from "./ProfileEditModal";
+import WhatsNewDialog from "./WhatsNewDialog";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
-import { entry } from "@/test/fixtures";
+import { changeSection, changelog, entry } from "@/test/fixtures";
 import { checkA11y } from "@/test/a11y";
 
 /** Every overlay, rendered once and graded by axe: the a11y lint rules are off because they argue with our roles. */
@@ -37,6 +38,17 @@ const CASES: [string, () => React.ReactElement][] = [
   ],
   ["ReviewComposerModal", () => <ReviewComposerModal mediaId={1} onClose={noop} />],
   ["ProfileEditModal", () => <ProfileEditModal viewerName="Kyu" about="hi" profileColor="blue" onClose={noop} />],
+  [
+    "WhatsNewDialog",
+    () => (
+      <WhatsNewDialog
+        log={changelog()}
+        pending={{ sections: [], crossed: [changeSection("1.44.0")], unreleased: changeSection(null, { fixed: ["A fix."] }), older: true }}
+        onClose={noop}
+      />
+    ),
+  ],
+  ["WhatsNewDialog browsing", () => <WhatsNewDialog log={changelog()} onClose={noop} />],
 ];
 
 afterEach(signOut);
