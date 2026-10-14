@@ -18,6 +18,9 @@ import {
   type Pending,
 } from "@/lib/whatsNew";
 
+/** As tall as its text and never more than this much of the screen, on the phone and the desktop alike. */
+const HEIGHT = "max-h-[80vh]";
+
 /** Everything older than the bundled releases, and the record the dialog is cut from. */
 export const CHANGELOG_URL = "https://github.com/Suzora/Karasu/blob/main/CHANGELOG.md";
 
@@ -195,7 +198,7 @@ export default function WhatsNewDialog({
   );
 
   return phone ? (
-    <Sheet open={!leaving} onClose={onClose} label={view.title} tall>
+    <Sheet open={!leaving} onClose={onClose} label={view.title} className={HEIGHT}>
       <p className="text-base font-semibold text-ink-100">{view.title}</p>
       {view.date && <p className="mt-0.5 text-xs text-ink-600">{view.date}</p>}
       <div className="mt-4">
@@ -205,7 +208,15 @@ export default function WhatsNewDialog({
       <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-hair pt-3">{footer}</div>
     </Sheet>
   ) : (
-    <Modal title={view.title} description={view.date || undefined} onClose={onClose} leaving={leaving} size="lg" footer={footer}>
+    <Modal
+      title={view.title}
+      description={view.date || undefined}
+      onClose={onClose}
+      leaving={leaving}
+      size="lg"
+      className={HEIGHT}
+      footer={footer}
+    >
       <Body view={view} log={log} />
       {english && <div className="mt-5">{english}</div>}
     </Modal>

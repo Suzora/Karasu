@@ -71,11 +71,15 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 588b454 -->
+<!-- generated-through: b630f2d -->
 
 ### Added
 
 - After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
+
+### Fixed
+
+- The What's new popup is only as tall as its text, at most 80 % of the screen, instead of filling the phone's screen.
 
 ## 1.44.0 — 2026-10-12
 

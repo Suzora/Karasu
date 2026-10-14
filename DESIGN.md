@@ -934,3 +934,8 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   entry is a "Changelog" button beside "Check for updates" (C of three,
   over A, a link after the version line, and B, a card of its own); a store
   build keeps it in its shortened Updates card.
+- **2026-10-14:** What's new is as tall as its text and never more than
+  80 % of the screen, on the phone and the desktop alike, at the
+  maintainer's word after the first Nightly showed one line in a sheet that
+  filled the phone: the phone's sheet is no longer the tall one, and the
+  desktop dialog takes the same limit instead of the window's height.
