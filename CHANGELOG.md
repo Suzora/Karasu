@@ -80,6 +80,7 @@ tag time is then optional rather than load-bearing.
 
 ### Fixed
 
+- A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.
 - The Year filter in Search finds manga by the year they started, where it found none before.
 
 ## 1.44.0 — 2026-10-12
