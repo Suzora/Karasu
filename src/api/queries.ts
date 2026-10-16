@@ -290,7 +290,7 @@ query ($perPage: Int, $season: MediaSeason, $year: Int, $nextSeason: MediaSeason
     media(type: ANIME, sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
   }
   top: Page(perPage: 10) {
-    media(type: ANIME, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity }
+    media(type: ANIME, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity startDate { year } }
   }
 }`;
 
@@ -306,12 +306,12 @@ query ($perPage: Int, $isAdult: Boolean, $scoreFormat: ScoreFormat) {
     media(type: MANGA, countryOfOrigin: "KR", sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
   }
   top: Page(perPage: 10) {
-    media(type: MANGA, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity }
+    media(type: MANGA, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity startDate { year } }
   }
 }`;
 
-/** A browse title; the ranked section also carries how many users list it. */
-export type BrowseMedia = MediaWithListStatus & { popularity?: number | null };
+/** A browse title; the ranked section also carries how many users list it and the year it started. */
+export type BrowseMedia = MediaWithListStatus & { popularity?: number | null; startDate?: { year: number | null } | null };
 
 /** One medium's browse answer, a page per section under the section's own key. */
 export type MediaBrowse = Partial<Record<MediaSectionKey, { media: BrowseMedia[] | null } | null>>;

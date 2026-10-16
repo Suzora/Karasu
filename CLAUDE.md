@@ -2428,10 +2428,13 @@ screen may name a `mock` the fixtures branch on, `board` lays them
 out for the maintainer, `clip` records motion side by side, and `hash` takes
 still frames at a fixed clock with motion off. Two `hash` runs agree, so an
 unchanged hash is the proof that a mechanical refactor moved no pixel.
-`overflow` opens each screen and exits 1 when `<main>` scrolls sideways, naming
-the elements whose removal frees the width (removal, because a reach past the
-edge alone can be paint), and every `shoot` records the same figure as
-`sideways` in its `report.json`. On Windows `CHROMIUM_PATH` points it at Edge
+`overflow` opens each screen and exits 1 when `<main>`, or a page's own
+`overflow-y-auto` scroller inside it, scrolls sideways, naming the elements
+whose removal frees the width (removal, because a reach past the edge alone can
+be paint), and every `shoot` records the same figure as `sideways` in its
+`report.json`. Search scrolls its own div, so until 2026-10-16 the check could
+not see it: a people heading beside its link ran 8 to 12 px past a 320 px
+phone while every Search screen read 0. On Windows `CHROMIUM_PATH` points it at Edge
 (`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`), and a cold
 dev server spends the better part of a minute on the stylesheet before the
 first page settles. The
@@ -2761,7 +2764,13 @@ shape, and the question that follows them.
   replaced set a sort alone for three of them, and those three fetched
   nothing at all. A people section's "Show all" is the view's `browse` key,
   paged on a button. A hidden title keeps AniList's rank on every row after
-  it rather than moving them up.
+  it rather than moving them up, and the content filter's notice counts only
+  the titles a section would have drawn (`cutSection`). The answers carry the
+  viewer's list entries under no media id, so `cache_forget_entry_id` drops
+  the `browse` rows on every delete. A term too short to search shows its
+  prompt rather than the sections, which would read as its answer. A manga
+  has no season, so the top list asks for `startDate { year }` and falls back
+  to it.
 - **A pure function returns an i18n *key*, never a sentence.**
   `src/lib/i18nKeys.test.ts` only sees literal `t("…")` calls, so
   `` t(`social.verb${v}`) `` is invisible to it — and AniList makes this matter

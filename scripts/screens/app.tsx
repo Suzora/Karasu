@@ -376,8 +376,15 @@ function cast() {
 
 /** The search page's browse sections: twelve titles a row, and a top list carrying how many users list each. */
 function browseSections(manga: boolean) {
-  const row = (offset: number) => ({ media: Array.from({ length: 12 }, (_, i) => ({ ...media((i + offset) % 15, manga), mediaListEntry: null })) });
-  const top = { media: Array.from({ length: 10 }, (_, i) => ({ ...media(i, manga), mediaListEntry: null, popularity: 490_000 - i * 37_000 })) };
+  // Ids past the list fixture's but one, so most cards are off the list; manga carry no season, as AniList's do.
+  const pick = (k: number) => {
+    const m = media(k, manga);
+    const off = k === 4 ? {} : { id: (manga ? 2000 : 1000) + 100 + k };
+    const live = manga ? { season: null, seasonYear: null, ...(k % 5 === 0 ? { chapters: null, volumes: null } : {}) } : {};
+    return { ...m, ...off, ...live, mediaListEntry: null };
+  };
+  const row = (offset: number) => ({ media: Array.from({ length: 12 }, (_, i) => pick((i + offset) % 15)) });
+  const top = { media: Array.from({ length: 10 }, (_, i) => ({ ...pick(i), popularity: 490_000 - i * 37_000, startDate: { year: (manga ? 1989 : 2009) + i } })) };
   return manga ? { trending: row(0), popular: row(3), manhwa: row(6), top } : { trending: row(0), season: row(2), nextSeason: row(5), popular: row(7), top };
 }
 

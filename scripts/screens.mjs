@@ -6,7 +6,7 @@
 //   node scripts/screens.mjs clip [--styles ,a]           one webm per style, then all of them side by side
 //   node scripts/screens.mjs hash [--out scripts/screens/.out/before.json]   still frames at a fixed clock, one sha256 each
 //   node scripts/screens.mjs hash --compare scripts/screens/.out/before.json exit 1 when any screen's pixels changed
-//   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when a screen's <main> scrolls sideways, naming why
+//   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when <main> or a page's own scroller scrolls sideways
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -212,7 +212,7 @@ export const SCREENS = [
     await p.waitForTimeout(500);
     await p.getByRole("button", { name: /^(Filter|Weitere Filter)/ }).first().click();
   } },
-  { id: "d31-suchseite-leer", w: 1232, h: 800, route: "/search" },
+  { id: "d31-suchseite-start", w: 1232, h: 800, route: "/search" },
   { id: "p18-suchseite", w: 405, h: 860, phone: true, route: "/search" },
   // The browse sections whole: every anime section down to the top list, manga's, and the people's portrait cards.
   { id: "d97-suche-anime-ganz", w: 1232, h: 2100, route: "/search" },
@@ -221,6 +221,9 @@ export const SCREENS = [
   { id: "d100-suche-geburtstage", w: 1232, h: 800, route: "/search?scope=STAFF&browse=birthdays" },
   { id: "p68-suche-anime-ganz", w: 405, h: 2300, phone: true, route: "/search" },
   { id: "p69-suche-charaktere", w: 405, h: 1100, phone: true, route: "/search?scope=CHARACTERS" },
+  // The narrowest phone, where a long people heading beside its link once pushed the link out of the row.
+  { id: "p70-suche-mitwirkende-schmal", w: 320, h: 860, phone: true, route: "/search?scope=STAFF" },
+  { id: "p71-suche-beliebteste-schmal", w: 320, h: 860, phone: true, route: "/search?scope=CHARACTERS&browse=favourites" },
   {
     id: "d11-leiste-zu",
     w: 1232,
@@ -430,7 +433,8 @@ async function shoot() {
         // A page that scrolls sideways can look fine in a still, so every shot reports it; `overflow` says why.
         const sideways = await page.evaluate(() => {
           const main = document.querySelector("main");
-          return main ? main.scrollWidth - main.clientWidth : 0;
+          // A page that scrolls its own div hides its overflow from <main>, so each of those counts as well.
+          return main ? Math.max(...[main, ...main.querySelectorAll(".overflow-y-auto")].map((b) => b.scrollWidth - b.clientWidth)) : 0;
         });
         report.push({ name, errors, unknown, sideways });
         const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> scrolls ${sideways}px sideways`] : [])];
@@ -477,16 +481,20 @@ async function overflow() {
     const { context, page } = await open(browser, s, "", "dark", { still: true });
     const found = await page.evaluate(() => {
       const main = document.querySelector("main");
-      const by = () => main.scrollWidth - main.clientWidth;
-      const over = main ? by() : 0;
+      if (!main) return null;
+      // A page that scrolls its own div hides its overflow from <main>, so the widest of all of them is measured.
+      const widthOver = (b) => b.scrollWidth - b.clientWidth;
+      const box = [main, ...main.querySelectorAll(".overflow-y-auto")].reduce((a, b) => (widthOver(b) > widthOver(a) ? b : a));
+      const by = () => widthOver(box);
+      const over = by();
       if (over <= 0) return null;
-      const edge = main.getBoundingClientRect().right;
-      // A box below `<main>` that clips its overflow cannot widen it, so only elements nothing clips are suspects.
+      const edge = box.getBoundingClientRect().right;
+      // A box below the scroller that clips its overflow cannot widen it, so only elements nothing clips are suspects.
       const clipped = (el) => {
-        for (let up = el.parentElement; up && up !== main; up = up.parentElement) if (getComputedStyle(up).overflowX !== "visible") return true;
+        for (let up = el.parentElement; up && up !== box; up = up.parentElement) if (getComputedStyle(up).overflowX !== "visible") return true;
         return false;
       };
-      const past = [...main.querySelectorAll("*")].filter((el) => el.getBoundingClientRect().right > edge + 0.5 && !clipped(el));
+      const past = [...box.querySelectorAll("*")].filter((el) => el.getBoundingClientRect().right > edge + 0.5 && !clipped(el));
       const deepest = past.filter((el) => !past.some((o) => o !== el && el.contains(o))).slice(0, 8);
       const name = (el) => [el.tagName.toLowerCase(), ...String(el.className?.baseVal ?? el.className ?? "").split(/\s+/).filter(Boolean).slice(0, 5)].join(".");
       // Removing a suspect and measuring again is the proof; a reach past the edge alone can be paint the layout never counts.
@@ -497,14 +505,14 @@ async function overflow() {
         el.style.display = before;
         return { name: name(el), freed: over - Math.max(0, without) };
       });
-      return { over, culprits };
+      return { over, culprits, where: box === main ? "<main>" : "its own scroller" };
     });
     await context.close();
     if (!found) continue;
     failed++;
     const proven = found.culprits.filter((c) => c.freed > 0);
     const shown = (proven.length ? proven : found.culprits).map((c) => (c.freed > 0 ? `${c.name} (${c.freed}px)` : c.name));
-    console.log(`${s.id}: <main> scrolls ${found.over}px sideways; ${proven.length ? "" : "suspects "}${shown.join("; ") || "nothing named"}`);
+    console.log(`${s.id}: ${found.where} scrolls ${found.over}px sideways; ${proven.length ? "" : "suspects "}${shown.join("; ") || "nothing named"}`);
   }
   await browser.close();
   console.log(`screens: ${failed} of ${screens.length} screen(s) overflow`);

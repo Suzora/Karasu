@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Link } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import {
   CalendarClock,
   CalendarDays,
   Flame,
+  GalleryVerticalEnd,
   Heart,
   LayoutGrid,
   Star,
@@ -15,14 +16,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { isTauri, TTL } from "@/api/anilist";
-import { browseSections, currentSeason, type BrowseMedia } from "@/api/queries";
+import { browseSections, type BrowseMedia } from "@/api/queries";
 import { browsePeople, type BrowsePerson } from "@/api/social";
 import { displayTitle, type MediaType } from "@/api/types";
 import MediaCard from "@/components/media/MediaCard";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { FilteredNotice } from "@/components/FilteredNotice";
 import { ErrorState } from "@/components/EmptyState";
-import { CoverGridSkeleton, HeaderSkeleton } from "@/components/Skeleton";
+import { Busy, CoverGridSkeleton, HeaderSkeleton, Shimmer } from "@/components/Skeleton";
 import { Chip } from "@/components/ui/chip";
 import { cardClass } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -33,14 +34,16 @@ import {
   MEDIA_SECTIONS,
   TOP_ROWS,
   birthdayDay,
+  cutSection,
   rowRequestSize,
   sectionPeriod,
   showAllView,
   type MediaSectionKey,
 } from "@/lib/browseSections";
-import { adultQueryArg, blockReason, shouldBlur } from "@/lib/contentFilter";
+import { adultQueryArg, shouldBlur, type BlockReason } from "@/lib/contentFilter";
 import { compactCount, formatLabel } from "@/lib/format";
 import { SEARCH_DEFAULTS, writeSearchView, type SearchView } from "@/lib/searchView";
+import type { Period } from "@/lib/seasonView";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useTheme } from "@/stores/theme";
@@ -50,7 +53,7 @@ const ICONS: Record<MediaSectionKey, LucideIcon> = {
   season: CalendarDays,
   nextSeason: CalendarClock,
   popular: Flame,
-  manhwa: Flame,
+  manhwa: GalleryVerticalEnd,
   top: Trophy,
 };
 
@@ -84,7 +87,7 @@ export const searchHref = (view: SearchView): string => {
 function ShowAll({ to, title }: { to: string; title: string }) {
   const { t } = useTranslation();
   return (
-    <Link to={to} className="text-xs text-accent-400 hover:underline">
+    <Link to={to} className="relative coarse:hit-area text-xs text-accent-400 hover:underline">
       {t("dashboard.showAll")}
       <span className="sr-only"> ({title})</span>
     </Link>
@@ -100,7 +103,7 @@ export function ShowAllHeading({ icon, title, back }: { icon: LucideIcon; title:
       title={title}
       className="mb-4"
       action={
-        <Link to={back} className="flex items-center gap-1.5 text-xs text-accent-400 hover:underline">
+        <Link to={back} className="relative coarse:hit-area flex items-center gap-1.5 text-xs text-accent-400 hover:underline">
           <LayoutGrid className="size-3.5" />
           {t("search.browseBack")}
         </Link>
@@ -122,15 +125,46 @@ function Loading({ rows }: { rows: number }) {
   );
 }
 
+/** The people sections while they load, as the portrait cards they become, so nothing jumps when they arrive. */
+function PeopleLoading() {
+  return (
+    <div className="space-y-8">
+      {Array.from({ length: 2 }, (_, i) => (
+        <section key={i} className="space-y-4">
+          <HeaderSkeleton index={i} />
+          <PortraitsSkeleton index={i} />
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/** One row of portrait-card shapes, as many as the row draws. */
+function PortraitsSkeleton({ index }: { index: number }) {
+  const grid = useRef<HTMLDivElement>(null);
+  const columns = useColumnCount(grid);
+  return (
+    <Busy>
+      <div ref={grid} className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
+        {Array.from({ length: columns }, (_, i) => (
+          <div key={i} className={cn(cardClass("flat"), "flex flex-col items-center gap-2 px-2 py-3")}>
+            <Shimmer index={index + i} className="size-20 rounded-full" />
+            <Shimmer index={index + i} className="my-0.5 h-3 w-3/4" />
+            <Shimmer index={index + i} className="h-3.5 w-10" />
+          </div>
+        ))}
+      </div>
+    </Busy>
+  );
+}
+
 /** Anime or manga with nothing typed: AniList's own browse sections, one cached request for the whole page. */
-export function MediaSections({ type }: { type: MediaType }) {
+export function MediaSections({ type, now }: { type: MediaType; now: Period }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const level = useContentFilter((s) => s.level);
   const filterReady = useContentFilter((s) => s.ready);
   const coverCols = useTheme((s) => s.coverCols);
-  // Read once per visit, so a season that turns while the page is open does not swap every row under the reader.
-  const [now] = useState(currentSeason);
   const perPage = rowRequestSize(coverCols);
   const queryKey = ["browse", type, now.season, now.year, perPage, level];
   const q = useQuery({
@@ -142,15 +176,11 @@ export function MediaSections({ type }: { type: MediaType }) {
 
   // A title in two sections is one hidden title, so the notice counts ids rather than rows.
   const { sections, hiddenAdult, hiddenSuggestive } = useMemo(() => {
-    const hidden = new Map<number, "adult" | "suggestive">();
+    const hidden = new Map<number, BlockReason>();
     const sections = MEDIA_SECTIONS[type].map((key) => {
-      const media = (q.data?.[key]?.media ?? []).flatMap((m, i) => {
-        const reason = blockReason(m, level);
-        if (reason) hidden.set(m.id, reason);
-        // The rank is AniList's, so a hidden title leaves its number out rather than moving every later one up.
-        return reason ? [] : [{ media: m, rank: i + 1 }];
-      });
-      return { key, media };
+      const cut = cutSection(q.data?.[key]?.media ?? [], key === "top" ? TOP_ROWS : coverCols, level);
+      for (const [id, reason] of cut.hidden) hidden.set(id, reason);
+      return { key, media: cut.shown };
     });
     const reasons = [...hidden.values()];
     return {
@@ -158,7 +188,7 @@ export function MediaSections({ type }: { type: MediaType }) {
       hiddenAdult: reasons.filter((r) => r === "adult").length,
       hiddenSuggestive: reasons.filter((r) => r === "suggestive").length,
     };
-  }, [q.data, type, level]);
+  }, [q.data, type, level, coverCols]);
 
   if (q.error != null && !q.data) {
     return <ErrorState error={q.error} onRetry={() => qc.resetQueries({ queryKey, exact: true })} />;
@@ -182,7 +212,7 @@ export function MediaSections({ type }: { type: MediaType }) {
             />
             {key === "top" ? (
               <ol className="mt-4 space-y-1.5">
-                {media.slice(0, TOP_ROWS).map(({ media: m, rank }) => (
+                {media.map(({ media: m, rank }) => (
                   <li key={m.id}>
                     <RankedRow media={m} rank={rank} />
                   </li>
@@ -228,7 +258,9 @@ function RankedRow({ media: m, rank }: { media: BrowseMedia; rank: number }) {
       : m.episodes
         ? t(m.episodes === 1 ? "search.rankEpisodesOne" : "search.rankEpisodes", { count: m.episodes })
         : null;
-  const when = m.season && m.seasonYear ? `${t(`season.${m.season}`)} ${m.seasonYear}` : m.seasonYear ? String(m.seasonYear) : null;
+  // A manga has no season, so its line falls back to the year it started.
+  const year = m.seasonYear ?? m.startDate?.year ?? null;
+  const when = m.season && m.seasonYear ? `${t(`season.${m.season}`)} ${m.seasonYear}` : year ? String(year) : null;
   return (
     <Link
       to={`/media/${m.id}`}
@@ -300,7 +332,7 @@ export function PeopleSections({ kind }: { kind: "character" | "staff" }) {
   if (q.error != null && !q.data) {
     return <ErrorState error={q.error} onRetry={() => qc.resetQueries({ queryKey, exact: true })} />;
   }
-  if (!q.data) return <Loading rows={6} />;
+  if (!q.data) return <PeopleLoading />;
 
   const scope = kind === "character" ? "CHARACTERS" : "STAFF";
   const pick = (page: { characters?: BrowsePerson[] | null; staff?: BrowsePerson[] | null } | null) =>
@@ -334,12 +366,13 @@ export function PeopleSections({ kind }: { kind: "character" | "staff" }) {
 
 /** A heart and a favourites count, compact past ten thousand. */
 export function Favourites({ count }: { count: number | null }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   if (count == null) return null;
   return (
     <>
       <Heart className="size-3.5" fill="currentColor" />
       {compactCount(count, i18n.language)}
+      <span className="sr-only"> {t("detail.favorites")}</span>
     </>
   );
 }
@@ -367,7 +400,7 @@ function PeopleRow({
     <section>
       <SectionHeader icon={icon} title={title} action={<ShowAll to={href} title={title} />} />
       <div ref={grid} className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
-        {people.slice(0, Math.max(columns, 1)).map((p) => (
+        {people.slice(0, columns).map((p) => (
           <Link
             key={p.id}
             to={`/${kind}/${p.id}`}

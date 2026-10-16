@@ -751,6 +751,8 @@ impl Db {
         for media_id in media_ids {
             self.query_cache_forget_media(media_id);
         }
+        // The search page's browse sections carry the viewer's entry under no media id, so a delete drops them too.
+        self.query_cache_forget_source("browse");
         anime || manga
     }
 
@@ -2598,9 +2600,11 @@ pub(crate) mod tests {
     fn a_deleted_entry_stops_being_a_scrobble_candidate() {
         let db = mem_db();
         seed_list(&db);
+        db.query_cache_put("b", 1, "browse", None, "{}");
         assert!(db.cache_forget_entry_id(1, 10), "the entry id is what delete has");
         assert!(cached_entry(&db, 100).is_none(), "gone from the cache");
         assert!(cached_entry(&db, 200).is_some(), "and only that one");
+        assert!(db.query_cache_get("b").is_none(), "and the browse sections that carried its entry");
     }
 
     /// Proves patching an uncached entry writes nothing, so it cannot resurrect a list since replaced.

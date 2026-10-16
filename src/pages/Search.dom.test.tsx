@@ -331,6 +331,80 @@ describe("Search with nothing typed", () => {
     expect(peoplePage).toHaveBeenLastCalledWith("character", "favourites", 2);
   });
 
+  it("drops the year on the way to manga, which has no season year to filter on", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(
+      <>
+        <Search />
+        <Url />
+      </>,
+      { route: "/search?year=2026&season=FALL&sort=POPULARITY_DESC" },
+    );
+    await user.click(screen.getByRole("button", { name: "search.manga" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?scope=MANGA&sort=POPULARITY_DESC$/));
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browsePopular");
+  });
+
+  /** The sections have no sort, and a select that already showed Popularity could never be picked to open its grid. */
+  it("shows the sections' sort as Relevance, so every other sort opens its grid", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(
+      <>
+        <Search />
+        <Url />
+      </>,
+      { route: "/search" },
+    );
+    await user.click(screen.getByRole("button", { name: /search\.filters/ }));
+    const select = await screen.findByRole("combobox", { name: "list.sortLabel" });
+    expect(select).toHaveValue("SEARCH_MATCH");
+    await user.selectOptions(select, "POPULARITY_DESC");
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?sort=POPULARITY_DESC$/));
+    expect(await screen.findByRole("heading", { level: 2, name: "search.browsePopular" })).toBeInTheDocument();
+  });
+
+  it("keeps a section's grid and its one request while a single character is typed", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Search />, { route: "/search?sort=TRENDING_DESC" });
+    await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
+    await user.type(screen.getByRole("searchbox", { name: "search.placeholder" }), "f");
+    await act(() => new Promise((r) => setTimeout(r, 650)));
+    expect(browse).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseTrending");
+  });
+
+  it("says a term is too short rather than showing the sections as its answer", async () => {
+    renderWithProviders(<Search />, { route: "/search?q=K" });
+    expect(await screen.findByText("search.prompt")).toBeInTheDocument();
+    expect(sections).not.toHaveBeenCalled();
+  });
+
+  it("says a name is too short rather than showing the people sections as its answer", async () => {
+    renderWithProviders(<Search />, { route: "/search?scope=CHARACTERS&q=Ai" });
+    expect(await screen.findByText("search.entityPrompt")).toBeInTheDocument();
+    expect(people).not.toHaveBeenCalled();
+  });
+
+  /** The page and its sections read the season once between them, or a season's turn names one grid after another. */
+  it("names a section after the season the page opened in, across a season's turn", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date(2026, 8, 30, 23, 59));
+      const user = userEvent.setup({ delay: null });
+      sections.mockResolvedValue({ trending: page(title(1, "T")), season: page(title(2, "S")), nextSeason: page(title(3, "N")) });
+      renderWithProviders(<Search />, { route: "/search" });
+      await screen.findByRole("link", { name: /search\.browseSeason/ });
+      vi.setSystemTime(new Date(2026, 9, 1, 0, 1));
+      await user.click(screen.getByRole("link", { name: /search\.browseTrending/ }));
+      await user.click(await screen.findByRole("link", { name: "search.browseBack" }));
+      await user.click(await screen.findByRole("link", { name: /search\.browseSeason/ }));
+      expect(await screen.findByRole("heading", { level: 2, name: "search.browseSeason" })).toBeInTheDocument();
+      expect(sections.mock.calls.every(([, now]) => (now as { season: string }).season === "SUMMER")).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("drops a people list on the way to a medium", async () => {
     const user = userEvent.setup({ delay: null });
     peoplePage.mockResolvedValue({ pageInfo: { hasNextPage: false }, rows: [] });

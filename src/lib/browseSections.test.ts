@@ -3,6 +3,7 @@ import {
   MEDIA_SECTIONS,
   birthdayDay,
   browseVariables,
+  cutSection,
   rowRequestSize,
   sectionOfView,
   sectionPeriod,
@@ -90,6 +91,29 @@ describe("browse sections", () => {
 
     it("reads a cleared season filter on a season section as all-time popular, which it then is", () => {
       expect(sectionOfView({ ...showAllView("ANIME", "season", FALL), season: "", year: "" }, FALL)).toBe("popular");
+    });
+  });
+
+  describe("cutting a section to what it draws", () => {
+    const title = (id: number, genres: string[] = []) => ({ id, isAdult: false, genres });
+
+    it("lets the next title fill a hidden one's place and keeps AniList's rank on it", () => {
+      const { shown, hidden } = cutSection([title(1), title(2, ["Ecchi"]), title(3), title(4)], 3, "strict");
+      expect(shown.map((x) => [x.media.id, x.rank])).toEqual([[1, 1], [3, 3], [4, 4]]);
+      expect(hidden).toEqual([[2, "suggestive"]]);
+    });
+
+    /** The notice is a claim about what the screen left out, so a title past the drawn ones is not part of it. */
+    it("counts no hidden title past the titles the section draws", () => {
+      const { shown, hidden } = cutSection([title(1), title(2), title(3, ["Ecchi"])], 2, "strict");
+      expect(shown.map((x) => x.media.id)).toEqual([1, 2]);
+      expect(hidden).toEqual([]);
+    });
+
+    it("hides nothing with the filter off", () => {
+      const { shown, hidden } = cutSection([title(1, ["Ecchi"]), { id: 2, isAdult: true, genres: [] }], 5, "off");
+      expect(shown).toHaveLength(2);
+      expect(hidden).toEqual([]);
     });
   });
 

@@ -135,8 +135,15 @@ export default function Search() {
 
   // In the setter, not an effect on the scope, which would also run on arrival and drop a restored format.
   const changeScope = (next: SearchView["scope"]) => {
-    // A format belongs to one medium, a season would filter manga invisibly, and a people list means nothing to a medium.
-    if (next !== scope) set({ scope: next, format: "", season: "", ...(isPeopleScope(next) ? {} : { browse: "" }) });
+    // A format is one medium's, manga have no season nor season year to filter on, and a people list has no media.
+    if (next !== scope)
+      set({
+        scope: next,
+        format: "",
+        season: "",
+        ...(next === "MANGA" ? { year: "" } : {}),
+        ...(isPeopleScope(next) ? {} : { browse: "" }),
+      });
   };
 
   const level = useContentFilter((s) => s.level);
@@ -173,17 +180,20 @@ export default function Search() {
 
   const clearFilters = () =>
     set({ genre: EMPTY, tag: EMPTY, year: "", season: "", format: "", status: "", source: "", country: "" });
+  // A term under two characters searches nothing, so it neither keys a request nor unnames a section's grid.
+  const searched = term.length >= 2 ? term : "";
   // Relevance without a query is meaningless; popularity is the browse default.
-  const effectiveSort = term || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
+  const effectiveSort = searched || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
   // A chosen sort browses too: it is what a section's "Show all" opens, while an untouched page shows the sections.
-  const active = term.length >= 2 || hasFilters || sort !== SEARCH_DEFAULTS.sort;
+  const active = searched !== "" || hasFilters || sort !== SEARCH_DEFAULTS.sort;
+  // Read once per visit, so a season that turns while the page is open cannot name one grid after another's section.
   const [now] = useState(currentSeason);
-  const section = sectionOfView(view, now);
+  const section = sectionOfView({ ...view, term: searched }, now);
 
   const genreArgs = toQueryArgs(genre);
   const tagArgs = toQueryArgs(tag);
   const filters: BrowseFilters = {
-    search: term.length >= 2 ? term : undefined,
+    search: searched || undefined,
     genreIn: genreArgs.in,
     genreNotIn: genreArgs.notIn,
     tagIn: tagArgs.in,
@@ -194,14 +204,14 @@ export default function Search() {
     status: status || undefined,
     source: source || undefined,
     countryOfOrigin: country || undefined,
-    sort: term.length >= 2 ? sort : effectiveSort,
+    sort: effectiveSort,
   };
 
   // Level is keyed since filtering is server-side; genre and tag are encoded so pick order is one entry.
   const mediaKey = [
     "search",
     type,
-    term,
+    searched,
     encode(genre),
     encode(tag),
     year,
@@ -397,7 +407,8 @@ export default function Search() {
               />
               <FilterSelect
                 label={t("list.sortLabel")}
-                value={filters.sort}
+                // The sections have no sort of their own, so an untouched page shows the URL's and every pick browses.
+                value={active ? filters.sort : sort}
                 onChange={(v) => set({ sort: v })}
                 options={SORTS.map((s) => ({ value: s, label: sortLabel(s, t) }))}
               />
@@ -412,7 +423,9 @@ export default function Search() {
           <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} browse={browse} />
         )}
         {scope === "STUDIOS" && <StudioSearchResults term={term} />}
-        {isMediaScope(scope) && !active && <MediaSections type={type} />}
+        {/* A term too short to search says so, or the sections would read as its answer. */}
+        {isMediaScope(scope) && !active && term && <EmptyState title={t("search.prompt")} hint={t("search.promptHint")} />}
+        {isMediaScope(scope) && !active && !term && <MediaSections type={type} now={now} />}
         {isMediaScope(scope) && active && section && (
           <ShowAllHeading
             icon={sectionIcon(section)}
@@ -426,7 +439,7 @@ export default function Search() {
             onRetry={() => queryClient.resetQueries({ queryKey: mediaKey, exact: true })}
             nextPageFailed={media.isFetchNextPageError}
             isFetching={media.isFetching && !media.isFetchingNextPage}
-            term={term}
+            term={searched}
             results={results}
             hiddenAdult={hiddenAdult}
             hiddenSuggestive={hiddenSuggestive}
@@ -488,6 +501,7 @@ function PersonSearchResults({
   /** The people list a section's "Show all" opened, or "" for the sections. */
   browse: string;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const query = useInfiniteQuery({
     queryKey: ["search", kind, term],
@@ -503,6 +517,8 @@ function PersonSearchResults({
   });
 
   if (term.length < USER_SEARCH_MIN) {
+    // A name too short to search says so, or the sections would read as its answer.
+    if (term) return <EmptyState title={t("search.entityPrompt")} hint={t("search.userPromptHint", { n: USER_SEARCH_MIN })} />;
     if (browse === "birthdays" || browse === "favourites") return <PeopleList kind={kind} list={browse} />;
     return <PeopleSections kind={kind} />;
   }

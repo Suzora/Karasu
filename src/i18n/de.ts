@@ -717,6 +717,9 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     searching: "Suche …",
     noResults: "Dafür gibt es keine Treffer.",
     noResultsHint: "Prüf die Schreibweise oder versuch den Romaji-Titel.",
+    prompt: "Durchsuche AniList.",
+    promptHint:
+      "Zwei Zeichen genügen. Romaji, Englisch und Originaltitel passen alle.",
     anime: "Anime",
     manga: "Manga",
     users: "Konten",
@@ -751,7 +754,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     browseTrending: "Gerade im Trend",
     browseSeason: "Beliebt diese Saison",
     browseNextSeason: "Nächste Saison",
-    browsePopular: "Beliebt aller Zeiten",
+    browsePopular: "Allzeit beliebt",
     browseManhwa: "Beliebte Manhwa",
     browseTop: "Top 100",
     browseBirthdays: "Heute Geburtstag",

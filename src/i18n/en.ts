@@ -715,6 +715,9 @@ export const en = {
     searching: "Searching…",
     noResults: "Nothing matches that.",
     noResultsHint: "Check the spelling, or try the romaji title.",
+    prompt: "Search AniList.",
+    promptHint:
+      "Two characters is enough to start. Romaji, English and native titles all match.",
     anime: "Anime",
     manga: "Manga",
     users: "Users",

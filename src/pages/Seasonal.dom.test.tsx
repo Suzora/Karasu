@@ -83,8 +83,7 @@ describe("Seasonal grouping", () => {
       expect(headings()).toEqual(["format.TV", "seasonal.otherFormats"]),
     );
     // Both oddities are in it — two cards under one heading.
-    const other = screen.getByRole("heading", { name: "seasonal.otherFormats" })
-      .parentElement!.parentElement!;
+    const other = screen.getByRole("heading", { name: "seasonal.otherFormats" }).closest("section")!;
     expect(within(other).getAllByRole("link").length).toBeGreaterThanOrEqual(2);
   });
 

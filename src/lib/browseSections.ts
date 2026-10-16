@@ -1,4 +1,5 @@
 import type { MediaType } from "@/api/types";
+import { blockReason, type BlockReason, type ContentFilterLevel, type Filterable } from "@/lib/contentFilter";
 import { SEARCH_DEFAULTS, writeSearchView, type SearchView } from "@/lib/searchView";
 import { shiftSeason, type Period } from "@/lib/seasonView";
 
@@ -53,6 +54,19 @@ export function showAllView(type: MediaType, key: MediaSectionKey, now: Period):
     case "top":
       return { ...base, sort: "SCORE_DESC" };
   }
+}
+
+/** A section's drawn titles, at most `room` with AniList's rank each, and the hidden ones that would have taken a place. */
+export function cutSection<T extends Filterable & { id: number }>(media: readonly T[], room: number, level: ContentFilterLevel) {
+  const shown: { media: T; rank: number }[] = [];
+  const hidden: [number, BlockReason][] = [];
+  for (const [i, m] of media.entries()) {
+    if (shown.length >= room) break;
+    const reason = blockReason(m, level);
+    if (reason) hidden.push([m.id, reason]);
+    else shown.push({ media: m, rank: i + 1 });
+  }
+  return { shown, hidden };
 }
 
 /** Compared in the URL's own spelling, so two views that write the same address are the same view. */
