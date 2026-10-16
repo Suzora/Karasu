@@ -135,13 +135,12 @@ export default function Search() {
 
   // In the setter, not an effect on the scope, which would also run on arrival and drop a restored format.
   const changeScope = (next: SearchView["scope"]) => {
-    // A format is one medium's, manga have no season nor season year to filter on, and a people list has no media.
+    // A format is one medium's, manga have no season to filter on, and a people list has no media; a year means both.
     if (next !== scope)
       set({
         scope: next,
         format: "",
         season: "",
-        ...(next === "MANGA" ? { year: "" } : {}),
         ...(isPeopleScope(next) ? {} : { browse: "" }),
       });
   };
@@ -198,7 +197,7 @@ export default function Search() {
     genreNotIn: genreArgs.notIn,
     tagIn: tagArgs.in,
     tagNotIn: tagArgs.notIn,
-    seasonYear: year ? Number(year) : undefined,
+    year: year ? Number(year) : undefined,
     season: (season || undefined) as Season | undefined,
     format: format || undefined,
     status: status || undefined,

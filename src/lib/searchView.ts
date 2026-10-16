@@ -1,3 +1,4 @@
+import type { MediaType } from "@/api/types";
 import { EMPTY, type MultiValue } from "@/lib/multiFilter";
 import { MEDIA_FORMATS, ORIGINS } from "@/lib/format";
 
@@ -47,6 +48,13 @@ export const SEARCH_DEFAULTS: SearchView = {
 /** The two scopes that browse media — everything the filter toolbar serves. */
 export const isMediaScope = (s: Scope): s is "ANIME" | "MANGA" => s === "ANIME" || s === "MANGA";
 
+/** A year narrows anime by AniList's season year and manga by their start date, since a manga's season year is null. */
+export function yearVariables(type: MediaType, year: number | undefined): { seasonYear?: number; startDateLike?: string } {
+  // Below four digits the start-date pattern would match a whole decade or century of manga.
+  if (!year || year < 1000) return {};
+  return type === "MANGA" ? { startDateLike: `${year}%` } : { seasonYear: year };
+}
+
 /** The two scopes whose people have birthdays and favourites to browse. */
 export const isPeopleScope = (s: Scope): s is "CHARACTERS" | "STAFF" => s === "CHARACTERS" || s === "STAFF";
 
@@ -75,7 +83,8 @@ export function parseSearchView(params: URLSearchParams): SearchView {
     term: (params.get("q") ?? "").trim(),
     genre: readMulti(params, "genre"),
     tag: readMulti(params, "tag"),
-    year: /^\d{4}$/.test(year) ? year : "",
+    // A leading zero would turn into a shorter year, and a manga's start date is matched by its leading digits.
+    year: /^[1-9]\d{3}$/.test(year) ? year : "",
     // Seasons exist for anime alone, as the toolbar offers them.
     season: scope === "ANIME" ? oneOf(params.get("season"), SEASONS) : "",
     format: oneOf(params.get("format"), MEDIA_FORMATS[type]),

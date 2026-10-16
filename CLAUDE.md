@@ -2773,7 +2773,13 @@ shape, and the question that follows them.
   queue reaches it through `mirror_drained` as a live one does. A term too short to search shows its
   prompt rather than the sections, which would read as its answer. A manga
   has no season, so the top list asks for `startDate { year }` and falls back
-  to it.
+  to it, and the Year filter asks a manga for its start date
+  (`yearVariables`, `startDate_like: "2020%"`): AniList leaves a manga's
+  `seasonYear` null, and a year asked as one had matched no manga at all.
+  Measured live on 2026-10-16: `startDate_like` and the range
+  `startDate_greater: 20199999, startDate_lesser: 20210000` return the same
+  titles, a start known only by its year (`20200000`) included, and both
+  bounds of the range are exclusive. Anime keep `seasonYear`.
 - **A pure function returns an i18n *key*, never a sentence.**
   `src/lib/i18nKeys.test.ts` only sees literal `t("…")` calls, so
   `` t(`social.verb${v}`) `` is invisible to it — and AniList makes this matter
