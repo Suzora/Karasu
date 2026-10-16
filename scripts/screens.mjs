@@ -206,14 +206,21 @@ export const SCREENS = [
   { id: "d8-bestaetigen", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Von der Liste entfernen") },
   { id: "d9-cover", w: 1232, h: 800, route: "/media/178789", act: (p) => p.getByRole("button", { name: "Cover im Vollbild ansehen" }).first().click() },
   { id: "d10-suchseite", w: 1232, h: 800, route: "/search", act: (p) => p.keyboard.type("Frieren") },
-  { id: "d90-suche-trend", w: 1232, h: 800, route: "/search", act: (p) => p.getByRole("button", { name: "Gerade im Trend" }).first().click() },
+  { id: "d90-suche-trend", w: 1232, h: 800, route: "/search", act: (p) => p.getByRole("link", { name: /Gerade im Trend/ }).first().click() },
   { id: "d91-suche-filter-auf", w: 1232, h: 800, route: "/search", act: async (p) => {
-    await p.getByRole("button", { name: "Gerade im Trend" }).first().click();
+    await p.getByRole("link", { name: /Gerade im Trend/ }).first().click();
     await p.waitForTimeout(500);
     await p.getByRole("button", { name: /^(Filter|Weitere Filter)/ }).first().click();
   } },
   { id: "d31-suchseite-leer", w: 1232, h: 800, route: "/search" },
   { id: "p18-suchseite", w: 405, h: 860, phone: true, route: "/search" },
+  // The browse sections whole: every anime section down to the top list, manga's, and the people's portrait cards.
+  { id: "d97-suche-anime-ganz", w: 1232, h: 2100, route: "/search" },
+  { id: "d98-suche-manga", w: 1232, h: 1900, route: "/search?scope=MANGA" },
+  { id: "d99-suche-charaktere", w: 1232, h: 800, route: "/search?scope=CHARACTERS" },
+  { id: "d100-suche-geburtstage", w: 1232, h: 800, route: "/search?scope=STAFF&browse=birthdays" },
+  { id: "p68-suche-anime-ganz", w: 405, h: 2300, phone: true, route: "/search" },
+  { id: "p69-suche-charaktere", w: 405, h: 1100, phone: true, route: "/search?scope=CHARACTERS" },
   {
     id: "d11-leiste-zu",
     w: 1232,

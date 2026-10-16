@@ -374,6 +374,19 @@ function cast() {
   return { characters: { pageInfo: { hasNextPage: false }, edges: characters }, staff: { pageInfo: { hasNextPage: false }, edges: staff } };
 }
 
+/** The search page's browse sections: twelve titles a row, and a top list carrying how many users list each. */
+function browseSections(manga: boolean) {
+  const row = (offset: number) => ({ media: Array.from({ length: 12 }, (_, i) => ({ ...media((i + offset) % 15, manga), mediaListEntry: null })) });
+  const top = { media: Array.from({ length: 10 }, (_, i) => ({ ...media(i, manga), mediaListEntry: null, popularity: 490_000 - i * 37_000 })) };
+  return manga ? { trending: row(0), popular: row(3), manhwa: row(6), top } : { trending: row(0), season: row(2), nextSeason: row(5), popular: row(7), top };
+}
+
+/** Characters and staff for the browse sections and their "Show all", with names long enough to wrap a portrait card. */
+function browsePeople() {
+  const names = ["Kenma Kozume", "Eijirou Kirishima", "Yuuichirou Hyakuya", "Robert E. O. Speedwagon", "Shiho Izumi", "Tetsutetsu Tetsutetsu", "Rito Yuuki", "Satoru Gojou", "Levi", "Monkey D. Luffy", "Killua Zoldyck", "Eren Yeager"];
+  return names.map((full, i) => ({ id: 900 + i, name: { full }, image: { medium: cover(i) }, favourites: 39_511 - i * 2_900 }));
+}
+
 /** A small franchise around the first title: two earlier seasons, a side story and the source, some on the list. */
 function franchise() {
   const node = (id: number, i: number, title: string, format: string, status: string | null, progress = 0) => ({
@@ -490,6 +503,15 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     return { Thread: { ...summary, body, isSubscribed: true, replyCommentId: 821, replyUser: PEOPLE[3], mediaCategories: [socialMedia(0), socialMedia(1)] } };
   }
   if (/threads\s*\(/.test(q)) return pageOf({ threads: THREADS });
+  if (/trending:\s*Page/.test(q)) return browseSections(/type: MANGA/.test(q));
+  if (/characterBirthdays:\s*Page/.test(q)) {
+    const all = browsePeople();
+    return { characterBirthdays: { characters: all.slice(0, 7) }, characterFavourites: { characters: all.slice(7) }, staffBirthdays: { staff: all.slice(2, 9) }, staffFavourites: { staff: all } };
+  }
+  if (/(characters|staff)\(isBirthday: \$isBirthday/.test(q)) {
+    const rows = browsePeople();
+    return pageOf(/characters\(/.test(q) ? { characters: rows } : { staff: rows });
+  }
   if (/\bPage\b/.test(q)) {
     const page = { media: mock === "no-banner" ? [unbanneredMedia(), { ...media(0, false), bannerImage: null }, ...Array.from({ length: 6 }, (_, i) => media(i + 1, false))] : Array.from({ length: 8 }, (_, i) => media(i, false)), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
     return { Page: { pageInfo: { hasNextPage: false, total: 8, currentPage: 1, lastPage: 1 }, ...page } };

@@ -934,3 +934,16 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   entry is a "Changelog" button beside "Check for updates" (C of three,
   over A, a link after the version line, and B, a card of its own); a store
   build keeps it in its shortened Updates card.
+- **2026-10-16:** Search with nothing typed browses, as AniList's own search
+  page does: anime show Trending now, Popular this season, Upcoming next
+  season, All-time popular and Top 100; manga Trending now, All-time
+  popular, Popular manhwa and Top 100; characters and staff Birthdays today
+  and Most favourited; users and studios keep their prompt. Each section is
+  a section header with "Show all" over one row of covers cut to the
+  covers-per-row setting, the Top 100 is ten ranked rows (rank, cover,
+  title, genres, score with its user count, format and season), and a
+  person is a portrait card (A of three mockups, over B, a sideways strip of
+  twelve covers per section with the lens chips kept, and C, trending at
+  full width over the seasons in rows of four beside a compact top ten).
+  The four lens chips go, since "Show all" opens the same views with a
+  heading and a way back.

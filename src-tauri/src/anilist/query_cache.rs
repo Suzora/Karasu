@@ -19,6 +19,8 @@ pub const CACHEABLE: &[(&str, u32)] = &[
     ("birthdays", 24 * 3600),
     ("mediaByIds", 24 * 3600),
     ("profile", 10 * 60),
+    ("browse", 3600),
+    ("browsePeople", 3600),
 ];
 
 /// Rows older than this go at startup whatever their TTL was, so an abandoned screen cannot keep a row forever.
@@ -53,6 +55,14 @@ mod tests {
         assert_eq!(allowed_ttl("mediaDetail", 60), Some(60));
         assert_eq!(allowed_ttl("mediaDetail", 24 * 3600), Some(30 * 60));
         assert_eq!(allowed_ttl("genreTags", 0), None);
+    }
+
+    /// The search page's browse sections are charts, kept an hour; a search itself stays uncached.
+    #[test]
+    fn the_browse_sections_keep_an_hour_and_a_search_nothing() {
+        assert_eq!(allowed_ttl("browse", 24 * 3600), Some(3600));
+        assert_eq!(allowed_ttl("browsePeople", 3600), Some(3600));
+        assert_eq!(allowed_ttl("search", 3600), None);
     }
 
     /// The key is stable for the same request and differs by viewer, so a shared machine cannot cross accounts.

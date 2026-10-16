@@ -72,6 +72,14 @@ describe("search view in the URL", () => {
     expect(v).toEqual(view({ term: "x" }));
   });
 
+  it("brings back a people list, and reads one for characters and staff alone", () => {
+    const v = view({ scope: "STAFF", browse: "birthdays" });
+    expect(parseSearchView(writeSearchView(new URLSearchParams(), v))).toEqual(v);
+    expect(parseSearchView(new URLSearchParams("scope=CHARACTERS&browse=favourites")).browse).toBe("favourites");
+    expect(parseSearchView(new URLSearchParams("scope=ANIME&browse=birthdays")).browse).toBe("");
+    expect(parseSearchView(new URLSearchParams("scope=CHARACTERS&browse=everyone")).browse).toBe("");
+  });
+
   it("reads no season and no anime format for manga", () => {
     const v = parseSearchView(new URLSearchParams("scope=MANGA&season=FALL&format=TV"));
     expect(v.season).toBe("");

@@ -5,8 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate, type NavigateFunction } from "react-router";
 import { useContentFilter } from "@/stores/contentFilter";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
+import { media } from "@/test/fixtures";
 
 const browse = vi.fn();
+const sections = vi.fn();
+const people = vi.fn();
+const peoplePage = vi.fn();
 
 vi.mock("@/api/anilist", async (orig) => ({
   ...(await orig<typeof import("@/api/anilist")>()),
@@ -16,7 +20,14 @@ vi.mock("@/api/anilist", async (orig) => ({
 vi.mock("@/api/queries", async (orig) => ({
   ...(await orig<typeof import("@/api/queries")>()),
   browseMedia: (...args: unknown[]) => browse(...args),
+  browseSections: (...args: unknown[]) => sections(...args),
   genreTagCollections: () => Promise.resolve({ genres: [], tags: [] }),
+}));
+
+vi.mock("@/api/social", async (orig) => ({
+  ...(await orig<typeof import("@/api/social")>()),
+  browsePeople: (...args: unknown[]) => people(...args),
+  browsePeoplePage: (...args: unknown[]) => peoplePage(...args),
 }));
 
 import Search from "./Search";
@@ -31,6 +42,11 @@ beforeEach(() => {
   useContentFilter.setState({ level: "off", ready: true, error: null });
   browse.mockReset();
   browse.mockResolvedValue({ media: [], pageInfo: { hasNextPage: false } });
+  sections.mockReset();
+  sections.mockResolvedValue({});
+  people.mockReset();
+  people.mockResolvedValue({});
+  peoplePage.mockReset();
 });
 
 afterEach(() => {
@@ -178,3 +194,154 @@ describe("Search filters", () => {
   });
 });
 
+
+const title = (id: number, name: string, over: Record<string, unknown> = {}) =>
+  ({ ...media({ id, title: { romaji: name, english: name, native: null } }), mediaListEntry: null, ...over });
+const page = (...items: unknown[]) => ({ media: items });
+const person = (id: number, name: string, favourites: number) => ({ id, name: { full: name }, image: null, favourites });
+
+/** AniList's own search page shows these with nothing typed; Karasu shows them from one cached request a medium. */
+describe("Search with nothing typed", () => {
+  it("shows a medium's sections in AniList's order, each with a way to everything it samples", async () => {
+    sections.mockResolvedValue({
+      trending: page(title(1, "Trend One")),
+      season: page(title(2, "Season One")),
+      nextSeason: page(title(3, "Next One")),
+      popular: page(title(4, "Popular One")),
+      top: page(title(5, "Top One", { popularity: 490000 })),
+    });
+    renderWithProviders(<Search />, { route: "/search" });
+
+    const headings = await screen.findAllByRole("heading", { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "search.browseTrending",
+      "search.browseSeason",
+      "search.browseNextSeason",
+      "search.browsePopular",
+      "search.browseTop",
+    ]);
+    expect(screen.getAllByRole("link", { name: /dashboard\.showAll/ })).toHaveLength(5);
+    expect(screen.getByRole("link", { name: /#1/ })).toHaveTextContent("Top One");
+    // The lens chips went with the sections, which open the same views.
+    expect(screen.queryByRole("button", { name: /search\.chip/ })).toBeNull();
+    expect(sections).toHaveBeenCalledTimes(1);
+    expect(sections.mock.calls[0][0]).toBe("ANIME");
+    expect(browse).not.toHaveBeenCalled();
+  });
+
+  it("shows manga its own sections, with no season among them", async () => {
+    sections.mockResolvedValue({ trending: page(title(1, "A")), popular: page(title(2, "B")), manhwa: page(title(3, "C")), top: page(title(4, "D")) });
+    renderWithProviders(<Search />, { route: "/search?scope=MANGA" });
+    const headings = await screen.findAllByRole("heading", { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual(["search.browseTrending", "search.browsePopular", "search.browseManhwa", "search.browseTop"]);
+    expect(sections.mock.calls[0][0]).toBe("MANGA");
+  });
+
+  it("hides what the content filter hides, counts a title in two sections once, and keeps AniList's ranks", async () => {
+    useContentFilter.setState({ level: "strict", ready: true, error: null });
+    const ecchi = title(9, "Hidden", { genres: ["Ecchi"] });
+    sections.mockResolvedValue({
+      trending: page(ecchi, title(1, "Shown")),
+      top: page(title(5, "First"), ecchi, title(6, "Third")),
+    });
+    renderWithProviders(<Search />, { route: "/search" });
+
+    await screen.findByText("Shown");
+    expect(screen.queryByText("Hidden")).toBeNull();
+    expect(screen.getByText(/list\.hiddenSuggestive/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /#1/ })).toHaveTextContent("First");
+    expect(screen.getByRole("link", { name: /#3/ })).toHaveTextContent("Third");
+    expect(screen.queryByRole("link", { name: /#2/ })).toBeNull();
+  });
+
+  it("opens a section's Show all as the paged grid under its name, with the way back", async () => {
+    const user = userEvent.setup({ delay: null });
+    sections.mockResolvedValue({ trending: page(title(1, "Trend One")) });
+    renderWithProviders(
+      <>
+        <Search />
+        <Url />
+      </>,
+      { route: "/search" },
+    );
+
+    await user.click(await screen.findByRole("link", { name: /search\.browseTrending/ }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?sort=TRENDING_DESC$/));
+    await waitFor(() => expect(browse).toHaveBeenCalled());
+    expect(browse.mock.calls[0][1]).toMatchObject({ sort: "TRENDING_DESC", search: undefined });
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseTrending");
+
+    await user.click(screen.getByRole("link", { name: "search.browseBack" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^$/));
+    expect(await screen.findAllByRole("heading", { level: 2 })).toHaveLength(1);
+  });
+
+  /** The old lenses set the sort alone, which counted as no filter, so three of the four fetched nothing at all. */
+  it("browses a chosen sort with nothing typed, naming the section it is", async () => {
+    renderWithProviders(<Search />, { route: "/search?scope=MANGA&sort=SCORE_DESC" });
+    await waitFor(() => expect(browse).toHaveBeenCalled());
+    expect(browse.mock.calls[0][0]).toBe("MANGA");
+    expect(browse.mock.calls[0][1]).toMatchObject({ sort: "SCORE_DESC" });
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseTop");
+    expect(sections).not.toHaveBeenCalled();
+  });
+
+  it("names no section once a Show all is refined", async () => {
+    renderWithProviders(<Search />, { route: "/search?sort=TRENDING_DESC&genre=Drama" });
+    await waitFor(() => expect(browse).toHaveBeenCalled());
+    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
+  });
+
+  it("shows characters today's birthdays and the most favourited, and staff theirs from the same answer", async () => {
+    const user = userEvent.setup({ delay: null });
+    people.mockResolvedValue({
+      characterBirthdays: { characters: [person(1, "Kenma Kozume", 9943)] },
+      characterFavourites: { characters: [person(2, "Satoru Gojou", 39511)] },
+      staffBirthdays: { staff: [person(3, "Akari Kitou", 4943)] },
+      staffFavourites: { staff: [person(4, "Kenjirou Tsuda", 20117)] },
+    });
+    renderWithProviders(<Search />, { route: "/search?scope=CHARACTERS" });
+
+    expect(await screen.findByRole("link", { name: /Kenma Kozume/ })).toHaveAttribute("href", "/character/1");
+    expect(screen.getByRole("link", { name: /Satoru Gojou/ })).toHaveTextContent("40k");
+    expect(screen.getByRole("heading", { name: "search.browseFavouriteCharacters" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "search.staffScope" }));
+    expect(await screen.findByRole("link", { name: /Akari Kitou/ })).toHaveAttribute("href", "/staff/3");
+    expect(screen.getByRole("heading", { name: "search.browseFavouriteStaff" })).toBeInTheDocument();
+    // One answer serves both scopes, keyed by AniList's day.
+    expect(people).toHaveBeenCalledTimes(1);
+    expect(people.mock.calls[0][0]).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("opens a people section's Show all as a list that pages on a button", async () => {
+    const user = userEvent.setup({ delay: null });
+    peoplePage
+      .mockResolvedValueOnce({ pageInfo: { hasNextPage: true }, rows: [person(2, "Satoru Gojou", 39511)] })
+      .mockResolvedValueOnce({ pageInfo: { hasNextPage: false }, rows: [person(5, "Levi", 38900)] });
+    renderWithProviders(<Search />, { route: "/search?scope=CHARACTERS&browse=favourites" });
+
+    expect(await screen.findByRole("link", { name: /Satoru Gojou/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseFavouriteCharacters");
+    expect(peoplePage).toHaveBeenCalledWith("character", "favourites", 1);
+    expect(people).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "social.loadMorePlain" }));
+    expect(await screen.findByRole("link", { name: /Levi/ })).toBeInTheDocument();
+    expect(peoplePage).toHaveBeenLastCalledWith("character", "favourites", 2);
+  });
+
+  it("drops a people list on the way to a medium", async () => {
+    const user = userEvent.setup({ delay: null });
+    peoplePage.mockResolvedValue({ pageInfo: { hasNextPage: false }, rows: [] });
+    renderWithProviders(
+      <>
+        <Search />
+        <Url />
+      </>,
+      { route: "/search?scope=STAFF&browse=birthdays" },
+    );
+    await user.click(screen.getByRole("button", { name: "search.anime" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^$/));
+  });
+});

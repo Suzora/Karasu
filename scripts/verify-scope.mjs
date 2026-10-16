@@ -5,6 +5,7 @@ import { VERSION_PATTERNS } from "./version-patterns.mjs";
 export const RAW_READ_GLOBS = [
   "/src/**/*.{ts,tsx}",
   "/src/**/*.test.{ts,tsx}",
+  "/src/api/queries.ts",
   "/index.html",
   "/src-tauri/tauri.conf.json",
   "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",

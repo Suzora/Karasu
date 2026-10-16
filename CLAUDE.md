@@ -82,6 +82,8 @@ src/
     social/          the parts UserProfile, Social and Thread draw — the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
+    search/          the parts Search draws with nothing typed — the browse
+                     sections, the ranked top list and the portrait cards
     EmptyState · Skeleton · KarasuMark · FilteredNotice · ErrorBoundary ·
     RichText — cross-cutting, belong to no group; FilteredNotice is the
     content filter's one disclosure line, so the three surfaces that show it
@@ -2742,6 +2744,24 @@ shape, and the question that follows them.
   the user and the follower totals; everything else arrives when a tab is
   activated, which is a second user-initiated moment rather than a fourth
   concurrent request clearing a pre-flight check that has not been updated yet.
+- **Search with nothing typed browses, in one cached request per scope.**
+  `lib/browseSections` is the table: each medium's sections in AniList's own
+  order, each an alias of one aliased-`Page` query (`ANIME_BROWSE_QUERY`,
+  `MANGA_BROWSE_QUERY`, and a test holds the aliases to the table), a cover
+  row asking for the covers-per-row setting plus four (`rowRequestSize`, 12
+  to 50) and the top list for ten, under the source `browse` for an hour.
+  Measured live on 2026-10-16: 52.7 KB for anime at 12 a row, 180 KB at 50.
+  Characters and staff share `PEOPLE_BROWSE_QUERY` (source `browsePeople`,
+  13.5 KB), whose variables carry a `day` the query never declares: AniList
+  accepts it, and the cache key then carries AniList's UTC day, so a cached
+  birthday answer ends with that day. "Show all" is a link to the section's
+  own search view (`showAllView`), so Back returns to the sections, and
+  `sectionOfView` names the section over the grid with the way back. A sort
+  alone now counts as a search with nothing typed; the four lens chips this
+  replaced set a sort alone for three of them, and those three fetched
+  nothing at all. A people section's "Show all" is the view's `browse` key,
+  paged on a button. A hidden title keeps AniList's rank on every row after
+  it rather than moving them up.
 - **A pure function returns an i18n *key*, never a sentence.**
   `src/lib/i18nKeys.test.ts` only sees literal `t("…")` calls, so
   `` t(`social.verb${v}`) `` is invisible to it — and AniList makes this matter
