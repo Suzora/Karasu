@@ -334,7 +334,8 @@ describe("Search with nothing typed", () => {
     expect(peoplePage).toHaveBeenLastCalledWith("character", "favourites", 2);
   });
 
-  it("drops the year on the way to manga, which has no season year to filter on", async () => {
+  /** A manga's year is the year it started, so the year a search names carries over while the anime season does not. */
+  it("keeps the year on the way to manga and drops the season, which manga lack", async () => {
     const user = userEvent.setup({ delay: null });
     renderWithProviders(
       <>
@@ -344,8 +345,11 @@ describe("Search with nothing typed", () => {
       { route: "/search?year=2026&season=FALL&sort=POPULARITY_DESC" },
     );
     await user.click(screen.getByRole("button", { name: "search.manga" }));
-    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?scope=MANGA&sort=POPULARITY_DESC$/));
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browsePopular");
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?scope=MANGA&year=2026&sort=POPULARITY_DESC$/));
+    await waitFor(() => expect(browse.mock.lastCall?.[0]).toBe("MANGA"));
+    const filters = browse.mock.lastCall?.[1] as { year?: number; season?: string };
+    expect(filters.year).toBe(2026);
+    expect(filters.season).toBeUndefined();
   });
 
   /** The sections have no sort, and a select that already showed Popularity could never be picked to open its grid. */

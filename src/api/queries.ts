@@ -5,6 +5,7 @@ import { adultVars } from "@/lib/contentFilter";
 import { chunk } from "@/lib/chunk";
 import { seasonOf, type Period } from "@/lib/seasonView";
 import { browseVariables, type MediaSectionKey } from "@/lib/browseSections";
+import { yearVariables } from "@/lib/searchView";
 import type {
   FuzzyDate,
   Media,
@@ -80,10 +81,10 @@ export async function searchMedia(
 
 /** The filterable search: an absent variable is no filter to AniList, so one query serves every combination. */
 const BROWSE_QUERY = `
-query ($search: String, $type: MediaType!, $page: Int, $isAdult: Boolean, $genreIn: [String], $genreNotIn: [String], $tagIn: [String], $tagNotIn: [String], $seasonYear: Int, $season: MediaSeason, $format: MediaFormat, $status: MediaStatus, $source: MediaSource, $countryOfOrigin: CountryCode, $sort: [MediaSort], $scoreFormat: ScoreFormat) {
+query ($search: String, $type: MediaType!, $page: Int, $isAdult: Boolean, $genreIn: [String], $genreNotIn: [String], $tagIn: [String], $tagNotIn: [String], $seasonYear: Int, $startDateLike: String, $season: MediaSeason, $format: MediaFormat, $status: MediaStatus, $source: MediaSource, $countryOfOrigin: CountryCode, $sort: [MediaSort], $scoreFormat: ScoreFormat) {
   Page(page: $page, perPage: 30) {
     pageInfo { hasNextPage }
-    media(search: $search, type: $type, isAdult: $isAdult, genre_in: $genreIn, genre_not_in: $genreNotIn, tag_in: $tagIn, tag_not_in: $tagNotIn, seasonYear: $seasonYear, season: $season, format: $format, status: $status, source: $source, countryOfOrigin: $countryOfOrigin, sort: $sort) {
+    media(search: $search, type: $type, isAdult: $isAdult, genre_in: $genreIn, genre_not_in: $genreNotIn, tag_in: $tagIn, tag_not_in: $tagNotIn, seasonYear: $seasonYear, startDate_like: $startDateLike, season: $season, format: $format, status: $status, source: $source, countryOfOrigin: $countryOfOrigin, sort: $sort) {
       ${MEDIA_FIELDS}
     }
   }
@@ -116,7 +117,8 @@ export interface BrowseFilters {
   genreNotIn?: string[];
   tagIn?: string[];
   tagNotIn?: string[];
-  seasonYear?: number;
+  /** The year a title is from; `yearVariables` decides which of AniList's fields it filters. */
+  year?: number;
   season?: Season;
   format?: string;
   status?: string;
@@ -143,7 +145,7 @@ export async function browseMedia(
     genreNotIn: filters.genreNotIn?.length ? filters.genreNotIn : undefined,
     tagIn: filters.tagIn?.length ? filters.tagIn : undefined,
     tagNotIn: filters.tagNotIn?.length ? filters.tagNotIn : undefined,
-    seasonYear: filters.seasonYear || undefined,
+    ...yearVariables(type, filters.year),
     season: filters.season || undefined,
     format: filters.format || undefined,
     status: filters.status || undefined,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SEARCH_DEFAULTS, parseSearchView, writeSearchView, type SearchView } from "./searchView";
+import { SEARCH_DEFAULTS, parseSearchView, writeSearchView, yearVariables, type SearchView } from "./searchView";
 
 const view = (patch: Partial<SearchView>): SearchView => ({ ...SEARCH_DEFAULTS, ...patch });
 
@@ -84,5 +84,31 @@ describe("search view in the URL", () => {
     const v = parseSearchView(new URLSearchParams("scope=MANGA&season=FALL&format=TV"));
     expect(v.season).toBe("");
     expect(v.format).toBe("");
+  });
+});
+
+describe("the year a search filters by", () => {
+  /** AniList leaves a manga's season year null, so the same year has to be asked of the date it started. */
+  it("reads a manga's year as its start date and an anime's as its season year", () => {
+    expect(yearVariables("MANGA", 2020)).toEqual({ startDateLike: "2020%" });
+    expect(yearVariables("ANIME", 2020)).toEqual({ seasonYear: 2020 });
+  });
+
+  it("asks for nothing without a year", () => {
+    expect(yearVariables("MANGA", undefined)).toEqual({});
+    expect(yearVariables("ANIME", undefined)).toEqual({});
+  });
+
+  /** A start date is matched by its leading digits, so a short year would stand for a whole decade or century. */
+  it("asks for nothing for a year short of four digits, which no year the select offers is", () => {
+    expect(yearVariables("MANGA", 199)).toEqual({});
+    expect(yearVariables("MANGA", 2)).toEqual({});
+  });
+
+  it("drops a zero-led year from the URL, which would read as a shorter one", () => {
+    for (const year of ["0199", "0002", "0000"]) {
+      expect(parseSearchView(new URLSearchParams(`scope=MANGA&year=${year}`)).year).toBe("");
+    }
+    expect(parseSearchView(new URLSearchParams("scope=MANGA&year=1999")).year).toBe("1999");
   });
 });
