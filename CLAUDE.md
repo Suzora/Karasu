@@ -2769,8 +2769,8 @@ shape, and the question that follows them.
   the titles a section would have drawn (`cutSection`). Its answers, like
   the season page's and the recommendations', carry the viewer's list
   entries under no media id, so `cache_forget_entry_id` drops all three
-  sources whenever it forgets an entry; a delete that waited in the offline
-  queue does not reach it yet, since the drain forgets nothing it deletes. A term too short to search shows its
+  sources whenever it forgets an entry, and a delete drained from the offline
+  queue reaches it through `mirror_drained` as a live one does. A term too short to search shows its
   prompt rather than the sections, which would read as its answer. A manga
   has no season, so the top list asks for `startDate { year }` and falls back
   to it.
