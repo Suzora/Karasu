@@ -6,7 +6,7 @@
 //   node scripts/screens.mjs clip [--styles ,a]           one webm per style, then all of them side by side
 //   node scripts/screens.mjs hash [--out scripts/screens/.out/before.json]   still frames at a fixed clock, one sha256 each
 //   node scripts/screens.mjs hash --compare scripts/screens/.out/before.json exit 1 when any screen's pixels changed
-//   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when <main> or a page's own scroller scrolls sideways
+//   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when <main> or a scroller in it scrolls sideways
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -221,7 +221,7 @@ export const SCREENS = [
   { id: "d100-suche-geburtstage", w: 1232, h: 800, route: "/search?scope=STAFF&browse=birthdays" },
   { id: "p68-suche-anime-ganz", w: 405, h: 2300, phone: true, route: "/search" },
   { id: "p69-suche-charaktere", w: 405, h: 1100, phone: true, route: "/search?scope=CHARACTERS" },
-  // The narrowest phone, where a long people heading beside its link once pushed the link out of the row.
+  // The narrowest phone, where a long people heading must keep its link in the row.
   { id: "p70-suche-mitwirkende-schmal", w: 320, h: 860, phone: true, route: "/search?scope=STAFF" },
   { id: "p71-suche-beliebteste-schmal", w: 320, h: 860, phone: true, route: "/search?scope=CHARACTERS&browse=favourites" },
   {
@@ -437,7 +437,7 @@ async function shoot() {
           return main ? Math.max(...[main, ...main.querySelectorAll(".overflow-y-auto")].map((b) => b.scrollWidth - b.clientWidth)) : 0;
         });
         report.push({ name, errors, unknown, sideways });
-        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> scrolls ${sideways}px sideways`] : [])];
+        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : [])];
         if (problems.length) console.log(`${name}: ${problems.join("; ")}`);
         await context.close();
       }
@@ -472,7 +472,7 @@ async function hash() {
   console.log(`screens: ${Object.keys(hashes).length} hash(es) in ${path.relative(ROOT, file)}`);
 }
 
-/** Each screen's sideways overflow: how far `<main>` scrolls past its width, and which elements push it there. */
+/** Each screen's sideways overflow: how far `<main>` or a scroller in it reaches past its width, and what pushes it. */
 async function overflow() {
   const browser = await launch();
   const screens = selected();
@@ -505,7 +505,7 @@ async function overflow() {
         el.style.display = before;
         return { name: name(el), freed: over - Math.max(0, without) };
       });
-      return { over, culprits, where: box === main ? "<main>" : "its own scroller" };
+      return { over, culprits, where: box === main ? "<main>" : `an overflow-y-auto ${box.tagName.toLowerCase()} in <main>` };
     });
     await context.close();
     if (!found) continue;

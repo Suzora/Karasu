@@ -6,6 +6,7 @@ import { MemoryRouter, Route, Routes, useLocation, useNavigate, type NavigateFun
 import { useContentFilter } from "@/stores/contentFilter";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
 import { media } from "@/test/fixtures";
+import { useTheme } from "@/stores/theme";
 
 const browse = vi.fn();
 const sections = vi.fn();
@@ -304,6 +305,8 @@ describe("Search with nothing typed", () => {
 
     expect(await screen.findByRole("link", { name: /Kenma Kozume/ })).toHaveAttribute("href", "/character/1");
     expect(screen.getByRole("link", { name: /Satoru Gojou/ })).toHaveTextContent("40k");
+    // The heart is drawn, so the count says what it counts to a screen reader.
+    expect(screen.getByRole("link", { name: /Satoru Gojou.*detail\.favorites/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "search.browseFavouriteCharacters" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "search.staffScope" }));
@@ -364,13 +367,56 @@ describe("Search with nothing typed", () => {
   });
 
   it("keeps a section's grid and its one request while a single character is typed", async () => {
-    const user = userEvent.setup({ delay: null });
-    renderWithProviders(<Search />, { route: "/search?sort=TRENDING_DESC" });
-    await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
-    await user.type(screen.getByRole("searchbox", { name: "search.placeholder" }), "f");
-    await act(() => new Promise((r) => setTimeout(r, 650)));
-    expect(browse).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseTrending");
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const user = userEvent.setup({ delay: null, advanceTimers: vi.advanceTimersByTime });
+      renderWithProviders(<Search />, { route: "/search?sort=TRENDING_DESC" });
+      await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
+      await user.type(screen.getByRole("searchbox", { name: "search.placeholder" }), "f");
+      await act(() => vi.advanceTimersByTimeAsync(600));
+      expect(browse).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("search.browseTrending");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  /** One character searched nothing, yet it once switched a filtered grid to relevance and asked for it again. */
+  it("keeps a filtered grid's sort and its one request while a single character is typed", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const user = userEvent.setup({ delay: null, advanceTimers: vi.advanceTimersByTime });
+      renderWithProviders(<Search />, { route: "/search?status=FINISHED" });
+      await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
+      await user.type(screen.getByRole("searchbox", { name: "search.placeholder" }), "f");
+      await act(() => vi.advanceTimersByTimeAsync(600));
+      expect(browse.mock.calls.map(([, f]) => (f as { sort: string }).sort)).toEqual(["POPULARITY_DESC"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("dates a manga in the top list by the year it started, since a manga has no season", async () => {
+    sections.mockResolvedValue({
+      top: page(title(4, "D", { type: "MANGA", format: "MANGA", season: null, seasonYear: null, startDate: { year: 1989 } })),
+    });
+    renderWithProviders(<Search />, { route: "/search?scope=MANGA" });
+    expect(await screen.findByRole("link", { name: /#1/ })).toHaveTextContent("1989");
+  });
+
+  /** The notice says what the screen left out, so a hidden title past the covers a row draws is not in it. */
+  it("counts no hidden title past the covers a row draws", async () => {
+    const cols = useTheme.getState().coverCols;
+    useContentFilter.setState({ level: "strict", ready: true, error: null });
+    useTheme.setState({ coverCols: 2 });
+    try {
+      sections.mockResolvedValue({ trending: page(title(1, "A"), title(2, "B"), title(9, "X", { genres: ["Ecchi"] })) });
+      renderWithProviders(<Search />, { route: "/search" });
+      await screen.findByText("A");
+      expect(screen.queryByText(/list\.hiddenSuggestive/)).toBeNull();
+    } finally {
+      useTheme.setState({ coverCols: cols });
+    }
   });
 
   it("says a term is too short rather than showing the sections as its answer", async () => {

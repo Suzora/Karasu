@@ -186,7 +186,7 @@ export default function Search() {
   const effectiveSort = searched || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
   // A chosen sort browses too: it is what a section's "Show all" opens, while an untouched page shows the sections.
   const active = searched !== "" || hasFilters || sort !== SEARCH_DEFAULTS.sort;
-  // Read once per visit, so a season that turns while the page is open cannot name one grid after another's section.
+  // Read once per mount, so a season that turns while the page is open cannot name one grid after another's section.
   const [now] = useState(currentSeason);
   const section = sectionOfView({ ...view, term: searched }, now);
 

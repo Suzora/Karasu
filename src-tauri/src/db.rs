@@ -751,8 +751,10 @@ impl Db {
         for media_id in media_ids {
             self.query_cache_forget_media(media_id);
         }
-        // The search page's browse sections carry the viewer's entry under no media id, so a delete drops them too.
-        self.query_cache_forget_source("browse");
+        // Discovery answers carry the viewer's entry under no media id, so a delete drops them too.
+        for source in ["browse", "seasonal", "recommendations"] {
+            self.query_cache_forget_source(source);
+        }
         anime || manga
     }
 
@@ -2600,11 +2602,18 @@ pub(crate) mod tests {
     fn a_deleted_entry_stops_being_a_scrobble_candidate() {
         let db = mem_db();
         seed_list(&db);
-        db.query_cache_put("b", 1, "browse", None, "{}");
+        for (key, source) in [("b", "browse"), ("s", "seasonal"), ("r", "recommendations"), ("p", "browsePeople")] {
+            db.query_cache_put(key, 1, source, None, "{}");
+        }
+        db.query_cache_put("d", 1, "mediaDetail", Some(200), "{}");
         assert!(db.cache_forget_entry_id(1, 10), "the entry id is what delete has");
         assert!(cached_entry(&db, 100).is_none(), "gone from the cache");
         assert!(cached_entry(&db, 200).is_some(), "and only that one");
-        assert!(db.query_cache_get("b").is_none(), "and the browse sections that carried its entry");
+        for key in ["b", "s", "r"] {
+            assert!(db.query_cache_get(key).is_none(), "and the discovery answers that carried its entry: {key}");
+        }
+        assert!(db.query_cache_get("p").is_some(), "answers with no list entry stay");
+        assert!(db.query_cache_get("d").is_some(), "and another title's detail stays");
     }
 
     /// Proves patching an uncached entry writes nothing, so it cannot resurrect a list since replaced.
@@ -2613,7 +2622,10 @@ pub(crate) mod tests {
         let db = mem_db();
         seed_list(&db);
         assert!(!db.cache_patch_entry(1, "ANIME", 999, &serde_json::json!({ "progress": 3 })));
+        db.query_cache_put("b", 1, "browse", None, "{}");
         assert!(!db.cache_forget_entry_id(1, 999));
+        // A hidden entry is missing from the cached lists, and its stub in a discovery answer must still go.
+        assert!(db.query_cache_get("b").is_none());
         assert_eq!(cached_entry(&db, 100).unwrap()["progress"], 4);
     }
 

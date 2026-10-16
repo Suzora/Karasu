@@ -28,7 +28,7 @@ node scripts/screens.mjs overflow --only p2-detail,p44-detail-schmal
 - A variant that needs changed markup rather than changed CSS is a local, uncommitted edit to the component, shot, then reverted.
 - Screens are the `SCREENS` table in `scripts/screens.mjs`; add a row for a screen a task needs rather than a one-off script.
 - `hash` takes still frames at a fixed clock with motion off; two runs agree, so an unchanged hash is the proof a mechanical refactor changed no pixel.
-- `overflow` fails when a screen's `<main>` scrolls sideways and names what pushes it; `report.json` carries the same figure as `sideways` for every shot. On Windows set `CHROMIUM_PATH` to Edge.
+- `overflow` fails when a screen's `<main>`, or any `overflow-y-auto` box inside it, scrolls sideways and names what pushes it; `report.json` carries the same figure as `sideways` for every shot. On Windows set `CHROMIUM_PATH` to Edge.
 - Check `report.json` beside the shots: page errors and unmocked commands mean the picture may be lying.
 
 ## The boards
