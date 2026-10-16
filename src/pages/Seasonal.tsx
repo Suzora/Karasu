@@ -5,7 +5,7 @@ import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useUrlState } from "@/hooks/useUrlState";
-import { parsePeriod, writePeriod, type Period } from "@/lib/seasonView";
+import { parsePeriod, shiftSeason, writePeriod, type Period } from "@/lib/seasonView";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,7 +20,7 @@ import {
   Timer,
   Tv,
 } from "lucide-react";
-import { currentSeason, seasonalAnime, type Season } from "@/api/queries";
+import { currentSeason, seasonalAnime } from "@/api/queries";
 import { isTauri } from "@/api/anilist";
 import MediaCard from "@/components/media/MediaCard";
 import SeasonPicker from "@/components/ui/season-picker";
@@ -42,15 +42,6 @@ const FORMAT_ICON: Record<string, typeof Tv> = {
   ONA: MonitorPlay,
   MUSIC: Clapperboard,
 };
-
-const SEASONS: Season[] = ["WINTER", "SPRING", "SUMMER", "FALL"];
-
-function shift(season: Season, year: number, dir: 1 | -1) {
-  const idx = SEASONS.indexOf(season) + dir;
-  if (idx < 0) return { season: "FALL" as Season, year: year - 1 };
-  if (idx > 3) return { season: "WINTER" as Season, year: year + 1 };
-  return { season: SEASONS[idx], year };
-}
 
 /** A bare URL means the season it is now, so an entry left across a season's turn reopens on the new one. */
 const readPeriod = (params: URLSearchParams): Period => parsePeriod(params, currentSeason());
@@ -105,7 +96,7 @@ export default function Seasonal() {
           <Button
             variant="ghost"
             size="iconControl"
-            onClick={() => setPeriod((p) => shift(p.season, p.year, -1))}
+            onClick={() => setPeriod((p) => shiftSeason(p, -1))}
             aria-label={t("seasonal.prev")}
           >
             <ChevronLeft className="size-4" />
@@ -113,7 +104,7 @@ export default function Seasonal() {
           <Button
             variant="ghost"
             size="iconControl"
-            onClick={() => setPeriod((p) => shift(p.season, p.year, 1))}
+            onClick={() => setPeriod((p) => shiftSeason(p, 1))}
             aria-label={t("seasonal.next")}
           >
             <ChevronRight className="size-4" />

@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   browseMedia,
+  currentSeason,
   genreTagCollections,
   MEDIA_SOURCES,
   type BrowseFilters,
@@ -18,10 +19,12 @@ import {
 import { EMPTY, encode, isEmpty, toQueryArgs } from "@/lib/multiFilter";
 import {
   SCOPES,
+  SEARCH_DEFAULTS,
   SEASONS,
   SORTS,
   STATUSES,
   isMediaScope,
+  isPeopleScope,
   parseSearchView,
   writeSearchView,
   type SearchView,
@@ -29,6 +32,7 @@ import {
 import { MultiFilterSelect } from "@/components/ui/multi-filter-select";
 import type { MediaType } from "@/api/types";
 import {
+  browsePeoplePage,
   searchCharacters,
   searchStaff,
   searchStudios,
@@ -63,6 +67,17 @@ import { EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/Emp
 import { Pill } from "@/components/ui/pill";
 import { UserList } from "@/components/social/UserList";
 import { cardClass } from "@/components/ui/card";
+import {
+  Favourites,
+  MediaSections,
+  PeopleSections,
+  ShowAllHeading,
+  searchHref,
+  sectionIcon,
+  sectionTitle,
+} from "@/components/search/BrowseSections";
+import { birthdayDay, sectionOfView } from "@/lib/browseSections";
+import { Cake, Heart } from "lucide-react";
 
 /** Literal switch, so `i18nKeys.test.ts` sees every key. */
 function sortLabel(sort: string, t: (k: string) => string): string {
@@ -82,26 +97,11 @@ function sortLabel(sort: string, t: (k: string) => string): string {
   }
 }
 
-/** The ready-made lenses — a browse page's worth of charts as one click. */
-const BROWSE_CHIPS = [
-  { key: "chipTrending", sort: "TRENDING_DESC", thisSeason: false },
-  { key: "chipSeason", sort: "POPULARITY_DESC", thisSeason: true },
-  { key: "chipPopular", sort: "POPULARITY_DESC", thisSeason: false },
-  { key: "chipTop", sort: "SCORE_DESC", thisSeason: false },
-] as const;
-
-function currentSeasonOf(now = new Date()): { season: Season; year: number } {
-  const month = now.getMonth() + 1;
-  const season: Season =
-    month <= 3 ? "WINTER" : month <= 6 ? "SPRING" : month <= 9 ? "SUMMER" : "FALL";
-  return { season, year: now.getFullYear() };
-}
-
 export default function Search() {
   const { t } = useTranslation();
   // In the URL, so Back from a result brings the query, the scope and every filter back.
   const [view, setView, visit] = useUrlState(parseSearchView, writeSearchView);
-  const { scope, term, genre, tag, year, season, format, status, source, country, sort } = view;
+  const { scope, term, genre, tag, year, season, format, status, source, country, sort, browse } = view;
   const set = useCallback(
     (patch: Partial<SearchView>) =>
       setView((v) =>
@@ -135,8 +135,15 @@ export default function Search() {
 
   // In the setter, not an effect on the scope, which would also run on arrival and drop a restored format.
   const changeScope = (next: SearchView["scope"]) => {
-    // A format from the other medium is meaningless after a flip, and a season would keep filtering manga invisibly.
-    if (next !== scope) set({ scope: next, format: "", season: "" });
+    // A format is one medium's, manga have no season nor season year to filter on, and a people list has no media.
+    if (next !== scope)
+      set({
+        scope: next,
+        format: "",
+        season: "",
+        ...(next === "MANGA" ? { year: "" } : {}),
+        ...(isPeopleScope(next) ? {} : { browse: "" }),
+      });
   };
 
   const level = useContentFilter((s) => s.level);
@@ -173,14 +180,20 @@ export default function Search() {
 
   const clearFilters = () =>
     set({ genre: EMPTY, tag: EMPTY, year: "", season: "", format: "", status: "", source: "", country: "" });
+  // A term under two characters searches nothing, so it neither keys a request nor unnames a section's grid.
+  const searched = term.length >= 2 ? term : "";
   // Relevance without a query is meaningless; popularity is the browse default.
-  const effectiveSort = term || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
-  const active = term.length >= 2 || hasFilters;
+  const effectiveSort = searched || sort !== "SEARCH_MATCH" ? sort : "POPULARITY_DESC";
+  // A chosen sort browses too: it is what a section's "Show all" opens, while an untouched page shows the sections.
+  const active = searched !== "" || hasFilters || sort !== SEARCH_DEFAULTS.sort;
+  // Read once per mount, so a season that turns while the page is open cannot name one grid after another's section.
+  const [now] = useState(currentSeason);
+  const section = sectionOfView({ ...view, term: searched }, now);
 
   const genreArgs = toQueryArgs(genre);
   const tagArgs = toQueryArgs(tag);
   const filters: BrowseFilters = {
-    search: term.length >= 2 ? term : undefined,
+    search: searched || undefined,
     genreIn: genreArgs.in,
     genreNotIn: genreArgs.notIn,
     tagIn: tagArgs.in,
@@ -191,14 +204,14 @@ export default function Search() {
     status: status || undefined,
     source: source || undefined,
     countryOfOrigin: country || undefined,
-    sort: term.length >= 2 ? sort : effectiveSort,
+    sort: effectiveSort,
   };
 
   // Level is keyed since filtering is server-side; genre and tag are encoded so pick order is one entry.
   const mediaKey = [
     "search",
     type,
-    term,
+    searched,
     encode(genre),
     encode(tag),
     year,
@@ -232,24 +245,6 @@ export default function Search() {
     return reason === null;
   });
 
-  const applyChip = (chip: (typeof BROWSE_CHIPS)[number]) => {
-    const now = currentSeasonOf();
-    setInput("");
-    set({
-      term: "",
-      genre: EMPTY,
-      tag: EMPTY,
-      status: "",
-      format: "",
-      source: "",
-      country: "",
-      sort: chip.sort,
-      year: chip.thisSeason ? String(now.year) : "",
-      // Manga has no seasons, and the URL keeps a season for anime alone.
-      season: chip.thisSeason && scope === "ANIME" ? now.season : "",
-    });
-  };
-
   const yearOptions = useMemo(() => {
     const max = new Date().getFullYear() + 1;
     return Array.from({ length: max - 1939 }, (_, i) => String(max - i));
@@ -272,7 +267,7 @@ export default function Search() {
             placeholder={t("search.placeholder")}
             className="max-w-136"
           />
-          {/* Chips scroll in one row on a phone, behind a divider; a desktop gives the browse chips a row of their own. */}
+          {/* The scope pills scroll in one row on a phone and wrap on a desktop. */}
           <div
             // Only the x axis scrolls and draws no bar: a pill's touch hit area overflows the row vertically.
             className={cn(
@@ -302,20 +297,6 @@ export default function Search() {
                           : t("search.studios")}
               </Pill>
             ))}
-            {isMediaScope(scope) && (
-              <span className={cn("flex shrink-0 items-center gap-1.5", !phone && "basis-full")}>
-                {phone && <span className="mx-1 h-4 w-px bg-surface-700" />}
-                {BROWSE_CHIPS.map((chip) => (
-                  <Pill
-                    key={chip.key}
-                    onClick={() => applyChip(chip)}
-                    className="shrink-0 whitespace-nowrap"
-                  >
-                    {t(`search.${chip.key}`)}
-                  </Pill>
-                ))}
-              </span>
-            )}
           </div>
           {/* One control on every width: nine open filters over the results was a wall before the first answer. */}
           {isMediaScope(scope) && (
@@ -426,7 +407,8 @@ export default function Search() {
               />
               <FilterSelect
                 label={t("list.sortLabel")}
-                value={filters.sort}
+                // The sections have no sort of their own, so an untouched page shows the URL's and every pick browses.
+                value={active ? filters.sort : sort}
                 onChange={(v) => set({ sort: v })}
                 options={SORTS.map((s) => ({ value: s, label: sortLabel(s, t) }))}
               />
@@ -437,18 +419,27 @@ export default function Search() {
 
       <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
         {scope === "USERS" && <UserSearchResults term={term} />}
-        {(scope === "CHARACTERS" || scope === "STAFF") && (
-          <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} />
+        {isPeopleScope(scope) && (
+          <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} browse={browse} />
         )}
         {scope === "STUDIOS" && <StudioSearchResults term={term} />}
-        {isMediaScope(scope) && (
+        {/* A term too short to search says so, or the sections would read as its answer. */}
+        {isMediaScope(scope) && !active && term && <EmptyState title={t("search.prompt")} hint={t("search.promptHint")} />}
+        {isMediaScope(scope) && !active && !term && <MediaSections type={type} now={now} />}
+        {isMediaScope(scope) && active && section && (
+          <ShowAllHeading
+            icon={sectionIcon(section)}
+            title={sectionTitle(section, t)}
+            back={searchHref({ ...SEARCH_DEFAULTS, scope })}
+          />
+        )}
+        {isMediaScope(scope) && active && (
           <MediaResults
             error={media.error}
             onRetry={() => queryClient.resetQueries({ queryKey: mediaKey, exact: true })}
             nextPageFailed={media.isFetchNextPageError}
             isFetching={media.isFetching && !media.isFetchingNextPage}
-            active={active}
-            term={term}
+            term={searched}
             results={results}
             hiddenAdult={hiddenAdult}
             hiddenSuggestive={hiddenSuggestive}
@@ -503,9 +494,12 @@ function UserSearchResults({ term }: { term: string }) {
 function PersonSearchResults({
   kind,
   term,
+  browse,
 }: {
   kind: "character" | "staff";
   term: string;
+  /** The people list a section's "Show all" opened, or "" for the sections. */
+  browse: string;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -523,12 +517,10 @@ function PersonSearchResults({
   });
 
   if (term.length < USER_SEARCH_MIN) {
-    return (
-      <EmptyState
-        title={t("search.entityPrompt")}
-        hint={t("search.userPromptHint", { n: USER_SEARCH_MIN })}
-      />
-    );
+    // A name too short to search says so, or the sections would read as its answer.
+    if (term) return <EmptyState title={t("search.entityPrompt")} hint={t("search.userPromptHint", { n: USER_SEARCH_MIN })} />;
+    if (browse === "birthdays" || browse === "favourites") return <PeopleList kind={kind} list={browse} />;
+    return <PeopleSections kind={kind} />;
   }
   const rows = query.data?.pages.flatMap((p) => p.rows) ?? [];
   return (
@@ -552,6 +544,59 @@ function PersonSearchResults({
         />
       ))}
     </EntityResultList>
+  );
+}
+
+/** A people section's "Show all": the whole list a page at a time, the most favourited first. */
+function PeopleList({ kind, list }: { kind: "character" | "staff"; list: "birthdays" | "favourites" }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  // Today's birthdays are another list tomorrow, so the day keys them as it keys the cached sections.
+  const queryKey = ["search", kind, "browse", list, list === "birthdays" ? birthdayDay(new Date()) : ""];
+  const query = useInfiniteQuery({
+    queryKey,
+    queryFn: ({ pageParam }) => browsePeoplePage(kind, list, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last, all) => (last.pageInfo.hasNextPage ? all.length + 1 : undefined),
+    enabled: isTauri,
+    staleTime: Infinity,
+  });
+  const title =
+    list === "birthdays"
+      ? t("search.browseBirthdays")
+      : kind === "character"
+        ? t("search.browseFavouriteCharacters")
+        : t("search.browseFavouriteStaff");
+  const rows = query.data?.pages.flatMap((p) => p.rows) ?? [];
+  return (
+    <>
+      <ShowAllHeading
+        icon={list === "birthdays" ? Cake : Heart}
+        title={title}
+        back={searchHref({ ...SEARCH_DEFAULTS, scope: kind === "character" ? "CHARACTERS" : "STAFF" })}
+      />
+      <EntityResultList
+        loading={query.isLoading}
+        error={query.error}
+        onRetry={() => queryClient.resetQueries({ queryKey, exact: true })}
+        nextPageFailed={query.isFetchNextPageError}
+        empty={rows.length === 0}
+        term={title}
+        hasNextPage={query.hasNextPage === true}
+        fetchingMore={query.isFetchingNextPage}
+        onMore={() => query.fetchNextPage()}
+      >
+        {rows.map((p) => (
+          <EntityRow
+            key={p.id}
+            to={`/${kind}/${p.id}`}
+            name={p.name?.full ?? "—"}
+            src={p.image?.medium ?? undefined}
+            meta={<Favourites count={p.favourites} />}
+          />
+        ))}
+      </EntityResultList>
+    </>
   );
 }
 
@@ -659,11 +704,12 @@ function EntityResultList({
 }
 
 /** `UserRow`'s frame without the follow button — the whole row is the link. */
-function EntityRow({ to, name, src }: { to: string; name: string; src?: string }) {
+function EntityRow({ to, name, src, meta }: { to: string; name: string; src?: string; meta?: React.ReactNode }) {
   return (
     <div className={cn(cardClass("flat", { interactive: true }), "flex items-center gap-3 p-3")}>
-      <Link to={to} className="min-w-0 flex-1">
-        <UserLockup name={name} src={src} size="md" titleAttr nameClassName="text-sm" />
+      <Link to={to} className="flex min-w-0 flex-1 items-center gap-3">
+        <UserLockup name={name} src={src} size="md" titleAttr nameClassName="text-sm" className="min-w-0 flex-1" />
+        {meta && <span className="flex shrink-0 items-center gap-1 text-xs tabular-nums text-ink-500">{meta}</span>}
       </Link>
     </div>
   );
@@ -674,7 +720,6 @@ function MediaResults({
   onRetry,
   nextPageFailed,
   isFetching,
-  active,
   term,
   results,
   hiddenAdult,
@@ -688,8 +733,6 @@ function MediaResults({
   /** The failure was a later page's, so the loaded covers stay and Load more is what asks again. */
   nextPageFailed: boolean;
   isFetching: boolean;
-  /** Whether anything — a query or a filter — is asking for results. */
-  active: boolean;
   term: string;
   results: MediaWithListStatus[];
   /** Results that arrived and were dropped by the content filter, by why. */
@@ -724,14 +767,10 @@ function MediaResults({
         />
       )}
       {isFetching && <Loader size="sm" label={t("search.searching")} />}
-      {!isFetching && !active && (
-        // No mark here, deliberately: on this empty screen the field above is the subject, not a visual.
-        <EmptyState title={t("search.prompt")} hint={t("search.promptHint")} />
-      )}
-      {!isFetching && active && (
+      {!isFetching && (
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-3" />
       )}
-      {!isFetching && active && error == null && results.length === 0 && (
+      {!isFetching && error == null && results.length === 0 && (
         <EmptyState
           visual={<StruckQuery query={term || t("search.filtered")} />}
           // The query is already on screen in the visual, so the sentence underneath does not repeat it.

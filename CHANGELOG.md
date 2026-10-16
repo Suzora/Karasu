@@ -76,6 +76,7 @@ tag time is then optional rather than load-bearing.
 ### Added
 
 - After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
+- Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.
 
 ## 1.44.0 — 2026-10-12
 

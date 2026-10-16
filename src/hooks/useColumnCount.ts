@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useLayoutEffect, useState, type RefObject } from "react";
 
 /** Counts the pixel tracks of a computed `grid-template-columns`; an unresolved specified value falls back to one column. */
 export function parseColumnCount(tracks: string): number {
@@ -16,7 +16,8 @@ export function useColumnCount(
 ): number {
   const [columns, setColumns] = useState(1);
 
-  useEffect(() => {
+  // Before paint, so a row cut to the measured count never shows its first one-column render.
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 

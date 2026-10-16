@@ -309,11 +309,87 @@ query ($search: String!, $page: Int) {
   }
 }`;
 
+/** What a browse card or row draws of a character or a staff member; `favourites` is the count it is ranked by. */
+const BROWSE_PERSON = "id name { full } image { medium } favourites";
+
+/** Birthdays and favourites for characters and staff in one request, so switching between the two scopes costs nothing. */
+export const PEOPLE_BROWSE_QUERY = `
+query ($perPage: Int) {
+  characterBirthdays: Page(perPage: $perPage) {
+    characters(isBirthday: true, sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+  characterFavourites: Page(perPage: $perPage) {
+    characters(sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+  staffBirthdays: Page(perPage: $perPage) {
+    staff(isBirthday: true, sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+  staffFavourites: Page(perPage: $perPage) {
+    staff(sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+}`;
+
+/** One page of a people section's "Show all"; an absent `isBirthday` is no filter, where `false` would drop today's. */
+export const CHARACTER_BROWSE_PAGE_QUERY = `
+query ($page: Int, $isBirthday: Boolean) {
+  Page(page: $page, perPage: 25) {
+    ${PAGE_INFO}
+    characters(isBirthday: $isBirthday, sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+}`;
+
+export const STAFF_BROWSE_PAGE_QUERY = `
+query ($page: Int, $isBirthday: Boolean) {
+  Page(page: $page, perPage: 25) {
+    ${PAGE_INFO}
+    staff(isBirthday: $isBirthday, sort: FAVOURITES_DESC) { ${BROWSE_PERSON} }
+  }
+}`;
+
 /** A character or staff hit — just enough to draw a row and link the page. */
 export interface PersonHit {
   id: number;
   name: { full: string | null } | null;
   image: { medium: string | null } | null;
+}
+
+/** A browse card's person: a search hit plus the favourites count the sections rank by. */
+export interface BrowsePerson extends PersonHit {
+  favourites: number | null;
+}
+
+type BrowsePeoplePage = { characters?: BrowsePerson[] | null; staff?: BrowsePerson[] | null } | null;
+
+/** The people browse answer, one page per section under the section's own key. */
+export interface PeopleBrowse {
+  characterBirthdays: BrowsePeoplePage;
+  characterFavourites: BrowsePeoplePage;
+  staffBirthdays: BrowsePeoplePage;
+  staffFavourites: BrowsePeoplePage;
+}
+
+/** `day` is declared nowhere in the query: it only keys the cached answer, so a day's birthdays end with the day. */
+export async function browsePeople(day: string): Promise<PeopleBrowse> {
+  return gql<PeopleBrowse>(PEOPLE_BROWSE_QUERY, { perPage: 20, day }, { source: "browsePeople", ttlSec: TTL.hour });
+}
+
+export interface BrowsePeoplePageResult {
+  pageInfo: PageInfo;
+  rows: BrowsePerson[];
+}
+
+/** A people section's "Show all", a page at a time; uncached like every search. */
+export async function browsePeoplePage(
+  kind: "character" | "staff",
+  list: "birthdays" | "favourites",
+  page: number,
+): Promise<BrowsePeoplePageResult> {
+  const data = await gql<{ Page: { pageInfo: PageInfo; characters?: BrowsePerson[] | null; staff?: BrowsePerson[] | null } }>(
+    kind === "character" ? CHARACTER_BROWSE_PAGE_QUERY : STAFF_BROWSE_PAGE_QUERY,
+    { page, isBirthday: list === "birthdays" ? true : undefined },
+    { source: "search" },
+  );
+  return { pageInfo: data.Page.pageInfo, rows: (kind === "character" ? data.Page.characters : data.Page.staff) ?? [] };
 }
 
 export interface StudioHit {

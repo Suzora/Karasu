@@ -58,7 +58,7 @@ export function CoverGridSkeleton({ count = 12 }: { count?: number }) {
 /** A section heading that hasn't arrived: the rule stays, the words don't. */
 export function HeaderSkeleton({ index = 0 }: { index?: number }) {
   return (
-    <Busy className="flex items-center gap-2.5">
+    <Busy className="flex h-6 items-center gap-2.5">
       <Shimmer index={index} className="size-4 rounded-inner" />
       <Shimmer index={index} className="h-3.5 w-36" />
       <span className="section-rule" />

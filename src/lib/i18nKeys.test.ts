@@ -34,8 +34,6 @@ const DYNAMIC_PREFIXES = [
   "settings.density_",
   "settings.contentLevel_",
   "settings.contentHint_",
-  // `t(`search.${chip.key}`)` over a const table of chips.
-  "search.chip",
 ];
 
 /** Dynamic keys with a closed membership, listed exactly so they are asserted to exist rather than merely exempted. */
