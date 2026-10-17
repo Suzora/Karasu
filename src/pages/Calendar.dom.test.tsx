@@ -83,3 +83,26 @@ describe("Calendar and Back", () => {
     await waitFor(() => expect(scrollerOf(again).scrollTop).toBe(640));
   });
 });
+
+describe("Calendar's column", () => {
+  it("chooses the lens and the view from pressed buttons, and exports from a small icon by the title", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/calendar?lens=all" });
+    await screen.findByRole("link", { name: /Frieren/ });
+    expect(screen.getByRole("button", { name: /calendar\.lensAll/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "calendar.exportIcs" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /calendar\.viewTiles/ }));
+    expect(screen.getByRole("button", { name: /calendar\.viewTiles/ })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: /calendar\.lensMine/ }));
+    expect(screen.getByRole("button", { name: /calendar\.lensMine/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("offers the way back to this week only once the week moved", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/calendar" });
+    await screen.findByRole("button", { name: "calendar.nextWeek" });
+    expect(screen.queryByRole("button", { name: "calendar.thisWeek" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "calendar.nextWeek" }));
+    expect(await screen.findByRole("button", { name: "calendar.thisWeek" })).toBeInTheDocument();
+  });
+});

@@ -857,6 +857,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     viewAgenda: "Agenda",
     watched: "Gesehen",
     unwatched: "Ausgestrahlt, noch nicht gesehen",
+    showHeading: "Anzeigen",
+    layoutHeading: "Darstellung",
   },
   time: {
     none: "fertig",

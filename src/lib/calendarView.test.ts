@@ -63,3 +63,9 @@ describe("the stored view", () => {
     expect(isCalendarView("list")).toBe(false);
   });
 });
+
+describe("the week beside the calendar's column", () => {
+  it("fits the picture cards in the space a 1440 px window leaves beside the sidebar and the column", () => {
+    expect(weekFits(880, false)).toBe(true);
+  });
+});

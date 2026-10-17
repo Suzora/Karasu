@@ -1046,3 +1046,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   genres, the next episode as a countdown and the list state or a Plan button.
   On the phone the column becomes the year with arrows, the seasons as one
   row and a format field above the cards.
+- **2026-10-17:** The calendar takes C of three mockups, the column the lists
+  and the season page already stand on (over A, a timetable on an hour axis,
+  and B, a week strip with today, next up and missed). The column holds the
+  week with its arrows and "this week", My shows / Everything with a count,
+  and the view (week, tiles, agenda); the .ics export is a small icon beside
+  the title. Week is seven columns of picture cards, tiles are covers by day
+  with the time on the art, agenda is rows of cards, two abreast on the
+  desktop. On the phone the column turns into the week stepper, a field for
+  My shows / Everything and two icons for tiles and agenda.

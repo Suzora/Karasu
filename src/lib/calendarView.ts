@@ -7,8 +7,8 @@ const KEY = "karasu-calendar-view";
 /** The week grid, the shape the calendar always had; the other two are the choices. */
 export const DEFAULT_CALENDAR_VIEW: CalendarView = "week";
 
-/** Seven columns of the compact card need this many CSS pixels; narrower, the grid would scroll sideways. */
-export const WEEK_MIN_WIDTH = 980;
+/** Seven columns of the picture card need this many CSS pixels; narrower, the grid would scroll sideways. */
+export const WEEK_MIN_WIDTH = 860;
 
 export function isCalendarView(value: unknown): value is CalendarView {
   return value === "week" || value === "tiles" || value === "agenda";

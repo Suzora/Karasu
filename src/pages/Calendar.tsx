@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Bookmark, Check, ChevronLeft, ChevronRight, Circle, Download } from "lucide-react";
+import { Bookmark, CalendarDays, Check, ChevronLeft, ChevronRight, Circle, Download, LayoutGrid, List as ListIcon } from "lucide-react";
 import { airingWeek, type AiringSlot } from "@/api/queries";
 import { fetchMediaList, isTauri, saveText } from "@/api/anilist";
 import { buildIcs } from "@/lib/ical";
@@ -29,12 +29,10 @@ import {
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
-import { DigestRow } from "@/components/media/DigestRow";
 import { isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { Segmented } from "@/components/ui/segmented";
-import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, TickMarks } from "@/components/EmptyState";
 import { Busy, Shimmer } from "@/components/Skeleton";
 import { backendErrorText } from "@/lib/backendError";
@@ -218,34 +216,105 @@ export default function Calendar() {
       showToast({ kind: "error", text: t("calendar.exportFailed"), detail: backendErrorText(e, t) }),
     );
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="px-8 pt-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex min-w-0 items-baseline gap-2.5">
-            <h1 className="text-title">{t("calendar.title")}</h1>
-            {/* Hidden on a phone, whose one row belongs to the title and the export. */}
-            <span className="hidden whitespace-nowrap font-brand-jp text-ui tracking-lockup text-ink-600 sm:inline">
-              放送カレンダー
-            </span>
-          </div>
-          <span className="section-rule" />
-          {/* The export is the slots the grid draws, with stable UIDs so a re-export updates instead of duplicating. */}
-          {slots.length > 0 && (
-            <IconButton
-              variant="ghost"
-              size="control"
-              onClick={() => void exportIcs()}
-              aria-label={t("calendar.exportIcs")}
-              title={t("calendar.exportIcs")}
-            >
-              <Download className="size-4" />
-            </IconButton>
+  const download = slots.length > 0 && (
+    // The export is the slots the grid draws, with stable UIDs so a re-export updates instead of duplicating.
+    <IconButton variant="ghost" size="sm" round onClick={() => void exportIcs()} aria-label={t("calendar.exportIcs")} title={t("calendar.exportIcs")}>
+      <Download className="size-4" />
+    </IconButton>
+  );
+  const stepper = (
+    <div className="flex items-center gap-1 rounded-full bg-surface-900 p-1 surface-outline">
+      <IconButton variant="ghost" size="sm" round onClick={() => setView({ week: addDays(week, -7) })} aria-label={t("calendar.prevWeek")}>
+        <ChevronLeft className="size-4" />
+      </IconButton>
+      <span aria-live="polite" className="flex-1 whitespace-nowrap px-1 text-center text-sm tabular-nums text-ink-100">
+        {weekLabel}
+      </span>
+      <IconButton variant="ghost" size="sm" round onClick={() => setView({ week: addDays(week, 7) })} aria-label={t("calendar.nextWeek")}>
+        <ChevronRight className="size-4" />
+      </IconButton>
+    </div>
+  );
+  const backToThisWeek = week !== currentWeek && (
+    <button type="button" onClick={() => setView({ week: currentWeek })} className="press rounded-full px-4 py-1.5 text-left text-xs text-accent-400 transition-surface hover:bg-surface-850">
+      {t("calendar.thisWeek")}
+    </button>
+  );
+  const navRow = (on: boolean, label: string, onClick: () => void, Icon?: typeof Download, count?: number) => (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+      )}
+    >
+      {Icon && <Icon aria-hidden className="size-4 shrink-0 opacity-70" />}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {count != null && <span className="text-xs tabular-nums opacity-70">{count}</span>}
+    </button>
+  );
+  const viewIcon = { week: CalendarDays, tiles: LayoutGrid, agenda: ListIcon } as const;
+
+  const body = (
+    <>
+      {!error && behind != null && <ErrorState inline error={behind} onRetry={retryBehind} className="mb-3" />}
+      {error ? (
+        <ErrorState error={error} onRetry={() => active.refetch()} />
+      ) : loading ? (
+        <Busy className={cn("gap-2", view === "week" ? "grid grid-cols-7" : "flex flex-col")}>
+          {days.map((day, i) => (
+            <Shimmer key={day} className={cn("rounded-panel", view === "week" ? "h-72" : "h-16")} index={i} />
+          ))}
+        </Busy>
+      ) : slots.length === 0 ? (
+        <EmptyState
+          visual={<TickMarks />}
+          title={t(lens === "mine" ? "calendar.emptyMine" : "calendar.emptyAll")}
+          hint={lens === "mine" ? t("calendar.emptyMineHint") : undefined}
+        />
+      ) : view === "week" ? (
+        <div className="grid grid-cols-7 items-stretch gap-2">
+          {days.map((day, i) => (
+            <DayColumn key={day} day={day} isToday={day === todayMidnight} slots={buckets[i]} now={now} />
+          ))}
+        </div>
+      ) : (
+        // A run of days with nothing airing is one quiet line; the week grid keeps its columns, which are the dates.
+        <div className="flex flex-col gap-5">
+          {foldQuietDays(days, buckets, todayMidnight).map((run) =>
+            run.quiet ? (
+              <QuietDays key={run.days[0]} days={run.days} />
+            ) : (
+              <DaySection
+                key={run.days[0]}
+                day={run.days[0]}
+                isToday={run.days[0] === todayMidnight}
+                slots={run.items}
+                now={now}
+                tiles={view === "tiles"}
+              />
+            ),
           )}
         </div>
+      )}
+    </>
+  );
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+  if (phone) {
+    return (
+      <div ref={scroller} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
+        <div className="flex items-center gap-2">
+          <h1 className="text-title">{t("calendar.title")}</h1>
+          <span className="flex-1" />
+          {download}
+        </div>
+        {stepper}
+        {backToThisWeek}
+        <div className="flex items-center gap-2">
           <Segmented
+            className="flex-1 [&>button]:flex-1"
             aria-label={t("calendar.lens")}
             value={lens}
             onChange={(v) => setView({ lens: v as Lens })}
@@ -258,92 +327,36 @@ export default function Calendar() {
             aria-label={t("calendar.view")}
             value={view}
             onChange={chooseView}
-            segments={viewSegments}
+            segments={viewSegments.map((sg) => {
+              const Icon = viewIcon[sg.value];
+              return { value: sg.value, title: sg.label, label: <Icon aria-hidden className="size-4" /> };
+            })}
           />
-          {/* One bar for the week, the full width on a phone so both arrows are an easy reach for a thumb. */}
-          <div className="flex w-full items-center rounded-control border border-hair bg-surface-900 p-0.5 sm:ml-auto sm:w-auto">
-            <Button
-              variant="ghost"
-              size="iconControl"
-              onClick={() => setView({ week: addDays(week, -7) })}
-              aria-label={t("calendar.prevWeek")}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <span aria-live="polite" className="flex-1 whitespace-nowrap px-2 text-center text-sm tabular-nums text-ink-300">
-              {weekLabel}
-            </span>
-            {/* Inside the bar, before the arrow, so appearing cannot slide the arrow under a second press; not on a phone. */}
-            {week !== currentWeek && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setView({ week: currentWeek })}
-                className="shrink-0 whitespace-nowrap max-sm:hidden"
-              >
-                {t("calendar.thisWeek")}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="iconControl"
-              onClick={() => setView({ week: addDays(week, 7) })}
-              aria-label={t("calendar.nextWeek")}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
         </div>
+        {body}
       </div>
+    );
+  }
 
+  return (
+    <div className="flex h-full">
+      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+        <div className="mb-3 flex items-center gap-2 pl-3">
+          <h1 className="min-w-0 flex-1 truncate text-title">{t("calendar.title")}</h1>
+          {download}
+        </div>
+        {stepper}
+        {backToThisWeek}
+        <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("calendar.showHeading")}</p>
+        {navRow(lens === "mine", t("calendar.lensMine"), () => setView({ lens: "mine" }), undefined, lens === "mine" ? slots.length : undefined)}
+        {navRow(lens === "all", t("calendar.lensAll"), () => setView({ lens: "all" }), undefined, lens === "all" ? slots.length : undefined)}
+        <div className="mx-3 my-3 h-px bg-surface-850" />
+        <p className="px-4 pb-1 label-text text-ink-500">{t("calendar.layoutHeading")}</p>
+        {viewSegments.map((sg) => navRow(view === sg.value, sg.label, () => chooseView(sg.value), viewIcon[sg.value]))}
+      </aside>
       {/* The week grid draws only where its columns fit; the stable gutter keeps the scrollbar from flipping that. */}
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 [scrollbar-gutter:stable] float-clear">
-        {!error && behind != null && <ErrorState inline error={behind} onRetry={retryBehind} className="mb-3" />}
-        {error ? (
-          <ErrorState error={error} onRetry={() => active.refetch()} />
-        ) : loading ? (
-          <Busy className={cn("gap-2", view === "week" ? "grid grid-cols-7" : "flex flex-col")}>
-            {days.map((day, i) => (
-              <Shimmer key={day} className={cn("rounded-panel", view === "week" ? "h-72" : "h-16")} index={i} />
-            ))}
-          </Busy>
-        ) : slots.length === 0 ? (
-          <EmptyState
-            visual={<TickMarks />}
-            title={t(lens === "mine" ? "calendar.emptyMine" : "calendar.emptyAll")}
-            hint={lens === "mine" ? t("calendar.emptyMineHint") : undefined}
-          />
-        ) : view === "week" ? (
-          <div className="grid grid-cols-7 items-stretch gap-2">
-            {days.map((day, i) => (
-              <DayColumn
-                key={day}
-                day={day}
-                isToday={day === todayMidnight}
-                slots={buckets[i]}
-                now={now}
-              />
-            ))}
-          </div>
-        ) : (
-          // A run of days with nothing airing is one quiet line; the week grid keeps its columns, which are the dates.
-          <div className="flex flex-col gap-5">
-            {foldQuietDays(days, buckets, todayMidnight).map((run) =>
-              run.quiet ? (
-                <QuietDays key={run.days[0]} days={run.days} />
-              ) : (
-                <DaySection
-                  key={run.days[0]}
-                  day={run.days[0]}
-                  isToday={run.days[0] === todayMidnight}
-                  slots={run.items}
-                  now={now}
-                  tiles={view === "tiles"}
-                />
-              ),
-            )}
-          </div>
-        )}
+      <div ref={scroller} className="min-w-0 flex-1 overflow-y-auto pb-12 pl-2 pr-8 pt-6 [scrollbar-gutter:stable] float-clear">
+        {body}
       </div>
     </div>
   );
@@ -390,27 +403,24 @@ function DaySection({
       }
     >
       <header className="mb-2 flex items-baseline gap-2">
-        <span className={cn("dense-text-lg font-bold", isToday ? "text-accent-400" : "text-ink-100")}>
+        <span className={cn("text-lg", isToday ? "text-accent-400" : "text-ink-100")}>
           {date.toLocaleDateString(i18n.language, { weekday: "long" })}
         </span>
-        <span className={cn("dense-text tabular-nums", isToday ? "text-accent-400" : "text-ink-600")}>
+        <span className="text-sm tabular-nums text-ink-500">
           {date.toLocaleDateString(i18n.language, { day: "numeric", month: "short" })}
         </span>
-        {isToday && (
-          <span className="dense-text text-accent-400">{t("calendar.today")}</span>
-        )}
-        <span className="section-rule" />
+        {isToday && <span className="nav-pill rounded-full px-2 text-xs">{t("calendar.today")}</span>}
       </header>
       {slots.length === 0 ? (
         <p className="dense-text px-2.5 text-ink-600">{t("calendar.emptyDay")}</p>
       ) : tiles ? (
-        <div className="dense-tiles gap-2.5">
+        <div className="media-grid gap-3">
           {slots.map((s) => (
             <CalendarTile key={s.key} slot={s} state={stateOf(s, now)} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-0.5">
+        <div className="@container grid grid-cols-1 gap-2 @3xl:grid-cols-2">
           {slots.map((s) => (
             <CalendarAgendaRow key={s.key} slot={s} state={stateOf(s, now)} />
           ))}
@@ -449,7 +459,7 @@ function StateMarker({ slot, state }: { slot: Slot; state: ReleaseState }) {
   );
 }
 
-/** A poster-first tile for the tiles view; the time strip sits on the art so the title gets the whole width below. */
+/** The tiles view's card: the cover with the time on the art and the title over its foot, the Overview's card. */
 function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
   const { t, i18n } = useTranslation();
   const title = displayTitle(slot.media.title);
@@ -459,43 +469,53 @@ function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
       to={`/media/${slot.media.id}`}
       title={title}
       className={cn(
-        "group flex flex-col gap-1.5 rounded-control transition-surface",
+        "group relative block aspect-[3/4] overflow-hidden rounded-panel bg-surface-900 transition-surface",
         released && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-control bg-surface-800">
-        <img
-          src={slot.media.coverImage.large ?? ""}
-          alt=""
-          loading="lazy"
-          className={cn("size-full object-cover", released && "grayscale-[.5] group-hover:grayscale-0 group-focus-visible:grayscale-0")}
-        />
-        <p className="dense-text absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-surface-950/80 px-1.5 py-1 backdrop-blur-sm">
-          <span className="tabular-nums text-accent-400">
-            {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
-          </span>
-          <span className="text-ink-300">{t("calendar.ep", { n: slot.episode })}</span>
-          <span className="ml-auto">
-            <StateMarker slot={slot} state={state} />
-          </span>
-        </p>
+      {slot.media.coverImage.large && (
+        <img src={slot.media.coverImage.large} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+      )}
+      <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-on-cover via-on-cover/70 to-transparent" />
+      <span className="absolute left-2 top-2 rounded-full bg-on-cover/75 px-2 py-0.5 text-2xs tabular-nums text-on-cover-edge">
+        {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
+      </span>
+      <span className="absolute right-2 top-2">
+        <StateMarker slot={slot} state={state} />
+      </span>
+      <div className="absolute inset-x-0 bottom-0 p-2.5">
+        <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{title}</p>
+        <p className="mt-0.5 text-2xs text-on-cover-edge/80">{t("calendar.ep", { n: slot.episode })}</p>
       </div>
-      <p className="dense-text-lg line-clamp-2 px-0.5 font-medium leading-snug text-ink-100">{title}</p>
     </Link>
   );
 }
 
-/** One line of the agenda view: a digest row with the time on the right and the state as its marker. */
+/** One card of the agenda: the time, the cover, the title with its episode, and the state. */
 function CalendarAgendaRow({ slot, state }: { slot: Slot; state: ReleaseState }) {
   const { t, i18n } = useTranslation();
+  const title = displayTitle(slot.media.title);
   return (
-    <DigestRow
-      media={slot.media}
-      note={t("calendar.ep", { n: slot.episode })}
-      when={new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
-      marker={<StateMarker slot={slot} state={state} />}
-      dim={state !== "upcoming"}
-    />
+    <Link
+      to={`/media/${slot.media.id}`}
+      title={title}
+      className={cn(
+        "flex items-center gap-3 rounded-panel bg-surface-900 p-2.5 transition-surface hover:bg-surface-850",
+        state !== "upcoming" && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
+      )}
+    >
+      <span className="w-12 shrink-0 text-center text-sm tabular-nums text-ink-100">
+        {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
+      </span>
+      {slot.media.coverImage.large && (
+        <img src={slot.media.coverImage.large} alt="" loading="lazy" className="aspect-[3/4] w-12 shrink-0 rounded-inner object-cover" />
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-ink-100">{title}</span>
+        <span className="block text-xs text-ink-500">{t("calendar.ep", { n: slot.episode })}</span>
+      </span>
+      <StateMarker slot={slot} state={state} />
+    </Link>
   );
 }
 
@@ -519,41 +539,20 @@ function DayColumn({
         date.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" }) +
         (isToday ? ` · ${t("calendar.today")}` : "")
       }
-      className={cn(
-        "flex min-h-72 flex-col rounded-panel border p-1.5",
-        isToday
-          ? "border-accent-600/50 bg-accent-500/[.07]"
-          : "border-hair bg-surface-900/40",
-      )}
+      className={cn("flex min-h-96 flex-col gap-2 rounded-panel p-2", isToday ? "bg-accent-500/5 ring-1 ring-accent-500/40" : "bg-surface-900/50")}
     >
-      <header className="flex items-baseline justify-between gap-1 px-1 pb-1.5 pt-0.5">
-        <span
-          className={cn(
-            "label-text",
-            isToday ? "text-accent-400" : "text-ink-600",
-          )}
-        >
-          {date.toLocaleDateString(i18n.language, { weekday: "short" })}
-        </span>
-        <span
-          className={cn(
-            "text-sm font-bold tabular-nums",
-            isToday ? "text-accent-400" : "text-ink-300",
-          )}
-        >
-          {date.toLocaleDateString(i18n.language, { day: "numeric" })}
-        </span>
+      <header className={cn("flex items-baseline justify-between gap-1 rounded-full px-2.5 py-1 text-sm", isToday ? "nav-pill" : "text-ink-300")}>
+        <span>{date.toLocaleDateString(i18n.language, { weekday: "short" })}</span>
+        <span className="tabular-nums">{date.toLocaleDateString(i18n.language, { day: "numeric" })}</span>
       </header>
-      <div className="flex flex-1 flex-col gap-1">
-        {slots.map((s) => (
-          <CalendarCard key={s.key} slot={s} state={stateOf(s, now)} />
-        ))}
-      </div>
+      {slots.map((s) => (
+        <CalendarCard key={s.key} slot={s} state={stateOf(s, now)} />
+      ))}
     </section>
   );
 }
 
-/** One airing in a day cell, stacked where `DigestRow` spreads, because a row is the wrong shape for a column. */
+/** One airing in a day column: a picture strip over the time, the episode, the state and the title. */
 function CalendarCard({ slot, state }: { slot: Slot; state: ReleaseState }) {
   const { t, i18n } = useTranslation();
   const title = displayTitle(slot.media.title);
@@ -564,32 +563,22 @@ function CalendarCard({ slot, state }: { slot: Slot; state: ReleaseState }) {
       to={`/media/${slot.media.id}`}
       title={title}
       className={cn(
-        "flex gap-1.5 rounded-control bg-surface-900 p-1.5 transition-surface hover:bg-surface-850",
+        "block overflow-hidden rounded-inner bg-surface-850 transition-surface hover:bg-surface-800",
         released && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
-      <img
-        src={slot.media.coverImage.large ?? ""}
-        alt=""
-        loading="lazy"
-        className="dense-cover shrink-0 rounded-inner object-cover"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="dense-text flex items-center gap-1 leading-tight">
-          <span className="tabular-nums text-accent-400">
-            {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-          <span className="text-ink-600">{t("calendar.ep", { n: slot.episode })}</span>
+      {slot.media.coverImage.large && (
+        <img src={slot.media.coverImage.large} alt="" loading="lazy" className="aspect-video w-full object-cover" />
+      )}
+      <div className="p-2">
+        <p className="flex items-center gap-1 text-2xs tabular-nums text-accent-400">
+          {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
+          <span className="text-ink-500">· {t("calendar.ep", { n: slot.episode })}</span>
           <span className="ml-auto">
             <StateMarker slot={slot} state={state} />
           </span>
         </p>
-        <p className="dense-text mt-0.5 line-clamp-2 leading-tight text-ink-100">
-          {title}
-        </p>
+        <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-ink-100">{title}</p>
       </div>
     </Link>
   );

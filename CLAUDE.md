@@ -2880,7 +2880,7 @@ them away without re-measuring.
   `clip-path`, so it bends into the frame's own corners and a +1 still
   animates the growth.
 - **`min-w-0`, not `shrink-0`, on a row's trailing text block.** `DigestRow`'s
-  right side was pinned at max-content by `shrink-0`, and one long German note
+  (the calendar's agenda row until 2026-10-17) right side was pinned at max-content by `shrink-0`, and one long German note
   handed the whole page a sideways scroll (`<main>`'s `overflow-y-auto`
   computes `overflow-x: auto`, so any too-wide element scrolls everything).
   The same lesson as `SectionHeader`'s h2.

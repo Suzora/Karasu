@@ -855,6 +855,8 @@ export const en = {
     viewAgenda: "Agenda",
     watched: "Watched",
     unwatched: "Aired, not watched yet",
+    showHeading: "Show",
+    layoutHeading: "Layout",
   },
   time: {
     none: "done",

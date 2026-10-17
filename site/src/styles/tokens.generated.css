@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 c18c46bc321c) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 6fce5a51469c) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -507,22 +507,10 @@
   line-height: 1.35;
 }
 
-/* The small cover beside a calendar card's text. */
-@utility dense-cover {
-  height: var(--dense-cover-h);
-  width: var(--dense-cover-w);
-}
-
 /* The cover in a list row (local library, digest). */
 @utility dense-row-cover {
   height: var(--dense-row-cover-h);
   width: var(--dense-row-cover-w);
-}
-
-/* A tile grid whose columns are as many tiles of the density's width as fit. */
-@utility dense-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--dense-tile), 1fr));
 }
 
 /* The shared cover grid on the covers-per-row setting; the fallback is load-bearing, or the grid silently collapses. */
