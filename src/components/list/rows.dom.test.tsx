@@ -202,4 +202,19 @@ describe("GridCard", () => {
     expect(screen.getByRole("button", { name: "common.complete" })).not.toHaveClass("@max-cover-actions:hidden");
     expect(screen.getByRole("button", { name: "common.edit" })).toHaveClass("not-pointer-coarse:@max-cover-pair:hidden");
   });
+
+  it("lays the title, the count and a tick per episode on the cover, with no status frame", () => {
+    const { container } = renderWithProviders(gridCard());
+    const frame = container.querySelector(".focus-frame")!;
+    expect(frame).toHaveTextContent("Cowboy Bebop");
+    expect(frame.querySelectorAll("[data-tick]")).toHaveLength(26);
+    expect(frame.querySelectorAll('[data-tick="done"]')).toHaveLength(4);
+    expect([...frame.querySelectorAll<HTMLElement>("span")].some((el) => el.style.boxShadow.includes("inset"))).toBe(false);
+  });
+
+  it("puts the quick actions at the top right, clear of the caption", () => {
+    renderWithProviders(gridCard());
+    const plus = screen.getByRole("button", { name: "common.plusOne" });
+    expect(plus.closest(".absolute")).toHaveClass("top-2", "right-2");
+  });
 });

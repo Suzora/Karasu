@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0afbee9 -->
+<!-- generated-through: 7adc793 -->
 
 ### Added
 
@@ -93,6 +93,7 @@ tag time is then optional rather than load-bearing.
 - The Overview is rebuilt: a greeting with search and the next 48 hours over the season's art, your lists as shelves, one row to continue watching and reading, this week as a timetable, and a column with what is playing, your statistics, your own activity and today's birthdays.
 - On the phone, the Overview's statistics and your activity are one swipe to the right, with dots above the bottom bar to show and switch the page.
 - A title's page is rearranged: on the desktop a column beside the content keeps the cover, your progress and the facts in view; on the phone the cover and title sit in a tall banner, followed by your progress and the sections in a new order, with "View franchise" by the description.
+- The anime and manga lists show their statuses as a column beside the covers, with your custom lists beneath, and on the phone as a field above them; each cover carries its title and episode ticks on the picture.
 
 ### Security
 

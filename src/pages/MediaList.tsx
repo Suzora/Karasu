@@ -38,7 +38,7 @@ import { searchTitles } from "@/lib/search";
 import { fuzzyScore, prepareDoc, prepareQuery, type FuzzyDoc } from "@/lib/fuzzy";
 import { Button, buttonClass } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
-import { StatusTabs } from "@/components/ui/status-tabs";
+import { StatusNav, StatusPicker } from "@/components/list/StatusNav";
 import { CoverOutline, EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
 import { ListMoreMenu, ListToolbar } from "@/components/list/ListToolbar";
 import { Presence, PresenceIf } from "@/components/ui/presence";
@@ -67,7 +67,6 @@ import {
   type SortKey,
   type ViewPatch,
 } from "@/lib/listFilters";
-import { statusColorVar } from "@/lib/statusColors";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -605,6 +604,49 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     bulkRemove.mutate(selectedEntries);
     setSelected(new Set());
   };
+  const actions = (
+    <div className="flex items-center gap-1.5">
+      {/* Labelled, not a bare icon: this one changes the whole interaction model, so it is worth the width. */}
+      <Button
+        variant={selectMode ? "secondary" : "outline"}
+        size="control"
+        onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+      >
+        <CheckSquare className="size-4" />
+        {t("bulk.select")}
+      </Button>
+      {/* The phone syncs by pulling the list down, so its corner holds what its toolbar has no room for. */}
+      {phone ? (
+        <ListMoreMenu
+          type={type}
+          presets={presets}
+          onApplyPreset={applyPreset}
+          onManagePresets={() => setShowPresetSave(true)}
+          onRandom={() => setShowRandom(true)}
+          layout={layout}
+          onLayout={changeLayout}
+        />
+      ) : (
+        <IconButton
+          variant="ghost"
+          onClick={() => refetch()}
+          disabled={isRefetching}
+          aria-label={t("common.reload")}
+        >
+          <Spinner spinning={isRefetching} className="size-4" />
+        </IconButton>
+      )}
+    </div>
+  );
+  const statusProps = {
+    type,
+    value: tab,
+    counts: Object.fromEntries(STATUS_ORDER.map((st) => [st, byStatus.get(st)?.length ?? 0])) as Record<MediaListStatus, number>,
+    onChange: (v: MediaListStatus) => setView({ tab: v }),
+    lists: listNames,
+    list: listFilter,
+    onList: (name: string) => setView({ list: name }),
+  };
   return (
     // Clipped sideways, so the list following a swipe never gives the page a horizontal scroll.
     <div ref={rootRef} className="flex h-full flex-col overflow-x-clip">
@@ -628,225 +670,203 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
         </div>
       )}
 
-      <div className="border-b border-hair px-8 pt-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-baseline gap-2.5">
-            <h1 className="text-title text-ink-100">
-              {type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
-            </h1>
-            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-              {type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
-            </span>
+      <div className="flex min-h-0 flex-1">
+        {!phone && (
+          <aside className="w-60 shrink-0 space-y-5 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+            <div className="px-4">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <h1 className="text-title text-ink-100">
+                  {type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
+                </h1>
+                <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
+                  {type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
+                </span>
+              </div>
+            </div>
+            <StatusNav {...statusProps} />
+          </aside>
+        )}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className={cn("space-y-3 pb-3 pt-6", phone ? "px-8" : "pl-2 pr-8")}>
+            {phone && (
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-baseline gap-2.5">
+                  <h1 className="text-title text-ink-100">
+                    {type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
+                  </h1>
+                  <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
+                    {type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
+                  </span>
+                </div>
+                {actions}
+              </div>
+            )}
+            {phone && <StatusPicker {...statusProps} />}
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <ListToolbar
+                  type={type}
+                  view={view}
+                  query={filter}
+                  onQuery={setFilter}
+                  searchRef={searchRef}
+                  shown={entries.length}
+                  total={byStatus.get(tab)?.length ?? 0}
+                  listNames={listNames}
+                  tags={allTags}
+                  presets={presets}
+                  onApplyPreset={applyPreset}
+                  onManagePresets={() => setShowPresetSave(true)}
+                  onManageLists={
+                    profileMode === "anilist" ? () => navigate("/settings?pane=account&setting=customLists") : undefined
+                  }
+                  onRandom={() => setShowRandom(true)}
+                  layout={layout}
+                  onLayout={changeLayout}
+                  onDraft={editDraft}
+                  onChange={setView}
+                  onPanelOpen={flushQuery}
+                  onPanelClosed={commitDraft}
+                  phone={phone}
+                  touch={android}
+                />
+              </div>
+              {!phone && actions}
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            {/* Labelled, not a bare icon: this one changes the whole interaction model, so it is worth the width. */}
-            <Button
-              variant={selectMode ? "secondary" : "outline"}
-              size="control"
-              onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-            >
-              <CheckSquare className="size-4" />
-              {t("bulk.select")}
-            </Button>
-            {/* The phone syncs by pulling the list down, so its corner holds what its toolbar has no room for. */}
-            {phone ? (
-              <ListMoreMenu
-                type={type}
-                presets={presets}
-                onApplyPreset={applyPreset}
-                onManagePresets={() => setShowPresetSave(true)}
-                onRandom={() => setShowRandom(true)}
-                layout={layout}
-                onLayout={changeLayout}
+          <div ref={scrollRef} className={cn("min-h-0 flex-1 overflow-y-auto pb-12 pt-1 float-clear", phone ? "px-8" : "pl-2 pr-8")}>
+            {/* Above the grid, since VirtualGrid takes entries only; the whole-list count, so it does not jump per tab. */}
+            <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
+            {entries.length === 0 ? (
+              // Two different nothings: an empty tab is a fact about the list, a search that matched none is about the query.
+              (byStatus.get(tab)?.length ?? 0) === 0 ? (
+                <EmptyState
+                  visual={<CoverOutline />}
+                  title={t("list.emptyTab", {
+                    status: t(`status.${type}.${tab}`),
+                  })}
+                  hint={t("list.emptyTabHint")}
+                />
+              ) : (
+                <EmptyState
+                  visual={
+                    <StruckQuery
+                      query={
+                        filter.trim() ||
+                        tagFilter ||
+                        formatLabel(formatFilter, t) ||
+                        (countryFilter && originLabel(countryFilter as (typeof ORIGINS)[number], t)) ||
+                        listFilter
+                      }
+                    />
+                  }
+                  title={t("list.noMatch", {
+                    status: t(`status.${type}.${tab}`),
+                  })}
+                  actions={
+                    <Button
+                      variant="outline"
+                      size="control"
+                      onClick={() => {
+                        setFilter("");
+                        setView({ ...CLEAR_FILTERS, q: "" });
+                      }}
+                    >
+                      {t("list.clearFilter")}
+                    </Button>
+                  }
+                />
+              )
+            ) : layout === "grid" ? (
+              <VirtualGrid
+                // Keyed on the view and the shell, so no row height measured for one layout is reused by another.
+                key={`grid-${phone}`}
+                items={entries}
+                scrollRef={scrollRef}
+                gridClassName="media-grid gap-x-4"
+                rowGap={24}
+                estimateRowHeight={300}
+                focusIndex={focus}
+                onColumns={setColumns}
+                renderItem={(entry, i) => (
+                  <GridCard
+                    key={entry.id}
+                    entry={entry}
+                    focused={i === focus}
+                    unit={unit}
+                    blurred={shouldBlur(entry.media, level, blurAdult)}
+                    onPlusOne={plusOne}
+                    onComplete={complete}
+                    onEdit={startEdit}
+                    selectMode={selectMode}
+                    selected={selected.has(entry.mediaId)}
+                    onToggleSelect={toggleSelect}
+                  />
+                )}
               />
+            ) : phone ? (
+              <div className="overflow-hidden rounded-panel border border-hair">
+                <VirtualGrid
+                  key={`phone-${layout}`}
+                  items={entries}
+                  scrollRef={scrollRef}
+                  // One bounded track: an `auto` one grows to a nowrap title and pushes the buttons out of the row.
+                  gridClassName="grid grid-cols-1"
+                  rowGap={0}
+                  estimateRowHeight={layout === "text" ? PHONE_ROW_PX.text : PHONE_ROW_PX.thumbs}
+                  focusIndex={focus}
+                  onColumns={setColumns}
+                  renderItem={(entry, i) => (
+                    <PhoneRow
+                      key={entry.id}
+                      entry={entry}
+                      variant={layout === "text" ? "text" : "thumbs"}
+                      unit={unit}
+                      focused={i === focus}
+                      blurred={shouldBlur(entry.media, level, blurAdult)}
+                      onPlusOne={plusOne}
+                      onEdit={startEdit}
+                      selectMode={selectMode}
+                      selected={selected.has(entry.mediaId)}
+                      onToggleSelect={toggleSelect}
+                    />
+                  )}
+                />
+              </div>
             ) : (
-              <IconButton
-                variant="ghost"
-                onClick={() => refetch()}
-                disabled={isRefetching}
-                aria-label={t("common.reload")}
-              >
-                <Spinner spinning={isRefetching} className="size-4" />
-              </IconButton>
+              <div className="overflow-hidden rounded-panel border border-hair">
+                <ListHeader tier={tier} selectMode={selectMode} mediaType={type} cover={layout !== "text"} />
+                {/* Keep one entry per row: two side by side made useColumnCount report 2, so the down arrow moved by two. */}
+                <VirtualGrid
+                  key={`table-${layout}`}
+                  items={entries}
+                  scrollRef={scrollRef}
+                  gridClassName="grid"
+                  rowGap={0}
+                  estimateRowHeight={layout === "text" ? TEXT_ROW_HEIGHT_PX : ROW_HEIGHT_PX}
+                  focusIndex={focus}
+                  onColumns={setColumns}
+                  renderItem={(entry, i) => (
+                    <ListRow
+                      key={entry.id}
+                      entry={entry}
+                      tier={tier}
+                      variant={layout === "text" ? "text" : "thumbs"}
+                      focused={i === focus}
+                      blurred={shouldBlur(entry.media, level, blurAdult)}
+                      onQuickSave={quickSave}
+                      onComplete={complete}
+                      onEdit={startEdit}
+                      selectMode={selectMode}
+                      selected={selected.has(entry.mediaId)}
+                      onToggleSelect={toggleSelect}
+                    />
+                  )}
+                />
+              </div>
             )}
           </div>
         </div>
-
-        {/* Over the header's border, so the active tab's line replaces that stretch of it. */}
-        <StatusTabs
-          className="-mb-px mt-4"
-          label={t("list.statusTabs")}
-          value={tab}
-          onChange={(v) => setView({ tab: v })}
-          tabs={STATUS_ORDER.map((status) => ({
-            value: status,
-            label: t(`status.${type}.${status}`),
-            count: byStatus.get(status)?.length ?? 0,
-            color: statusColorVar(status),
-          }))}
-        />
-      </div>
-
-      <div className="px-8 py-3">
-        <ListToolbar
-          type={type}
-          view={view}
-          query={filter}
-          onQuery={setFilter}
-          searchRef={searchRef}
-          shown={entries.length}
-          total={byStatus.get(tab)?.length ?? 0}
-          listNames={listNames}
-          tags={allTags}
-          presets={presets}
-          onApplyPreset={applyPreset}
-          onManagePresets={() => setShowPresetSave(true)}
-          onManageLists={
-            profileMode === "anilist" ? () => navigate("/settings?pane=account&setting=customLists") : undefined
-          }
-          onRandom={() => setShowRandom(true)}
-          layout={layout}
-          onLayout={changeLayout}
-          onDraft={editDraft}
-          onChange={setView}
-          onPanelOpen={flushQuery}
-          onPanelClosed={commitDraft}
-          phone={phone}
-          touch={android}
-        />
-      </div>
-
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-12 pt-1 float-clear">
-        {/* Above the grid, since VirtualGrid takes entries only; the whole-list count, so it does not jump per tab. */}
-        <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
-        {entries.length === 0 ? (
-          // Two different nothings: an empty tab is a fact about the list, a search that matched none is about the query.
-          (byStatus.get(tab)?.length ?? 0) === 0 ? (
-            <EmptyState
-              visual={<CoverOutline />}
-              title={t("list.emptyTab", {
-                status: t(`status.${type}.${tab}`),
-              })}
-              hint={t("list.emptyTabHint")}
-            />
-          ) : (
-            <EmptyState
-              visual={
-                <StruckQuery
-                  query={
-                    filter.trim() ||
-                    tagFilter ||
-                    formatLabel(formatFilter, t) ||
-                    (countryFilter && originLabel(countryFilter as (typeof ORIGINS)[number], t)) ||
-                    listFilter
-                  }
-                />
-              }
-              title={t("list.noMatch", {
-                status: t(`status.${type}.${tab}`),
-              })}
-              actions={
-                <Button
-                  variant="outline"
-                  size="control"
-                  onClick={() => {
-                    setFilter("");
-                    setView({ ...CLEAR_FILTERS, q: "" });
-                  }}
-                >
-                  {t("list.clearFilter")}
-                </Button>
-              }
-            />
-          )
-        ) : layout === "grid" ? (
-          <VirtualGrid
-            // Keyed on the view and the shell, so no row height measured for one layout is reused by another.
-            key={`grid-${phone}`}
-            items={entries}
-            scrollRef={scrollRef}
-            gridClassName="media-grid gap-x-4"
-            rowGap={24}
-            estimateRowHeight={300}
-            focusIndex={focus}
-            onColumns={setColumns}
-            renderItem={(entry, i) => (
-              <GridCard
-                key={entry.id}
-                entry={entry}
-                focused={i === focus}
-                unit={unit}
-                blurred={shouldBlur(entry.media, level, blurAdult)}
-                onPlusOne={plusOne}
-                onComplete={complete}
-                onEdit={startEdit}
-                selectMode={selectMode}
-                selected={selected.has(entry.mediaId)}
-                onToggleSelect={toggleSelect}
-              />
-            )}
-          />
-        ) : phone ? (
-          <div className="overflow-hidden rounded-panel border border-hair">
-            <VirtualGrid
-              key={`phone-${layout}`}
-              items={entries}
-              scrollRef={scrollRef}
-              // One bounded track: an `auto` one grows to a nowrap title and pushes the buttons out of the row.
-              gridClassName="grid grid-cols-1"
-              rowGap={0}
-              estimateRowHeight={layout === "text" ? PHONE_ROW_PX.text : PHONE_ROW_PX.thumbs}
-              focusIndex={focus}
-              onColumns={setColumns}
-              renderItem={(entry, i) => (
-                <PhoneRow
-                  key={entry.id}
-                  entry={entry}
-                  variant={layout === "text" ? "text" : "thumbs"}
-                  unit={unit}
-                  focused={i === focus}
-                  blurred={shouldBlur(entry.media, level, blurAdult)}
-                  onPlusOne={plusOne}
-                  onEdit={startEdit}
-                  selectMode={selectMode}
-                  selected={selected.has(entry.mediaId)}
-                  onToggleSelect={toggleSelect}
-                />
-              )}
-            />
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-panel border border-hair">
-            <ListHeader tier={tier} selectMode={selectMode} mediaType={type} cover={layout !== "text"} />
-            {/* Keep one entry per row: two side by side made useColumnCount report 2, so the down arrow moved by two. */}
-            <VirtualGrid
-              key={`table-${layout}`}
-              items={entries}
-              scrollRef={scrollRef}
-              gridClassName="grid"
-              rowGap={0}
-              estimateRowHeight={layout === "text" ? TEXT_ROW_HEIGHT_PX : ROW_HEIGHT_PX}
-              focusIndex={focus}
-              onColumns={setColumns}
-              renderItem={(entry, i) => (
-                <ListRow
-                  key={entry.id}
-                  entry={entry}
-                  tier={tier}
-                  variant={layout === "text" ? "text" : "thumbs"}
-                  focused={i === focus}
-                  blurred={shouldBlur(entry.media, level, blurAdult)}
-                  onQuickSave={quickSave}
-                  onComplete={complete}
-                  onEdit={startEdit}
-                  selectMode={selectMode}
-                  selected={selected.has(entry.mediaId)}
-                  onToggleSelect={toggleSelect}
-                />
-              )}
-            />
-          </div>
-        )}
       </div>
 
       {/* Presence, so the bar sinks away still showing the selection it had rather than a count of nought. */}

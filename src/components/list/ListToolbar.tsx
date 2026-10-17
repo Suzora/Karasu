@@ -104,7 +104,7 @@ export function ListToolbar(props: ListToolbarProps) {
       inputRef={props.searchRef}
       count={count}
       hint={!props.touch}
-      className={phone ? "min-w-0 flex-1" : "min-w-40 max-w-sm flex-[1_1_12rem]"}
+      className="min-w-0 flex-1 rounded-full focus-within:bg-transparent"
     />
   );
 
@@ -153,42 +153,44 @@ export function ListToolbar(props: ListToolbarProps) {
   return (
     <div className="space-y-2.5">
       {phone ? (
-        <div className="flex items-center gap-2">
+        <div className={barClass}>
           {search}
           {sort}
           {filters}
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          {search}
-          {sort}
-          {filters}
-          <Popover
-            label={t("presets.title")}
-            variant="dropdown"
-            width={300}
-            onOpen={props.onPanelOpen}
-            onClosed={props.onPanelClosed}
-            renderTrigger={(p) => (
-              <ToolTrigger p={p} name={t("presets.button")}>
-                <Bookmark aria-hidden className="size-4 shrink-0" />
-                {t("presets.button")}
-                <ChevronDown aria-hidden className="size-3.5 text-ink-500" />
-              </ToolTrigger>
-            )}
-          >
-            {({ closeThen }) => <PresetList {...props} closeThen={closeThen} />}
-          </Popover>
-          <button
-            type="button"
-            onClick={props.onRandom}
-            aria-label={t("random.pick")}
-            title={t("random.pick")}
-            className={cn(toolClass, "w-8.5 justify-center")}
-          >
-            <Dices aria-hidden className="size-4" />
-          </button>
-          <ViewSwitch className="ml-auto" layout={props.layout} onLayout={props.onLayout} />
+        <div className="flex items-center gap-3">
+          <div className={cn(barClass, "min-w-0 flex-1")}>
+            {search}
+            {sort}
+            {filters}
+            <Popover
+              label={t("presets.title")}
+              variant="dropdown"
+              width={300}
+              onOpen={props.onPanelOpen}
+              onClosed={props.onPanelClosed}
+              renderTrigger={(p) => (
+                <ToolTrigger p={p} name={t("presets.button")}>
+                  <Bookmark aria-hidden className="size-4 shrink-0" />
+                  {t("presets.button")}
+                  <ChevronDown aria-hidden className="size-3.5 text-ink-500" />
+                </ToolTrigger>
+              )}
+            >
+              {({ closeThen }) => <PresetList {...props} closeThen={closeThen} />}
+            </Popover>
+            <button
+              type="button"
+              onClick={props.onRandom}
+              aria-label={t("random.pick")}
+              title={t("random.pick")}
+              className={cn(toolClass, "w-8.5 justify-center")}
+            >
+              <Dices aria-hidden className="size-4" />
+            </button>
+          </div>
+          <ViewSwitch layout={props.layout} onLayout={props.onLayout} />
         </div>
       )}
       <FilterChips chips={chips} onChange={props.onChange} />
@@ -253,11 +255,14 @@ export function ListMoreMenu({
 }
 
 const toolClass = cn(
-  "relative press coarse:hit-area inline-flex h-8.5 shrink-0 items-center gap-1.5 rounded-control border border-surface-700 bg-surface-900 text-xs font-medium text-ink-300 transition-surface",
-  "hover:border-surface-600 hover:bg-surface-850 hover:text-ink-100",
+  "relative press coarse:hit-area inline-flex h-8.5 shrink-0 items-center gap-1.5 rounded-full text-xs font-medium text-ink-300 transition-surface",
+  "hover:bg-surface-850 hover:text-ink-100",
   "focus-visible:outline-2 focus-visible:outline-accent-500",
-  "aria-expanded:border-accent-500 aria-expanded:bg-surface-850 aria-expanded:text-ink-100",
+  "aria-expanded:bg-surface-850 aria-expanded:text-ink-100",
 );
+
+/** The search bar the list's tools sit inside: one rounded surface, the query first. */
+const barClass = "flex items-center gap-0.5 rounded-full bg-surface-900 py-1 pl-1 pr-1.5 surface-outline focus-within:bg-surface-850 transition-surface";
 
 /** A toolbar button that opens a panel; `active` marks one whose panel is narrowing the list right now. */
 function ToolTrigger({
@@ -281,8 +286,8 @@ function ToolTrigger({
       title={iconOnly ? name : undefined}
       className={cn(
         toolClass,
-        iconOnly ? "w-8.5 justify-center" : "px-2.5",
-        active && "border-accent-500/60 bg-accent-500/10 text-ink-100",
+        iconOnly ? "w-8.5 justify-center" : "px-3",
+        active && "bg-accent-500/15 text-ink-100",
       )}
     >
       {children}
@@ -317,7 +322,7 @@ function SearchBox({
       clearLabel={t("common.clear")}
       placeholder={t("list.filterPlaceholder")}
       aria-keyshortcuts={hint ? "Control+F" : undefined}
-      markFilled
+      inset
       blurOnEscape
       className={className}
       trailing={

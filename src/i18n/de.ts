@@ -710,6 +710,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     originKR: "Manhwa (Korea)",
     originCN: "Manhua (China)",
     originTW: "Taiwan",
+    statusPick: "Status: {{status}}",
     statusTabs: "Status",
     customList: "Eigene Liste",
     filters: "Filter",

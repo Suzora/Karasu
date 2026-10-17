@@ -1028,3 +1028,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   phone header of 2026-09-25 that floated the cover. Cast, episodes, trend
   and reviews stay folds that load when opened, since open ones would spend
   requests on every visit.
+- **2026-10-17:** The lists take B of three mockups on the desktop and the
+  phone: the statuses become a column on the left with their colour and
+  count, with the custom lists under them, in place of the tabs (over A,
+  status chips above the search, and C, one page grouped by status). On the
+  phone the column is a picker field above the grid, and a swipe still
+  steps through the statuses. The covers take the Overview's card (title,
+  count and ticks on the picture, no status frame), and the toolbar becomes
+  one search bar. A touch cover keeps the +1 alone, since a long press
+  already reaches the editor and two circles hid the score.

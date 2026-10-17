@@ -72,7 +72,8 @@ src/
     overlays/        modal flows (confirm, preset, random pick, sign-in merge,
                      profile edit, match picker, favourites, new thread,
                      season split, cover viewer, review composer, what's new)
-    list/            the parts MediaList draws (the header's ListToolbar and
+    list/            the parts MediaList draws (StatusNav, the status column
+                     and the phone's StatusPicker, the ListToolbar and
                      the phone's ListMoreMenu, virtual grid, rows, bulk bar)
                      plus VirtualRows, the flat-list twin of VirtualGrid — the
                      local library runs several of them in one scroller, so
@@ -2864,10 +2865,11 @@ them away without re-measuring.
   only — it struck through the second row's labels — and it cost the phone two
   header rows. Do not bring the wrap back; a narrow window scrolls the strip,
   and the active tab is scrolled into view on every change, a swipe's included.
-  The underline takes the active tab's `color` (the status colour from
-  `MediaList`, the accent without one) and carries `data-keep-colors`, so High
-  Contrast keeps it. A touch on an overflowing strip scrolls it rather than
-  switching tabs, because `useTabSwipe` leaves sideways-scrolling elements alone.
+  The underline takes the active tab's `color` (a colour the consumer passes,
+  the accent without one) and carries `data-keep-colors`, so High Contrast
+  keeps it. The media lists left the strip on 2026-10-17 for `StatusNav`, a
+  column on the desktop and a picker on the phone; the profile, the
+  statistics and the favourites still use it.
 - **The cover progress line is a border, not a bar.** A straight strip inside
   the cover's rounded clip (`rounded-cover`) had its ends eaten by the corner
   circles; the line is a `border-b` on an inset-0 overlay revealed by

@@ -708,6 +708,7 @@ export const en = {
     originKR: "Manhwa (Korea)",
     originCN: "Manhua (China)",
     originTW: "Taiwan",
+    statusPick: "Status: {{status}}",
     statusTabs: "Status",
     customList: "Custom list",
     filters: "Filters",

@@ -1,14 +1,12 @@
 import { memo } from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { CheckCheck, Pencil, Plus } from "lucide-react";
 import { displayTitle, maxProgress, type MediaListEntry } from "@/api/types";
 import { formatScore } from "@/lib/scoreFormat";
 import { useScoreFormat } from "@/stores/auth";
 import { IconButton } from "@/components/ui/icon-button";
-import { TitleLockup } from "@/components/media/TitleLockup";
-import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
-import { statusColorVar } from "@/lib/statusColors";
+import { CoverCell } from "@/components/media/CoverCell";
+import { progressMarks } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 import { SelectBox } from "./SelectBox";
 import { TagChips } from "./TagChips";
@@ -53,8 +51,6 @@ export const GridCard = memo(function GridCard({
       adult={media.isAdult === true}
       blurred={blurred}
       revealLabel={displayTitle(media.title)}
-      // Every card here is on the list, so the ring is never absent; it makes the status legible without the row.
-      statusRing={statusColorVar(entry.status)}
       data-media-id={media.id}
       data-media-type={media.type}
       data-media-title={displayTitle(media.title)}
@@ -69,7 +65,7 @@ export const GridCard = memo(function GridCard({
           ? formatScore(scoreFormat, entry.score, i18n.language)
           : undefined
       }
-      progress={max ? { current: entry.progress, total: max } : null}
+      caption={<CardCaption entry={entry} max={max} unit={unit} />}
       overlay={
         selectMode ? (
           <SelectBox
@@ -79,15 +75,15 @@ export const GridCard = memo(function GridCard({
             className="absolute left-2 top-2 z-20"
           />
         ) : (
-          // Scrim only while the actions show; `pointer-coarse:` rather than width, since touch has no hover to reveal from.
-          <div className="cover-scrim pointer-events-none absolute inset-x-0 bottom-0 h-[45%] opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100" />
+          // A wash under the top corner while the actions show; touch has no hover, so it stays there.
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-on-cover/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100" />
         )
       }
       actions={
         // Suppressed in select mode; keep `group-focus-within`, or Tab lands on fully transparent buttons.
         !selectMode && (
           <div className="flex gap-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
-            {/* Below two circles' width a cover keeps one, the quick write rather than the way into the editor. */}
+            {/* Narrow or touched, a cover keeps one circle, the quick write; a long press reaches the editor. */}
             <IconButton
               variant="onCover"
               size="sm"
@@ -96,7 +92,7 @@ export const GridCard = memo(function GridCard({
               aria-label={t("common.edit")}
               title={t("common.edit")}
               className={cn(
-                plusOne && "@max-cover-pair:hidden",
+                plusOne && "@max-cover-pair:hidden pointer-coarse:hidden",
                 !plusOne && completable && "not-pointer-coarse:@max-cover-pair:hidden",
               )}
             >
@@ -132,27 +128,26 @@ export const GridCard = memo(function GridCard({
         )
       }
     >
-      <Link to={`/media/${media.id}`}>
-        <TitleLockup
-          title={media.title}
-          clamp={2}
-          tone="muted"
-          className="mt-2"
-        />
-      </Link>
-      <CoverMeta>
+      <TagChips notes={entry.notes} />
+    </CoverCell>
+  );
+});
+
+/** The title, the count and a tick per episode, laid on the cover's foot the way the Overview's cards carry them. */
+function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number | null; unit: string }) {
+  const { t } = useTranslation();
+  const { media } = entry;
+  const marks = progressMarks(entry.progress, max);
+  return (
+    <>
+      <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{displayTitle(media.title)}</p>
+      <p className="@container mb-1.5 mt-0.5 text-2xs tabular-nums text-on-cover-edge/80">
         {media.type === "MANGA" ? (
           // Chapters lead, volumes trail; `?` rather than a hidden total, since an ongoing series has no end count.
           <>
-            {t("common.progressChapters", {
-              n: entry.progress,
-              total: media.chapters ?? "?",
-            })}
+            {t("common.progressChapters", { n: entry.progress, total: media.chapters ?? "?" })}
             {" · "}
-            {t("common.progressVolumes", {
-              n: entry.progressVolumes ?? 0,
-              total: media.volumes ?? "?",
-            })}
+            {t("common.progressVolumes", { n: entry.progressVolumes ?? 0, total: media.volumes ?? "?" })}
           </>
         ) : (
           <>
@@ -162,8 +157,18 @@ export const GridCard = memo(function GridCard({
             <span className="@max-cover-meta:hidden"> {unit}</span>
           </>
         )}
-      </CoverMeta>
-      <TagChips notes={entry.notes} />
-    </CoverCell>
+      </p>
+      {marks.kind === "ticks" ? (
+        <div aria-hidden className="flex gap-px">
+          {Array.from({ length: marks.total }, (_, i) => (
+            <span key={i} data-tick={i < marks.done ? "done" : "left"} className={cn("h-1 flex-1 rounded-mark", i < marks.done ? "bg-accent-400" : "bg-on-cover-edge/20")} />
+          ))}
+        </div>
+      ) : (
+        <div aria-hidden className="h-1 overflow-hidden rounded-full bg-on-cover-edge/20">
+          <div className="h-full rounded-full bg-accent-400" style={{ width: `${marks.share * 100}%` }} />
+        </div>
+      )}
+    </>
   );
-});
+}

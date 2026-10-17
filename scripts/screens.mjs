@@ -288,6 +288,10 @@ export const SCREENS = [
     await p.getByRole("checkbox").nth(1).click();
   } },
   { id: "d20-listenansicht", w: 1232, h: 800, route: "/list", act: (p) => p.getByRole("radio", { name: "Liste" }).first().click() },
+  { id: "d9-liste-fenster", w: 1536, h: 960, route: "/list" },
+  { id: "d9-liste-zeilen", w: 1536, h: 960, route: "/list", act: (p) => p.getByRole("radio", { name: "Miniaturen" }).first().click() },
+  { id: "d9-liste-kompakt", w: 1536, h: 960, route: "/list", act: (p) => p.getByRole("radio", { name: "Liste" }).first().click() },
+  { id: "p9-liste", w: 405, h: 1400, phone: true, route: "/list" },
   { id: "d18-sync", w: 1232, h: 800, route: "/list", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },
   { id: "d87-sync-gebremst", w: 1232, h: 800, route: "/list", mock: "sync-limited", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },
   { id: "d88-sync-ruhig", w: 1232, h: 800, route: "/list", mock: "sync-idle", act: (p) => p.getByRole("button", { name: "Details zur Synchronisierung" }).first().click() },

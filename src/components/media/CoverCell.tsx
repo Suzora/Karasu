@@ -20,6 +20,7 @@ export function CoverCell({
   actions,
   overlay,
   statusRing,
+  caption,
   onCoverClick,
   selected,
   className,
@@ -50,6 +51,8 @@ export function CoverCell({
   selected?: boolean;
   /** List-status colour drawn as a ring inside the frame, where the selection outline and focus ring cannot collide. */
   statusRing?: string | null;
+  /** Laid on the art at its foot over a tall scrim, the Overview's card; the actions then move to the top right. */
+  caption?: ReactNode;
   className?: string;
   /** The metadata lines below the cover. */
   children?: ReactNode;
@@ -109,7 +112,11 @@ export function CoverCell({
         )}
 
         {/* Sized to the content it has to carry, not to the cover. */}
-        <div className="cover-scrim pointer-events-none absolute inset-x-0 bottom-0 h-14" />
+        {caption ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-on-cover via-on-cover/70 to-transparent" />
+        ) : (
+          <div className="cover-scrim pointer-events-none absolute inset-x-0 bottom-0 h-14" />
+        )}
 
         {overlay}
 
@@ -143,27 +150,34 @@ export function CoverCell({
           />
         )}
 
-        {score != null && (
-          <span className="absolute left-2 top-2 flex items-center gap-1 rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold text-on-cover-gold">
-            <Star className="size-2.5" fill="currentColor" />
-            {score}
-          </span>
-        )}
+        <div className="absolute left-2 top-2 flex items-center gap-1">
+          {score != null && (
+            <span className="flex items-center gap-1 rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold text-on-cover-gold">
+              <Star className="size-2.5" fill="currentColor" />
+              {score}
+            </span>
+          )}
+          {/* Matched to the score badge on purpose; a translucent badge has no contrast floor on arbitrary art. */}
+          {adult && caption && (
+            <span className="rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold text-on-cover-danger">18+</span>
+          )}
+        </div>
 
-        {/* Matched to the score badge on purpose; a translucent badge has no contrast floor on arbitrary art. */}
-        {adult && (
+        {adult && !caption && (
           <span className="absolute right-2 top-2 rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold text-on-cover-danger">
             18+
           </span>
         )}
 
+        {caption && <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2.5">{caption}</div>}
+
         {actions && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+          <div className={cn("absolute right-2 flex items-center gap-1.5", caption ? "top-2" : "bottom-2")}>
             {actions}
           </div>
         )}
 
-        {progress && (
+        {progress && !caption && (
           // A border revealed by clip-path, not a bar: a straight strip inside the rounded clip loses its ends to the corners.
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute inset-0 rounded-cover border-b-[3px] border-on-cover/60" />
