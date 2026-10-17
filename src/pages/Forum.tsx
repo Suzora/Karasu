@@ -1,13 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { PenSquare } from "lucide-react";
+import { Bookmark, ChevronDown, Hash, MessageSquare, PenSquare, Search } from "lucide-react";
+import { IconButton } from "@/components/ui/icon-button";
+import { Popover } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { forumThreads, THREAD_CATEGORIES } from "@/api/social";
-import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ui/search-field";
-import { Pill } from "@/components/ui/pill";
-import { Select } from "@/components/ui/select";
-import { FilterSelect } from "@/components/ui/filter-select";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useSettledWrite } from "@/hooks/useUrlState";
@@ -20,6 +19,8 @@ import { useAuth } from "@/stores/auth";
 type Lens = "browse" | "search" | "subscribed";
 
 const LENSES: Lens[] = ["browse", "search", "subscribed"];
+/** One glyph per lens, so the column is scannable without reading. */
+const LENS_ICON: Record<Lens, typeof Hash> = { browse: MessageSquare, search: Search, subscribed: Bookmark };
 
 function isLens(v: string | null): v is Lens {
   return LENSES.includes((v ?? "") as Lens);
@@ -89,81 +90,98 @@ export default function Forum() {
     setParams(p, { replace: true });
   };
 
+  const lensName = (l: Lens) => (l === "browse" ? t("forum.lensBrowse") : l === "search" ? t("forum.lensSearch") : t("forum.lensSubscribed"));
+  const categoryName = categoryId ? (THREAD_CATEGORIES.find((c) => c.id === categoryId)?.name ?? "") : t("forum.categoryAll");
+  const row = (on: boolean, label: string, Icon: typeof Hash, onClick: () => void) => (
+    <button
+      key={label}
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+      )}
+    >
+      <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+    </button>
+  );
+  const column = (after?: () => void) => (
+    <div className="space-y-0.5">
+      {LENSES.map((l) => row(lens === l, lensName(l), LENS_ICON[l], () => { setLens(l); after?.(); }))}
+      {/* A category filter means nothing to a search or a subscription list, so the list stands under browse alone. */}
+      {lens === "browse" && (
+        <>
+          <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("forum.category")}</p>
+          {row(categoryId === undefined, t("forum.categoryAll"), Hash, () => { setCategory(undefined); after?.(); })}
+          {THREAD_CATEGORIES.map((c) => row(categoryId === c.id, c.name, Hash, () => { setCategory(c.id); after?.(); }))}
+        </>
+      )}
+    </div>
+  );
+  const newThread = mode === "anilist" && (
+    // Nothing to post *as* without an account, matching the composer.
+    <IconButton variant="ghost" size="sm" round onClick={() => setComposing(true)} aria-label={t("forum.newThread")} title={t("forum.newThread")}>
+      <PenSquare className="size-4" />
+    </IconButton>
+  );
+  const search = lens === "search" && (
+    <SearchField
+      size="lg"
+      autoFocus
+      value={input}
+      onChange={setInput}
+      label={t("forum.searchPlaceholder")}
+      clearLabel={t("common.clear")}
+      placeholder={t("forum.searchPlaceholder")}
+      className="mb-4 max-w-136 rounded-full px-5"
+    />
+  );
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="px-8 pt-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-baseline gap-2.5">
-            <h1 className="text-title">{t("forum.title")}</h1>
-            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-              掲示板
-            </span>
+    <div className={cn("flex h-full", phone && "flex-col")}>
+      {phone ? (
+        <div className="space-y-4 px-4 pt-4">
+          <div className="flex items-center gap-2">
+            <h1 className="flex-1 text-title">{t("forum.title")}</h1>
+            {newThread}
           </div>
-          {/* Nothing to post *as* without an account, matching the composer. */}
-          {mode === "anilist" && (
-            <Button variant="outline" size="control" onClick={() => setComposing(true)}>
-              <PenSquare className="size-4" />
-              {t("forum.newThread")}
-            </Button>
-          )}
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {LENSES.map((l) => (
-            <Pill key={l} active={lens === l} onClick={() => setLens(l)}>
-              {l === "browse"
-                ? t("forum.lensBrowse")
-                : l === "search"
-                  ? t("forum.lensSearch")
-                  : t("forum.lensSubscribed")}
-            </Pill>
-          ))}
-          {/* One labelled filter in the filters' own shape, where seventeen chips took two rows. */}
-          {lens === "browse" && !phone && (
-            <FilterSelect
-              label={t("forum.category")}
-              value={categoryId ? String(categoryId) : ""}
-              onChange={(v) => setCategory(v ? Number(v) : undefined)}
-              placeholder={t("search.any")}
-              options={THREAD_CATEGORIES.map((c) => ({ value: String(c.id), label: c.name }))}
-              className="ml-3"
-            />
-          )}
-        </div>
-
-        {lens === "search" && (
-          <SearchField
-            size="lg"
-            autoFocus
-            value={input}
-            onChange={setInput}
-            label={t("forum.searchPlaceholder")}
-            clearLabel={t("common.clear")}
-            placeholder={t("forum.searchPlaceholder")}
-            className="mt-3 max-w-136"
-          />
-        )}
-
-        {/* A phone has no room for a chip per category, so there they fold into one native select. */}
-        {lens === "browse" && phone && (
-          <Select
-            aria-label={t("forum.category")}
-            value={categoryId ?? ""}
-            onChange={(e) => setCategory(e.target.value ? Number(e.target.value) : undefined)}
-            className="mt-3 w-full"
+          <Popover
+            label={t("forum.category")}
+            variant="sheet"
+            className="w-full"
+            renderTrigger={(p) => (
+              <button
+                type="button"
+                {...p}
+                aria-label={t("forum.viewPick", { view: lens === "browse" ? `${lensName(lens)} · ${categoryName}` : lensName(lens) })}
+                className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
+              >
+                <span className="truncate text-base text-ink-100">{lens === "browse" ? `${lensName(lens)} · ${categoryName}` : lensName(lens)}</span>
+                <span className="flex-1" />
+                <ChevronDown aria-hidden className="size-4 text-ink-500" />
+              </button>
+            )}
           >
-            <option value="">{t("forum.categoryAll")}</option>
-            {THREAD_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        )}
-      </div>
+            {(api) => column(api.close)}
+          </Popover>
+        </div>
+      ) : (
+        <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+          <div className="mb-2 flex items-center gap-2 pl-3">
+            <h1 className="text-title">{t("forum.title")}</h1>
+            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">掲示板</span>
+            <span className="flex-1" />
+            {newThread}
+          </div>
+          {column()}
+        </aside>
+      )}
 
       {/* Never keyed, since the scroll memory listens on this element for the page's whole life. */}
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
+      <div ref={scroller} className={cn("min-h-0 flex-1 overflow-y-auto pb-12 float-clear", phone ? "px-4 pt-4" : "pl-2 pr-8 pt-6")}>
+        {search}
         {/* Keyed so the previous lens unmounts: an unmounted infinite query has no observer to join a refetch. */}
         <div key={view} className="animate-settle">
           {lens === "search" && term.length < 2 ? (

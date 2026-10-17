@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 7e10f5a -->
+<!-- generated-through: 5a44b5d -->
 
 ### Added
 
@@ -101,6 +101,7 @@ tag time is then optional rather than load-bearing.
 - Titles sit under their covers again, in the lists, search, the calendar's tiles and Continue on the Overview.
 - A profile lists its sections in a column under the header instead of a row of tabs.
 - Covers are the same size on every screen, set by Covers per row, and a narrow cover keeps its add button clear of the score.
+- Activity lets you switch between the people you follow, everyone and your own posts, and filter by status updates, anime or manga entries; the forum lists its categories in a column.
 
 ### Security
 

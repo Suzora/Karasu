@@ -1997,6 +1997,16 @@ async update the real code makes after an await warns instead.
   and for any session with "Ask before updating" on. A drop is logged once per change of the tab titles, never per
   tick, and nothing is re-judged until a title changes, so a manga marked
   Reading while its tab is open is picked up at the next chapter.
+- **Everyone's feed has no status-updates-only view, because AniList answers it
+  empty.** The activity page's column (`lib/feedView`, since 2026-10-18) asks
+  `ACTIVITY_QUERY` for the following feed, everyone's (no `isFollowing`, no
+  `userId`) or the viewer's own, with `type_in` from the kind and never
+  `MESSAGE`. Measured signed out on 2026-10-18: everyone's feed answered 25
+  rows for every kind and pair of kinds, and none at all for `TEXT` alone,
+  with or without `isFollowing: false`, while one user's `TEXT` answered.
+  So `kindsFor("everyone")` leaves status updates out and the URL falls back
+  to everything. Whether a signed-in request answers it was not measured;
+  read a signed-in answer before offering it.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

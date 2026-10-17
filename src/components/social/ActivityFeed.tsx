@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
-import { activities, type ActivityPage } from "@/api/social";
+import { activities, type ActivityPage, type ActivitySource } from "@/api/social";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { Busy, Shimmer } from "@/components/Skeleton";
@@ -25,7 +25,7 @@ export function ActivityFeed({
   variant = "card",
 }: {
   queryKey: QueryKey;
-  source: { userId: number } | { isFollowing: true };
+  source: ActivitySource;
   emptyTitle: string;
   emptyHint?: string;
   /** The name the request is tallied under; without it the passthrough names it after its root field. */

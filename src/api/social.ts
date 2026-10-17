@@ -442,15 +442,15 @@ export async function searchStudios(
 
 // --- Activities -----------------------------------------------------------
 
-/** Profile tab and following feed; `MessageActivity` stays out of `type_in`, the fragments and the normalizer. */
+/** Profile tab and the feeds; `lib/feedView` builds `type_in` without `MESSAGE`, and no fragment or normalizer takes one. */
 export const ACTIVITY_QUERY = `
-query ($userId: Int, $isFollowing: Boolean, $page: Int, $sort: [ActivitySort]) {
+query ($userId: Int, $isFollowing: Boolean, $types: [ActivityType], $page: Int, $sort: [ActivitySort]) {
   Page(page: $page, perPage: 25) {
     ${PAGE_INFO}
     activities(
       userId: $userId
       isFollowing: $isFollowing
-      type_in: [ANIME_LIST, MANGA_LIST, TEXT]
+      type_in: $types
       sort: $sort
     ) {
       __typename
@@ -498,15 +498,21 @@ export interface ActivityPage {
 /** The Overview's own feed, named so the sync panel can say who spent the request; never cached, like every feed. */
 export const OWN_ACTIVITY = { source: "ownActivity" } as const;
 
+/** A feed's filter: a user's own, the following feed, or everyone's (neither), with the kinds `lib/feedView` names. */
+export type ActivitySource = ({ userId: number } | { isFollowing: true } | Record<never, never>) & { types?: string[] };
+
 export async function activities(
-  vars: { userId: number } | { isFollowing: true },
+  vars: ActivitySource,
   page = 1,
   opts?: { source: string },
 ): Promise<ActivityPage> {
+  // Never `MESSAGE`: private mail is excluded here as in the fragments and the normalizer.
+  const types = (vars.types ?? ["ANIME_LIST", "MANGA_LIST", "TEXT"]).filter((x) => x !== "MESSAGE");
   const data = await gql<{ Page: { pageInfo: PageInfo; activities: unknown[] } }>(
     ACTIVITY_QUERY,
     {
       ...vars,
+      types,
       page,
       // A pin floats on its own profile while a feed stays a timeline; both are total orders, as paging needs.
       sort: "userId" in vars ? ["PINNED", "ID_DESC"] : ["ID_DESC"],

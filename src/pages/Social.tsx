@@ -1,6 +1,11 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Users } from "lucide-react";
+import { Activity, BookOpen, ChevronDown, Clapperboard, Globe, MessageSquare, User, Users } from "lucide-react";
+import { Popover } from "@/components/ui/popover";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { useUrlState } from "@/hooks/useUrlState";
+import { feeds, feedVariables, kindsFor, parseFeedView, writeFeedView, type Feed, type FeedKind } from "@/lib/feedView";
+import { cn } from "@/lib/utils";
 import { ActivityFeed } from "@/components/social/ActivityFeed";
 import { ActivityComposer } from "@/components/social/ActivityComposer";
 import { EmptyState, PerchRule } from "@/components/EmptyState";
@@ -34,32 +39,105 @@ export default function Social() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-3xl px-8 pb-12 pt-7">
-      <header className="flex items-center gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2.5">
-            <h1 className="text-title">{t("nav.social")}</h1>
-            {/* The Japanese sub-lockup every other screen header carries. */}
-            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-              みんな
-            </span>
-          </div>
-          <p className="mt-0.5 text-xs text-ink-600">{t("social.feedSubtitle")}</p>
-        </div>
-        <Link to={`/user/${encodeURIComponent(viewer.name)}`} className={buttonClass("secondary", "sm")}>
-          <Users className="size-3.5" aria-hidden="true" /> {t("social.myProfile")}
-        </Link>
-      </header>
+  return <Feeds viewerId={viewer.id} viewerName={viewer.name} />;
+}
 
-      <div className="mt-6 space-y-4">
+const FEED_ICON: Record<Feed, typeof Users> = { following: Users, everyone: Globe, mine: User };
+const KIND_ICON: Record<FeedKind, typeof Users> = { all: Activity, text: MessageSquare, anime: Clapperboard, manga: BookOpen };
+const feedKey = { following: "social.feedFollowing", everyone: "social.feedEveryone", mine: "social.feedMine" } as const;
+const kindKey = { all: "social.kindAll", text: "social.kindText", anime: "social.kindAnime", manga: "social.kindManga" } as const;
+
+/** The feeds beside their column; the view lives in the URL, and each pick asks AniList once for it. */
+function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string }) {
+  const { t } = useTranslation();
+  const phone = usePhoneShell();
+  const [view, setView] = useUrlState(parseFeedView, writeFeedView);
+  // A feed that cannot show the current kind falls back to everything rather than to a view AniList answers empty.
+  const pickFeed = (feed: Feed) => setView((v) => ({ feed, kind: kindsFor(feed).includes(v.kind) ? v.kind : "all" }));
+  const pickKind = (kind: FeedKind) => setView((v) => ({ ...v, kind }));
+  const row = (on: boolean, label: string, Icon: typeof Users, onClick: () => void) => (
+    <button
+      key={label}
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+      )}
+    >
+      <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+    </button>
+  );
+  const column = (after?: () => void) => (
+    <div className="space-y-0.5">
+      <p className="px-4 pb-1 label-text text-ink-500">{t("social.feedHeading")}</p>
+      {feeds.map((f) => row(view.feed === f, t(feedKey[f]), FEED_ICON[f], () => { pickFeed(f); after?.(); }))}
+      <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("social.kindHeading")}</p>
+      {kindsFor(view.feed).map((k) => row(view.kind === k, t(kindKey[k]), KIND_ICON[k], () => { pickKind(k); after?.(); }))}
+    </div>
+  );
+  const plain = view.feed === "following" && view.kind === "all";
+  const feed = (
+    <ActivityFeed
+      key={`${view.feed}-${view.kind}`}
+      queryKey={["social", "feed", viewerId, view.feed, view.kind]}
+      source={feedVariables(view, viewerId)}
+      emptyTitle={plain ? t("social.feedEmpty") : t("social.feedEmptyFiltered")}
+      emptyHint={plain ? t("social.feedEmptyHint") : undefined}
+    />
+  );
+  const profile = (
+    <Link to={`/user/${encodeURIComponent(viewerName)}`} className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100">
+      <User aria-hidden className="size-4 shrink-0 opacity-70" />
+      {t("social.myProfile")}
+    </Link>
+  );
+
+  if (phone) {
+    return (
+      <div className="space-y-4 px-4 pb-24 pt-4">
+        <h1 className="text-title">{t("nav.social")}</h1>
+        <Popover
+          label={t("social.feedHeading")}
+          variant="sheet"
+          className="w-full"
+          renderTrigger={(p) => (
+            <button
+              type="button"
+              {...p}
+              aria-label={t("social.feedPick", { feed: t(feedKey[view.feed]), kind: t(kindKey[view.kind]) })}
+              className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
+            >
+              <span className="truncate text-base text-ink-100">{`${t(feedKey[view.feed])} · ${t(kindKey[view.kind])}`}</span>
+              <span className="flex-1" />
+              <ChevronDown aria-hidden className="size-4 text-ink-500" />
+            </button>
+          )}
+        >
+          {(api) => column(api.close)}
+        </Popover>
         <ActivityComposer />
-        <ActivityFeed
-          queryKey={["social", "feed", viewer.id]}
-          source={{ isFollowing: true }}
-          emptyTitle={t("social.feedEmpty")}
-          emptyHint={t("social.feedEmptyHint")}
-        />
+        {feed}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6">
+      <aside className="space-y-1 self-start">
+        <div className="mb-2 flex items-baseline gap-2.5 px-3">
+          <h1 className="text-title">{t("nav.social")}</h1>
+          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">みんな</span>
+        </div>
+        {column()}
+        <div className="mx-3 my-3 h-px bg-surface-850" />
+        {profile}
+      </aside>
+      <div className="min-w-0 max-w-3xl space-y-4">
+        <ActivityComposer />
+        {feed}
       </div>
     </div>
   );

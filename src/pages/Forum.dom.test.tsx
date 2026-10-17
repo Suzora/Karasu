@@ -201,15 +201,21 @@ describe("Forum and its ?q=", () => {
   });
 });
 
-/** Seventeen category chips took two rows on the desktop; they are one labelled filter beside the lenses now. */
+/** The categories stand in the column as a list, each a press that keeps the browse lens. */
 describe("Forum categories", () => {
-  it("picks a category from one field beside the lenses, never a row of chips", async () => {
+  it("lists every category in the column and picks one on a press", async () => {
     const user = userEvent.setup({ delay: null });
     renderWithProviders(<Harness />, { route: "/forum" });
-    expect(screen.queryByRole("button", { name: "Anime" })).toBeNull();
-    const field = screen.getByRole("combobox", { name: "forum.category" });
-    await user.selectOptions(field, "Anime");
+    expect(screen.getByRole("button", { name: "forum.categoryAll" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Anime" }));
     await waitFor(() => expect(where()).toHaveTextContent(/cat=\d+/));
+    expect(screen.getByRole("button", { name: "Anime" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps the categories to the browse lens", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/forum" });
+    await user.click(screen.getByRole("button", { name: "forum.lensSubscribed" }));
+    expect(screen.queryByRole("button", { name: "Anime" })).toBeNull();
   });
 });
-

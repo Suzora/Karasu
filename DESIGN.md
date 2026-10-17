@@ -1095,3 +1095,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   same width rather than the same count squeezed. The one corner control
   sits bottom right on a narrow cover and moves top right only where the
   score and it fit side by side.
+- **2026-10-18:** Activity and Forum take A of three column variants (over
+  B, the composer or the search and New thread inside the column, and C, a
+  filter-only column beside a two-column feed). Activity's column holds the
+  feed (Following, Everyone, Just mine) and its kind (everything, status
+  updates, anime entries, manga entries), the composer and the feed beside
+  it; Forum's holds Browse, Search and Subscribed, then the categories as a
+  list, with New thread as a small icon by the title. On the phone each
+  column is a field that opens it as a sheet.
