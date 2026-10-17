@@ -1103,3 +1103,13 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   it; Forum's holds Browse, Search and Subscribed, then the categories as a
   list, with New thread as a small icon by the title. On the phone each
   column is a field that opens it as a sheet.
+- **2026-10-18:** Three more pages take the column. Notifications take B:
+  Mark all read at the top of the column, then the source (All, Karasu,
+  AniList) and a new filter by kind (new episodes, likes, replies, new
+  followers, forum, Karasu's notices) over what is already loaded. The local
+  library takes B: the folder card with Rescan and Change, then the sections
+  as jump marks with their counts, every section still drawn beneath each
+  other. The person page takes A: picture, name, favourite and facts as a
+  standing card in the column, as on the detail page, with the description,
+  the roles and the voices beside it. On the phone each column sits above
+  the content.

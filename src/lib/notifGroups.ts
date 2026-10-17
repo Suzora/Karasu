@@ -178,3 +178,17 @@ export function sectionByDay(
   ];
   return sections.filter((s) => s.groups.length > 0);
 }
+
+/** The notifications page's filter by kind; presentation only, over what is already loaded. */
+export type NotifKind = "all" | "episodes" | "likes" | "replies" | "follows" | "forum" | "notices";
+export const NOTIF_KINDS: NotifKind[] = ["all", "episodes", "likes", "replies", "follows", "forum", "notices"];
+
+/** Which kind a row counts as; Karasu's own notices and AniList's media-data notices share the last one. */
+export function notifKind(n: Pick<UnifiedNotif, "source" | "kind">): Exclude<NotifKind, "all"> {
+  if (n.kind === "AIRING" || n.kind === "airing") return "episodes";
+  if (n.kind === "ACTIVITY_LIKE" || n.kind === "ACTIVITY_REPLY_LIKE") return "likes";
+  if (n.kind === "ACTIVITY_REPLY" || n.kind === "ACTIVITY_REPLY_SUBSCRIBED" || n.kind === "ACTIVITY_MENTION") return "replies";
+  if (n.kind === "FOLLOWING") return "follows";
+  if (n.kind.startsWith("THREAD_")) return "forum";
+  return "notices";
+}

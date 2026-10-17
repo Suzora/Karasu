@@ -15,7 +15,7 @@ import {
   type AppNotification,
 } from "@/api/anilist";
 import { siteNotifications, type SiteNotifPage } from "@/api/social";
-import { buildGroups, unify, type NotifGroup, type NotifSource } from "@/lib/notifGroups";
+import { buildGroups, notifKind, unify, type NotifGroup, type NotifKind, type NotifSource } from "@/lib/notifGroups";
 import { visibleSubject, type SiteNotifRow } from "@/lib/siteNotifications";
 import { isOffline } from "@/lib/apiError";
 import { backendErrorText } from "@/lib/backendError";
@@ -37,7 +37,7 @@ type SitePage = SiteNotifPage & { unseen: number };
 let activeSurfaces = 0;
 
 /** The bell's one stream, for whichever surface shows it; `active` is that surface being open or mounted. */
-export function useNotifications({ active, source = "all" }: { active: boolean; source?: NotifSource }) {
+export function useNotifications({ active, source = "all", kind = "all" }: { active: boolean; source?: NotifSource; kind?: NotifKind }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -178,9 +178,9 @@ export function useNotifications({ active, source = "all" }: { active: boolean; 
           source === "anilist" ? [] : items,
           anilist && source !== "karasu" ? siteRows : [],
           siteUnseen,
-        ),
+        ).filter((n) => kind === "all" || notifKind(n) === kind),
       ),
-    [items, anilist, siteRows, siteUnseen, source],
+    [items, anilist, siteRows, siteUnseen, source, kind],
   );
 
   const openSite = (row: SiteNotifRow, leave: Leave) => {

@@ -22,7 +22,6 @@ import { Busy, Shimmer } from "@/components/Skeleton";
 import { Markdown } from "@/components/social/Markdown";
 import { MediaStrip } from "@/components/media/MediaStrip";
 import { FavouriteButton } from "@/components/media/FavouriteButton";
-import { cn } from "@/lib/utils";
 import { personDate } from "@/lib/format";
 
 /** The three routes one Person component serves; they are the same page with different words. */
@@ -64,7 +63,7 @@ function Fact({ label, value }: { label: string; value: string | number | null |
 /** The loaded page's frame, so Back stands where it will stay while the page loads or fails. */
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-w-4xl px-8 pb-12 pt-7">
+    <div className="px-8 pb-12 pt-7">
       <BackButton className="mb-4" />
       {children}
     </div>
@@ -156,9 +155,11 @@ export default function Person({ kind }: { kind: Kind }) {
 
   return (
     <Frame>
-      <header className="flex flex-wrap gap-5">
+      {/* The facts stand in a card beside the rest, as the detail page's side column does. */}
+      <div className="grid items-start gap-6 md:grid-cols-[17rem_minmax(0,1fr)]">
+      <header className="space-y-4 rounded-panel bg-surface-900 p-4 md:sticky md:top-4">
         {!su && (
-          <div className="w-32 shrink-0 self-start overflow-hidden rounded-panel bg-surface-850">
+          <div className="w-full overflow-hidden rounded-inner bg-surface-850 max-md:w-32">
             {image ? (
               <img src={image} alt="" className="aspect-2/3 w-full object-cover" />
             ) : (
@@ -205,7 +206,7 @@ export default function Person({ kind }: { kind: Kind }) {
           </div>
 
           {(ch || st) && (
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2">
               <Fact label={t("person.gender")} value={genderLabel(ch?.gender ?? st?.gender, t)} />
               <Fact label={t("person.age")} value={ch?.age ?? st?.age} />
               <Fact
@@ -234,8 +235,9 @@ export default function Person({ kind }: { kind: Kind }) {
         </div>
       </header>
 
+      <div className="min-w-0">
       {description && (
-        <div className="mt-6 max-w-prose">
+        <div className="mb-8 max-w-prose">
           <Markdown
             source={description}
             siteUrl={data.siteUrl ?? undefined}
@@ -245,7 +247,7 @@ export default function Person({ kind }: { kind: Kind }) {
       )}
 
       {edges.length > 0 && (
-        <section className={cn("mt-8 space-y-3")}>
+        <section className="mb-8 space-y-3">
           <SectionHeader
             icon={Users}
             title={su ? t("person.productions") : t("person.appearsIn")}
@@ -257,7 +259,7 @@ export default function Person({ kind }: { kind: Kind }) {
 
       {/* A voice actor's most-favourited roles, the one thing a staff page has that the others do not. */}
       {st?.characters?.nodes?.length ? (
-        <section className="mt-8 space-y-3">
+        <section className="mb-8 space-y-3">
           <SectionHeader icon={Users} title={t("person.characters")} />
           <div className="flex gap-3 overflow-x-auto pb-2">
             {st.characters.nodes.map((c) => (
@@ -274,6 +276,8 @@ export default function Person({ kind }: { kind: Kind }) {
 
       {/* A character's Japanese cast, deduplicated: the same actor across every season is one person. */}
       {ch?.media?.edges?.length ? <VoiceActors edges={ch.media.edges} /> : null}
+      </div>
+      </div>
     </Frame>
   );
 }
@@ -292,7 +296,7 @@ function VoiceActors({ edges }: { edges: NonNullable<CharacterDetail["media"]>["
   if (!list.length) return null;
 
   return (
-    <section className="mt-8 space-y-3">
+    <section className="space-y-3">
       <SectionHeader icon={Users} title={t("person.voicedBy")} />
       <div className="flex gap-3 overflow-x-auto pb-2">
         {list.map((va) => (

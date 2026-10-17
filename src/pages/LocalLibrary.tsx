@@ -11,7 +11,10 @@ import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronDown, FolderOpen, HelpCircle, Play, Wand2 } from "lucide-react";
+import { Check, CheckCircle2, ChevronDown, FolderOpen, HelpCircle, ListPlus, Play, Wand2 } from "lucide-react";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { prefersReducedMotion } from "@/lib/motion";
+import { libraryJumps, type LibrarySection } from "@/lib/libraryJumps";
 import { fetchMediaList, isTauri, saveListEntry } from "@/api/anilist";
 import { mediaByIds } from "@/api/queries";
 import { displayTitle, type Media, type MediaListEntry } from "@/api/types";
@@ -414,56 +417,69 @@ function LibraryView({ userId }: { userId: number }) {
     await rescan();
   };
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex-none px-8 pb-4 pt-7">
-        <div className="flex flex-wrap items-baseline gap-3">
-          <h1 className="text-title text-ink-100">
-            {t("library.title")}
-          </h1>
-          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-            ライブラリ
-          </span>
-          <Button
-            variant="outline"
-            size="control"
-            className="ml-auto"
-            onClick={rescan}
-            disabled={scanning}
-          >
-            <Spinner spinning={scanning} className="size-3.5" />
-            {scanning ? t("settings.libraryScanning") : t("settings.libraryScan")}
-          </Button>
-        </div>
+  const phone = usePhoneShell();
+  const jumps = libraryJumps({ ready: ready.length, done: done.length, offList: offListRows.length, unplaced: failed?.length ?? 0 });
+  const jumpLabel = { ready: t("library.jumpReady"), done: t("library.jumpDone"), offList: t("library.jumpOffList"), unplaced: t("library.jumpUnplaced") } as const;
+  const jumpIcon = { ready: Play, done: CheckCircle2, offList: ListPlus, unplaced: HelpCircle } as const;
+  // Every section stays drawn; a mark scrolls the page's own scroller to it.
+  const jumpTo = (id: LibrarySection) =>
+    document.getElementById(`library-${id}`)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
 
-        {/* The folder and what the last scan made of it, or the screen never says where the files came from. */}
-        <div className="mt-3.5 flex max-w-176 items-center gap-2.5 rounded-control border border-hair bg-surface-900 px-3 py-2.25">
-          <FolderOpen className="size-4 shrink-0 text-ink-500" />
-          <span className="min-w-0 flex-1 truncate text-xs tabular-nums text-ink-300">
-            {status?.path ?? t("library.noFolder")}
-          </span>
-          {status && status.filesSeen > 0 && (
-            <>
-              <span className="shrink-0 text-2xs tabular-nums text-ink-600">
-                {t("library.filesMatched", {
-                  files: status.filesSeen.toLocaleString(i18n.language),
-                  matched: status.matched,
-                })}
-              </span>
-              <span className="h-4 w-px shrink-0 bg-surface-800" />
-            </>
-          )}
-          <button
-            type="button"
-            onClick={change}
-            className="shrink-0 text-xs font-medium text-accent-400 hover:underline"
-          >
-            {t("library.change")}
-          </button>
-        </div>
+  const folder = (
+    // The folder and what the last scan made of it, or the screen never says where the files came from.
+    <div className="space-y-2.5 rounded-panel bg-surface-900 p-3">
+      <p className="flex min-w-0 items-center gap-2 text-sm text-ink-100">
+        <FolderOpen aria-hidden className="size-4 shrink-0 text-ink-500" />
+        <span className="truncate tabular-nums">{status?.path ?? t("library.noFolder")}</span>
+      </p>
+      {status && status.filesSeen > 0 && (
+        <p className="text-xs tabular-nums text-ink-500">
+          {t("library.filesMatched", { files: status.filesSeen.toLocaleString(i18n.language), matched: status.matched })}
+        </p>
+      )}
+      <div className="flex gap-2">
+        <Button variant="secondary" size="sm" className="flex-1 rounded-full" onClick={rescan} disabled={scanning}>
+          <Spinner spinning={scanning} className="size-3.5" />
+          {scanning ? t("settings.libraryScanning") : t("settings.libraryScan")}
+        </Button>
+        <Button variant="ghost" size="sm" className="rounded-full" onClick={change}>
+          {t("library.change")}
+        </Button>
       </div>
+    </div>
+  );
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 pb-10 float-clear">
+  return (
+    <div className={cn("flex h-full", phone && "flex-col")}>
+      <aside className={cn("shrink-0 space-y-3", phone ? "px-4 pt-4" : "w-64 overflow-y-auto pb-8 pl-5 pr-3 pt-6")}>
+        <div className={cn("flex gap-x-2.5", phone ? "items-baseline" : "flex-col px-3")}>
+          <h1 className="text-title text-ink-100">{t("library.title")}</h1>
+          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">ライブラリ</span>
+        </div>
+        {folder}
+        {jumps.length > 0 && !phone && (
+          <nav aria-label={t("library.jumpTo")} className="space-y-0.5">
+            <p className="px-4 pb-1 label-text text-ink-500">{t("library.jumpTo")}</p>
+            {jumps.map(({ id, count }) => {
+              const Icon = jumpIcon[id];
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => jumpTo(id)}
+                  className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 coarse:min-h-11"
+                >
+                  <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+                  <span className="min-w-0 flex-1 truncate">{jumpLabel[id]}</span>
+                  <span className="text-xs tabular-nums opacity-70">{count}</span>
+                </button>
+              );
+            })}
+          </nav>
+        )}
+      </aside>
+
+      <div ref={scrollRef} className={cn("min-h-0 flex-1 overflow-y-auto pb-10 float-clear", phone ? "px-4 pt-4" : "pl-2 pr-8 pt-6")}>
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
         {rows.length === 0 && !unmatched?.length ? (
           <EmptyState
@@ -478,6 +494,7 @@ function LibraryView({ userId }: { userId: number }) {
           />
         ) : (
           <>
+            <div id="library-ready" className="scroll-mt-4" />
             <Group
               label={t("library.readyToPlay")}
               rows={ready}
@@ -488,6 +505,7 @@ function LibraryView({ userId }: { userId: number }) {
               onAdd={addToList}
               onSplit={setSplitting}
             />
+            <div id="library-done" className="scroll-mt-4" />
             <Group
               label={t("library.upToDate")}
               rows={done}
@@ -499,6 +517,7 @@ function LibraryView({ userId }: { userId: number }) {
               onAdd={addToList}
               onSplit={setSplitting}
             />
+            <div id="library-offList" className="scroll-mt-4" />
             <DetectedOffList
               rows={offListRows}
               suggestions={visibleSuggestions}
@@ -512,6 +531,7 @@ function LibraryView({ userId }: { userId: number }) {
               onReject={(key) => setEditing({ key, hasOverride: false })}
               onSplit={setSplitting}
             />
+            <div id="library-unplaced" className="scroll-mt-4" />
             <Unplaced
               groups={failed}
               scrollRef={scrollRef}

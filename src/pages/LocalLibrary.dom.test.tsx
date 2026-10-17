@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes, useNavigate, type NavigateFunction } from "react-router";
 import { forgetPlaces } from "@/lib/scrollMemory";
@@ -59,5 +59,16 @@ describe("Local library and Back", () => {
 
     const again = await screen.findByRole("link", { name: "library.toSettings" });
     await waitFor(() => expect(scrollerOf(again).scrollTop).toBe(640));
+  });
+});
+
+describe("Local library's column", () => {
+  it("keeps the folder and the rescan in the column even while the library is empty, with nothing to jump to", async () => {
+    renderWithProviders(<Harness />, { route: "/library" });
+    await screen.findByRole("link", { name: "library.toSettings" });
+    const column = screen.getByRole("complementary");
+    expect(within(column).getByRole("button", { name: /settings\.libraryScan/ })).toBeInTheDocument();
+    expect(within(column).getByRole("button", { name: "library.change" })).toBeInTheDocument();
+    expect(within(column).queryByRole("navigation")).toBeNull();
   });
 });

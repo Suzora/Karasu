@@ -2648,6 +2648,9 @@ shape, and the question that follows them.
   `/notifications` — and today/earlier (`sectionByDay`) is presentation too.
   A row that navigates goes through the surface's `leave`, so an overlay's
   back entry has unwound before the destination's is pushed.
+  The notifications page narrows the loaded set by source and by kind
+  (`notifKind`: episodes, likes, replies, follows, forum, notices) from its
+  column, before grouping and never with a request.
   An activity or forum row also names its subject in a quote block under the
   verb (`SubjectLine`): a list activity as a caption in the title language
   with AniList's smallest cover, a post or a comment as a quote through

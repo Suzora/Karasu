@@ -189,6 +189,22 @@ describe("notifications", () => {
     expect(screen.queryByRole("radiogroup")).toBeNull();
   });
 
+  it("narrows the page to one kind from its column, over what is already loaded", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    data.local = [local(1, HOUR)];
+    data.site = [follow(7, "Hoshi")];
+    renderWithProviders(<Notifications />);
+    expect(await screen.findByText("Local 1")).toBeInTheDocument();
+    const calls = vi.mocked(siteNotifications).mock.calls.length;
+    await user.click(screen.getByRole("button", { name: "notif.kindFollows" }));
+    expect(screen.getByText("Hoshi")).toBeInTheDocument();
+    expect(screen.queryByText("Local 1")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "notif.kindNotices" }));
+    expect(screen.getByText("Local 1")).toBeInTheDocument();
+    expect(vi.mocked(siteNotifications).mock.calls.length).toBe(calls);
+  });
+
   it("leaves the page's loaded pages alone when the titlebar glance opens and closes over it", async () => {
     const user = userEvent.setup({ delay: null });
     signIn();
@@ -236,7 +252,7 @@ describe("notifications", () => {
     expect((await within(panel).findByText("Hoshi")).closest("button")).toHaveClass(unreadClass);
     await user.click(within(panel).getByRole("button", { name: "notif.all" }));
     const page = await screen.findByRole("heading", { level: 1, name: "notif.title" });
-    const row = within(page.closest("div.mx-auto") as HTMLElement).getByText("Hoshi").closest("button");
+    const row = within(page.closest("[data-notifications-page]") as HTMLElement).getByText("Hoshi").closest("button");
     expect(row).toHaveClass(unreadClass);
   });
 
@@ -301,7 +317,7 @@ describe("notifications", () => {
     await within(panel).findByText("Hoshi");
     await user.click(within(panel).getByRole("button", { name: "notif.all" }));
     const page = await screen.findByRole("heading", { level: 1, name: "notif.title" });
-    const pageRow = () => within(page.closest("div.mx-auto") as HTMLElement).getByText("Hoshi").closest("button");
+    const pageRow = () => within(page.closest("[data-notifications-page]") as HTMLElement).getByText("Hoshi").closest("button");
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "notif.title" })).toBeNull());
     aMinuteLater();
     await user.click(screen.getByRole("button", { name: BELL }));

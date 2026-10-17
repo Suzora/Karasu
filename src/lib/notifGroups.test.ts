@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGroups, groupSubjects, sectionByDay, unify, type NotifGroup, type UnifiedNotif } from "./notifGroups";
+import { buildGroups, groupSubjects, notifKind, sectionByDay, unify, type NotifGroup, type UnifiedNotif } from "./notifGroups";
 import type { AppNotification } from "@/api/anilist";
 import type { NotifSubject, SiteNotifRow } from "./siteNotifications";
 
@@ -228,5 +228,22 @@ describe("sectionByDay", () => {
     expect(sectionByDay([group("a", at(-5))], at(9)).map((s) => s.day)).toEqual(["earlier"]);
     expect(sectionByDay([group("a", at(8))], at(9)).map((s) => s.day)).toEqual(["today"]);
     expect(sectionByDay([], at(9))).toEqual([]);
+  });
+});
+
+describe("notifKind", () => {
+  const n = (source: "local" | "site", kind: string) => ({ key: `${source}:${kind}`, source, kind, atMs: 0, unread: false, actorId: null, mediaId: null, activityId: null });
+  it("sorts every row into one of the page's kinds", () => {
+    expect(notifKind(n("site", "AIRING"))).toBe("episodes");
+    expect(notifKind(n("local", "airing"))).toBe("episodes");
+    expect(notifKind(n("site", "ACTIVITY_LIKE"))).toBe("likes");
+    expect(notifKind(n("site", "ACTIVITY_REPLY_LIKE"))).toBe("likes");
+    expect(notifKind(n("site", "ACTIVITY_REPLY"))).toBe("replies");
+    expect(notifKind(n("site", "ACTIVITY_MENTION"))).toBe("replies");
+    expect(notifKind(n("site", "FOLLOWING"))).toBe("follows");
+    expect(notifKind(n("site", "THREAD_LIKE"))).toBe("forum");
+    expect(notifKind(n("site", "THREAD_COMMENT_REPLY"))).toBe("forum");
+    expect(notifKind(n("site", "MEDIA_DATA_CHANGE"))).toBe("notices");
+    expect(notifKind(n("local", "update"))).toBe("notices");
   });
 });

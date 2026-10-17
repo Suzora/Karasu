@@ -1,63 +1,119 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bird, CheckCheck, Globe, Heart, Inbox, Info, MessageCircle, MessagesSquare, Tv, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Segmented } from "@/components/ui/segmented";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { cn } from "@/lib/utils";
 import { NotifFeed } from "@/components/shell/NotifFeed";
 import { useNotifications, type Leave } from "@/hooks/useNotifications";
-import type { NotifSource } from "@/lib/notifGroups";
+import { NOTIF_KINDS, type NotifKind, type NotifSource } from "@/lib/notifGroups";
 
 /** A page is not an overlay, so a row's destination is simply the next page. */
 const stay: Leave = (go) => go();
 
-/** Every notification, Karasu's and AniList's, with a filter by source; the titlebar's dropdown leads here. */
+const KIND_ICON: Record<NotifKind, typeof CheckCheck> = {
+  all: Inbox,
+  episodes: Tv,
+  likes: Heart,
+  replies: MessageCircle,
+  follows: UserPlus,
+  forum: MessagesSquare,
+  notices: Info,
+};
+const kindKey = {
+  all: "notif.kindAll",
+  episodes: "notif.kindEpisodes",
+  likes: "notif.kindLikes",
+  replies: "notif.kindReplies",
+  follows: "notif.kindFollows",
+  forum: "notif.kindForum",
+  notices: "notif.kindNotices",
+} as const;
+
+const rowClass = (on: boolean) =>
+  cn(
+    "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+    on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+  );
+
+/** Every notification, Karasu's and AniList's, narrowed by source and kind from the column. */
 export default function Notifications() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const phone = usePhoneShell();
   const [source, setSource] = useState<NotifSource>("all");
-  const n = useNotifications({ active: true, source });
+  const [kind, setKind] = useState<NotifKind>("all");
+  const n = useNotifications({ active: true, source, kind });
 
-  return (
-    <div className="mx-auto max-w-3xl px-8 pb-12 pt-7">
-      {/* Wraps rather than squeezes: at phone width the long German title takes the row and the button moves below. */}
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
-        <div className="min-w-0 flex-1 basis-64">
-          <div className="flex flex-wrap items-baseline gap-x-2.5">
-            <h1 className="text-title">{t("notif.title")}</h1>
-            {/* The Japanese sub-lockup every other screen header carries. */}
-            <span className="whitespace-nowrap font-brand-jp text-ui tracking-lockup text-ink-600">お知らせ</span>
-          </div>
-          <p className="mt-0.5 text-xs text-ink-600">{t("notif.pageHint")}</p>
-        </div>
-        <Button variant="secondary" size="sm" className="shrink-0" onClick={() => void n.readAll()}>
-          <CheckCheck className="size-3.5" /> {t("notif.markAll")}
-        </Button>
-      </header>
-
+  const sources: [NotifSource, string, typeof CheckCheck][] = [
+    ["all", t("notif.sourceAll"), Inbox],
+    ["karasu", "Karasu", Bird],
+    ["anilist", "AniList", Globe],
+  ];
+  const markAll = (
+    <button type="button" onClick={() => void n.readAll()} className={rowClass(false)}>
+      <CheckCheck aria-hidden className="size-4 shrink-0 opacity-70" />
+      <span className="min-w-0 flex-1 truncate">{t("notif.markAll")}</span>
+    </button>
+  );
+  const column = (
+    <div className="space-y-0.5">
+      {markAll}
       {/* Without an AniList account there is one source, and a filter over one source filters nothing. */}
       {n.anilist && (
-        <Segmented
-          className="mt-5"
-          aria-label={t("notif.source")}
-          value={source}
-          onChange={setSource}
-          segments={[
-            { value: "all", label: t("notif.sourceAll") },
-            { value: "karasu", label: "Karasu" },
-            { value: "anilist", label: "AniList" },
-          ]}
-        />
+        <div role="radiogroup" aria-label={t("notif.source")} className="space-y-0.5">
+          <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("notif.sourceHeading")}</p>
+          {sources.map(([value, label, Icon]) => (
+            <button key={value} type="button" role="radio" aria-checked={source === value} onClick={() => setSource(value)} className={rowClass(source === value)}>
+              <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+              <span className="min-w-0 flex-1 truncate">{label}</span>
+            </button>
+          ))}
+        </div>
       )}
+      <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("notif.kindHeading")}</p>
+      {NOTIF_KINDS.map((k) => {
+        const Icon = KIND_ICON[k];
+        return (
+          <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={rowClass(kind === k)}>
+            <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+            <span className="min-w-0 flex-1 truncate">{t(kindKey[k])}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+  const feed = (
+    <Card className="overflow-hidden p-0">
+      <NotifFeed
+        n={n}
+        leave={stay}
+        byDay
+        more
+        emptyTitle={kind !== "all" ? t("notif.emptyKind") : source === "all" ? undefined : t("notif.emptySource")}
+      />
+    </Card>
+  );
 
-      <Card className="mt-4 overflow-hidden p-0">
-        <NotifFeed
-          n={n}
-          leave={stay}
-          byDay
-          more
-          emptyTitle={source === "all" ? undefined : t("notif.emptySource")}
-        />
-      </Card>
+  if (phone) {
+    return (
+      <div data-notifications-page className="space-y-4 px-4 pb-12 pt-4">
+        <h1 className="text-title">{t("notif.title")}</h1>
+        {column}
+        {feed}
+      </div>
+    );
+  }
+
+  return (
+    <div data-notifications-page className="grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6">
+      <aside className="space-y-1 self-start">
+        {/* Breaks inside the word where it must: the German title is longer than the column. */}
+        <h1 lang={i18n.language} className="mb-2 hyphens-auto break-words px-3 text-title">
+          {t("notif.title")}
+        </h1>
+        {column}
+      </aside>
+      <div className="min-w-0 max-w-3xl">{feed}</div>
     </div>
   );
 }
