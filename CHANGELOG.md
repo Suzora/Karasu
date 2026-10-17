@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: a31e005 -->
+<!-- generated-through: 2f38b76 -->
 
 ### Added
 
@@ -96,6 +96,7 @@ tag time is then optional rather than load-bearing.
 - The anime and manga lists show their statuses as a column beside the covers, with your custom lists beneath, and on the phone as a field above them; each cover carries its title and episode ticks on the picture.
 - The season page lets you pick the year and season from a column beside the titles, filter by format or hide what is already on your list, and shows each title as a card with its genres and a countdown to the next episode.
 - The calendar keeps the week, what to show and how to show it in a column beside the schedule, and its week, tiles and agenda views show each episode on a card with its cover.
+- Statistics keeps Anime/Manga, its sections and Wrapped in a column beside the charts, and shows its key figures as cards.
 
 ### Security
 

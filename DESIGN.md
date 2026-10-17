@@ -1055,3 +1055,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   with the time on the art, agenda is rows of cards, two abreast on the
   desktop. On the phone the column turns into the week stepper, a field for
   My shows / Everything and two icons for tiles and agenda.
+- **2026-10-17:** Statistics takes A of three frames, the column the lists,
+  the season page and the calendar stand on (over B, a profile stage with
+  three large figures, and C, every section on one long page). The column
+  holds the profile with its AniList link, Anime/Manga, the five sections
+  and Wrapped; the charts take the width beside it. The key figures become
+  tonal cards instead of numbers under an accent stroke. On the phone the
+  sections are a field that opens them in a sheet.

@@ -119,16 +119,12 @@ export function StatusBar({
   );
 }
 
-/** Stat tiles in the Wrapped poster's register: a short accent rule over bare figures, no card fill. */
+/** Stat tiles as tonal cards: the figure large, its label beneath. */
 export function TileGrid({ tiles }: { tiles: { label: string; value: string }[] }) {
   return (
-    <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 2xl:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
       {tiles.map((tile) => (
-        <div key={tile.label} className="relative pt-2.5">
-          <span
-            aria-hidden="true"
-            className="absolute left-0 top-0 h-0.5 w-9 rounded-full bg-gradient-to-r from-accent-500 to-accent-400/25"
-          />
+        <div key={tile.label} className="rounded-panel bg-surface-900 px-4 py-3.5">
           <p className="text-2xl font-bold tabular-nums text-ink-100">{tile.value}</p>
           <p className="mt-0.5 label-text text-ink-500">{tile.label}</p>
         </div>

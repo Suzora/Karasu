@@ -2,7 +2,8 @@ import { useCallback, useMemo } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { BarChart3, ExternalLink, Sparkles } from "lucide-react";
+import { BarChart3, CalendarRange, ExternalLink, Sparkles, Star, Tags, Users } from "lucide-react";
+import { SectionNav, SectionPicker, type SectionItem } from "@/components/stats/SectionNav";
 import {
   userStatistics,
   type AnimeStats,
@@ -26,7 +27,6 @@ import { Loader } from "@/components/ui/loader";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/user-lockup";
 import { Segmented, type Segment } from "@/components/ui/segmented";
-import { StatusTabs, type StatusTab } from "@/components/ui/status-tabs";
 import {
   RadarChart,
   Sunburst,
@@ -65,6 +65,7 @@ import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { cn } from "@/lib/utils";
 /** Five themed tabs shared by both media types; the ranked lists live inside two of them, not one each. */
 const CATEGORIES: Category[] = ["overview", "ratings", "years", "genresTags", "people"];
+const SECTION_ICON: Record<Category, typeof BarChart3> = { overview: BarChart3, ratings: Star, years: CalendarRange, genresTags: Tags, people: Users };
 
 export default function Statistics() {
   const { t } = useTranslation();
@@ -259,67 +260,22 @@ function StatisticsContent({
     { value: "ANIME", label: t("nav.list") },
     { value: "MANGA", label: t("nav.manga") },
   ];
-  const categoryOptions: StatusTab<Category>[] = CATEGORIES.map((c) => ({
-    value: c,
-    label: t(`stats.${c}`),
-  }));
 
   const stats = data?.statistics;
   const phone = usePhoneShell();
 
-  return (
-    <div className="mx-auto max-w-4xl space-y-6 p-8 2xl:max-w-none 3xl:max-w-[130rem]">
-      <header className="flex items-center gap-4">
-        {/* Avatar without the lockup: the text beside it is the screen's title, not the user's name. */}
-        <Avatar src={avatar} size="lg" fallback={<BarChart3 className="size-5" />} />
-        <div className="min-w-0 flex-1">
-          {/* The same lockup the two list screens use: title, then its Japanese form a shade back. */}
-          <div className="flex items-baseline gap-2.5">
-            <h1 className="text-title">{t("stats.title")}</h1>
-            {/* Hidden on a phone, whose one row belongs to the avatar, the title and Wrapped. */}
-            <span className="hidden whitespace-nowrap font-brand-jp text-ui tracking-lockup text-ink-600 sm:inline">
-              統計
-            </span>
-          </div>
-          {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
-          <ExternalAnchor
-            href={siteUrl}
-            className="flex items-center gap-1 text-xs text-accent-400 hover:underline"
-          >
-            {name} <ExternalLink className="size-3.5" />
-          </ExternalAnchor>
-        </div>
-        {phone ? (
-          <Link
-            to="/wrapped"
-            aria-label={t("wrapped.title")}
-            title={t("wrapped.title")}
-            className={buttonClass("ghost", "iconControl")}
-          >
-            <Sparkles className="size-4" aria-hidden="true" />
-          </Link>
-        ) : (
-          <Link to="/wrapped" className={buttonClass("secondary", "sm")}>
-            <Sparkles className="size-3.5" aria-hidden="true" /> {t("wrapped.title")}
-          </Link>
-        )}
-      </header>
-
-      <div className="space-y-3">
-        <Segmented
-          aria-label={t("stats.mediaTypeLabel")}
-          segments={typeOptions}
-          value={type}
-          onChange={(v) => setView({ type: v })}
-        />
-        <StatusTabs
-          label={t("stats.sectionsLabel")}
-          tabs={categoryOptions}
-          value={activeCategory}
-          onChange={(v) => setView({ category: v })}
-        />
-      </div>
-
+  const sectionItems: SectionItem<Category>[] = CATEGORIES.map((c) => ({ value: c, label: t(`stats.${c}`), icon: SECTION_ICON[c] }));
+  const typeSwitch = (
+    <Segmented
+      className="w-full [&>button]:flex-1"
+      aria-label={t("stats.mediaTypeLabel")}
+      segments={typeOptions}
+      value={type}
+      onChange={(v) => setView({ type: v })}
+    />
+  );
+  const content = (
+    <>
       {isLoading && <Loader label={t("common.loading")} />}
       {/* The stats can land while the list fails, and a list-counted panel left empty reads as an answer. */}
       {!isLoading && listFailed && (
@@ -353,6 +309,55 @@ function StatisticsContent({
         type === "ANIME" &&
         activeCategory === "overview" &&
         remainingTotal !== null && <WatchTimeEstimate total={remainingTotal} />}
+    </>
+  );
+
+  if (phone) {
+    return (
+      <div className="space-y-4 px-4 pb-24 pt-4">
+        <header className="flex items-center gap-3">
+          <Avatar src={avatar} size="md" fallback={<BarChart3 className="size-4" />} />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-title">{t("stats.title")}</h1>
+            {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
+            <ExternalAnchor href={siteUrl} className="flex items-center gap-1 text-xs text-accent-400 hover:underline">
+              {name} <ExternalLink className="size-3.5" />
+            </ExternalAnchor>
+          </div>
+          <Link to="/wrapped" aria-label={t("wrapped.title")} title={t("wrapped.title")} className={buttonClass("ghost", "iconControl")}>
+            <Sparkles className="size-4" aria-hidden="true" />
+          </Link>
+        </header>
+        {typeSwitch}
+        <SectionPicker label={t("stats.sectionsLabel")} items={sectionItems} value={activeCategory} onChange={(v) => setView({ category: v })} />
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full">
+      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+        <header className="mb-4 flex items-center gap-3 px-2">
+          {/* Avatar without the lockup: the text beside it is the screen's title, not the user's name. */}
+          <Avatar src={avatar} size="md" fallback={<BarChart3 className="size-4" />} />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-title">{t("stats.title")}</h1>
+            {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
+            <ExternalAnchor href={siteUrl} className="flex min-w-0 items-center gap-1 text-xs text-accent-400 hover:underline">
+              <span className="truncate">{name}</span> <ExternalLink className="size-3.5 shrink-0" />
+            </ExternalAnchor>
+          </div>
+        </header>
+        <div className="mb-3">{typeSwitch}</div>
+        <SectionNav label={t("stats.sectionsLabel")} items={sectionItems} value={activeCategory} onChange={(v) => setView({ category: v })} />
+        <div className="mx-3 my-3 h-px bg-surface-850" />
+        <Link to="/wrapped" className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100">
+          <Sparkles aria-hidden className="size-4 shrink-0 opacity-70" />
+          {t("wrapped.title")}
+        </Link>
+      </aside>
+      <div className="min-w-0 flex-1 space-y-6 overflow-y-auto pb-12 pl-2 pr-8 pt-6">{content}</div>
     </div>
   );
 }
