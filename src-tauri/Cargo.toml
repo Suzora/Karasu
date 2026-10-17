@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.47.0"
+version = "1.47.1"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -70,8 +70,8 @@ sha2 = "0.10"
 # open; `Fs::open` goes through the platform's own descriptor for either.
 tauri-plugin-fs = "2"
 # Without its default `rustls-tls`, which brought `ring` beside our aws-lc-rs and installed it as the process default;
-# its reqwest is ours, so it speaks TLS through the same aws-lc-rs provider. `zip` stays for v1-style artifacts.
-tauri-plugin-updater = { version = "2", default-features = false, features = ["zip"] }
+# its reqwest is ours, so it speaks TLS through the same aws-lc-rs provider. No `zip`: the release ships the bare .exe and .AppImage.
+tauri-plugin-updater = { version = "2", default-features = false }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-window-state = "2"
 # WebView2 and WebKitGTK answer F5, Ctrl+F and Ctrl+P themselves; a desktop app owns those keys.
