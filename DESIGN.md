@@ -1073,3 +1073,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   (two hid the score on a narrow cover); the list state is a point in the
   meta line. On the phone the scope is a field and the
   filters open from a button, both as sheets.
+- **2026-10-18:** A title always sits under its cover, never on the art,
+  decided by the maintainer after a run of screens on the Overview's caption
+  card. The lists, search and recommendations, the calendar's tiles and the
+  Overview's continue row draw the title and its meta line (and the episode
+  ticks, where a card has them) beneath the cover; on the art stay only the
+  small marks: score, time, the list-state point and one action circle. A
+  title on a banner (the detail page, the Overview) is not a cover title and
+  keeps its place.

@@ -140,8 +140,8 @@ function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number 
   const marks = progressMarks(entry.progress, max);
   return (
     <>
-      <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{displayTitle(media.title)}</p>
-      <p className="@container mb-1.5 mt-0.5 text-2xs tabular-nums text-on-cover-edge/80">
+      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(media.title)}</p>
+      <p className="@container mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">
         {media.type === "MANGA" ? (
           // Chapters lead, volumes trail; `?` rather than a hidden total, since an ongoing series has no end count.
           <>
@@ -161,11 +161,11 @@ function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number 
       {marks.kind === "ticks" ? (
         <div aria-hidden className="flex gap-px">
           {Array.from({ length: marks.total }, (_, i) => (
-            <span key={i} data-tick={i < marks.done ? "done" : "left"} className={cn("h-1 flex-1 rounded-mark", i < marks.done ? "bg-accent-400" : "bg-on-cover-edge/20")} />
+            <span key={i} data-tick={i < marks.done ? "done" : "left"} className={cn("h-1 flex-1 rounded-mark", i < marks.done ? "bg-accent-400" : "bg-surface-700")} />
           ))}
         </div>
       ) : (
-        <div aria-hidden className="h-1 overflow-hidden rounded-full bg-on-cover-edge/20">
+        <div aria-hidden className="h-1 overflow-hidden rounded-full bg-surface-700">
           <div className="h-full rounded-full bg-accent-400" style={{ width: `${marks.share * 100}%` }} />
         </div>
       )}

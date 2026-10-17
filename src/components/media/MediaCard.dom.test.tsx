@@ -98,11 +98,12 @@ describe("MediaCard in the account-free profile", () => {
   });
 
   /** The Overview's card: title and meta on the art, so one link carries the card and the corner holds controls only. */
-  it("carries the title on the art behind one link, with the status point in the meta line", async () => {
+  it("writes the title under the cover, with the status point in the meta line", async () => {
     const { queryClient } = renderWithProviders(<MediaCard media={media()} />);
     queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
     const mark = await screen.findByRole("img", { name: "status.ANIME.CURRENT" });
     expect(mark.parentElement).toHaveTextContent("format.TV");
+    expect(mark.closest(".focus-frame")).toBeNull();
     expect(screen.getAllByRole("link").filter((l) => l.getAttribute("href") === "/media/21")).toHaveLength(1);
     expect(screen.getByRole("link", { name: /One Piece/ })).toBeInTheDocument();
   });

@@ -52,6 +52,15 @@ describe("ContinueRow", () => {
     expect(cards[1].querySelector("[data-bar]")).not.toBeNull();
   });
 
+  it("writes the title and the ticks under the cover, never on it", () => {
+    const e = entry({ id: 1, progress: 3, media: media({ id: 1, episodes: 12 }) });
+    renderWithProviders(<ContinueRow userId={1} anime={[e]} manga={[]} />);
+    const cover = screen.getByRole("article").querySelector("[data-cover]")!;
+    expect(cover).not.toHaveTextContent("Cowboy Bebop");
+    expect(cover.querySelectorAll("[data-tick]")).toHaveLength(0);
+    expect(screen.getByRole("article")).toHaveTextContent("Cowboy Bebop");
+  });
+
   it("saves the next episode from the +1 in its ring", () => {
     mutate.mockReset();
     const e = entry({ id: 1, mediaId: 1, progress: 3, media: media({ id: 1, episodes: 12 }) });

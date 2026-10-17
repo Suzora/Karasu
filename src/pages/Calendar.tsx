@@ -459,7 +459,7 @@ function StateMarker({ slot, state }: { slot: Slot; state: ReleaseState }) {
   );
 }
 
-/** The tiles view's card: the cover with the time on the art and the title over its foot, the Overview's card. */
+/** The tiles view's card: the cover with the time and the state on the art, the title and episode under it. */
 function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
   const { t, i18n } = useTranslation();
   const title = displayTitle(slot.media.title);
@@ -468,25 +468,21 @@ function CalendarTile({ slot, state }: { slot: Slot; state: ReleaseState }) {
     <Link
       to={`/media/${slot.media.id}`}
       title={title}
-      className={cn(
-        "group relative block aspect-[3/4] overflow-hidden rounded-panel bg-surface-900 transition-surface",
-        released && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
-      )}
+      className={cn("group block transition-surface", released && "opacity-55 hover:opacity-100 focus-visible:opacity-100")}
     >
-      {slot.media.coverImage.large && (
-        <img src={slot.media.coverImage.large} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-      )}
-      <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-on-cover via-on-cover/70 to-transparent" />
-      <span className="absolute left-2 top-2 rounded-full bg-on-cover/75 px-2 py-0.5 text-2xs tabular-nums text-on-cover-edge">
-        {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
-      </span>
-      <span className="absolute right-2 top-2">
-        <StateMarker slot={slot} state={state} />
-      </span>
-      <div className="absolute inset-x-0 bottom-0 p-2.5">
-        <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{title}</p>
-        <p className="mt-0.5 text-2xs text-on-cover-edge/80">{t("calendar.ep", { n: slot.episode })}</p>
+      <div data-cover className="relative aspect-[3/4] overflow-hidden rounded-panel bg-surface-900">
+        {slot.media.coverImage.large && (
+          <img src={slot.media.coverImage.large} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+        )}
+        <span className="absolute left-2 top-2 rounded-full bg-on-cover/75 px-2 py-0.5 text-2xs tabular-nums text-on-cover-edge">
+          {new Date(slot.airingAt * 1000).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
+        </span>
+        <span className="absolute right-2 top-2">
+          <StateMarker slot={slot} state={state} />
+        </span>
       </div>
+      <p className="mt-2 line-clamp-2 px-0.5 text-ui font-medium leading-snug text-ink-100">{title}</p>
+      <p className="mt-0.5 px-0.5 text-xs text-ink-500">{t("calendar.ep", { n: slot.episode })}</p>
     </Link>
   );
 }

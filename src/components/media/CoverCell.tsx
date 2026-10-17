@@ -51,7 +51,7 @@ export function CoverCell({
   selected?: boolean;
   /** List-status colour drawn as a ring inside the frame, where the selection outline and focus ring cannot collide. */
   statusRing?: string | null;
-  /** Laid on the art at its foot over a tall scrim, the Overview's card; the actions then move to the top right. */
+  /** The title block under the cover; the actions then move to the top right, clear of the foot. */
   caption?: ReactNode;
   className?: string;
   /** The metadata lines below the cover. */
@@ -111,12 +111,8 @@ export function CoverCell({
           </Link>
         )}
 
-        {/* Sized to the content it has to carry, not to the cover. */}
-        {caption ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-on-cover via-on-cover/70 to-transparent" />
-        ) : (
-          <div className="cover-scrim pointer-events-none absolute inset-x-0 bottom-0 h-14" />
-        )}
+        {/* A caption sits under the cover and needs no scrim; the actions at the foot of a bare cover do. */}
+        {!caption && <div className="cover-scrim pointer-events-none absolute inset-x-0 bottom-0 h-14" />}
 
         {overlay}
 
@@ -169,8 +165,6 @@ export function CoverCell({
           </span>
         )}
 
-        {caption && <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2.5">{caption}</div>}
-
         {actions && (
           <div className={cn("absolute right-2 flex items-center gap-1.5", caption ? "top-2" : "bottom-2")}>
             {actions}
@@ -189,6 +183,7 @@ export function CoverCell({
         )}
       </div>
 
+      {caption && <div className="mt-2 px-0.5">{caption}</div>}
       {children}
     </div>
   );

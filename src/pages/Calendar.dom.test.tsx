@@ -106,3 +106,16 @@ describe("Calendar's column", () => {
     expect(await screen.findByRole("button", { name: "calendar.thisWeek" })).toBeInTheDocument();
   });
 });
+
+describe("Calendar's tiles", () => {
+  it("write the title under the cover, with only the time and the state on the art", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/calendar?lens=all" });
+    await screen.findByRole("link", { name: /Frieren/ });
+    await user.click(screen.getByRole("button", { name: /calendar\.viewTiles/ }));
+    const tile = await screen.findByRole("link", { name: /Frieren/ });
+    const cover = tile.querySelector("[data-cover]")!;
+    expect(cover).not.toHaveTextContent("Frieren");
+    expect(tile).toHaveTextContent("Frieren");
+  });
+});

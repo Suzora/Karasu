@@ -45,9 +45,9 @@ export default function MediaCard({
       data-media-title={displayTitle(media.title)}
       caption={
         <>
-          <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{displayTitle(media.title)}</p>
+          <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(media.title)}</p>
           {/* The status point leads the meta line: it is no control, and the corner above holds controls only. */}
-          <p className="mt-0.5 flex items-center gap-1.5 text-2xs tabular-nums text-on-cover-edge/80">
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs tabular-nums text-ink-500">
             {entry && (
               <span
                 role="img"

@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: c55afb6 -->
+<!-- generated-through: d7aa3d2 -->
 
 ### Added
 
@@ -98,6 +98,7 @@ tag time is then optional rather than load-bearing.
 - The calendar keeps the week, what to show and how to show it in a column beside the schedule, and its week, tiles and agenda views show each episode on a card with its cover.
 - Statistics keeps Anime/Manga, its sections and Wrapped in a column beside the charts, and shows its key figures as cards.
 - Search keeps its scopes and every filter in a column beside the results, and on the phone opens them from a field and a filter button.
+- Titles sit under their covers again, in the lists, search, the calendar's tiles and Continue on the Overview.
 
 ### Security
 

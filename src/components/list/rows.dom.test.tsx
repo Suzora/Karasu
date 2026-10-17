@@ -203,12 +203,14 @@ describe("GridCard", () => {
     expect(screen.getByRole("button", { name: "common.edit" })).toHaveClass("not-pointer-coarse:@max-cover-pair:hidden");
   });
 
-  it("lays the title, the count and a tick per episode on the cover, with no status frame", () => {
+  it("writes the title, the count and a tick per episode under the cover, with no status frame", () => {
     const { container } = renderWithProviders(gridCard());
     const frame = container.querySelector(".focus-frame")!;
-    expect(frame).toHaveTextContent("Cowboy Bebop");
-    expect(frame.querySelectorAll("[data-tick]")).toHaveLength(26);
-    expect(frame.querySelectorAll('[data-tick="done"]')).toHaveLength(4);
+    expect(frame).not.toHaveTextContent("Cowboy Bebop");
+    const below = frame.nextElementSibling!;
+    expect(below).toHaveTextContent("Cowboy Bebop");
+    expect(below.querySelectorAll("[data-tick]")).toHaveLength(26);
+    expect(below.querySelectorAll('[data-tick="done"]')).toHaveLength(4);
     expect([...frame.querySelectorAll<HTMLElement>("span")].some((el) => el.style.boxShadow.includes("inset"))).toBe(false);
   });
 
