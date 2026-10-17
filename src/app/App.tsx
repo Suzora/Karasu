@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { useNowPlaying } from "@/stores/nowPlaying";
+import DetectionPopupGate from "@/components/shell/DetectionPopupGate";
 import { useLibrary } from "@/stores/library";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAiringMutes } from "@/stores/airingMutes";
@@ -52,21 +53,6 @@ import { buttonClass } from "@/components/ui/button";
 const AnimeDetail = lazyRoute(() => import("@/pages/AnimeDetail"), <DetailSkeleton />);
 const Search = lazyRoute(() => import("@/pages/Search"));
 const Seasonal = lazyRoute(() => import("@/pages/Seasonal"));
-
-const DetectionPopup = lazy(() => import("@/components/shell/DetectionPopup"));
-
-/** Loads the detection window with the first detection, then keeps it mounted so its exits still play. */
-function DetectionPopupWhenNeeded() {
-  const detected = useNowPlaying((s) => s.current !== null);
-  const [armed, setArmed] = useState(false);
-  if (detected && !armed) setArmed(true);
-  if (!armed) return null;
-  return (
-    <Suspense fallback={null}>
-      <DetectionPopup />
-    </Suspense>
-  );
-}
 
 /** Whether a route's page can render in the same frame, which a View Transition's snapshot needs; else it starts loading. */
 function routeReady(to: string): boolean {
@@ -299,7 +285,7 @@ export default function App() {
         )}
       >
         <PlaybackError />
-        <DetectionPopupWhenNeeded />
+        <DetectionPopupGate />
       </div>
       {phone && <BottomBar />}
     </div>
@@ -370,7 +356,7 @@ function PlaybackError() {
     <div
       role="alert"
       className={cn(
-        "pointer-events-auto flex w-full max-w-full origin-bottom-right items-start gap-3 rounded-panel border border-hair bg-surface-900 panel-wash panel-top py-3 pl-3 pr-2 shadow-float md:w-88",
+        "pointer-events-auto flex w-full max-w-full origin-bottom-right items-start gap-3 rounded-panel border border-hair bg-surface-900 panel-top py-3 pl-3 pr-2 shadow-float md:w-88",
         leaving ? "animate-pop-out" : "animate-pop-in",
       )}
     >

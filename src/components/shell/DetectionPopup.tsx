@@ -83,7 +83,7 @@ export default function DetectionPopup() {
       ref={card}
       // Not a dialog: it arrives unprompted, so it takes no focus and sets no `data-overlay`, and list keys keep working.
       className={cn(
-        "pointer-events-auto overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
+        "pointer-events-auto overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float",
         free ? "fixed z-30" : phone ? "relative w-full" : "relative w-88 max-w-full",
         shown.leaving ? "animate-rise-out" : "animate-rise-in",
       )}

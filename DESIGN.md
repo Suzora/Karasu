@@ -363,7 +363,7 @@ no row here, add the primitive first.
 
 | Need | Use |
 |---|---|
-| an action | `Button` (`default`, `secondary`, `outline`, `ghost`, `danger`, `dangerGhost`); a navigation that looks like one is a `Link` spelling `buttonClass`, never a `Button` inside a link, which is two Tab stops for one action |
+| an action | `Button` (`default`, `secondary`, `outline`, `ghost`, `danger`, `dangerGhost`, and `text`, Material's text button for a link-like "show all"); a navigation that looks like one is a `Link` spelling `buttonClass`, never a `Button` inside a link, which is two Tab stops for one action |
 | an icon-only action | `IconButton`, always with `aria-label` |
 | a control's name beside it, where the label cannot show | `Tooltip`, on hover and keyboard focus; visual only, so the control keeps its `aria-label`. A rail of them sits in one `TooltipProvider`, which opens the next at once |
 | a key or a key combination | `Kbd`, a cap. The reference sheet lays a combination out one cap per key with `KeyCombo`; a hint in passing, at the end of a field or in the palette's shortcut column, is one `quiet` cap for the whole combination. The keys come from `lib/shortcuts`, which both read |
@@ -415,6 +415,15 @@ since 2026-10-08 the settings lists: their rows sit in a sunken well, so a
 row shows its shape against it. Three shapes move with their areas
 instead: the borderless code and log wells on `surface-850`, the tinted
 notices, and the frames around the virtual lists.
+
+
+**The Overview's own elements** (2026-10-17), in `components/dashboard/`:
+the list shelf (a status's titles as cover spines on a rule in the status
+colour), the continue card (one tick per episode up to 40, a bar past it,
+and a progress ring round +1), the week plan (days as columns, the hour
+downwards, a now line; a list of days below 40 rem) and the banner's
+48-hour strip. Text on the banner and the cards is `on-cover-edge` on the
+`on-cover` scrim (`banner-scrim`) in every look.
 
 ## Libraries
 

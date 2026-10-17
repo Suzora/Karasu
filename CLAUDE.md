@@ -79,6 +79,10 @@ src/
     stats/           the parts Statistics draws — panels, ranked list, Charts
                      (radar/sunburst/treemap), AreaChart, DotPlot, GradientBars,
                      Heatmap
+    dashboard/       the parts the Overview draws — banner with search and
+                     48-hour strip, list shelves, continue row, week plan,
+                     coming up, and the right rail (detection, figures, own
+                     activity, birthdays); every decision is `lib/overview`
     social/          the parts UserProfile, Social and Thread draw — the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
@@ -97,7 +101,7 @@ src/
                      useGridRoving, useSyncStatus, useManualSync,
                      usePullToSync, useActionRunner, useCachedMedia,
                      useDetectionMedia, useDetectionDrag, useElementSize,
-                     usePointerSwipe, useTabSwipe, useSettingLanding,
+                     useTabSwipe, useSeasonArt, useSettingLanding,
                      useFlickDismiss, useCustomListAdmin, useUrlState,
                      useScrollMemory)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
@@ -107,7 +111,8 @@ src/
                      pane ids live in `lib/settingsPanes.ts` (the account pane
                      holds the AniList one's sections too), and the desktop
                      and data panes are sections exported from AdvancedPane
-  stores/            Zustand stores (auth, theme, library, nowPlaying, …)
+  stores/            Zustand stores (auth, theme, library, nowPlaying,
+                     overviewRail, …)
   assets/            karasu-mark.svg, the one asset the bundle inlines
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
@@ -556,8 +561,8 @@ evict it: `cache_patch_entry` and `cache_forget_entry_id` both call
 `query_cache_forget_media`, so a reopened detail can never show a stale
 entry the list no longer has. `switch_identity` clears the whole table,
 and `setup` prunes rows older than a week. Never cached, by omission from
-the allowlist: feeds, activities (the bell's `siteNotifSubjects` among
-them), replies, threads, comments, notifications, favourites, search, and
+the allowlist: feeds, activities (the bell's `siteNotifSubjects` and the
+Overview rail's `ownActivity` among them), replies, threads, comments, notifications, favourites, search, and
 every mutation. The list itself is
 not here — it has its own 15-minute window in `fetch_media_list` (below).
 
@@ -662,6 +667,11 @@ no autofocus, `z-30` under every real overlay — detection arrives unprompted
 and must not take the keyboard from whatever is being done. There is still one
 detection and one `DetectionSurface`; the popup only chooses how much of it to
 draw.
+The one exception is the Overview on the desktop (decided 2026-10-17): its
+right rail draws that same `DetectionSurface` at the top while something
+plays, sets `useOverviewRail.showsDetection`, and `DetectionPopupGate` stands
+the floating window down for as long; below the rail's width and on the
+phone the window stays as everywhere else.
 On desktop it is a window: the header drags it anywhere and either edge
 changes its width, both remembered per machine by `lib/detectionLayout`
 (`karasu-detection-layout`); the phone keeps the dock above its bottom bar.

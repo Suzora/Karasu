@@ -179,7 +179,6 @@
   /* The titlebar detection dot: the app quietly proving it is watching. */
   --animate-blip: blip 2.4s ease-in-out infinite;
   /* `steps(1)` so a caret blinks rather than fades; deliberately unused, so don't wire it up merely to give it a consumer. */
-  --animate-breathe: breathe 1.2s steps(1) infinite;
   --animate-shimmer: shimmer 1.5s linear infinite;
 
   /* --- Feature motion: entries meant to be noticed and the exits `usePresence` keeps the node alive for. --- */
@@ -248,12 +247,6 @@
   }
   50% {
     opacity: 0.35;
-  }
-}
-
-@keyframes breathe {
-  50% {
-    opacity: 0;
   }
 }
 
@@ -461,8 +454,6 @@
   /* The 1px catch-light along the top of a raised panel, which the light theme inverts to a faint shadow line. */
   --catch-light: rgba(255, 255, 255, 0.12);
 
-  /* The light a raised panel catches at its top edge; depth comes from tone steps, not from a tint. */
-  --wash-top: rgba(255, 255, 255, 0.025);
 
   /* The float shadow's colour and its hairline ring, dark in both themes but far lighter on a white page. */
   --float-shadow: rgb(0 0 0 / 0.65);
@@ -498,7 +489,6 @@
   --scrim: 244, 246, 249;
   --catch-light: rgba(11, 13, 18, 0.07);
   --well-shadow: rgba(11, 13, 18, 0.14);
-  --wash-top: transparent;
   --float-shadow: rgb(16 20 30 / 0.22);
   --float-edge: rgb(16 20 30 / 0.05);
 
@@ -523,7 +513,6 @@
   --color-ink-500: #dce0e6;
   --color-ink-600: #cdd1d9;
 
-  --wash-top: transparent;
   --catch-light: transparent;
   --float-shadow: transparent;
   --float-edge: var(--color-surface-600);
@@ -568,7 +557,6 @@ html {
   --dense-text-lg: 0.8125rem;
   --dense-cover-h: 1.75rem;
   --dense-cover-w: 1.25rem;
-  --dense-row-h: 3.25rem;
   --dense-row-cover-h: 2.875rem;
   --dense-row-cover-w: 2.125rem;
   --dense-tile: 7.5rem;
@@ -578,7 +566,6 @@ html {
   --dense-text-lg: 0.9375rem;
   --dense-cover-h: 2.5rem;
   --dense-cover-w: 1.75rem;
-  --dense-row-h: 4rem;
   --dense-row-cover-h: 3.5rem;
   --dense-row-cover-w: 2.5rem;
   --dense-tile: 9.5rem;
@@ -588,7 +575,6 @@ html {
   --dense-text-lg: 1.0625rem;
   --dense-cover-h: 3.25rem;
   --dense-cover-w: 2.25rem;
-  --dense-row-h: 4.75rem;
   --dense-row-cover-h: 4.25rem;
   --dense-row-cover-w: 3rem;
   --dense-tile: 12rem;
@@ -625,16 +611,12 @@ body {
   overflow: hidden;
 }
 
-/* Unlayered on purpose, so no weight or tracking utility can break them: headings and eyebrows are set by element. */
+/* Unlayered on purpose, so no weight utility can break them: headings are set by element. */
 h1:not(.font-brand-jp),
 h2:not(.font-brand-jp),
 h3:not(.font-brand-jp) {
   font-family: var(--font-brand);
   font-weight: 400;
-}
-.uppercase:not(.font-mono, .font-mono *, .tracking-wordmark) {
-  font-family: var(--font-brand);
-  letter-spacing: var(--tracking-eyebrow);
 }
 
 /* The soft spring as a sampled curve, where the engine understands `linear()`; the cubic in @theme covers the rest. */
@@ -768,11 +750,6 @@ nav a {
   }
 }
 
-/* Kept as a name so callers need no change; since the 2026-10-17 foundation a panel catches no light. */
-@utility panel-wash {
-  --panel-wash: none;
-}
-
 /* A title with no banner to show: its cover's own colour as light from above, never a blur of the poster. */
 @utility cover-wash {
   background-image:
@@ -843,6 +820,13 @@ nav a {
     outline: 2px solid var(--color-accent-400);
     outline-offset: -2px;
   }
+}
+
+/* The Overview banner's scrim: art fades into near-black on the left and the foot, where its light text sits. */
+@utility banner-scrim {
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-on-cover) 90%, transparent), color-mix(in srgb, var(--color-on-cover) 55%, transparent) 50%, transparent),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-on-cover) 50%, transparent), transparent 60%);
 }
 
 /* A label in sentence case, the 2026-10-17 foundation's answer to the uppercase eyebrow; its colour stays a class. */

@@ -444,3 +444,18 @@ describe("the 2026-10-17 foundation", () => {
     expect(utility("surface-outline")).toMatch(/data-contrast="more"\] & \{\s*box-shadow: inset 0 0 0 1px var\(--color-surface-600\)/);
   });
 });
+
+describe("the Overview's pairs", () => {
+  for (const theme of ["dark", "light"] as const) {
+    it(`keeps a label on an inner tile readable, standard and high contrast, in ${theme}`, () => {
+      expect(contrastRatio(colour(theme, "ink-500"), colour(theme, "surface-850"))).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(high(theme, "ink-300"), high(theme, "surface-850"))).toBeGreaterThanOrEqual(7);
+    });
+  }
+
+  it("keeps the dimmest text on the banner and the cards at 4.5:1 on the dark scrim", () => {
+    const scrim = base.get("--color-on-cover")!;
+    const edge = base.get("--color-on-cover-edge")!;
+    expect(contrastRatio(mix(scrim, edge, 0.75), scrim)).toBeGreaterThanOrEqual(4.5);
+  });
+});

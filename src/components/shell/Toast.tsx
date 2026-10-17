@@ -51,7 +51,7 @@ export default function Toast() {
               if (!e.currentTarget.contains(e.relatedTarget as Node | null)) resume();
             }}
             className={cn(
-              "panel-wash panel-top flex items-center gap-3",
+              "panel-top flex items-center gap-3",
               "rounded-panel border border-hair bg-surface-900 py-2.5 pl-3 pr-2.5 shadow-float",
               shown.leaving ? "animate-rise-out" : "animate-rise-in",
             )}

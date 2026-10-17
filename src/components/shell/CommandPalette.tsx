@@ -428,7 +428,7 @@ function PaletteFrame({
         aria-modal="true"
         aria-label={label}
         className={cn(
-          "w-full max-w-136 overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
+          "w-full max-w-136 overflow-hidden rounded-panel border border-hair bg-surface-900 shadow-float",
           leaving ? "animate-settle-out" : "animate-spring-in",
         )}
         onMouseDown={(e) => e.stopPropagation()}

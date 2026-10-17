@@ -230,7 +230,7 @@ export function Popover({
               style={{ width }}
               className={cn(
                 "max-h-[min(var(--available-height),34rem)] max-w-[calc(100vw-2rem)] overflow-y-auto outline-none",
-                "rounded-panel border border-hair bg-surface-900 p-4 text-left shadow-float panel-wash",
+                "rounded-panel border border-hair bg-surface-900 p-4 text-left shadow-float",
                 "origin-(--transform-origin) data-open:animate-pop-in data-closed:animate-pop-out",
                 panelClassName,
               )}

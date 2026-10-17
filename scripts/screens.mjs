@@ -52,14 +52,9 @@ const openCast = async (p) => {
   await p.waitForTimeout(600);
   await toCard("Besetzung & Staff")(p);
 };
-/** Steps the Overview's hero to its second title, which under `no-banner` has neither a banner nor a relative to lend one. */
-const secondSlide = (p) => p.getByRole("button", { name: "Mushoku Tensei: Jobless Reincarnation Season 3", exact: true }).first().click();
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
 export const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
-  { id: "d1-uebersicht-ganz", w: 1232, h: 1450, route: "/" },
-  { id: "p1-uebersicht-ganz", w: 405, h: 1700, phone: true, route: "/" },
-  { id: "d1-uebersicht-breit", w: 1536, h: 1300, route: "/" },
   { id: "d1-uebersicht-fenster", w: 1536, h: 960, route: "/" },
   { id: "d1-uebersicht-erkannt", w: 1536, h: 960, route: "/", playing: true },
   { id: "d1-uebersicht-scroll", w: 1536, h: 2300, route: "/" },
@@ -99,7 +94,6 @@ export const SCREENS = [
   { id: "p46-besetzung", w: 405, h: 1800, phone: true, route: "/media/178789", act: openCast },
   { id: "p47-besetzung-schmal", w: 320, h: 1800, phone: true, route: "/media/178789", act: openCast },
   { id: "p48-detail-reihe", w: 405, h: 860, phone: true, route: "/media/195516" },
-  { id: "p49-uebersicht-farbe", w: 405, h: 860, phone: true, route: "/", mock: "no-banner", act: secondSlide },
   { id: "p50-detail-laedt", w: 405, h: 860, phone: true, route: "/media/178789", mock: "detail-pending" },
   { id: "p51-titelsprache", w: 405, h: 860, phone: true, route: "/settings?pane=appearance&setting=titleLanguage", act: landOn("titleLanguage", "Sprache & Bewegung") },
   { id: "p52-liste-original", w: 405, h: 860, phone: true, route: "/list", mock: "titles-native" },
@@ -107,7 +101,6 @@ export const SCREENS = [
   { id: "d59-detail-reihe", w: 1232, h: 800, route: "/media/195516" },
   { id: "d60-detail-ohne-banner", w: 1232, h: 800, route: "/media/178789", mock: "no-banner" },
   { id: "d61-uebersicht-ohne-banner", w: 1232, h: 800, route: "/", mock: "no-banner" },
-  { id: "d62-uebersicht-farbe", w: 1232, h: 800, route: "/", mock: "no-banner", act: secondSlide },
   { id: "d63-detail-laedt", w: 1232, h: 800, route: "/media/178789", mock: "detail-pending" },
   { id: "d64-detail-schmal", w: 768, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
   { id: "d65-detail-mittel", w: 1000, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },

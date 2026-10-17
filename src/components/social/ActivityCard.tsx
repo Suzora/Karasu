@@ -169,10 +169,13 @@ function ActivityReplies({ activityId }: { activityId: number }) {
 export function ActivityCard({
   item,
   openReplies = false,
+  variant = "card",
 }: {
   item: FeedItem;
   /** Start with the reply thread unfolded — the activity page's case. */
   openReplies?: boolean;
+  /** `row` drops the frame and the owner, for a feed of one person's own entries inside a panel. */
+  variant?: "card" | "row";
 }) {
   const { t, i18n } = useTranslation();
   const [repliesOpen, setRepliesOpen] = useState(openReplies);
@@ -187,7 +190,7 @@ export function ActivityCard({
   const blurAdult = useContentFilter((s) => s.blurAdult);
 
   return (
-    <article className={cn(cardClass("flat"), "flex gap-3 p-3")}>
+    <article className={cn(variant === "row" ? "py-2.5" : cardClass("flat"), "flex gap-3", variant === "card" && "p-3")}>
       {item.kind === "list" && item.media?.coverImage?.large && (
         <Link
           to={`/media/${item.media.id}`}
@@ -207,15 +210,19 @@ export function ActivityCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <Link to={`/user/${encodeURIComponent(item.user.name)}`} className="min-w-0">
-            <UserLockup
-              name={item.user.name}
-              src={item.user.avatar?.medium}
-              size="sm"
-              nameClassName="text-xs font-medium text-ink-300"
-              sub={<span className="block text-xs text-ink-600">{when}</span>}
-            />
-          </Link>
+          {variant === "row" ? (
+            <span className="text-xs text-ink-500">{when}</span>
+          ) : (
+            <Link to={`/user/${encodeURIComponent(item.user.name)}`} className="min-w-0">
+              <UserLockup
+                name={item.user.name}
+                src={item.user.avatar?.medium}
+                size="sm"
+                nameClassName="text-xs font-medium text-ink-300"
+                sub={<span className="block text-xs text-ink-600">{when}</span>}
+              />
+            </Link>
+          )}
           <div className="flex shrink-0 items-center gap-2">
             {/* Your own activity gets the toggle if you may pin; anyone's pinned one gets the passive marker. */}
             {showPin ? (

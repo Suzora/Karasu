@@ -118,7 +118,7 @@ export function MultiFilterSelect({
           data-overlay
           className={cn(
             "absolute left-0 top-full z-50 mt-1 w-64 origin-top-left overflow-hidden",
-            "rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
+            "rounded-panel border border-hair bg-surface-900 shadow-float",
             panel.leaving ? "animate-pop-out" : "animate-pop-in",
           )}
         >

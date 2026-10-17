@@ -419,9 +419,13 @@ export interface ActivityPage {
   activities: unknown[];
 }
 
+/** The Overview's own feed, named so the sync panel can say who spent the request; never cached, like every feed. */
+export const OWN_ACTIVITY = { source: "ownActivity" } as const;
+
 export async function activities(
   vars: { userId: number } | { isFollowing: true },
   page = 1,
+  opts?: { source: string },
 ): Promise<ActivityPage> {
   const data = await gql<{ Page: { pageInfo: PageInfo; activities: unknown[] } }>(
     ACTIVITY_QUERY,
@@ -431,6 +435,7 @@ export async function activities(
       // A pin floats on its own profile while a feed stays a timeline; both are total orders, as paging needs.
       sort: "userId" in vars ? ["PINNED", "ID_DESC"] : ["ID_DESC"],
     },
+    opts,
   );
   return { pageInfo: data.Page.pageInfo, activities: data.Page.activities ?? [] };
 }

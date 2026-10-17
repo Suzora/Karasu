@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 c5c99201c2cb) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 01e91852c66f) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -151,7 +151,6 @@
   /* The titlebar detection dot: the app quietly proving it is watching. */
   --animate-blip: blip 2.4s ease-in-out infinite;
   /* `steps(1)` so a caret blinks rather than fades; deliberately unused, so don't wire it up merely to give it a consumer. */
-  --animate-breathe: breathe 1.2s steps(1) infinite;
   --animate-shimmer: shimmer 1.5s linear infinite;
 
   /* --- Feature motion: entries meant to be noticed and the exits `usePresence` keeps the node alive for. --- */
@@ -220,12 +219,6 @@
   }
   50% {
     opacity: 0.35;
-  }
-}
-
-@keyframes breathe {
-  50% {
-    opacity: 0;
   }
 }
 
@@ -435,8 +428,6 @@
   /* The 1px catch-light along the top of a raised panel, which the light theme inverts to a faint shadow line. */
   --catch-light: rgba(255, 255, 255, 0.12);
 
-  /* The light a raised panel catches at its top edge; depth comes from tone steps, not from a tint. */
-  --wash-top: rgba(255, 255, 255, 0.025);
 
   /* The float shadow's colour and its hairline ring, dark in both themes but far lighter on a white page. */
   --float-shadow: rgb(0 0 0 / 0.65);
@@ -472,7 +463,6 @@
   --scrim: 244, 246, 249;
   --catch-light: rgba(11, 13, 18, 0.07);
   --well-shadow: rgba(11, 13, 18, 0.14);
-  --wash-top: transparent;
   --float-shadow: rgb(16 20 30 / 0.22);
   --float-edge: rgb(16 20 30 / 0.05);
 
@@ -498,7 +488,6 @@
     --color-ink-500: #dce0e6;
     --color-ink-600: #cdd1d9;
   
-    --wash-top: transparent;
     --catch-light: transparent;
     --float-shadow: transparent;
     --float-edge: var(--color-surface-600);
@@ -633,11 +622,6 @@
   }
 }
 
-/* Kept as a name so callers need no change; since the 2026-10-17 foundation a panel catches no light. */
-@utility panel-wash {
-  --panel-wash: none;
-}
-
 /* A title with no banner to show: its cover's own colour as light from above, never a blur of the poster. */
 @utility cover-wash {
   background-image:
@@ -712,6 +696,13 @@
       outline-offset: -2px;
     }
   }
+}
+
+/* The Overview banner's scrim: art fades into near-black on the left and the foot, where its light text sits. */
+@utility banner-scrim {
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-on-cover) 90%, transparent), color-mix(in srgb, var(--color-on-cover) 55%, transparent) 50%, transparent),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-on-cover) 50%, transparent), transparent 60%);
 }
 
 /* A label in sentence case, the 2026-10-17 foundation's answer to the uppercase eyebrow; its colour stays a class. */

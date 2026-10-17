@@ -20,11 +20,20 @@ export function ActivityFeed({
   source,
   emptyTitle,
   emptyHint,
+  requestSource,
+  enabled = true,
+  variant = "card",
 }: {
   queryKey: QueryKey;
   source: { userId: number } | { isFollowing: true };
   emptyTitle: string;
   emptyHint?: string;
+  /** The name the request is tallied under; without it the passthrough names it after its root field. */
+  requestSource?: string;
+  /** False holds the first request back, as the Overview does until its lists have answered. */
+  enabled?: boolean;
+  /** `row` draws the entries flat inside a panel of the caller's, without each one's frame and owner. */
+  variant?: "card" | "row";
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -32,14 +41,15 @@ export function ActivityFeed({
 
   const q = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }) => activities(source, pageParam),
+    queryFn: ({ pageParam }) => activities(source, pageParam, requestSource ? { source: requestSource } : undefined),
     initialPageParam: 1,
     getNextPageParam: (last: ActivityPage) => nextPageParam(last.pageInfo),
-    enabled: isTauri,
+    enabled: isTauri && enabled,
     staleTime: 2 * 60 * 1000,
   });
 
-  if (q.isLoading) {
+  // A held query is pending, not empty: without data it must not say there is nothing.
+  if (q.isLoading || (!enabled && !q.data)) {
     return (
       <Busy className="space-y-2">
         {[0, 1, 2, 3].map((i) => (
@@ -85,7 +95,7 @@ export function ActivityFeed({
           className="animate-rise-in"
           style={{ animationDelay: `${staggerDelay(i)}ms` }}
         >
-          <ActivityCard item={item} />
+          <ActivityCard item={item} variant={variant} />
         </div>
       ))}
 

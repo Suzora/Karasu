@@ -110,7 +110,7 @@ export function Modal({
           bare
             ? cn("size-full", className)
             : cn(
-                "flex max-h-full w-full flex-col rounded-panel border border-hair bg-surface-900 shadow-float panel-wash",
+                "flex max-h-full w-full flex-col rounded-panel border border-hair bg-surface-900 shadow-float",
                 SIZES[size],
                 leaving ? "animate-settle-out" : "animate-spring-in",
                 className,

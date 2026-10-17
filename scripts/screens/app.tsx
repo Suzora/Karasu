@@ -181,6 +181,12 @@ const ACTIVITIES = [
   activity(5004, 3, 20_000, 1, 0, { __typename: "ListActivity", status: "plans to watch", progress: null, media: socialMedia(2) }),
   activity(5005, 0, 90_000, 3, 1, { __typename: "ListActivity", status: "watched episode", progress: "1 - 3", media: socialMedia(3) }),
   activity(5006, 3, 170_000, 6, 4, { __typename: "TextActivity", text: "Neue Saison, neue Liste. Was sind eure Geheimtipps?" }),
+  activity(5007, 3, 2_400, 2, 0, { __typename: "ListActivity", status: "watched episode", progress: "2", media: socialMedia(2) }),
+  activity(5008, 3, 9_000, 1, 0, { __typename: "ListActivity", status: "watched episode", progress: "1", media: socialMedia(1) }),
+  activity(5009, 3, 30_000, 0, 0, { __typename: "ListActivity", status: "completed", progress: null, media: socialMedia(4) }),
+  activity(5010, 3, 60_000, 3, 1, { __typename: "ListActivity", status: "watched episode", progress: "5 - 6", media: socialMedia(5) }),
+  activity(5011, 3, 120_000, 0, 0, { __typename: "ListActivity", status: "plans to watch", progress: null, media: socialMedia(6) }),
+  activity(5012, 3, 200_000, 4, 0, { __typename: "ListActivity", status: "watched episode", progress: "12", media: socialMedia(7) }),
 ];
 const REPLIES = [
   { id: 7001, text: "Ich! Die Musik und die Szene am Fluss …", createdAt: now - 500, likeCount: 2, isLiked: false, user: PEOPLE[1] },
