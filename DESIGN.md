@@ -1088,3 +1088,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   column, and C, a small name in the column with the header as a card over
   the content). On the phone the column is a field under the header that
   opens the sections in a sheet.
+- **2026-10-18:** Every cover is one width across the app, at the
+  maintainer's word after the search page's score and add button crowded
+  each other: the covers-per-row setting now says how many covers fill a
+  full-width page, and a grid beside a column draws fewer covers of that
+  same width rather than the same count squeezed. The one corner control
+  sits bottom right on a narrow cover and moves top right only where the
+  score and it fit side by side.

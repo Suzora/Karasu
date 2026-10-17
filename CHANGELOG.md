@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f02b3ba -->
+<!-- generated-through: 7e10f5a -->
 
 ### Added
 
@@ -100,6 +100,7 @@ tag time is then optional rather than load-bearing.
 - Search keeps its scopes and every filter in a column beside the results, and on the phone opens them from a field and a filter button.
 - Titles sit under their covers again, in the lists, search, the calendar's tiles and Continue on the Overview.
 - A profile lists its sections in a column under the header instead of a row of tabs.
+- Covers are the same size on every screen, set by Covers per row, and a narrow cover keeps its add button clear of the score.
 
 ### Security
 

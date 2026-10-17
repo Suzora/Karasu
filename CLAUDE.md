@@ -109,6 +109,7 @@ src/
                      useDialogFocus,
                      useGridRoving, useSyncStatus, useManualSync,
                      usePullToSync, useActionRunner, useCachedMedia, useDiscoveryEntry,
+                     useCoverWidth,
                      useDetectionMedia, useDetectionDrag, useElementSize,
                      useTabSwipe, useSeasonArt, useSettingLanding,
                      useFlickDismiss, useCustomListAdmin, useUrlState,
@@ -2917,16 +2918,26 @@ them away without re-measuring.
   2026-10-04). `d64`–`d66` shoot the section at 768, 1000 and 1232. The fixture
   carries the title's real status counts, because without them the score card
   stood alone and no shot ever showed the legend.
-- **The cover grid is `repeat(var(--cover-cols), minmax(0, 1fr))`** — the
-  covers-per-row field, one token written by the theme store, defaulting by
-  platform at first run (10 desktop, 4 Android — UA-keyed, since the store
-  boots before `platform_info` answers) with a one-time migration from
-  the old s/m/l keys. Two shapes died here and should stay dead: fixed-size
-  tracks (could not tell medium from large on a phone) and an unlayered phone
-  override of them (silently beat the utility layer and killed the setting).
-  `VirtualGrid`'s `watch={coverCols}` re-measure is load-bearing — the
-  ResizeObserver cannot see a track re-flow that leaves the probe's own size
-  alone.
+- **Every cover is one width, `--cover-w`, and the grid fills by it.**
+  `media-grid` is `repeat(auto-fill, minmax(min(var(--cover-w), 100%), 1fr))`,
+  and `useCoverWidth` (run by `MainPlace` in `App`) writes `--cover-w` on
+  `<main>` from `lib/coverWidth`: the covers-per-row setting splits a
+  full-width page, gutters and gaps out, never under `COVER_MIN_PX`. So a
+  grid beside a column draws fewer covers of the same size rather than the
+  same count squeezed, which was the search page's crowded score and button
+  (decided by the maintainer on 2026-10-18). The setting is one token written
+  by the theme store, defaulting by platform at first run (10 desktop, 4
+  Android — UA-keyed, since the store boots before `platform_info` answers)
+  with a one-time migration from the old s/m/l keys. Two shapes died here and
+  should stay dead: fixed-size tracks (could not tell medium from large on a
+  phone) and an unlayered phone override of them (silently beat the utility
+  layer and killed the setting). `VirtualGrid`'s `watch={coverCols}`
+  re-measure is load-bearing — a setting change moves `--cover-w` and
+  re-flows the tracks without resizing the probe, which the ResizeObserver
+  cannot see. The Overview's shelves and continue row keep their own measured
+  counts, and the people grids on Search their portrait cards. A cover's one
+  corner control sits bottom right and moves top right from
+  `@cover-corner` (8.5rem), where the score and it fit side by side.
 - **The list view's columns are fixed tracks, sized in `components/list/columns.ts`.**
   `VirtualGrid` makes every visual row its own grid container, so `subgrid` is
   unavailable and an `auto`/`fr` track resolves differently per row — only

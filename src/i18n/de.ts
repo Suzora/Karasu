@@ -1978,7 +1978,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     defaultAddStatus: "Standardstatus beim Hinzufügen",
     defaultAddStatusHint: "Neue Titel landen mit diesem Status auf deiner Liste.",
     coverCols: "Cover pro Reihe",
-    coverColsHint: "Wie viele Cover sich eine Reihe teilen — sie skalieren passend.",
+    coverColsHint: "Wie viele Cover eine volle Reihe füllen. Jedes Cover behält diese Größe, auf Seiten mit Seitenspalte passen also weniger.",
     uiZoom: "Oberflächengröße",
     uiZoomHint:
       "Vergrößert das ganze Fenster, wie Strg und Plus im Browser. Für ein 4K-Display oder einen Fernseher auf Abstand.",

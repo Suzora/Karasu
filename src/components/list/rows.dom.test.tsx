@@ -214,9 +214,9 @@ describe("GridCard", () => {
     expect([...frame.querySelectorAll<HTMLElement>("span")].some((el) => el.style.boxShadow.includes("inset"))).toBe(false);
   });
 
-  it("puts the quick actions at the top right, clear of the caption", () => {
+  it("puts the quick actions bottom right on a narrow cover and top right once the score and they fit side by side", () => {
     renderWithProviders(gridCard());
-    const plus = screen.getByRole("button", { name: "common.plusOne" });
-    expect(plus.closest(".absolute")).toHaveClass("top-2", "right-2");
+    const corner = screen.getByRole("button", { name: "common.plusOne" }).closest(".absolute")!;
+    expect(corner).toHaveClass("right-2", "bottom-2", "@cover-corner:top-2", "@cover-corner:bottom-auto");
   });
 });

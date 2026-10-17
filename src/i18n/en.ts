@@ -1967,7 +1967,7 @@ export const en = {
     defaultAddStatus: "Default status when adding",
     defaultAddStatusHint: "New titles join your list with this status.",
     coverCols: "Covers per row",
-    coverColsHint: "How many covers share a row — they scale to fit.",
+    coverColsHint: "How many covers fill a full-width row. Every cover keeps that size, so a page with a side column shows fewer.",
     uiZoom: "Interface size",
     uiZoomHint:
       "Zooms the whole window, like Ctrl and plus in a browser. For a 4K display, or a TV across the room.",

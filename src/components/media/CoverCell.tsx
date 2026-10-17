@@ -51,7 +51,7 @@ export function CoverCell({
   selected?: boolean;
   /** List-status colour drawn as a ring inside the frame, where the selection outline and focus ring cannot collide. */
   statusRing?: string | null;
-  /** The title block under the cover; the actions then move to the top right, clear of the foot. */
+  /** The title block under the cover; the actions then sit top right wherever the cover holds them beside the score. */
   caption?: ReactNode;
   className?: string;
   /** The metadata lines below the cover. */
@@ -166,7 +166,7 @@ export function CoverCell({
         )}
 
         {actions && (
-          <div className={cn("absolute right-2 flex items-center gap-1.5", caption ? "top-2" : "bottom-2")}>
+          <div className={cn("absolute bottom-2 right-2 flex items-center gap-1.5", caption && "@cover-corner:top-2 @cover-corner:bottom-auto")}>
             {actions}
           </div>
         )}

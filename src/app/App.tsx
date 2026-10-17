@@ -46,6 +46,7 @@ import MediaList from "@/pages/MediaList";
 import { DetailSkeleton } from "@/components/Skeleton";
 import { commands } from "@/api/tauri";
 import { lazyRoute } from "./lazyRoute";
+import { useCoverWidth } from "@/hooks/useCoverWidth";
 import { whenIdle } from "@/lib/idle";
 import { buttonClass } from "@/components/ui/button";
 
@@ -236,7 +237,7 @@ export default function App() {
           className="min-w-0 flex-1 animate-settle overflow-y-auto outline-none float-clear"
         >
           {/* Inside the keyed `<main>`, so each page's arrival reads the place its own history entry was left at. */}
-          <MainPlace main={mainRef} />
+          <MainPlace main={mainRef} phone={phone} />
           {/* Keyed on the route so leaving a page that threw resets the boundary; inside `<main>` so the frame stays usable. */}
           <ErrorBoundary key={pathname}>
             <Suspense fallback={null}>
@@ -293,8 +294,9 @@ export default function App() {
 }
 
 /** The place a page scrolled in `<main>` was left at, brought back when Back returns to its entry. */
-function MainPlace({ main }: { main: RefObject<HTMLElement | null> }) {
+function MainPlace({ main, phone }: { main: RefObject<HTMLElement | null>; phone: boolean }) {
   useScrollMemory(main, "main");
+  useCoverWidth(main, phone);
   return null;
 }
 

@@ -45,6 +45,8 @@
   --container-cover-actions: 7.5rem;
   /* The narrowest cover that still holds two of them; below it a cover keeps one. */
   --container-cover-pair: 4.75rem;
+  /* The narrowest cover that holds the score and one corner control side by side; narrower, the control drops to the foot. */
+  --container-cover-corner: 8.5rem;
   /* The narrowest card whose progress line holds its unit word on one line; narrower, the numbers stand alone. */
   --container-cover-meta: 6.5rem;
   /* The narrowest section that holds two chart cards side by side with every count and legend label whole. */
@@ -644,10 +646,10 @@ nav a {
   }
 }
 
-/* The shared cover grid on the covers-per-row setting; the fallback is load-bearing, or the grid silently collapses. */
+/* The shared cover grid: as many covers of the app-wide `--cover-w` as fit; the fallback is load-bearing. */
 @utility media-grid {
   display: grid;
-  grid-template-columns: repeat(var(--cover-cols, 8), minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--cover-w, 7.5rem), 100%), 1fr));
 }
 
 /* The ring for a control that fills a clipping frame, drawn on the frame, since the clip cuts the control's own outline. */
