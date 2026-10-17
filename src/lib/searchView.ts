@@ -1,3 +1,4 @@
+import type { MediaType } from "@/api/types";
 import { EMPTY, type MultiValue } from "@/lib/multiFilter";
 import { MEDIA_FORMATS, ORIGINS } from "@/lib/format";
 
@@ -9,6 +10,8 @@ export const SEASONS = ["WINTER", "SPRING", "SUMMER", "FALL"] as const;
 export const STATUSES = ["RELEASING", "FINISHED", "NOT_YET_RELEASED", "CANCELLED", "HIATUS"] as const;
 /** The sorts worth offering; relevance only means something with a query. */
 export const SORTS = ["SEARCH_MATCH", "TRENDING_DESC", "POPULARITY_DESC", "SCORE_DESC", "START_DATE_DESC"] as const;
+/** The two lists a people scope's "Show all" opens with nothing typed. */
+export const PEOPLE_LISTS = ["birthdays", "favourites"] as const;
 
 /** Everything the search page shows that Back should bring back, all of it in the URL. */
 export interface SearchView {
@@ -23,6 +26,8 @@ export interface SearchView {
   source: string;
   country: string;
   sort: string;
+  /** Characters and staff only: a `PEOPLE_LISTS` list shown while nothing is typed, or "" for the browse sections. */
+  browse: string;
 }
 
 export const SEARCH_DEFAULTS: SearchView = {
@@ -37,10 +42,21 @@ export const SEARCH_DEFAULTS: SearchView = {
   source: "",
   country: "",
   sort: "SEARCH_MATCH",
+  browse: "",
 };
 
 /** The two scopes that browse media — everything the filter toolbar serves. */
 export const isMediaScope = (s: Scope): s is "ANIME" | "MANGA" => s === "ANIME" || s === "MANGA";
+
+/** A year narrows anime by AniList's season year and manga by their start date, since a manga's season year is null. */
+export function yearVariables(type: MediaType, year: number | undefined): { seasonYear?: number; startDateLike?: string } {
+  // Below four digits the start-date pattern would match a whole decade or century of manga.
+  if (!year || year < 1000) return {};
+  return type === "MANGA" ? { startDateLike: `${year}%` } : { seasonYear: year };
+}
+
+/** The two scopes whose people have birthdays and favourites to browse. */
+export const isPeopleScope = (s: Scope): s is "CHARACTERS" | "STAFF" => s === "CHARACTERS" || s === "STAFF";
 
 const oneOf = (value: string | null, allowed: readonly string[]): string => (value && allowed.includes(value) ? value : "");
 
@@ -67,7 +83,8 @@ export function parseSearchView(params: URLSearchParams): SearchView {
     term: (params.get("q") ?? "").trim(),
     genre: readMulti(params, "genre"),
     tag: readMulti(params, "tag"),
-    year: /^\d{4}$/.test(year) ? year : "",
+    // A leading zero would turn into a shorter year, and a manga's start date is matched by its leading digits.
+    year: /^[1-9]\d{3}$/.test(year) ? year : "",
     // Seasons exist for anime alone, as the toolbar offers them.
     season: scope === "ANIME" ? oneOf(params.get("season"), SEASONS) : "",
     format: oneOf(params.get("format"), MEDIA_FORMATS[type]),
@@ -75,11 +92,12 @@ export function parseSearchView(params: URLSearchParams): SearchView {
     source: /^[A-Z_]+$/.test(source) ? source : "",
     country: oneOf(params.get("country"), ORIGINS),
     sort: oneOf(params.get("sort"), SORTS) || "SEARCH_MATCH",
+    browse: isPeopleScope(scope) ? oneOf(params.get("browse"), PEOPLE_LISTS) : "",
   };
 }
 
 /** Every key the view owns, in the one order they are written. */
-const OWNED_KEYS = ["scope", "q", "genre", "tag", "year", "season", "format", "status", "source", "country", "sort"] as const;
+const OWNED_KEYS = ["scope", "q", "genre", "tag", "year", "season", "format", "status", "source", "country", "sort", "browse"] as const;
 
 /** Writes only what differs from a fresh search, so an untouched page keeps a bare URL. */
 export function writeSearchView(prev: URLSearchParams, view: SearchView): URLSearchParams {
@@ -104,5 +122,6 @@ export function writeSearchView(prev: URLSearchParams, view: SearchView): URLSea
   single("source", view.source);
   single("country", view.country);
   single("sort", view.sort, "SEARCH_MATCH");
+  single("browse", view.browse);
   return p;
 }

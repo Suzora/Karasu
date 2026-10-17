@@ -11,6 +11,12 @@ describe("SectionHeader", () => {
     expect(screen.getByText("3 episodes across 3 shows air this week.")).toHaveClass("min-w-0", "truncate");
   });
 
+  /** On a narrow phone a long title beside an action would otherwise push the action past the row's edge. */
+  it("lets the title and its meta shrink together, so an action never leaves the row", () => {
+    render(<SectionHeader icon={Play} title="Most favourited characters" meta="Fall 2026" action={<a href="#/x">All sections</a>} />);
+    expect(screen.getByRole("heading", { name: "Most favourited characters" }).parentElement).toHaveClass("min-w-0");
+  });
+
   it("puts an action at the far end, and nothing when there is none", () => {
     const { container, rerender } = render(<SectionHeader icon={Play} title="Continue" action={<a href="#/list">Show all</a>} />);
     const spacer = container.querySelector(".flex-1");

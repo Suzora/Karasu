@@ -5,13 +5,27 @@ export interface Period {
   year: number;
 }
 
-const SEASON_NAMES: readonly string[] = ["WINTER", "SPRING", "SUMMER", "FALL"];
+/** AniList's four seasons in calendar order: January to March is winter. */
+const SEASON_NAMES: readonly SeasonName[] = ["WINTER", "SPRING", "SUMMER", "FALL"];
+
+/** The season a local date falls in. */
+export function seasonOf(date: Date): Period {
+  return { season: SEASON_NAMES[Math.floor(date.getMonth() / 3)], year: date.getFullYear() };
+}
+
+/** The season one step later or earlier, across a year's end either way. */
+export function shiftSeason({ season, year }: Period, step: 1 | -1): Period {
+  const i = SEASON_NAMES.indexOf(season) + step;
+  if (i < 0) return { season: "FALL", year: year - 1 };
+  if (i > 3) return { season: "WINTER", year: year + 1 };
+  return { season: SEASON_NAMES[i], year };
+}
 
 /** The season the URL names, or `fallback` (the current one) when it names none or a malformed one. */
 export function parsePeriod(params: URLSearchParams, fallback: Period): Period {
   const season = params.get("season") ?? "";
   const year = params.get("year") ?? "";
-  if (!SEASON_NAMES.includes(season) || !/^\d{4}$/.test(year)) return fallback;
+  if (!(SEASON_NAMES as readonly string[]).includes(season) || !/^\d{4}$/.test(year)) return fallback;
   return { season: season as SeasonName, year: Number(year) };
 }
 

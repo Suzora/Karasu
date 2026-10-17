@@ -3,6 +3,9 @@ import { normalizeStatsBlock } from "@/lib/score";
 import type { ScoreFormat } from "@/lib/scoreFormat";
 import { adultVars } from "@/lib/contentFilter";
 import { chunk } from "@/lib/chunk";
+import { seasonOf, type Period } from "@/lib/seasonView";
+import { browseVariables, type MediaSectionKey } from "@/lib/browseSections";
+import { yearVariables } from "@/lib/searchView";
 import type {
   FuzzyDate,
   Media,
@@ -78,10 +81,10 @@ export async function searchMedia(
 
 /** The filterable search: an absent variable is no filter to AniList, so one query serves every combination. */
 const BROWSE_QUERY = `
-query ($search: String, $type: MediaType!, $page: Int, $isAdult: Boolean, $genreIn: [String], $genreNotIn: [String], $tagIn: [String], $tagNotIn: [String], $seasonYear: Int, $season: MediaSeason, $format: MediaFormat, $status: MediaStatus, $source: MediaSource, $countryOfOrigin: CountryCode, $sort: [MediaSort], $scoreFormat: ScoreFormat) {
+query ($search: String, $type: MediaType!, $page: Int, $isAdult: Boolean, $genreIn: [String], $genreNotIn: [String], $tagIn: [String], $tagNotIn: [String], $seasonYear: Int, $startDateLike: String, $season: MediaSeason, $format: MediaFormat, $status: MediaStatus, $source: MediaSource, $countryOfOrigin: CountryCode, $sort: [MediaSort], $scoreFormat: ScoreFormat) {
   Page(page: $page, perPage: 30) {
     pageInfo { hasNextPage }
-    media(search: $search, type: $type, isAdult: $isAdult, genre_in: $genreIn, genre_not_in: $genreNotIn, tag_in: $tagIn, tag_not_in: $tagNotIn, seasonYear: $seasonYear, season: $season, format: $format, status: $status, source: $source, countryOfOrigin: $countryOfOrigin, sort: $sort) {
+    media(search: $search, type: $type, isAdult: $isAdult, genre_in: $genreIn, genre_not_in: $genreNotIn, tag_in: $tagIn, tag_not_in: $tagNotIn, seasonYear: $seasonYear, startDate_like: $startDateLike, season: $season, format: $format, status: $status, source: $source, countryOfOrigin: $countryOfOrigin, sort: $sort) {
       ${MEDIA_FIELDS}
     }
   }
@@ -114,7 +117,8 @@ export interface BrowseFilters {
   genreNotIn?: string[];
   tagIn?: string[];
   tagNotIn?: string[];
-  seasonYear?: number;
+  /** The year a title is from; `yearVariables` decides which of AniList's fields it filters. */
+  year?: number;
   season?: Season;
   format?: string;
   status?: string;
@@ -141,7 +145,7 @@ export async function browseMedia(
     genreNotIn: filters.genreNotIn?.length ? filters.genreNotIn : undefined,
     tagIn: filters.tagIn?.length ? filters.tagIn : undefined,
     tagNotIn: filters.tagNotIn?.length ? filters.tagNotIn : undefined,
-    seasonYear: filters.seasonYear || undefined,
+    ...yearVariables(type, filters.year),
     season: filters.season || undefined,
     format: filters.format || undefined,
     status: filters.status || undefined,
@@ -255,11 +259,7 @@ export async function seasonHero(
 export type Season = "WINTER" | "SPRING" | "SUMMER" | "FALL";
 
 export function currentSeason(): { season: Season; year: number } {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const season: Season =
-    month <= 3 ? "WINTER" : month <= 6 ? "SPRING" : month <= 9 ? "SUMMER" : "FALL";
-  return { season, year: now.getFullYear() };
+  return seasonOf(new Date());
 }
 
 export async function seasonalAnime(
@@ -272,6 +272,58 @@ export async function seasonalAnime(
     Page: { pageInfo: { hasNextPage: boolean }; media: MediaWithListStatus[] };
   }>(SEASONAL_QUERY, { season, year, page, ...adultVars(isAdult), ...scoreFormatVar() }, { source: "seasonal", ttlSec: 6 * TTL.hour });
   return data.Page;
+}
+
+// --- Search browse ------------------------------------------------------------
+
+/** One aliased `Page` per section, so a medium's whole browse view is one request; a `Page` cannot 404. */
+const ANIME_BROWSE_QUERY = `
+query ($perPage: Int, $season: MediaSeason, $year: Int, $nextSeason: MediaSeason, $nextYear: Int, $isAdult: Boolean, $scoreFormat: ScoreFormat) {
+  trending: Page(perPage: $perPage) {
+    media(type: ANIME, sort: TRENDING_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  season: Page(perPage: $perPage) {
+    media(type: ANIME, season: $season, seasonYear: $year, sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  nextSeason: Page(perPage: $perPage) {
+    media(type: ANIME, season: $nextSeason, seasonYear: $nextYear, sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  popular: Page(perPage: $perPage) {
+    media(type: ANIME, sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  top: Page(perPage: 10) {
+    media(type: ANIME, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity startDate { year } }
+  }
+}`;
+
+const MANGA_BROWSE_QUERY = `
+query ($perPage: Int, $isAdult: Boolean, $scoreFormat: ScoreFormat) {
+  trending: Page(perPage: $perPage) {
+    media(type: MANGA, sort: TRENDING_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  popular: Page(perPage: $perPage) {
+    media(type: MANGA, sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  manhwa: Page(perPage: $perPage) {
+    media(type: MANGA, countryOfOrigin: "KR", sort: POPULARITY_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} }
+  }
+  top: Page(perPage: 10) {
+    media(type: MANGA, sort: SCORE_DESC, isAdult: $isAdult) { ${MEDIA_FIELDS} popularity startDate { year } }
+  }
+}`;
+
+/** A browse title; the ranked section also carries how many users list it and the year it started. */
+export type BrowseMedia = MediaWithListStatus & { popularity?: number | null; startDate?: { year: number | null } | null };
+
+/** One medium's browse answer, a page per section under the section's own key. */
+export type MediaBrowse = Partial<Record<MediaSectionKey, { media: BrowseMedia[] | null } | null>>;
+
+export async function browseSections(type: MediaType, now: Period, perPage: number, isAdult?: boolean): Promise<MediaBrowse> {
+  return gql<MediaBrowse>(
+    type === "ANIME" ? ANIME_BROWSE_QUERY : MANGA_BROWSE_QUERY,
+    { ...browseVariables(type, now, perPage), ...adultVars(isAdult), ...scoreFormatVar() },
+    { source: "browse", ttlSec: TTL.hour },
+  );
 }
 
 // --- Airing calendar --------------------------------------------------------

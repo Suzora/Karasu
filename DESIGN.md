@@ -960,6 +960,19 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   maintainer's word after the first Nightly showed one line in a sheet that
   filled the phone: the phone's sheet is no longer the tall one, and the
   desktop dialog takes the same limit instead of the window's height.
+- **2026-10-16:** Search with nothing typed browses, as AniList's own search
+  page does: anime show Trending now, Popular this season, Upcoming next
+  season, All-time popular and Top 100; manga Trending now, All-time
+  popular, Popular manhwa and Top 100; characters and staff Birthdays today
+  and Most favourited; users and studios keep their prompt. Each section is
+  a section header with "Show all" over one row of covers cut to the
+  covers-per-row setting, the Top 100 is ten ranked rows (rank, cover,
+  title, genres, score with its user count, format and season), and a
+  person is a portrait card (A of three mockups, over B, a sideways strip of
+  twelve covers per section with the lens chips kept, and C, trending at
+  full width over the seasons in rows of four beside a compact top ten).
+  The four lens chips go, since "Show all" opens the same views with a
+  heading and a way back.
 - **2026-10-17:** The maintainer orders a redesign, not an evolution: the
   Overview read as AI-generic in its arrangement, frames, colour accents,
   transitions and highlights, while its content stays. Fixed by him: dark

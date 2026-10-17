@@ -935,10 +935,7 @@ async fn process_queue(
         let mutation = if kind == "delete" { DELETE_MUTATION } else { SAVE_MUTATION };
         match api.query_from("drain", token, mutation, variables).await {
             Ok(data) => {
-                // The scrobbler's guards read this cache, and a drained edit is a write like any other.
-                if let Some(echo) = data.get("SaveMediaListEntry") {
-                    cache_entry_echo(db, echo);
-                }
+                mirror_drained(db, user_id, &kind, &payload, &data);
                 db.queue_remove(id);
                 flushed += 1;
             }
@@ -955,6 +952,17 @@ async fn process_queue(
         }
     }
     Ok(Drained { flushed, dropped, skipped: false })
+}
+
+/// Mirrors a drained edit into the cache as its live twin does, since the scrobbler's guards read the cache as truth.
+fn mirror_drained(db: &Db, user_id: i64, kind: &str, payload: &str, data: &Value) {
+    if kind == "delete" {
+        if let Some(parts) = queue_parts(kind, payload) {
+            db.cache_forget_entry_id(user_id, parts.subject);
+        }
+    } else if let Some(echo) = data.get("SaveMediaListEntry") {
+        cache_entry_echo(db, echo);
+    }
 }
 
 /// Tells the user through the bell when a queued edit was thrown away, since a drop is otherwise silent.
@@ -1098,8 +1106,8 @@ pub async fn flush_queue(
 #[cfg(test)]
 mod tests {
     use super::{
-        bulk_chunks, list_freshness, list_plan, queue_key, queue_parts, ListFreshness, ListPlan, BULK_CHUNK,
-        LIST_FRESH_SECS,
+        bulk_chunks, list_freshness, list_plan, mirror_drained, queue_key, queue_parts, ListFreshness, ListPlan,
+        BULK_CHUNK, LIST_FRESH_SECS,
     };
 
     /// The panel's countdown ends exactly where `list_plan` stops serving the cache.
@@ -1133,6 +1141,40 @@ mod tests {
         let entry = &cached[0]["entries"][0];
         assert_eq!(entry["customLists"], serde_json::json!({ "Rewatch": true, "Favs": false }));
         assert_eq!(entry["hiddenFromStatusLists"], serde_json::json!(true));
+    }
+
+    /// A delete that waited offline lands later, and the entry left behind stays a scrobble candidate the next save recreates.
+    #[test]
+    fn a_drained_delete_leaves_the_cache_as_a_live_one_does() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id":1}"#).unwrap();
+        let list = serde_json::json!([{ "name": "Watching", "entries": [
+            { "id": 10, "mediaId": 100, "status": "CURRENT", "progress": 3 },
+            { "id": 11, "mediaId": 101, "status": "CURRENT", "progress": 5 }
+        ] }]);
+        db.cache_list(1, "ANIME", &list.to_string()).unwrap();
+        db.query_cache_put("b", 1, "browse", None, "{}");
+        let landed = serde_json::json!({ "DeleteMediaListEntry": { "deleted": true } });
+        mirror_drained(&db, 1, "delete", r#"{"id":10}"#, &landed);
+        let cached: serde_json::Value = serde_json::from_str(&db.cached_list(1, "ANIME").unwrap()).unwrap();
+        let ids: Vec<i64> = cached[0]["entries"].as_array().unwrap().iter().filter_map(|e| e["id"].as_i64()).collect();
+        assert_eq!(ids, [11], "the deleted entry is gone and only that one");
+        assert!(db.query_cache_get("b").is_none(), "with the discovery answers that carried it");
+    }
+
+    /// A drained save still mirrors its echo, and its media id is never taken for an entry id to forget.
+    #[test]
+    fn a_drained_save_still_patches_the_cache_from_its_echo() {
+        let db = crate::db::tests::mem_db();
+        db.kv_set("anilist_viewer", r#"{"id":1}"#).unwrap();
+        let list = serde_json::json!([{ "name": "Watching", "entries": [{ "id": 10, "mediaId": 100, "status": "CURRENT", "progress": 3 }] }]);
+        db.cache_list(1, "ANIME", &list.to_string()).unwrap();
+        let echo = serde_json::json!({ "SaveMediaListEntry": { "id": 10, "mediaId": 100, "status": "CURRENT", "progress": 4, "media": { "type": "ANIME" } } });
+        mirror_drained(&db, 1, "save", r#"{"mediaId":100,"progress":4}"#, &echo);
+        mirror_drained(&db, 1, "save", r#"{"mediaId":10,"progress":4}"#, &serde_json::json!({}));
+        let cached: serde_json::Value = serde_json::from_str(&db.cached_list(1, "ANIME").unwrap()).unwrap();
+        assert_eq!(cached[0]["entries"][0]["progress"], 4);
+        assert_eq!(cached[0]["entries"].as_array().unwrap().len(), 1, "a save without an echo forgets nothing");
     }
 
     /// A manga echo patches the manga list; without `media { type }` the patch fell back to the anime list and missed.

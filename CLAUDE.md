@@ -86,6 +86,8 @@ src/
     social/          the parts UserProfile, Social and Thread draw — the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
+    search/          the parts Search draws with nothing typed — the browse
+                     sections, the ranked top list and the portrait cards
     EmptyState · Skeleton · KarasuMark · FilteredNotice · ErrorBoundary ·
     RichText — cross-cutting, belong to no group; FilteredNotice is the
     content filter's one disclosure line, so the three surfaces that show it
@@ -2437,10 +2439,14 @@ screen may name a `mock` the fixtures branch on, `board` lays them
 out for the maintainer, `clip` records motion side by side, and `hash` takes
 still frames at a fixed clock with motion off. Two `hash` runs agree, so an
 unchanged hash is the proof that a mechanical refactor moved no pixel.
-`overflow` opens each screen and exits 1 when `<main>` scrolls sideways, naming
-the elements whose removal frees the width (removal, because a reach past the
-edge alone can be paint), and every `shoot` records the same figure as
-`sideways` in its `report.json`. On Windows `CHROMIUM_PATH` points it at Edge
+`overflow` opens each screen and exits 1 when `<main>`, or any
+`overflow-y-auto` box inside it (a page's own scroller, a dialog's body),
+scrolls sideways, naming the elements
+whose removal frees the width (removal, because a reach past the edge alone can
+be paint), and every `shoot` records the same figure as `sideways` in its
+`report.json`. Search scrolls its own div, so until 2026-10-16 the check could
+not see it: a people heading beside its link ran 8 to 12 px past a 320 px
+phone while every Search screen read 0. On Windows `CHROMIUM_PATH` points it at Edge
 (`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`), and a cold
 dev server spends the better part of a minute on the stylesheet before the
 first page settles. The
@@ -2753,6 +2759,38 @@ shape, and the question that follows them.
   the user and the follower totals; everything else arrives when a tab is
   activated, which is a second user-initiated moment rather than a fourth
   concurrent request clearing a pre-flight check that has not been updated yet.
+- **Search with nothing typed browses, in one cached request per scope.**
+  `lib/browseSections` is the table: each medium's sections in AniList's own
+  order, each an alias of one aliased-`Page` query (`ANIME_BROWSE_QUERY`,
+  `MANGA_BROWSE_QUERY`, and a test holds the aliases to the table), a cover
+  row asking for the covers-per-row setting plus four (`rowRequestSize`, 12
+  to 50) and the top list for ten, under the source `browse` for an hour.
+  Measured live on 2026-10-16: 52.7 KB for anime at 12 a row, 180 KB at 50.
+  Characters and staff share `PEOPLE_BROWSE_QUERY` (source `browsePeople`,
+  13.5 KB), whose variables carry a `day` the query never declares: AniList
+  accepts it, and the cache key then carries AniList's UTC day, so a cached
+  birthday answer ends with that day. "Show all" is a link to the section's
+  own search view (`showAllView`), so Back returns to the sections, and
+  `sectionOfView` names the section over the grid with the way back. A sort
+  alone now counts as a search with nothing typed; the four lens chips this
+  replaced set a sort alone for three of them, and those three fetched
+  nothing at all. A people section's "Show all" is the view's `browse` key,
+  paged on a button. A hidden title keeps AniList's rank on every row after
+  it rather than moving them up, and the content filter's notice counts only
+  the titles a section would have drawn (`cutSection`). Its answers, like
+  the season page's and the recommendations', carry the viewer's list
+  entries under no media id, so `cache_forget_entry_id` drops all three
+  sources whenever it forgets an entry, and a delete drained from the offline
+  queue reaches it through `mirror_drained` as a live one does. A term too short to search shows its
+  prompt rather than the sections, which would read as its answer. A manga
+  has no season, so the top list asks for `startDate { year }` and falls back
+  to it, and the Year filter asks a manga for its start date
+  (`yearVariables`, `startDate_like: "2020%"`): AniList leaves a manga's
+  `seasonYear` null, and a year asked as one had matched no manga at all.
+  Measured live on 2026-10-16: `startDate_like` and the range
+  `startDate_greater: 20199999, startDate_lesser: 20210000` return the same
+  titles, a start known only by its year (`20200000`) included, and both
+  bounds of the range are exclusive. Anime keep `seasonYear`.
 - **A pure function returns an i18n *key*, never a sentence.**
   `src/lib/i18nKeys.test.ts` only sees literal `t("…")` calls, so
   `` t(`social.verb${v}`) `` is invisible to it — and AniList makes this matter
