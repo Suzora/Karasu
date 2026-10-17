@@ -397,7 +397,7 @@ function DaySection({
           {date.toLocaleDateString(i18n.language, { day: "numeric", month: "short" })}
         </span>
         {isToday && (
-          <span className="dense-text uppercase tracking-eyebrow text-accent-400">{t("calendar.today")}</span>
+          <span className="dense-text text-accent-400">{t("calendar.today")}</span>
         )}
         <span className="section-rule" />
       </header>
@@ -529,7 +529,7 @@ function DayColumn({
       <header className="flex items-baseline justify-between gap-1 px-1 pb-1.5 pt-0.5">
         <span
           className={cn(
-            "text-2xs font-semibold uppercase tracking-eyebrow",
+            "label-text",
             isToday ? "text-accent-400" : "text-ink-600",
           )}
         >

@@ -581,7 +581,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
         )}
         {characters.length > 0 && (
           <div>
-            <p className="text-2xs font-semibold uppercase tracking-eyebrow text-ink-600">
+            <p className="label-text text-ink-500">
               {t("detail.castCharacters")}
             </p>
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -625,7 +625,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
         )}
         {staff.length > 0 && (
           <div>
-            <p className="text-2xs font-semibold uppercase tracking-eyebrow text-ink-600">
+            <p className="label-text text-ink-500">
               {t("detail.castStaff")}
             </p>
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">

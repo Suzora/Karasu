@@ -65,7 +65,7 @@ function SectionBody({ section }: { section: ChangeSection }) {
       ))}
       {section.groups.map((group) => (
         <section key={group.kind}>
-          <h3 className="text-2xs uppercase tracking-eyebrow text-ink-600">{groupLabel(group.kind, t)}</h3>
+          <h3 className="label-text text-ink-500">{groupLabel(group.kind, t)}</h3>
           <ul lang="en" className="mt-1.5 ml-4 list-disc space-y-1 text-sm text-ink-300">
             {group.lines.map((line) => (
               <li key={line.id}>

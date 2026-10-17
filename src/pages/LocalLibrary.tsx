@@ -598,7 +598,7 @@ function DetectedOffList({
 
   return (
     <section className="pt-6">
-      <p className="mb-1 text-xs font-medium uppercase tracking-eyebrow text-ink-600">
+      <p className="mb-1 label-text text-ink-500">
         {t("library.detectedOffList")}
       </p>
       <p className="mb-3 text-xs text-ink-600">
@@ -762,7 +762,7 @@ function Unplaced({
   return (
     <section className="pt-6">
       <div className="mb-3 flex items-center gap-3">
-        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-eyebrow text-ink-600">
+        <p className="flex items-center gap-1.5 label-text text-ink-500">
           <HelpCircle className="size-3.5" />
           {t("library.unplaced", { n: groups.length })}
         </p>
@@ -873,7 +873,7 @@ function Group({
   if (rows.length === 0) return null;
   return (
     <section className="pt-4">
-      <p className="mb-3 text-xs font-medium uppercase tracking-eyebrow text-ink-600">
+      <p className="mb-3 label-text text-ink-500">
         {label}
       </p>
       <VirtualRows

@@ -15,6 +15,14 @@ const pastTooltipDelay = () => act(() => vi.advanceTimersByTimeAsync(500));
 
 /** The rail keeps every destination named: by its label when open, by a tooltip of its own when collapsed. */
 describe("Sidebar", () => {
+  it("marks the current route with a pill, not a rail", () => {
+    signIn();
+    const { container } = renderWithProviders(<Sidebar />);
+    const current = container.querySelector('a[aria-current="page"]');
+    expect(current).toHaveClass("nav-pill", "rounded-full");
+    expect(container.querySelector(".w-0\\.75")).toBeNull();
+  });
+
   it("names a collapsed item in a tooltip on hover, and leaves no native title to double it", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ delay: null });

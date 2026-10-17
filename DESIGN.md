@@ -17,9 +17,13 @@ redefines one; its own `@theme` may add page-only steps the app has no use for
    sync of 2026-09-14:
    > One accent colour, a lot of near-black surface, small uppercase labels,
    > hairline rules. Every screen you build is a screen of that app.
-   Everything below serves this sentence.
-2. **Evolution, not a redesign.** The 2026 overhaul (decided 2026-09-25) unifies
-   what drifted and adds depth and motion. It does not replace the identity.
+   Since the redesign of 2026-10-17 two halves of it are history: labels are
+   sentence case and tone steps replace the hairline rules. Dark, dense,
+   quiet and one accent still hold, and everything below serves them.
+2. **A redesign, close to Material Design 3.** Decided on 2026-10-17 (decision
+   log): the overhaul of 2026-09-25 was an evolution of one identity; this one
+   replaces the look while the palette, the default accent, the fonts and the
+   dark lead stay.
 3. **Three looks, one standard.** Dark, light and high contrast are each designed
    in their own right. High contrast comes in both dark and light. None of them
    may be a filter over another, and none may be the one that is checked last.
@@ -112,7 +116,8 @@ A chart of statuses takes the status colours; only categories with no meaning
 - `accent-ink`: text on the fill, the better of the two ink ends by measured
   ratio.
 - `--w1` and `--w2`: the two sheens rotated off the hue, which the washes use.
-- `--hair`: the hairline, neutral since the 2026 overhaul.
+- `--hair`: the border role `border-hair` draws in high contrast; the standard
+  looks show no hairline since the redesign of 2026-10-17.
 
 The values in `@theme` are first-frame fallbacks, not the colours a user sees.
 The default accent is `#4b3fc7`.
@@ -121,10 +126,11 @@ The default accent is `#4b3fc7`.
 
 | Utility | What it is |
 |---|---|
-| `panel-wash` | the light a raised panel catches along its top; none in light |
-| `panel-top` | the 1 px catch-light along a raised panel's top edge |
-| `border-hair` | the neutral hairline round panels and floating surfaces |
-| `section-rule` | the rule after a section heading, fading out so sections do not read as a form |
+| `surface-outline` | nothing in the standard looks; the border role round a surface in high contrast |
+| `border-hair` | transparent in the standard looks, the border role (`--hair`) in high contrast |
+| `nav-pill` | the current place in a navigation bar: the accent mixed into the panel, its text mixed towards ink |
+| `label-text` | a label: the system face at 12 px, sentence case, no letter spacing; its colour stays a class |
+| `panel-wash`, `panel-top`, `section-rule` | kept as names for their callers; since 2026-10-17 they draw nothing |
 | `inset-well` | cut into the page, for a card that arrives unprompted |
 | `well-edge` | the accent stripe down an inset well's left edge |
 | `avatar-wash` | a picture-less avatar that still reads as an object |
@@ -132,10 +138,10 @@ The default accent is `#4b3fc7`.
 | `cover-wash` | a title's wide frame when no banner can stand in: its cover's colour (`--tint`) as light from above; none in high contrast |
 | `ink-halo` | a black ring round light text on artwork |
 
-**The canonical raised panel** is `Card`: `panel-wash panel-top rounded-panel
-border border-hair bg-surface-900`. **The canonical floating surface**
-(popover, menu) is `rounded-panel border border-hair bg-surface-900
-panel-wash shadow-float`.
+**The canonical raised panel** is `Card`: `rounded-panel bg-surface-900
+surface-outline`, separated from the page by its tone alone. **The canonical
+floating surface** (popover, menu) is `rounded-panel border border-hair
+bg-surface-900 shadow-float`.
 
 ### Type
 
@@ -148,7 +154,7 @@ panel-wash shadow-float`.
 
 | Step | Use |
 |---|---|
-| `text-2xs` (10 px) | labels (`uppercase tracking-eyebrow text-ink-600`), badges, counts, the dense `xs` chip |
+| `text-2xs` (10 px) | badges, counts, the dense `xs` chip |
 | `text-xs` (12 px) | dense rows, secondary lines, sentences and hints, chips from `sm` up |
 | `text-ui` (13 px) | the shell's panels, toolbars and dense titles |
 | `text-sm` (14 px) | body, controls |
@@ -157,12 +163,14 @@ panel-wash shadow-float`.
 | `text-hero`, `text-hero-lg` (28 / 36 px) | the first-run greeting |
 | `text-title` (30 px) | page titles |
 
-Headings (`h1` to `h3`) and every `uppercase` label are set in SN Pro at its
-one weight by element, in unlayered rules in `index.css`, so no weight or
-tracking utility can pull one back to the system face. A heading that shows
-a Japanese title carries `font-brand-jp` and keeps it. `font-bold` is 650.
+Headings (`h1` to `h3`) are set in SN Pro at its one weight by element, in
+unlayered rules in `index.css`, so no weight utility can pull one back to the
+system face. A heading that shows a Japanese title carries `font-brand-jp` and
+keeps it. `font-bold` is 650.
 
-`tracking-eyebrow` is the one letter spacing for small uppercase labels.
+Labels are `label-text`: sentence case in the system face. The uppercase
+eyebrow with `tracking-eyebrow` went with the redesign of 2026-10-17, and the
+style audit's `eyebrow` rule refuses it; the wordmark keeps its own tracking.
 
 ### Radius
 
@@ -172,11 +180,12 @@ names (`rounded`, `rounded-lg` …).
 
 | Role | Size | For |
 |---|---|---|
-| `rounded-inner` | 4 px | a segment inside a track, icon buttons, small chips, small cover thumbnails |
-| `rounded-control` | 6 px | buttons, fields, pills, list rows |
-| `rounded-panel` | 10 px | cards, popovers, menus, dialogs |
-| `rounded-sheet` | 16 px | the phone's bottom sheets |
-| `rounded-cover` | 6 px | cover art |
+| `rounded-inner` | 8 px | a segment inside a track, icon buttons, small chips, small cover thumbnails |
+| `rounded-control` | 6 px | buttons, fields, list rows (navigation items and text buttons are `rounded-full`) |
+| `rounded-panel` | 16 px | cards, popovers, menus, dialogs |
+| `rounded-sheet` | 28 px | the phone's bottom sheets |
+| `rounded-hero` | 28 px | the Overview's banner |
+| `rounded-cover` | 12 px | cover art |
 | `rounded-mark` | 2 px | a data mark: a chart bar's end, a heatmap cell, a legend swatch |
 | `rounded-full` | — | avatars, dots, round icon buttons |
 
@@ -322,7 +331,10 @@ When the result is high, the theme store sets `data-contrast="more"` on
 - It swaps in the high-contrast palette from the decision log.
 - It makes `surface-600` the border role and redraws `border-surface-700`
   with it.
-- It turns off washes, the catch-light, the float shadow's blur and glass.
+- It outlines every surface (`surface-outline`) and draws `border-hair` in
+  the border role, since tone steps alone do not separate there.
+- It turns off the float shadow's blur and glass, and gives the current
+  navigation pill a 2 px outline in `accent-400`.
 - It thickens the focus ring.
 
 `accentShades(…, { contrast: "high" })` pushes accent text to 7 : 1 on the
@@ -939,3 +951,36 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   maintainer's word after the first Nightly showed one line in a sheet that
   filled the phone: the phone's sheet is no longer the tall one, and the
   desktop dialog takes the same limit instead of the window's height.
+- **2026-10-17:** The maintainer orders a redesign, not an evolution: the
+  Overview read as AI-generic in its arrangement, frames, colour accents,
+  transitions and highlights, while its content stays. Fixed by him: dark
+  leads, the default palette and accent stay, quiet, the fonts stay, close to
+  Material Design 3. This supersedes principle 2 and the "small uppercase
+  labels, hairline rules" half of principle 1; both are rewritten when the
+  foundation lands.
+  - **The foundation, app-wide at once** (his choice over "shell and Overview
+    first"): no hairlines or frames round surfaces, tone steps instead; no
+    wash or catch-light; sentence case for headings and labels; navigation
+    selection as a tonal pill instead of the accent rail; text buttons and
+    chips in Material's manner; larger corners per role (banner 28, panel 16,
+    cover 12 px). Text on artwork is light on the fixed dark scrim in every
+    look; high contrast outlines every surface and lifts muted text a step.
+    Every other screen keeps its arrangement and gets a before/after board.
+  - **The Overview's arrangement**, dictated by him after three rounds of
+    mockups (Material restyles of today's layout, then three layouts after a
+    reference he supplied): the sidebar; in the middle the banner with
+    greeting, search and the image's source, My lists, Continue watching and
+    reading, This week, Coming up, anime and manga recommendations; on the
+    right the detected title when something plays, the statistics, his own
+    AniList activity to the window's end and today's birthdays, small. Coming
+    up shows what this week does not: later episodes and planned titles.
+  - **Elements of its own**, picked from a round of three sets: the lists as
+    a shelf of cover spines on a rule in the status colour, one tick per
+    episode on the continue cards, a progress ring round +1, This week as a
+    timetable with a now line, and a 48-hour strip in the banner. Not taken:
+    the activity thread, the figures-first statistics, a signature corner and
+    landscape continue cards.
+  - On the Overview the detected title moves into the right column and the
+    floating detection window steps back there on the desktop; everywhere
+    else it stays the shell's. His own activity costs one uncached request
+    per visit, waits for the lists, and pages by button only.

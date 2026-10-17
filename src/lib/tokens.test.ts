@@ -416,3 +416,31 @@ describe("the focus ring on a clipping frame", () => {
     expect(frame).toMatch(new RegExp(String.raw`@media \(forced-colors: active\) \{\s*${own} \{\s*outline: 3px solid Highlight;`));
   });
 });
+
+describe("the 2026-10-17 foundation", () => {
+  const utility = (name: string) => {
+    const at = css.indexOf(`@utility ${name} {`);
+    return at < 0 ? "" : css.slice(at, css.indexOf("\n}", at));
+  };
+
+  it("retunes the corner roles", () => {
+    expect(base.get("--radius-inner")).toBe("0.5rem");
+    expect(base.get("--radius-control")).toBe("0.375rem");
+    expect(base.get("--radius-panel")).toBe("1rem");
+    expect(base.get("--radius-sheet")).toBe("1.75rem");
+    expect(base.get("--radius-cover")).toBe("0.75rem");
+    expect(base.get("--radius-hero")).toBe("1.75rem");
+  });
+
+  it("draws no wash, catch-light or hairline in the standard looks", () => {
+    expect(utility("panel-wash")).not.toMatch(/background-image:\s*linear-gradient/);
+    expect(utility("panel-top")).not.toContain("::before");
+    expect(utility("section-rule")).not.toContain("background");
+    expect(utility("border-hair")).toMatch(/^\s*@utility border-hair \{\s*border-color: transparent;/);
+  });
+
+  it("outlines surfaces in high contrast instead", () => {
+    expect(utility("border-hair")).toMatch(/data-contrast="more"\] & \{\s*border-color: var\(--hair\)/);
+    expect(utility("surface-outline")).toMatch(/data-contrast="more"\] & \{\s*box-shadow: inset 0 0 0 1px var\(--color-surface-600\)/);
+  });
+});

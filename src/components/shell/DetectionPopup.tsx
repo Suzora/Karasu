@@ -126,7 +126,7 @@ export default function DetectionPopup() {
           )}
         >
           <span className="size-1.5 shrink-0 animate-blip rounded-full bg-accent-500" />
-          <p className="min-w-0 flex-1 truncate text-2xs font-medium uppercase text-accent-400">
+          <p className="min-w-0 flex-1 truncate label-text text-accent-400">
             {heading}
           </p>
           <ScrobbleActions playing={playing} />

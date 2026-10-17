@@ -20,6 +20,8 @@ const buttonVariants = cva(
         danger: "bg-danger text-surface-950 hover:opacity-90",
         /** Destructive but not the primary action — bulk Remove, reset rows. */
         dangerGhost: "text-danger hover:bg-danger/10",
+        /** Material's text button: a link-like action, the accent's text shade on a pill with a state layer. */
+        text: "rounded-full text-ui text-accent-400 hover:bg-accent-400/10",
       },
       size: {
         default: "h-9 px-4",
@@ -28,6 +30,8 @@ const buttonVariants = cva(
         sm: "h-8 px-3 text-xs",
         icon: "h-9 w-9",
         iconControl: "h-8.5 w-8.5",
+        /** The text button's own size, as compact as the link it replaces. */
+        text: "h-8 px-3",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

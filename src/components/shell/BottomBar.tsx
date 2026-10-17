@@ -183,13 +183,19 @@ export default function BottomBar() {
             className={({ isActive }) =>
               cn(
                 slotClass,
-                // No `useRailMarker` on purpose: it means nothing on a horizontal bar; active state is the accent ink.
-                isActive ? "text-accent-400" : "text-ink-500 hover:text-ink-100",
+                // The pill behind the icon carries the state; the label only brightens.
+                isActive ? "text-ink-100" : "text-ink-500 hover:text-ink-100",
               )
             }
           >
-            <item.icon className="size-5" />
-            <span className="truncate">{t(item.key)}</span>
+            {({ isActive }) => (
+              <>
+                <span className={cn("grid h-7 w-14 place-items-center rounded-full transition-surface", isActive && "nav-pill")}>
+                  <item.icon className="size-5" />
+                </span>
+                <span className="truncate">{t(item.key)}</span>
+              </>
+            )}
           </NavLink>
         ))}
         <button
@@ -200,17 +206,13 @@ export default function BottomBar() {
           // Keep the one exclusive ternary; `cn` runs tailwind-merge, which keeps only the last text-colour class.
           className={cn(
             slotClass,
-            moreOpen
-              ? "text-ink-100"
-              : inSheet
-                ? "text-accent-400"
-                : "text-ink-500 hover:text-ink-100",
+            moreOpen || inSheet ? "text-ink-100" : "text-ink-500 hover:text-ink-100",
           )}
         >
-          <span className="relative">
+          <span className={cn("relative grid h-7 w-14 place-items-center rounded-full transition-surface", inSheet && "nav-pill")}>
             <LayoutGrid className="size-5" />
             {badge > 0 && (
-              <Badge aria-hidden="true" count={badge} max={9} floating className="-right-2.5 -top-1.5" />
+              <Badge aria-hidden="true" count={badge} max={9} floating className="right-2.5 -top-1" />
             )}
           </span>
           <span className="truncate">{t("nav.more")}</span>

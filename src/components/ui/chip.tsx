@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 export type ChipTone = "neutral" | "muted" | "accent" | "gold" | "success" | "danger";
 export type ChipSize = "xs" | "sm" | "md";
 
-// Outlined on a clear ground, so coloured text keeps the contrast it was derived against on any surface.
+// Neutral chips fill tonally; coloured ones stay outlined, keeping the contrast they were derived against.
 const TONES: Record<ChipTone, string> = {
-  neutral: "border-surface-700 text-ink-300",
-  muted: "border-surface-700 text-ink-500",
+  neutral: "border-transparent bg-surface-800 text-ink-300",
+  muted: "border-transparent bg-surface-800 text-ink-500",
   accent: "border-accent-500/45 text-accent-400",
   gold: "border-gold/45 text-gold",
   success: "border-success/45 text-success",

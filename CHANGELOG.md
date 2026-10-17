@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: b630f2d -->
+<!-- generated-through: 4241d57 -->
 
 ### Added
 
@@ -80,6 +80,10 @@ tag time is then optional rather than load-bearing.
 ### Fixed
 
 - The What's new popup is only as tall as its text, at most 80 % of the screen, instead of filling the phone's screen.
+
+### Changed
+
+- Karasu has a calmer look: surfaces without hairlines or frames, labels in normal case instead of capitals, the current page marked by a pill, and rounder corners; high contrast outlines every surface instead.
 
 ## 1.44.0 — 2026-10-12
 

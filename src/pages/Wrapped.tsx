@@ -876,7 +876,7 @@ function ExportRow({
   const phone = usePhoneShell();
   const content = (
     <>
-      <span className="w-14 shrink-0 text-2xs uppercase tracking-eyebrow text-ink-600">{label}</span>
+      <span className="w-14 shrink-0 label-text text-ink-500">{label}</span>
       {children}
     </>
   );

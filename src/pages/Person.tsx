@@ -55,7 +55,7 @@ function Fact({ label, value }: { label: string; value: string | number | null |
   if (value === null || value === undefined || value === "") return null;
   return (
     <div>
-      <dt className="text-2xs uppercase tracking-eyebrow text-ink-600">{label}</dt>
+      <dt className="label-text text-ink-500">{label}</dt>
       <dd className="text-sm text-ink-300">{value}</dd>
     </div>
   );

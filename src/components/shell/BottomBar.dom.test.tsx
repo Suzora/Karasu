@@ -81,3 +81,12 @@ describe("BottomBar swipe", () => {
     expect(opened).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("BottomBar look", () => {
+  it("puts the pill behind the active icon, not on the whole slot", () => {
+    const { container } = mount();
+    const current = container.querySelector('a[aria-current="page"]')!;
+    expect(current).not.toHaveClass("nav-pill");
+    expect(current.firstElementChild).toHaveClass("nav-pill", "rounded-full");
+  });
+});

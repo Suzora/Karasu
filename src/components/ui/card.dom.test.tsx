@@ -4,9 +4,11 @@ import { Card, cardClass } from "./card";
 
 /** The three panels a page is built from, so a row, a block and a well look the same wherever they appear. */
 describe("Card", () => {
-  it("is raised by default: the wash, the catch-light and room to breathe", () => {
+  it("is raised by default: a tonal surface outlined only in high contrast, with room to breathe", () => {
     render(<Card>Body</Card>);
-    expect(screen.getByText("Body")).toHaveClass("panel-wash", "panel-top", "rounded-panel", "bg-surface-900", "p-5");
+    const body = screen.getByText("Body");
+    expect(body).toHaveClass("rounded-panel", "bg-surface-900", "surface-outline", "p-5");
+    expect(body).not.toHaveClass("panel-wash", "panel-top", "border");
   });
 
   it("draws a flat block without the wash and a sunken well a step darker, each with its own padding", () => {
@@ -17,8 +19,8 @@ describe("Card", () => {
       </>,
     );
     const flat = screen.getByText("Flat");
-    expect(flat).toHaveClass("rounded-panel", "border-hair", "bg-surface-900", "p-4");
-    expect(flat).not.toHaveClass("panel-wash");
+    expect(flat).toHaveClass("rounded-panel", "bg-surface-900", "surface-outline", "p-4");
+    expect(flat).not.toHaveClass("border");
     expect(screen.getByText("Well")).toHaveClass("rounded-control", "bg-surface-950", "p-3");
   });
 
@@ -29,14 +31,14 @@ describe("Card", () => {
       </Card>,
     );
     const row = screen.getByText("Row");
-    expect(row).toHaveClass("p-3", "hover:border-surface-700");
+    expect(row).toHaveClass("p-3", "hover:bg-surface-850");
     expect(row).not.toHaveClass("p-4");
   });
 
   it("spells the same classes for a card that has to be a link or a form", () => {
     expect(cardClass("flat", { interactive: true }).split(" ")).toEqual(
-      expect.arrayContaining(["rounded-panel", "border-hair", "bg-surface-900", "transition-surface", "hover:border-surface-700"]),
+      expect.arrayContaining(["rounded-panel", "bg-surface-900", "surface-outline", "transition-surface", "hover:bg-surface-850"]),
     );
-    expect(cardClass().split(" ")).toContain("panel-top");
+    expect(cardClass().split(" ")).not.toContain("panel-top");
   });
 });

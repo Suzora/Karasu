@@ -17,6 +17,18 @@ describe("Chip", () => {
     expect(container.firstElementChild).toHaveClass("border-dashed", "rounded-inner");
   });
 
+  it("fills neutral chips tonally and keeps the coloured ones outlined", () => {
+    render(
+      <>
+        <Chip>Neutral</Chip>
+        <Chip tone="gold">Gold</Chip>
+      </>,
+    );
+    const neutral = screen.getByText("Neutral").parentElement!;
+    expect(neutral).toHaveClass("bg-surface-800", "border-transparent");
+    expect(screen.getByText("Gold").parentElement).toHaveClass("border-gold/45");
+  });
+
   it("is removed by a click on the whole chip, named for what it removes", async () => {
     const user = userEvent.setup({ delay: null });
     const onRemove = vi.fn();

@@ -142,7 +142,7 @@ export default function Franchise() {
         <BackButton />
         <h1 className="shrink-0 text-lg text-ink-100">{t("franchise.title")}</h1>
         {data && (
-          <span className="truncate text-2xs uppercase tracking-eyebrow text-ink-600">
+          <span className="truncate label-text text-ink-500">
             {t("franchise.related", { count: data.nodes.length })}
           </span>
         )}
@@ -397,7 +397,7 @@ function GraphNode({
               className={cn("size-full object-cover", shouldBlur(node, level, blurAdult) && "veil")}
             />
           ) : (
-            <span className="grid size-full place-items-center text-[.5625em] uppercase tracking-eyebrow text-ink-600">
+            <span className="grid size-full place-items-center text-[.5625em] text-ink-600">
               {t("franchise.noCover")}
             </span>
           )}
@@ -426,7 +426,7 @@ function GraphNode({
           {title}
         </p>
         {branch.relation && (
-          <p className="text-center text-[.5625em] uppercase tracking-eyebrow text-ink-600">
+          <p className="text-center text-[.5625em] text-ink-600">
             {t(`relation.${branch.relation}`, { defaultValue: branch.relation })}
           </p>
         )}
@@ -486,7 +486,7 @@ function Rail({
           </div>
         )}
         {relation && (
-          <p className="text-2xs uppercase tracking-eyebrow text-accent-400">
+          <p className="label-text text-accent-400">
             {t(`relation.${relation}`, { defaultValue: relation })}
           </p>
         )}
@@ -627,7 +627,7 @@ function Legend({ type }: { type: MediaType }) {
         onClick={toggle}
         aria-expanded={open}
         aria-controls={open ? id : undefined}
-        className="inline-flex h-9.5 items-center gap-1.5 rounded-control border border-hair bg-surface-850/90 px-2.5 text-2xs font-semibold uppercase tracking-eyebrow text-ink-300 backdrop-blur-sm transition-surface hover:text-ink-100"
+        className="inline-flex h-9.5 items-center gap-1.5 rounded-control border border-hair bg-surface-850/90 px-2.5 text-xs font-semibold text-ink-300 backdrop-blur-sm transition-surface hover:text-ink-100"
       >
         {!open &&
           (["CURRENT", "COMPLETED", "PLANNING"] as const).map((s) => (

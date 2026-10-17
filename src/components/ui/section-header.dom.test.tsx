@@ -11,11 +11,23 @@ describe("SectionHeader", () => {
     expect(screen.getByText("3 episodes across 3 shows air this week.")).toHaveClass("min-w-0", "truncate");
   });
 
-  it("puts an action after the rule, and nothing when there is none", () => {
+  it("puts an action at the far end, and nothing when there is none", () => {
     const { container, rerender } = render(<SectionHeader icon={Play} title="Continue" action={<a href="#/list">Show all</a>} />);
-    const rule = container.querySelector(".section-rule");
-    expect(rule?.nextElementSibling).toContainElement(screen.getByRole("link", { name: "Show all" }));
+    const spacer = container.querySelector(".flex-1");
+    expect(spacer?.nextElementSibling).toContainElement(screen.getByRole("link", { name: "Show all" }));
     rerender(<SectionHeader icon={Play} title="Continue" />);
-    expect(container.querySelector(".section-rule")?.nextElementSibling).toBeNull();
+    expect(container.querySelector(".flex-1")?.nextElementSibling).toBeNull();
+  });
+
+  it("draws no trailing rule", () => {
+    const { container } = render(<SectionHeader icon={Play} title="Continue" />);
+    expect(container.querySelector(".section-rule")).toBeNull();
+  });
+
+  it("renders meta as a count chip, not an eyebrow", () => {
+    render(<SectionHeader icon={Play} title="Continue" meta="20" />);
+    const meta = screen.getByText("20");
+    expect(meta).toHaveClass("rounded-full", "bg-surface-850");
+    expect(meta).not.toHaveClass("uppercase");
   });
 });

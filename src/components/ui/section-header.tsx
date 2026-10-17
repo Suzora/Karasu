@@ -13,7 +13,7 @@ export function SectionHeader({
   icon: LucideIcon;
   title: string;
   meta?: string;
-  /** A link at the far end of the rule, such as the way to everything a section only samples. */
+  /** A link at the far end, such as the way to everything a section only samples. */
   action?: ReactNode;
   className?: string;
 }) {
@@ -25,11 +25,11 @@ export function SectionHeader({
         {title}
       </h2>
       {meta && (
-        <span className="min-w-0 truncate text-2xs uppercase tracking-eyebrow text-ink-600">
+        <span className="min-w-0 truncate rounded-full bg-surface-850 px-2 label-text text-ink-500">
           {meta}
         </span>
       )}
-      <span className="section-rule" />
+      <span className="flex-1" />
       {action && <span className="shrink-0">{action}</span>}
     </div>
   );

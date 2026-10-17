@@ -376,7 +376,7 @@ function SortPanel({ view, onDraft }: { view: ListView; onDraft: (patch: ViewPat
   return (
     <div className="space-y-3">
       <fieldset className="flex flex-col gap-0.5">
-        <legend className="mb-1.5 text-2xs font-semibold uppercase tracking-eyebrow text-ink-500">
+        <legend className="mb-1.5 label-text text-ink-500">
           {t("list.sortTitle")}
         </legend>
         {SORT_KEYS.map((key) => (
@@ -426,7 +426,7 @@ function PanelSection({
   return (
     <section aria-labelledby={id}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <h3 id={id} className="text-2xs uppercase tracking-eyebrow text-ink-500">
+        <h3 id={id} className="label-text text-ink-500">
           {title}
         </h3>
         {aside}

@@ -100,7 +100,7 @@ export function MultiFilterSelect({
           !isEmpty(value) && "border-accent-500/60",
         )}
       >
-        <span className="text-2xs font-semibold uppercase text-ink-600">
+        <span className="label-text text-ink-500">
           {label}
         </span>
         <span className="max-w-32 truncate text-xs text-ink-300">
@@ -164,7 +164,7 @@ export function MultiFilterSelect({
                     </span>
                     <span className="min-w-0 flex-1 truncate">{option}</span>
                     {state === "exclude" && (
-                      <span className="shrink-0 text-2xs uppercase">
+                      <span className="shrink-0 label-text">
                         {t("search.excluded")}
                       </span>
                     )}

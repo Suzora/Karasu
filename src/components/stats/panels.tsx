@@ -130,7 +130,7 @@ export function TileGrid({ tiles }: { tiles: { label: string; value: string }[] 
             className="absolute left-0 top-0 h-0.5 w-9 rounded-full bg-gradient-to-r from-accent-500 to-accent-400/25"
           />
           <p className="text-2xl font-bold tabular-nums text-ink-100">{tile.value}</p>
-          <p className="mt-0.5 text-2xs uppercase tracking-eyebrow text-ink-600">{tile.label}</p>
+          <p className="mt-0.5 label-text text-ink-500">{tile.label}</p>
         </div>
       ))}
     </div>

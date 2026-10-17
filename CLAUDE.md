@@ -2408,7 +2408,8 @@ define (read from `index.css`'s `--color-*` names, so `ink-200` is caught and
 renders nothing); Tailwind's own palette; broad transitions; `animate-spin`
 outside the spinner; `outline-none` with no focus style beside it or on a
 `focus-within:` wrapper; a class cut at a template `${}`; icons off the
-14/16/20/32 scale; and Base UI imported outside its wrappers.
+14/16/20/32 scale; an uppercase eyebrow (`tracking-eyebrow`, gone since the
+redesign of 2026-10-17); and Base UI imported outside its wrappers.
 `scripts/style-baseline.json` is a ratchet, not a licence: `--check` fails when
 a count rises above it *and* when it falls below, so the commit that removes
 drift also runs `--tighten` and the room cannot be spent again. `--record`

@@ -377,7 +377,7 @@ function ListPanel({
       <header className="flex items-center gap-2.5 border-b border-hair px-4 py-3">
         <Icon className="size-4 shrink-0 text-accent-400" />
         <h2 className="shrink-0 text-sm text-ink-100">{title}</h2>
-        {meta && <span className="ml-auto min-w-0 truncate text-2xs uppercase tracking-eyebrow text-ink-600">{meta}</span>}
+        {meta && <span className="ml-auto min-w-0 truncate label-text text-ink-500">{meta}</span>}
       </header>
       <div className="[&>*+*]:border-t [&>*+*]:border-hair">{children}</div>
       {footer && <div className="border-t border-hair px-4 py-2.5">{footer}</div>}
@@ -518,7 +518,7 @@ function Stats({ entries }: { entries: MediaListEntry[] }) {
           </span>
           <div className="w-full min-w-0">
             <p className="text-lg font-bold leading-tight tabular-nums text-ink-100">{item.value}</p>
-            <p className="truncate text-2xs uppercase tracking-eyebrow text-ink-600">{item.label}</p>
+            <p className="truncate label-text text-ink-500">{item.label}</p>
           </div>
         </div>
       ))}

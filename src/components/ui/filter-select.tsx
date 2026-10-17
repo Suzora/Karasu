@@ -34,7 +34,7 @@ export function FilterSelect({
         className,
       )}
     >
-      <span className="text-2xs font-semibold uppercase text-ink-600">
+      <span className="label-text text-ink-500">
         {label}
       </span>
       <span className="max-w-32 truncate text-xs text-ink-300">

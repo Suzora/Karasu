@@ -18,7 +18,7 @@ const ROOT = path.dirname(here);
 const DIR = path.join(here, "screens");
 const CACHE = path.join(DIR, ".cache");
 const OUT = path.join(DIR, ".out");
-const BASE = "http://localhost:5198/scripts/screens/index.html";
+const BASE = `http://localhost:${process.env.SCREENS_PORT ?? 5198}/scripts/screens/index.html`;
 const CHROMIUM = process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
 /** The clock every still is taken at, so countdowns and dates render the same on every run. */
 const CLOCK = new Date("2026-09-25T10:00:00Z");
@@ -57,6 +57,14 @@ const secondSlide = (p) => p.getByRole("button", { name: "Mushoku Tensei: Jobles
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
 export const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
+  { id: "d1-uebersicht-ganz", w: 1232, h: 1450, route: "/" },
+  { id: "p1-uebersicht-ganz", w: 405, h: 1700, phone: true, route: "/" },
+  { id: "d1-uebersicht-breit", w: 1536, h: 1300, route: "/" },
+  { id: "d1-uebersicht-fenster", w: 1536, h: 960, route: "/" },
+  { id: "d1-uebersicht-erkannt", w: 1536, h: 960, route: "/", playing: true },
+  { id: "d1-uebersicht-scroll", w: 1536, h: 2300, route: "/" },
+  { id: "p1-uebersicht-erkannt", w: 405, h: 860, phone: true, route: "/", playing: true },
+  { id: "p1-uebersicht-lang", w: 405, h: 2600, phone: true, route: "/" },
   { id: "d2-liste", w: 1232, h: 800, route: "/list", act: (p) => p.locator("[data-media-id]").nth(2).click({ button: "right" }) },
   { id: "d3-detail", w: 1232, h: 800, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "d4-einstellungen", w: 1232, h: 800, route: "/settings?pane=appearance" },
@@ -367,7 +375,7 @@ async function startVite() {
     } catch {}
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error("screens: the dev server did not come up on port 5198");
+  throw new Error(`screens: the dev server did not come up at ${BASE}`);
 }
 
 async function launch() {

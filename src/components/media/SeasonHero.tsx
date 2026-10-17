@@ -139,7 +139,7 @@ export default function SeasonHero() {
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5">
             {/* A plate, not an outline, which eats letters this small; a block box, since only one can trim to the caps. */}
-            <p className="inline-block rounded-full tint-label-on-cover tint-accent px-2 py-1.5 text-2xs font-semibold uppercase leading-none tracking-eyebrow backdrop-blur-sm [text-box:trim-both_cap_alphabetic]">
+            <p className="inline-block rounded-full tint-label-on-cover tint-accent px-2 py-1.5 text-xs font-semibold leading-none backdrop-blur-sm [text-box:trim-both_cap_alphabetic]">
               {t(`season.${season}`)} {year} · {t("dashboard.heroKicker")}
             </p>
             {/* The link is the title and the whole image is a second one, so a click anywhere on the hero works. */}

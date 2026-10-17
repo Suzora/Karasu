@@ -1,22 +1,22 @@
 import { createContext, useContext, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-/** `raised` stands out of the page, `flat` is a bordered row or block, `sunken` is a well inside either. */
+/** `raised` stands out of the page, `flat` is a row or block, `sunken` is a well inside either. */
 export type CardVariant = "raised" | "flat" | "sunken";
 
 const VARIANTS: Record<CardVariant, string> = {
-  // No `overflow-hidden`: the catch-light fades out before the corners, and clipping would only cut off contents.
-  raised: "panel-wash panel-top rounded-panel border border-hair bg-surface-900",
-  flat: "rounded-panel border border-hair bg-surface-900",
-  sunken: "rounded-control border border-hair bg-surface-950",
+  // Tone steps separate a card from the page; high contrast adds the border role through `surface-outline`.
+  raised: "rounded-panel bg-surface-900 surface-outline",
+  flat: "rounded-panel bg-surface-900 surface-outline",
+  sunken: "rounded-control bg-surface-950 surface-outline",
 };
 
 /** The classes of a card, for one that must be a link, a form or an article; everything else renders `Card`. */
 export function cardClass(variant: CardVariant = "raised", { interactive = false }: { interactive?: boolean } = {}) {
-  return cn(VARIANTS[variant], interactive && "transition-surface hover:border-surface-700");
+  return cn(VARIANTS[variant], interactive && "transition-surface hover:bg-surface-850");
 }
 
-/** A panel: `raised` with the surface fill, the accent-following wash and the top catch-light, or a quieter variant. */
+/** A panel: `raised` with the surface fill and room to breathe, or a quieter variant. */
 export function Card({
   variant = "raised",
   interactive = false,

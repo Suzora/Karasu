@@ -932,7 +932,7 @@ function OverviewCharts({
               {/* The outer ring's key, so its formats are readable without hovering. */}
               {formatsInBreakdown.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-2xs uppercase tracking-eyebrow text-ink-600">
+                  <p className="mb-1.5 label-text text-ink-500">
                     {t("stats.outerRing")}
                   </p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">

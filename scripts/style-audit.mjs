@@ -26,6 +26,7 @@ export const RULES = {
   "shadow-size": "a shadow by size (shadow, -lg, -xl …); use a role: float, sheet",
   "text-size-arbitrary": "a bracketed font size; use a type step",
   "tracking-arbitrary": "a bracketed letter spacing",
+  eyebrow: "an uppercase eyebrow; labels are sentence case since the 2026-10-17 foundation (label-text)",
   "colour-arbitrary": "a hex, rgb or hsl colour in a class; use a token",
   "colour-undefined": "a shade the theme does not define, which renders nothing",
   "colour-foreign": "Tailwind's own palette, black or white instead of a token",
@@ -86,6 +87,7 @@ export function tokenRules(token, path, colours) {
   if (/^shadow(?:-(?:2xs|xs|sm|md|lg|xl|2xl))?$/.test(u)) hits.push("shadow-size");
   if (/^text-\[/.test(u) && !COLOUR_VALUE.test(u.slice(5)) && !/^text-\[var\(--color/.test(u)) hits.push("text-size-arbitrary");
   if (/^tracking-\[/.test(u)) hits.push("tracking-arbitrary");
+  if (u === "tracking-eyebrow") hits.push("eyebrow");
   if (/^z-\[/.test(u)) hits.push("z-arbitrary");
   if (/^shadow-\[/.test(u) && !COLOUR_VALUE.test(u.slice(7))) hits.push("shadow-arbitrary");
   if (/^(?:duration|delay|ease)-\[/.test(u)) hits.push("motion-arbitrary");
@@ -326,6 +328,7 @@ function writeBaseline(counts) {
 }
 
 const FIXTURES = [
+  { text: `<span className="uppercase tracking-eyebrow text-2xs">x</span>`, want: ["eyebrow"] },
   { text: `<div className="rounded-[.625rem] text-[.8125rem] tracking-[.1em]" />`, want: ["radius-arbitrary", "text-size-arbitrary", "tracking-arbitrary"] },
   { text: `<div className="rounded rounded-lg md:rounded-t-xl rounded-control rounded-full rounded-none shadow shadow-2xl shadow-float" />`, want: ["radius-size", "radius-size", "radius-size", "shadow-size", "shadow-size"] },
   { text: `<div className="text-ink-200 hover:border-surface-500 text-ink-300 bg-accent-ink" />`, want: ["colour-undefined", "colour-undefined"] },

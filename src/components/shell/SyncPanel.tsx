@@ -184,7 +184,7 @@ function HeadlineBlock({ data }: { data: SyncStatus }) {
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <h3 className="px-3 pb-1 pt-2.5 text-2xs font-semibold uppercase text-ink-600">{children}</h3>;
+  return <h3 className="px-3 pb-1 pt-2.5 label-text text-ink-500">{children}</h3>;
 }
 
 /** A small timeline row: a mark, a label, and a value on the right. */
@@ -298,7 +298,7 @@ function DetailsBlock({ data }: { data: SyncStatus }) {
   const { t } = useTranslation();
   return (
     <div className="border-t border-hair px-3 py-2">
-      <Disclosure summary={<span className="text-2xs font-semibold uppercase text-ink-600">{t("syncPanel.secDetails")}</span>}>
+      <Disclosure summary={<span className="label-text text-ink-500">{t("syncPanel.secDetails")}</span>}>
         <ul className="max-h-36 overflow-y-auto pt-1">
           {data.recent.map((r) => (
             <li key={r.seq} className="flex items-baseline gap-2 py-0.5 text-xs">
@@ -402,7 +402,7 @@ function SyncPanelBody({ api }: { api: PopoverApi }) {
       <RecentRows data={d} limit={RECENT_SHOWN} />
       <div className="mx-3 my-1 flex items-center gap-2">
         <span aria-hidden className="h-px flex-1 bg-accent-500/50" />
-        <h3 className="text-2xs font-semibold uppercase text-accent-400">{t("syncPanel.secNow")}</h3>
+        <h3 className="label-text text-accent-400">{t("syncPanel.secNow")}</h3>
         <span aria-hidden className="h-px flex-1 bg-accent-500/50" />
       </div>
       <NowRows data={d} queueRow={row} />

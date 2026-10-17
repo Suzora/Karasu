@@ -309,7 +309,7 @@ export default function Settings() {
   return (
     <div className="flex h-full min-h-0">
       <nav aria-label={t("nav.settings")} className="flex w-48 shrink-0 flex-col gap-0.5 border-r border-hair p-3">
-        <h1 className="px-2.5 pb-2 pt-1 text-2xs uppercase tracking-eyebrow text-ink-600">
+        <h1 className="px-2.5 pb-2 pt-1 label-text text-ink-500">
           {t("settings.title")}
         </h1>
         {panes.map((p) => {
@@ -322,11 +322,11 @@ export default function Settings() {
               aria-current={p.id === active ? "page" : undefined}
               onClick={() => setParams(p.id === "account" ? {} : { pane: p.id })}
               className={cn(
-                "flex items-center gap-2.5 rounded-control px-2.5 py-1.75 text-left text-ui transition-surface coarse:min-h-11",
+                "flex items-center gap-2.5 rounded-full px-3 py-2 text-left text-ui transition-surface coarse:min-h-11",
                 p.id === active
                   ? danger
                     ? "bg-danger/12 text-danger"
-                    : "bg-surface-850 text-ink-100"
+                    : "nav-pill"
                   : danger
                     ? "text-danger hover:bg-danger/10"
                     : "text-ink-500 hover:bg-surface-850 hover:text-ink-100",

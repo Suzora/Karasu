@@ -1,12 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactElement,
-} from "react";
-import { NavLink, useLocation, useNavigate } from "react-router";
+import { useEffect, useState, type ReactElement } from "react";
+import { NavLink, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
@@ -51,46 +44,17 @@ import { durationShort } from "@/lib/relTime";
 /** Slower than the open panel's second: the line only has to catch a wait or a lost connection, not count it down live. */
 const SYNC_LINE_POLL_MS = 5_000;
 
-/** The rail is the state change: `useRailMarker` slides one marker between items rather than each growing its own. */
+/** Every item is a pill, so the current one can fill it without a marker of its own. */
 const itemClass =
-  "relative flex items-center gap-2.75 rounded-control px-2.5 py-1.75 transition-surface";
+  "relative flex items-center gap-2.75 rounded-full px-3 py-2 transition-surface";
 
 /** Icon-only: the gap and the left padding have nothing left to separate. */
 const collapsedItemClass = "justify-center gap-0 px-0";
 
 const stateClass = (isActive: boolean) =>
   isActive
-    ? "bg-surface-850 text-ink-100"
+    ? "nav-pill"
     : "text-ink-500 hover:bg-surface-850 hover:text-ink-100";
-
-/** Where the accent rail should sit, found by `aria-current` so nothing has to enumerate a set that is not fixed. */
-function useRailMarker(deps: unknown[]) {
-  const navRef = useRef<HTMLElement>(null);
-  const [top, setTop] = useState<number | null>(null);
-
-  const measure = useCallback(() => {
-    const nav = navRef.current;
-    const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!nav || !active) return setTop(null);
-    const navBox = nav.getBoundingClientRect();
-    const itemBox = active.getBoundingClientRect();
-    // The item's centre; the marker is centred on it and sized in rem, so it survives the Windows text-scale setting.
-    setTop(itemBox.top - navBox.top + itemBox.height / 2);
-  }, []);
-
-  useLayoutEffect(measure, [measure, ...deps]);
-
-  // The rail is a fixed width but its content is not: a wrapped label or a scrollbar changes item heights.
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(nav);
-    return () => observer.disconnect();
-  }, [measure]);
-
-  return { navRef, top };
-}
 
 const labelClass = "min-w-0 truncate text-ui font-medium";
 
@@ -385,10 +349,6 @@ export default function Sidebar() {
     setStored(next);
     saveCollapsed(next);
   };
-  const { pathname } = useLocation();
-  // Re-measured when the route changes and when the item set does; local mode and Android each change the set.
-  const { navRef, top } = useRailMarker([pathname, mode, collapsed, android]);
-
   // If the browser handoff cannot start, Settings holds the manual token paste, so send the user there.
   const linkAccount = async () => {
     if (!(await login.start())) navigate("/settings?pane=account");
@@ -397,23 +357,14 @@ export default function Sidebar() {
   return (
     <TooltipProvider>
     <nav
-      ref={navRef}
       aria-label={t("nav.primary")}
       className={cn(
-        "relative flex shrink-0 flex-col border-r border-hair bg-surface-900 pb-2.5 pt-3",
+        "relative flex shrink-0 flex-col border-r border-hair bg-surface-950 pb-2.5 pt-3",
         // Surface motion: the plain utility inherits `--ease-karasu` and the reduce-motion rules kill it for free.
         "transition-[width]",
         collapsed ? "w-14" : "w-52",
       )}
     >
-      {/* One rail for the whole nav, travelling between items; hidden when the route is not in it at all. */}
-      {top !== null && (
-        <span
-          aria-hidden="true"
-          className="absolute left-0 z-10 h-4.5 w-0.75 -translate-y-1/2 rounded-r-full bg-accent-500 transition-[top] duration-(--duration-expressive) ease-(--ease-out-expo)"
-          style={{ top }}
-        />
-      )}
       {/* Scrolls as the last resort, so no item is ever unreachable on a viewport shorter than the rail. */}
       <div className="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto px-2.5">
         {visibleGroups(android).map((group, i) => (
@@ -424,7 +375,7 @@ export default function Sidebar() {
             ) : (
               <div
                 className={cn(
-                  "px-2.5 pb-1.75 text-2xs font-semibold uppercase tracking-eyebrow text-ink-600",
+                  "px-2.5 pb-1.75 label-text text-ink-500",
                   // The first label sits under the titlebar's own breathing room; the later ones open the gap themselves.
                   i === 0 ? "pt-1.5" : "pt-3.75",
                 )}

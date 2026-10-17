@@ -33,5 +33,5 @@ export default defineConfig({
     changelogPlugin({ file: path.resolve(__dirname, "../../CHANGELOG.md"), edit: (md) => addEntries(emptyUnreleased(md), SAMPLE, "0000000") }),
   ],
   resolve: { alias: { "@": path.resolve(__dirname, "../../src") } },
-  server: { port: 5198, strictPort: true },
+  server: { port: Number(process.env.SCREENS_PORT ?? 5198), strictPort: true },
 });

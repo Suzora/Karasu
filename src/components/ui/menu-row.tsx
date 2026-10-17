@@ -141,7 +141,7 @@ export function MenuGroupLabel({ className, ...rest }: HTMLAttributes<HTMLDivEle
   return (
     <div
       {...rest}
-      className={cn("truncate px-2.5 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-eyebrow text-ink-600", className)}
+      className={cn("truncate px-2.5 pb-1 pt-1.5 label-text text-ink-500", className)}
     />
   );
 }
