@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: d7aa3d2 -->
+<!-- generated-through: f02b3ba -->
 
 ### Added
 
@@ -99,6 +99,7 @@ tag time is then optional rather than load-bearing.
 - Statistics keeps Anime/Manga, its sections and Wrapped in a column beside the charts, and shows its key figures as cards.
 - Search keeps its scopes and every filter in a column beside the results, and on the phone opens them from a field and a filter button.
 - Titles sit under their covers again, in the lists, search, the calendar's tiles and Continue on the Overview.
+- A profile lists its sections in a column under the header instead of a row of tabs.
 
 ### Security
 

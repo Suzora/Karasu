@@ -7,6 +7,8 @@ export interface SectionItem<T extends string> {
   value: T;
   label: string;
   icon: LucideIcon;
+  /** A count beside the name, where the section has an honest one. */
+  count?: number;
 }
 
 interface Props<T extends string> {
@@ -38,7 +40,7 @@ function moveFocus(e: KeyboardEvent<HTMLButtonElement>) {
 export function SectionNav<T extends string>({ label, items, value, onChange, onPicked }: Props<T> & { onPicked?: () => void }) {
   return (
     <div role="tablist" aria-orientation="vertical" aria-label={label} className="space-y-0.5">
-      {items.map(({ value: v, label: name, icon: Icon }) => (
+      {items.map(({ value: v, label: name, icon: Icon, count }) => (
         <button
           key={v}
           type="button"
@@ -57,6 +59,7 @@ export function SectionNav<T extends string>({ label, items, value, onChange, on
         >
           <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
           <span className="min-w-0 flex-1 truncate">{name}</span>
+          {count != null && <span className="text-xs tabular-nums opacity-70">{count}</span>}
         </button>
       ))}
     </div>

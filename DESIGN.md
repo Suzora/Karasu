@@ -1081,3 +1081,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   small marks: score, time, the list-state point and one action circle. A
   title on a banner (the detail page, the Overview) is not a cover title and
   keeps its place.
+- **2026-10-18:** The profile takes A of three column variants: the full
+  banner header stays across the page, and the old tab strip becomes a
+  column beneath it beside the content, with an icon and the follower and
+  following counts per section (over B, a profile card at the top of the
+  column, and C, a small name in the column with the header as a card over
+  the content). On the phone the column is a field under the header that
+  opens the sections in a sheet.

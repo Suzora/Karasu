@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Ban, BookOpen, Building2, Library, Pencil, Users } from "lucide-react";
+import { Activity, Ban, BookOpen, Building2, GitCompare, Heart, Library, MessagesSquare, Pencil, UserCheck, Users } from "lucide-react";
 import {
   followCounts,
   followers,
@@ -23,7 +23,8 @@ import { isNotFound } from "@/lib/apiError";
 import { profileKey } from "@/lib/anilistUrl";
 import { Busy, Shimmer } from "@/components/Skeleton";
 import { SectionHeader } from "@/components/ui/section-header";
-import { StatusTabs } from "@/components/ui/status-tabs";
+import { SectionNav, SectionPicker, type SectionItem } from "@/components/stats/SectionNav";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/user-lockup";
 import { PresenceIf } from "@/components/ui/presence";
@@ -150,6 +151,16 @@ export default function UserProfile() {
 
 const TABS = ["overview", "lists", "compare", "activity", "followers", "following", "forum"] as const;
 type Tab = (typeof TABS)[number];
+/** One glyph per section, so the column is scannable without reading. */
+const TAB_ICON: Record<Tab, typeof Heart> = {
+  overview: Heart,
+  lists: Library,
+  compare: GitCompare,
+  activity: Activity,
+  followers: Users,
+  following: UserCheck,
+  forum: MessagesSquare,
+};
 
 function isTab(value: string | null): value is Tab {
   return TABS.includes((value ?? "") as Tab);
@@ -187,44 +198,42 @@ function Tabbed({ user }: { user: UserProfileData }) {
     forum: undefined,
   };
 
+  const tabLabel = (id: Tab) =>
+    id === "overview"
+      ? t("social.tabOverview")
+      : id === "lists"
+        ? t("social.tabLists")
+        : id === "compare"
+          ? t("social.tabCompare")
+          : id === "activity"
+            ? t("social.tabActivity")
+            : id === "followers"
+              ? t("social.followers")
+              : id === "following"
+                ? t("social.tabFollowing")
+                : t("social.tabForum");
+  const items: SectionItem<Tab>[] = tabs.map((id) => ({ value: id, label: tabLabel(id), icon: TAB_ICON[id], count: tabCount[id] }));
+  // `replace` so a tab flick does not fill the back stack with steps to walk out of.
+  const choose = (id: Tab) => {
+    const next = new URLSearchParams(params);
+    if (id === "overview") next.delete("tab");
+    else next.set("tab", id);
+    setParams(next, { replace: true });
+  };
+  const phone = usePhoneShell();
+
   return (
-    <div className="mt-7 px-8">
-      {/* The list's own strip: it scrolls rather than wraps, fades at an edge with more beyond it, and takes arrow keys. */}
-      <div className="border-b border-hair">
-        <StatusTabs
-          className="-mb-px"
-          label={t("social.profileTabs")}
-          value={tab}
-          onChange={(id) => {
-            // `replace` so a tab flick does not fill the back stack with steps to walk out of.
-            const next = new URLSearchParams(params);
-            if (id === "overview") next.delete("tab");
-            else next.set("tab", id);
-            setParams(next, { replace: true });
-          }}
-          tabs={tabs.map((id) => ({
-            value: id,
-            label:
-              id === "overview"
-                ? t("social.tabOverview")
-                : id === "lists"
-                  ? t("social.tabLists")
-                  : id === "compare"
-                    ? t("social.tabCompare")
-                  : id === "activity"
-                    ? t("social.tabActivity")
-                    : id === "followers"
-                      ? t("social.followers")
-                      : id === "following"
-                        ? t("social.tabFollowing")
-                        : t("social.tabForum"),
-            count: tabCount[id],
-          }))}
-        />
-      </div>
+    <div className={cn("mt-6 px-8", !phone && "grid grid-cols-[15rem_minmax(0,1fr)] gap-6")}>
+      {phone ? (
+        <SectionPicker label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />
+      ) : (
+        <aside className="self-start">
+          <SectionNav label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />
+        </aside>
+      )}
 
       {/* Keyed on the tab so the panel replays `animate-settle`, as the settings panes do. */}
-      <div key={tab} className="animate-settle pt-6">
+      <div key={tab} className={cn("min-w-0 animate-settle", phone && "pt-5")}>
         {tab === "overview" && <Favourites user={user} />}
         {tab === "lists" && <UserLists user={user} />}
         {tab === "compare" && <UserCompare user={user} />}

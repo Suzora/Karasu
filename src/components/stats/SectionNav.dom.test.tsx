@@ -33,6 +33,12 @@ describe("SectionNav", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("shows a section's count beside its name when it has one", () => {
+    renderWithProviders(<SectionNav label="Sections" items={[...items.slice(0, 2), { ...items[2], count: 12 }]} value="overview" onChange={() => {}} />);
+    expect(screen.getByRole("tab", { name: /Tags/ })).toHaveTextContent("12");
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveTextContent(/^Overview$/);
+  });
+
   it("names the current section on the phone's field", () => {
     renderWithProviders(<SectionPicker label="Sections" items={items} value="ratings" onChange={() => {}} />);
     expect(screen.getByRole("button", { name: /Sections: Ratings/ })).toBeInTheDocument();

@@ -2872,9 +2872,9 @@ them away without re-measuring.
   The underline takes the active tab's `color` (a colour the consumer passes,
   the accent without one) and carries `data-keep-colors`, so High Contrast
   keeps it. The media lists left the strip on 2026-10-17 for `StatusNav`, a
-  column on the desktop and a picker on the phone; the profile and the
-  favourites still use it, and the statistics left it for `SectionNav` the
-  same day.
+  column on the desktop and a picker on the phone; the statistics left it
+  for `SectionNav` the same day and the profile on 2026-10-18, and the
+  favourites still use it.
 - **The cover progress line is a border, not a bar.** A straight strip inside
   the cover's rounded clip (`rounded-cover`) had its ends eaten by the corner
   circles; the line is a `border-b` on an inset-0 overlay revealed by
