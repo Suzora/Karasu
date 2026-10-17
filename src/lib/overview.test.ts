@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { entry, media } from "@/test/fixtures";
 import {
+  pagerIndex,
   stackTops,
   weekBounds,
   STRIP_SECS,
@@ -186,5 +187,15 @@ describe("stackTops", () => {
     const tops = stackTops([0.95, 0.96, 0.97], 220, 40);
     expect(tops[1] - tops[0]).toBeGreaterThanOrEqual(40);
     expect(tops[2] - tops[1]).toBeGreaterThanOrEqual(40);
+  });
+});
+
+describe("pagerIndex", () => {
+  it("names the page whose start is nearest, clamped to the pages there are", () => {
+    expect(pagerIndex(0, 360, 2)).toBe(0);
+    expect(pagerIndex(170, 360, 2)).toBe(0);
+    expect(pagerIndex(190, 360, 2)).toBe(1);
+    expect(pagerIndex(900, 360, 2)).toBe(1);
+    expect(pagerIndex(50, 0, 2)).toBe(0);
   });
 });

@@ -470,6 +470,8 @@ export const en = {
     nothingWatching: "Nothing in flight.",
     currentSeason: "Browse the current season",
     showAll: "Show all →",
+    pageOverview: "Overview",
+    pageMine: "Stats and activity",
     runningShare: "of what's running",
     heroLabel: "This season's most popular anime",
     birthdays: "Birthdays today",

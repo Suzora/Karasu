@@ -1,5 +1,5 @@
 {
-  "rule": "Set by the maintainer on 2026-10-12 with room to grow: the window's script at 500 KiB, all script at 700 KiB, the largest lazy chunk 3 % over its reading, the stylesheet unchanged; measured is the latest reading, and raising a budget needs its reason in the commit.",
+  "rule": "Set by the maintainer on 2026-10-12 with room to grow: the window's script at 500 KiB, all script at 700 KiB, the largest lazy chunk 3 % over its reading, the stylesheet unchanged; measured is the latest reading, and raising a budget needs its reason in the commit. On 2026-10-17 the maintainer raised the stylesheet's budget to 50 KiB for the redesign, whose screens bring new utilities.",
   "measured": {
     "date": "2026-10-12",
     "target": "safari15, the Linux and Android build",
@@ -12,7 +12,7 @@
   },
   "budget": {
     "initialJs": 512000,
-    "initialCss": 18432,
+    "initialCss": 51200,
     "largestLazy": 30720,
     "totalJs": 716800
   }

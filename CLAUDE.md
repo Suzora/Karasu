@@ -81,8 +81,9 @@ src/
                      Heatmap
     dashboard/       the parts the Overview draws — banner with search and
                      48-hour strip, list shelves, continue row, week plan,
-                     coming up, and the right rail (detection, figures, own
-                     activity, birthdays); every decision is `lib/overview`
+                     coming up, the right rail (detection, figures, own
+                     activity, birthdays) and the phone's two-page pager;
+                     every decision is `lib/overview`
     social/          the parts UserProfile, Social and Thread draw — the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
@@ -866,7 +867,9 @@ The stylesheet's stays at 18, since 3 % over its reading rounds up past it.
 On 2026-10-12 the day's sync panel, entry dialog and copy took the figures to
 329.8, 17.9, 28.4 and 527.1 KiB, and the maintainer set the window's budget to
 500 KiB and all script to 700, with the largest lazy chunk at 30, to leave room
-for a while. A raise names its reason in the commit) — then
+for a while. On 2026-10-17 the redesign took the stylesheet to 18.2 KiB, and
+the maintainer set its budget to 50 KiB for the screens still to come. A
+raise names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
 with warnings denied, **cargo deny** (advisories, licences, bans, sources

@@ -472,6 +472,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     nothingWatching: "Nichts unterwegs.",
     currentSeason: "Aktuelle Saison ansehen",
     showAll: "Alle anzeigen →",
+    pageOverview: "Übersicht",
+    pageMine: "Statistik und Aktivitäten",
     runningShare: "vom Laufenden",
     heroLabel: "Beliebteste Anime dieser Saison",
     birthdays: "Geburtstage heute",

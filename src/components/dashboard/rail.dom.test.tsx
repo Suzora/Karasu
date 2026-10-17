@@ -118,4 +118,11 @@ describe("OverviewRail before and without data", () => {
     expect(aside).toHaveClass("overflow-y-auto");
     expect(screen.getByText("dashboard.ownActivity").closest("section")).toHaveClass("min-h-40");
   });
+
+  it("never scrolls the feed sideways, whatever its buttons' hit areas reach", () => {
+    signIn();
+    renderWithProviders(<OverviewRail userId={1} anime={[]} manga={[]} settled beside ready />);
+    const section = screen.getByText("dashboard.ownActivity").closest("section")!;
+    expect(section.querySelector(".overflow-y-auto")).toHaveClass("overflow-x-hidden");
+  });
 });

@@ -829,6 +829,19 @@ nav a {
     linear-gradient(0deg, color-mix(in srgb, var(--color-on-cover) 50%, transparent), transparent 60%);
 }
 
+/* One page of the phone Overview's pager, narrower than the screen so the next page peeks in at the edge. */
+@utility w-pager-page {
+  width: calc(100% - 1.75rem);
+}
+
+/* The pager's dots, floating just above the phone's bottom bar so they stay in reach while the page scrolls. */
+@utility pager-dots {
+  position: fixed;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(max(env(safe-area-inset-bottom), 0.375rem) + 4.25rem);
+}
+
 /* A label in sentence case, the 2026-10-17 foundation's answer to the uppercase eyebrow; its colour stays a class. */
 @utility label-text {
   font-family: var(--font-sans);

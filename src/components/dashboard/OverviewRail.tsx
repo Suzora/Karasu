@@ -68,7 +68,7 @@ export function OverviewRail({
           )}
         </div>
         {anilist ? (
-          <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <div className="-mx-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4">
             <ActivityFeed
               queryKey={["social", "activities", userId]}
               source={{ userId }}

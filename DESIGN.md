@@ -422,7 +422,8 @@ the list shelf (a status's titles as cover spines on a rule in the status
 colour), the continue card (one tick per episode up to 40, a bar past it,
 and a progress ring round +1), the week plan (days as columns, the hour
 downwards, a now line; a list of days below 40 rem) and the banner's
-48-hour strip. Text on the banner and the cards is `on-cover-edge` on the
+48-hour strip, and on the phone the pager (two pages, the next peeking in,
+floating dots above the bottom bar). Text on the banner and the cards is `on-cover-edge` on the
 `on-cover` scrim (`banner-scrim`) in every look.
 
 ## Libraries
@@ -1006,3 +1007,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
     floating detection window steps back there on the desktop; everywhere
     else it stays the shell's. His own activity costs one uncached request
     per visit, waits for the lists, and pages by button only.
+- **2026-10-17:** On the phone the Overview is two pages side by side: the
+  middle as it was, then the statistics and his own activity (the detected
+  title stays in the dock above the bottom bar). The next page peeks in at
+  the right edge, and floating dots above the bottom bar say which page is
+  showing and switch on a tap (C of three mockups, over A, dots with the
+  page's name at the top, and B, two named tabs at the top). His words: the
+  statistics sat too far down the single column.

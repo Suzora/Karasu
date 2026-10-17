@@ -83,6 +83,14 @@ describe("Dashboard", () => {
     expect(screen.queryByRole("region", { name: "dashboard.nowPlaying" })).toBeNull();
   });
 
+  it("puts the statistics and activity on a second page on the phone", async () => {
+    phone = true;
+    renderWithProviders(<Dashboard />);
+    const stats = await screen.findByText("dashboard.stats");
+    expect(screen.getByRole("region", { name: "dashboard.pageMine" })).toContainElement(stats);
+    expect(screen.getByRole("region", { name: "dashboard.pageOverview" })).toContainElement(screen.getByText("dashboard.myLists"));
+  });
+
   it("renders empty lists without a NaN anywhere", async () => {
     lists.mockImplementation(async () => listResult([]));
     const { container } = renderWithProviders(<Dashboard />);

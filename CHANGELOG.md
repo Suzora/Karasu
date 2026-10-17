@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 317bb4e -->
+<!-- generated-through: 0ff2336 -->
 
 ### Added
 
@@ -91,6 +91,7 @@ tag time is then optional rather than load-bearing.
 
 - Karasu has a calmer look: surfaces without hairlines or frames, labels in normal case instead of capitals, the current page marked by a pill, and rounder corners; high contrast outlines every surface instead.
 - The Overview is rebuilt: a greeting with search and the next 48 hours over the season's art, your lists as shelves, one row to continue watching and reading, this week as a timetable, and a column with what is playing, your statistics, your own activity and today's birthdays.
+- On the phone, the Overview's statistics and your activity are one swipe to the right, with dots above the bottom bar to show and switch the page.
 
 ### Security
 
