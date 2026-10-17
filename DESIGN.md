@@ -1037,3 +1037,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   count and ticks on the picture, no status frame), and the toolbar becomes
   one search bar. A touch cover keeps the +1 alone, since a long press
   already reaches the editor and two circles hid the score.
+- **2026-10-17:** The season page takes a mix of two rounds of mockups: B's
+  format column with C's broadcast cards (round one: A, a season banner with
+  format chips, and C alone were passed over), and in round two A, the year
+  with arrows at the top of the column and the four seasons as a 2×2 field
+  beneath (over B, a grid of years and seasons, and C, a year list with slim
+  rows). Each card carries cover, title, format, episodes, score, up to three
+  genres, the next episode as a countdown and the list state or a Plan button.
+  On the phone the column becomes the year with arrows, the seasons as one
+  row and a format field above the cards.

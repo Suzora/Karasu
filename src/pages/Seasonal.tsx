@@ -3,45 +3,32 @@ import { Loader } from "@/components/ui/loader";
 import { useNavigate } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useUrlState } from "@/hooks/useUrlState";
-import { parsePeriod, shiftSeason, writePeriod, type Period } from "@/lib/seasonView";
+import {
+  parsePeriod,
+  parseSeasonFilters,
+  seasonSections,
+  writePeriod,
+  writeSeasonFilters,
+  yearStep,
+  type Period,
+  type SeasonFilters,
+} from "@/lib/seasonView";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Clapperboard,
-  Disc3,
-  Film,
-  MonitorPlay,
-  Shapes,
-  Sparkles,
-  Timer,
-  Tv,
-} from "lucide-react";
+import { Shapes } from "lucide-react";
 import { currentSeason, seasonalAnime } from "@/api/queries";
 import { isTauri } from "@/api/anilist";
-import MediaCard from "@/components/media/MediaCard";
-import SeasonPicker from "@/components/ui/season-picker";
-import { Button } from "@/components/ui/button";
+import SeasonCard from "@/components/media/SeasonCard";
+import { FORMAT_ICON, FormatNav, FormatPicker, SeasonField, YearStepper } from "@/components/season/SeasonNav";
 import { adultQueryArg, isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import { EmptyState, ErrorState, TickMarks } from "@/components/EmptyState";
 import { SectionHeader } from "@/components/ui/section-header";
-import { flattenGroups, groupByFormat } from "@/lib/formatGroups";
+import { flattenGroups } from "@/lib/formatGroups";
 import { formatLabel } from "@/lib/format";
-
-/** One glyph per format, so the sections are scannable without reading. */
-const FORMAT_ICON: Record<string, typeof Tv> = {
-  TV: Tv,
-  MOVIE: Film,
-  TV_SHORT: Timer,
-  SPECIAL: Sparkles,
-  OVA: Disc3,
-  ONA: MonitorPlay,
-  MUSIC: Clapperboard,
-};
 
 /** A bare URL means the season it is now, so an entry left across a season's turn reopens on the new one. */
 const readPeriod = (params: URLSearchParams): Period => parsePeriod(params, currentSeason());
@@ -49,8 +36,11 @@ const writeSeasonal = (prev: URLSearchParams, p: Period): URLSearchParams => wri
 
 export default function Seasonal() {
   const { t } = useTranslation();
-  // In the URL, so Back from a title lands on the season it was opened from, not the current one.
+  const phone = usePhoneShell();
+  // In the URL, so Back from a title lands on the season and the filters it was opened from.
   const [{ season, year }, setPeriod] = useUrlState(readPeriod, writeSeasonal);
+  const [filters, setFilters] = useUrlState(parseSeasonFilters, writeSeasonFilters);
+  const changeFilters = (patch: Partial<SeasonFilters>) => setFilters((f) => ({ ...f, ...patch }));
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollMemory(scrollRef, "seasonal");
 
@@ -64,11 +54,9 @@ export default function Seasonal() {
     staleTime: 30 * 60 * 1000,
   });
 
-  // Grouped by format, then flattened back, so the roving index counts in the order the eye reads.
-  const groups = useMemo(
-    () => groupByFormat((data?.media ?? []).filter((m) => !isBlocked(m, level))),
-    [data, level],
-  );
+  const visible = useMemo(() => (data?.media ?? []).filter((m) => !isBlocked(m, level)), [data, level]);
+  const { groups, counts, total } = useMemo(() => seasonSections(visible, filters), [visible, filters]);
+  // Grouped, then flattened back, so the roving index counts in the order the eye reads.
   const results = useMemo(() => flattenGroups(groups), [groups]);
   const sections = useMemo(() => groups.map((g) => g.items.length), [groups]);
 
@@ -86,77 +74,65 @@ export default function Seasonal() {
     },
   });
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="px-8 pt-6">
-        <h1 className="sr-only">{t("seasonal.title")}</h1>
-        <div className="flex items-center gap-2">
-          <SeasonPicker season={season} year={year} onPick={setPeriod} />
-          <span className="section-rule" />
-          <Button
-            variant="ghost"
-            size="iconControl"
-            onClick={() => setPeriod((p) => shiftSeason(p, -1))}
-            aria-label={t("seasonal.prev")}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="iconControl"
-            onClick={() => setPeriod((p) => shiftSeason(p, 1))}
-            aria-label={t("seasonal.next")}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+  const stepYear = (step: 1 | -1) => setPeriod((p) => yearStep(p, step));
+  const pickSeason = (s: Period["season"]) => setPeriod((p) => ({ ...p, season: s }));
+  const formatProps = { counts, total, filters, onChange: changeFilters };
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
-        {error && (
-          <ErrorState
-            error={error}
-            onRetry={() => refetch()}
-            inline={groups.length > 0}
-            className={groups.length > 0 ? "mb-4" : undefined}
-          />
-        )}
-        {isLoading && <Loader label={t("seasonal.loading")} />}
-        {!isLoading && !error && results.length === 0 && (
-          // Four verticals rather than the schedule's seven: a season is a shorter unit than a week.
-          <EmptyState visual={<TickMarks count={4} />} title={t("seasonal.empty")} />
-        )}
-        {groups.length > 0 && (
-          <div className="space-y-7">
-            {groups.map((group) => (
-              <section key={group.format ?? "other"}>
-                <SectionHeader
-                  icon={FORMAT_ICON[group.format ?? ""] ?? Shapes}
-                  title={
-                    group.format
-                      ? formatLabel(group.format, t)
-                      : t("seasonal.otherFormats")
-                  }
-                  meta={String(group.items.length)}
-                  className="mb-3"
-                />
-                {/* Only the first section is measured: every section shares the `media-grid` track. */}
-                <div
-                  ref={group.offset === 0 ? gridRef : undefined}
-                  className="media-grid gap-x-4 gap-y-6"
-                >
-                  {group.items.map((m, i) => (
-                    <MediaCard
-                      key={m.id}
-                      media={m}
-                      focused={group.offset + i === focus}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+  const body = (
+    <>
+      {error && (
+        <ErrorState error={error} onRetry={() => refetch()} inline={groups.length > 0} className={groups.length > 0 ? "mb-4" : undefined} />
+      )}
+      {isLoading && <Loader label={t("seasonal.loading")} />}
+      {!isLoading && !error && results.length === 0 && (
+        // Four verticals rather than the schedule's seven: a season is a shorter unit than a week.
+        <EmptyState visual={<TickMarks count={4} />} title={t(total > 0 ? "seasonal.emptyFiltered" : "seasonal.empty")} />
+      )}
+      {groups.length > 0 && (
+        <div className="@container space-y-7">
+          {groups.map((group) => (
+            <section key={group.format ?? "other"}>
+              <SectionHeader
+                icon={FORMAT_ICON[group.format ?? ""] ?? Shapes}
+                title={group.format ? formatLabel(group.format, t) : t("seasonal.otherFormats")}
+                meta={String(group.items.length)}
+                className="mb-3"
+              />
+              {/* Only the first section is measured: every section shares one track list. */}
+              <div ref={group.offset === 0 ? gridRef : undefined} className="grid grid-cols-1 gap-3 @2xl:grid-cols-2 @6xl:grid-cols-3">
+                {group.items.map((m, i) => (
+                  <SeasonCard key={m.id} media={m} focused={group.offset + i === focus} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  if (phone) {
+    return (
+      <div ref={scrollRef} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
+        <h1 className="sr-only">{t("seasonal.title")}</h1>
+        <YearStepper year={year} onStep={stepYear} />
+        <SeasonField season={season} onPick={pickSeason} row />
+        <FormatPicker {...formatProps} />
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full">
+      <h1 className="sr-only">{t("seasonal.title")}</h1>
+      <aside className="w-60 shrink-0 space-y-4 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+        <YearStepper year={year} onStep={stepYear} />
+        <SeasonField season={season} onPick={pickSeason} />
+        <FormatNav {...formatProps} />
+      </aside>
+      <div ref={scrollRef} className="min-w-0 flex-1 overflow-y-auto pb-12 pl-2 pr-8 pt-6 float-clear">
+        {body}
       </div>
     </div>
   );

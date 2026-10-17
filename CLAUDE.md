@@ -89,6 +89,10 @@ src/
     social/          the parts UserProfile, Social and Thread draw — the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
+    season/          the season page's column — the year with its arrows,
+                     the four seasons as one choice, the formats with their
+                     counts and the two switches, and the phone's format
+                     field; the filters live in the URL (`lib/seasonView`)
     search/          the parts Search draws with nothing typed — the browse
                      sections, the ranked top list and the portrait cards
     EmptyState · Skeleton · KarasuMark · FilteredNotice · ErrorBoundary ·
@@ -104,7 +108,7 @@ src/
                      useBackClose, useNotifBadge, useNotifications,
                      useDialogFocus,
                      useGridRoving, useSyncStatus, useManualSync,
-                     usePullToSync, useActionRunner, useCachedMedia,
+                     usePullToSync, useActionRunner, useCachedMedia, useDiscoveryEntry,
                      useDetectionMedia, useDetectionDrag, useElementSize,
                      useTabSwipe, useSeasonArt, useSettingLanding,
                      useFlickDismiss, useCustomListAdmin, useUrlState,

@@ -93,8 +93,9 @@ describe("Seasonal grouping", () => {
     });
     renderWithProviders(<Seasonal />);
     await waitFor(() => expect(headings()).toEqual(["format.TV", "format.MOVIE"]));
-    expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
+    const section = (name: string) => screen.getByRole("heading", { level: 2, name: new RegExp(name) }).closest("section")!;
+    expect(within(section("format.TV")).getByText("3")).toBeInTheDocument();
+    expect(within(section("format.MOVIE")).getByText("1")).toBeInTheDocument();
   });
 
   /** The badge only appears with the filter off, since `adultQueryArg` excludes adult titles server-side otherwise. */
@@ -145,7 +146,25 @@ describe("Seasonal in the URL", () => {
     expect(url().dataset.nav).toBe("POP");
   });
 
-  it("writes explicit parameters for any other season, and a bare URL again on the way back", async () => {
+  it("keeps the season and moves the year with the year arrows, and a bare URL again on the way back", async () => {
+    const user = userEvent.setup({ delay: null });
+    seasonal.mockResolvedValue({ media: [] });
+    renderWithProviders(
+      <>
+        <Seasonal />
+        <Url />
+      </>,
+      { route: "/seasonal" },
+    );
+    const now = currentSeason();
+    await user.click(screen.getByRole("button", { name: "seasonal.nextYear" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(`?season=${now.season}&year=${now.year + 1}`));
+    expect(screen.getByTestId("url").dataset.nav).toBe("REPLACE");
+    await user.click(screen.getByRole("button", { name: "seasonal.prevYear" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toBeEmptyDOMElement());
+  });
+
+  it("writes explicit parameters for another season picked in the field", async () => {
     const user = userEvent.setup({ delay: null });
     seasonal.mockResolvedValue({ media: [] });
     renderWithProviders(
@@ -160,13 +179,39 @@ describe("Seasonal in the URL", () => {
     const i = order.indexOf(now.season);
     const next = i === 3 ? `season=WINTER&year=${now.year + 1}` : `season=${order[i + 1]}&year=${now.year}`;
 
-    await user.click(screen.getByRole("button", { name: "seasonal.next" }));
-    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(`?${next}`));
+    const other = order[(i + 1) % 4];
+    await user.click(screen.getByRole("radio", { name: `season.${other}` }));
+    await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(`?season=${other}&year=${now.year}`));
     expect(screen.getByTestId("url").dataset.nav).toBe("REPLACE");
+    void next;
 
-    await user.click(screen.getByRole("button", { name: "seasonal.prev" }));
+    await user.click(screen.getByRole("radio", { name: `season.${now.season}` }));
     await waitFor(() => expect(screen.getByTestId("url")).toBeEmptyDOMElement());
-    expect(screen.getByTestId("url").dataset.nav).toBe("REPLACE");
+  });
+});
+
+describe("Seasonal filters", () => {
+  it("narrows to one format from the column and names it in the URL", async () => {
+    const user = userEvent.setup({ delay: null });
+    seasonal.mockResolvedValue({ media: [media("TV"), media("MOVIE"), media("TV")] });
+    renderWithProviders(
+      <>
+        <Seasonal />
+        <Url />
+      </>,
+      { route: "/seasonal" },
+    );
+    await waitFor(() => expect(headings()).toEqual(["format.TV", "format.MOVIE"]));
+    await user.click(screen.getByRole("button", { name: /^format\.MOVIE/ }));
+    await waitFor(() => expect(headings()).toEqual(["format.MOVIE"]));
+    expect(screen.getByTestId("url")).toHaveTextContent("?format=MOVIE");
+  });
+
+  it("leaves out what is on the list, and says so when nothing is left", async () => {
+    seasonal.mockResolvedValue({ media: [media("TV", { mediaListEntry: { id: 1, status: "CURRENT" } as never })] });
+    renderWithProviders(<Seasonal />, { route: "/seasonal?unlisted=1" });
+    await screen.findByText("seasonal.emptyFiltered");
+    expect(document.querySelectorAll("[data-media-id]")).toHaveLength(0);
   });
 });
 
