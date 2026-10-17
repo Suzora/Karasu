@@ -80,54 +80,38 @@ export function DetailSkeleton() {
       ))}
     </div>
   );
+  const band = <Shimmer index={10} className="h-44 w-full rounded-panel" />;
   return (
     <Busy>
-      {/* A query container of its own, as on the page, so the header's height reads the same width. */}
-      <div className="@container">
-        <div style={frame.header}>
-          <Shimmer index={0} className="size-full rounded-none" />
-        </div>
-      </div>
-      <div className={frame.column}>
-        <div className={frame.row}>
-          <Shimmer index={1} className={cn(frame.cover, "rounded-cover")} />
-          <div className={frame.heading}>
-            {/* Its own formatting context, so beside the phone's floated cover the bars narrow instead of running under it. */}
-            <div className="flow-root">
-              <Shimmer index={2} className={phone ? "h-6 w-full" : "h-6 w-2/3"} />
-              {phone && <Shimmer index={3} className="mt-2 h-6 w-3/4" />}
-              <Shimmer index={4} className="mt-3 h-4 w-2/5" />
-            </div>
-            {phone ? (
-              <div className={frame.facts}>
-                <div className="space-y-2.5 py-0.5">
-                  <Shimmer index={5} className="h-3.5 w-full" />
-                  <Shimmer index={6} className="h-3.5 w-1/3" />
-                </div>
-                {chips}
-                <div className="flex gap-2">
-                  <Shimmer index={10} className="h-11 min-w-0 flex-1 rounded-panel" />
-                  <Shimmer index={11} className="size-11 shrink-0 rounded-panel" />
-                  <Shimmer index={12} className="size-11 shrink-0 rounded-panel" />
-                </div>
-              </div>
-            ) : (
-              <>
-                <Shimmer index={5} className="mt-3.5 h-9 w-40 rounded-control" />
-                <Shimmer index={6} className="mt-3 h-3.5 w-1/2" />
-                <div className="mt-3">{chips}</div>
-                <div className="mt-2 flex items-center gap-2">
-                  <Shimmer index={10} className="h-7.5 w-24 rounded-control" />
-                  <Shimmer index={11} className="h-3 w-28" />
-                </div>
-              </>
-            )}
+      <div className={frame.hero}>
+        <Shimmer index={0} className="absolute inset-0 size-full rounded-none" />
+        <div className={cn("absolute inset-x-0 bottom-0 flex items-end", phone ? "gap-4 px-4 pb-4" : "mx-auto max-w-6xl px-8 pb-6")}>
+          {phone && <Shimmer index={1} className={cn(frame.cover, "rounded-cover")} />}
+          <div className="min-w-0 flex-1 space-y-2 pb-1">
+            <Shimmer index={2} className={phone ? "h-6 w-full" : "h-8 w-2/3"} />
+            <Shimmer index={4} className="h-4 w-2/5" />
+            <Shimmer index={5} className="h-3.5 w-3/5" />
           </div>
         </div>
+      </div>
+      {phone ? (
         <div className={frame.body}>
+          <div className="space-y-4">
+            {chips}
+            {band}
+          </div>
           <Shimmer index={13} className="h-36 rounded-panel" />
         </div>
-      </div>
+      ) : (
+        <div className={frame.body}>
+          <div className={frame.aside}>
+            <Shimmer index={1} className={cn(frame.cover, "rounded-cover")} />
+            {chips}
+            {band}
+          </div>
+          <Shimmer index={13} className="h-36 rounded-panel" />
+        </div>
+      )}
     </Busy>
   );
 }

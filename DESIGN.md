@@ -1014,3 +1014,17 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   showing and switch on a tap (C of three mockups, over A, dots with the
   page's name at the top, and B, two named tabs at the top). His words: the
   statistics sat too far down the single column.
+- **2026-10-17:** The detail page is rearranged. On the desktop B of three
+  mockups: the title, native title and facts in the banner, a column on the
+  left that stays while the page scrolls (large cover, the progress band with
+  status, ticks and next episode, information, links) and everything else
+  one under the other on the right (over A, tabs under today's header, and
+  C, the Overview's banner card). On the phone his own mix: a tall banner
+  with cover, titles and facts bundled in it, the progress band, then
+  description (with "View franchise"), alternative titles, information, tags,
+  episodes, trailer, other people's lists, the community score, cast and
+  staff, related titles, reviews and external links; tags, trailer and
+  related placed by Claude where his list had none. This supersedes the
+  phone header of 2026-09-25 that floated the cover. Cast, episodes, trend
+  and reviews stay folds that load when opened, since open ones would spend
+  requests on every visit.

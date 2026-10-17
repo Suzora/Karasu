@@ -39,30 +39,28 @@ describe("DetailSkeleton", () => {
   const part = (root: Element, classes: string) =>
     [...root.querySelectorAll("*")].find((el) => classes.split(" ").every((c) => el.classList.contains(c))) ?? null;
 
-  it("takes the page's header height, which follows the width, inside a query container of its own", () => {
-    const { container } = render(<DetailSkeleton />);
-    const header = container.querySelector(".\\@container")?.firstElementChild as HTMLElement;
-    const page = document.createElement("div");
-    Object.assign(page.style, detailFrame(false).header);
-    expect(header.style.height).toContain("100cqw");
-    expect(header.style.height).toBe(page.style.height);
+  it("takes the page's banner height on either shell", () => {
+    const { container, unmount } = render(<DetailSkeleton />);
+    expect(part(container, detailFrame(false).hero)).not.toBeNull();
+    unmount();
+    shell.phone = true;
+    const phone = render(<DetailSkeleton />);
+    expect(part(phone.container, detailFrame(true).hero)).not.toBeNull();
   });
 
-  it("floats the cover on the phone and stands the facts and the action row under it, as the page does", () => {
+  it("puts the cover inside the banner on the phone, as the page does", () => {
     shell.phone = true;
     const { container } = render(<DetailSkeleton />);
     const frame = detailFrame(true);
-    expect(part(container, frame.row)?.firstElementChild).toBe(part(container, frame.cover));
-    const facts = part(container, frame.facts);
-    expect(facts?.parentElement).toBe(part(container, frame.heading));
-    expect(facts?.lastElementChild?.children).toHaveLength(3);
+    expect(part(container, frame.hero)).toContainElement(part(container, frame.cover) as HTMLElement);
+    expect(part(container, frame.body)).not.toBeNull();
   });
 
-  it("keeps the cover beside the heading on the desktop, with nothing standing under it", () => {
+  it("stands the cover at the top of the side column on the desktop", () => {
     const { container } = render(<DetailSkeleton />);
     const frame = detailFrame(false);
-    expect(part(container, frame.row)?.firstElementChild).toBe(part(container, frame.cover));
-    expect(part(container, frame.cover)).not.toHaveClass("float-left");
-    expect(part(container, detailFrame(true).facts)).toBeNull();
+    const aside = part(container, frame.aside);
+    expect(aside?.firstElementChild).toBe(part(container, frame.cover));
+    expect(aside?.parentElement).toBe(part(container, frame.body));
   });
 });

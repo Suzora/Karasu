@@ -67,7 +67,8 @@ src/
                      which owns right-click and long press and renders the context
                      menu or the action sheet over one resolved list of actions
                      (actionIcons/actionLabels are its two lookup tables)
-    media/           anything that renders a title or edits an entry
+    media/           anything that renders a title or edits an entry (the
+                     detail page's DetailHero and ProgressBand among them)
     overlays/        modal flows (confirm, preset, random pick, sign-in merge,
                      profile edit, match picker, favourites, new thread,
                      season split, cover viewer, review composer, what's new)
@@ -2534,17 +2535,14 @@ shape, and the question that follows them.
   blurred, so the colours carry on and nothing repeats. Two fills were tried
   and dropped: a blurred centre crop (its colours did not continue the edge,
   which drew a hard seam top and bottom) and a mirrored copy (it repeats a face
-  or an eye as a ghost). The detail header follows the width below the desktop
-  cap — `min(16rem, 100cqw / 4.75 + 5.5rem)`, a 44 px band above for the back
-  button and one below for the cover — because a fixed 256 px showed a phone
-  an 85 px banner in two thirds blur. The query container sits on a wrapper
-  around the header, never on the page root: containment would make that root
-  the containing block of every `fixed` overlay rendered inside it.
-  `components/media/detailFrame` holds that height and the rest of the
-  header's geometry for the page and `DetailSkeleton` alike: the skeleton had
-  kept the fixed 256 px and the desktop row, so on a 405 px phone the page
-  jumped 83 px when its data arrived (measured on 2026-10-04 with the screens
-  harness's `detail-pending` mock, which holds the query until released).
+  or an eye as a ghost). Since the redesign of 2026-10-17 the detail banner is a fixed `h-72` on the
+  desktop and `h-80` on the phone, where it holds the cover, the titles and the
+  facts, so the picture is shown whole and its blurred edges fill the rest
+  (the earlier width-following height and its 83 px jump are history).
+  `components/media/detailFrame` holds the banner, the body, the side column
+  and the cover for the page and `DetailSkeleton` alike, so the page arrives
+  where the skeleton stood; the screens harness's `detail-pending` mock holds
+  the query to check it.
 - **A title without a banner borrows a relative's, and never shows a blurred
   poster.** AniList adds banners weeks into a season: on 2026-10-04, 31 of the
   Fall 2026 top 50 had none, and the blurred cover the header and the hero drew
@@ -2558,13 +2556,13 @@ shape, and the question that follows them.
   `DETAIL_QUERY` already carried the relations and now asks each for its
   banner, and `SEASON_HERO_QUERY` carries its ten titles' relations, which took
   its answer from 6,850 to 12,838 bytes on a six-hour cache.
-- **The phone's detail header floats the cover.** The title and the native title flow beside it and
-  carry on beneath it when they are longer; every fact — the meta line, genres, the next episode, the
-  action row with the status button — sits below the cover whatever the title's length. Chosen by the
-  maintainer on 2026-09-25 over three rounds of mockups: a short title leaving air beside the cover beats
-  a narrow column that squeezes. `usePhoneShell` picks the layout, so the desktop header is untouched.
-  The status button (`StatusMenu`) is the page's whole entry editor, on the phone in the action row
-  over a sheet and on the desktop under the title over a dropdown; there is no editor card any more.
+- **The detail page stands on a side column on the desktop and one column on the phone** (DESIGN.md,
+  2026-10-17; the floated phone cover of 2026-09-25 is gone). The order of every part below the banner
+  and the progress band is `lib/detailLayout`'s `detailSections`, the one place to change it. The band
+  (`ProgressBand`) holds the status control, a tick per episode and the next episode. Cast, episodes,
+  trend and reviews stay folds that load when opened, so a visit still costs the detail request alone.
+  The status button (`StatusMenu`) is the page's whole entry editor, in the progress band, over a sheet
+  on the phone and a dropdown on the desktop; there is no editor card any more.
   `QuickEditor` saves status, progress steps and the score as they are touched (receipts and Undo come
   from `useListMutations`), a typed count when its field is left or the sheet closes on it, and
   rewatches, tags and notes together behind "More". The score is `CommunityScore`: AniList's own

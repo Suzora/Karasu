@@ -65,10 +65,13 @@ import { backendErrorText } from "@/lib/backendError";
 import { cn } from "@/lib/utils";
 import { characterRoleLabel } from "@/components/media/roleLabel";
 import { MediaBanner } from "@/components/media/MediaBanner";
+import { DetailHero } from "@/components/media/DetailHero";
 import { detailFrame } from "@/components/media/detailFrame";
+import { ProgressBand } from "@/components/media/ProgressBand";
+import { detailSections, type DetailSection } from "@/lib/detailLayout";
 import { bannerSource } from "@/lib/bannerSource";
 import { isListStatus, statusColorVar } from "@/lib/statusColors";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Disclosure, DisclosurePanel } from "@/components/ui/disclosure";
@@ -90,7 +93,6 @@ const ReviewComposerModal = lazy(() =>
 );
 const CoverViewer = lazy(() => import("@/components/overlays/CoverViewer"));
 
-const SQUARE = "size-11 rounded-panel border border-surface-700 bg-surface-900 text-ink-300 hover:border-surface-600 hover:text-ink-100";
 
 export default function AnimeDetail() {
   const { t } = useTranslation();
@@ -104,7 +106,6 @@ export default function AnimeDetail() {
   const profileMode = useAuth((s) => s.mode);
   const viewer = useAuth((s) => s.viewer);
   const phone = usePhoneShell();
-  const frame = detailFrame(phone);
   const [revealed, setRevealed] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
   const coverViewer = usePresence(coverOpen);
@@ -212,285 +213,219 @@ export default function AnimeDetail() {
       !isBlocked(e.node, level),
   );
 
+  const frame = detailFrame(phone);
+  const unit = data.type === "MANGA" ? "chapters" : "episodes";
+  const statusControl = canEdit ? (
+    // Not "Add to list" before the local list has answered whether the title is on it.
+    localPending ? (
+      <Shimmer className="h-11 w-full rounded-panel" />
+    ) : (
+      <div className="flex gap-2">
+        <StatusMenu
+          media={data}
+          entry={entry ?? null}
+          progressLabel={progressLabel}
+          variant={phone ? "sheet" : "dropdown"}
+          className="min-w-0 flex-1"
+        />
+        <FavouriteButton
+          kind={data.type === "MANGA" ? "manga" : "anime"}
+          id={data.id}
+          isFavourite={data.isFavourite}
+          blocked={data.isFavouriteBlocked}
+          square
+        />
+      </div>
+    )
+  ) : (
+    // Without an account there is no list to change, so the title only says it is not on one.
+    <Chip tone="muted" size="xs" className="border-dashed">
+      {t("detail.notOnList")}
+    </Chip>
+  );
+
+  const actions = (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        onClick={() => openUrl(mediaUrl(data.type, data.id))}
+        className="flex items-center gap-1 text-xs text-ink-500 hover:text-accent-400"
+      >
+        {t("detail.openOnAniList")} <ExternalLink className="size-3.5" />
+      </button>
+      {android && (
+        <button
+          onClick={() => void shareText(mediaUrl(data.type, data.id)).catch(() => {})}
+          className="flex items-center gap-1 text-xs text-ink-500 hover:text-accent-400"
+        >
+          {t("ctx.share")} <Share2 className="size-3.5" />
+        </button>
+      )}
+    </div>
+  );
+
+  const band = (
+    <ProgressBand status={statusControl} progress={entry ? entry.progress : null} total={total ?? null} unit={unit}>
+      <NextEpisode data={data} bar={phone} />
+      <TimeLeft data={data} />
+      {canPlay && (
+        <Button className="h-11 w-full rounded-panel" onClick={() => play(data.id)} title={t("common.playNext")}>
+          <Play className="size-4" fill="currentColor" />
+          {t("common.playNext")}
+        </Button>
+      )}
+      {actions}
+    </ProgressBand>
+  );
+
+  const coverImage = (
+    <div className={frame.cover}>
+      {/* The incoming half of the cover-to-hero morph; unconditional because this page shows exactly one cover. */}
+      <img
+        src={coverSrc}
+        alt=""
+        style={{ viewTransitionName: "karasu-hero" }}
+        className={cn("size-full rounded-cover object-cover shadow-float", veiled && "blur-xl")}
+      />
+      {veiled && (
+        <button
+          onClick={() => setRevealed(true)}
+          aria-label={title}
+          className="absolute inset-0 grid place-items-center rounded-cover bg-surface-950/45 text-2xs font-semibold text-ink-100 transition-surface hover:bg-surface-950/30"
+        >
+          <span className="rounded-full bg-surface-900/90 px-2.5 py-1">{t("settings.blurReveal")}</span>
+        </button>
+      )}
+      {/* Only once revealed: a lightbox must not be a way around the blur. */}
+      {!veiled && coverSrc && (
+        <button
+          type="button"
+          onClick={() => setCoverOpen(true)}
+          aria-label={t("detail.viewCover")}
+          className="absolute inset-0 cursor-zoom-in rounded-cover focus-visible:outline-2 focus-visible:outline-accent-500"
+        />
+      )}
+    </div>
+  );
+
+  const sections: Record<DetailSection, ReactNode> = {
+    description: data.description ? (
+      <section>
+        <div className="mb-3 flex items-center">
+          <h2 className="text-lg text-ink-100">{t("detail.description")}</h2>
+          <span className="flex-1" />
+          <Link to={`/franchise/${data.id}`} className={buttonClass("text", "text")}>
+            {t("franchise.view")}
+          </Link>
+        </div>
+        {/* Elements, not dangerouslySetInnerHTML: lib/anilistHtml parses to nodes so no __html string ever exists. */}
+        <p className="max-w-176 text-ui leading-[1.75] text-pretty wrap-anywhere text-ink-300">
+          <RichText nodes={parseAniListHtml(data.description)} />
+        </p>
+      </section>
+    ) : null,
+    altTitles: <AlternativeTitles data={data} />,
+    info: <InformationCard data={data} mainStudios={mainStudios} producers={producers} />,
+    tags: <TagList tags={data.tags ?? []} />,
+    episodes: data.type === "ANIME" && data.status !== "NOT_YET_RELEASED" ? <EpisodesSection mediaId={data.id} /> : null,
+    trailer: data.trailer?.id ? (
+      <Card>
+        <CardTitle>{t("detail.trailer")}</CardTitle>
+        {/* No img: the thumbnail is on a third-party host img-src refuses, and widening it would leak the user's IP. */}
+        <button
+          onClick={() => openUrl(trailerUrl(data.trailer!))}
+          aria-label={t("detail.trailerPlay")}
+          className="group mt-3 grid aspect-video w-full max-w-md place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
+        >
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
+            <Play fill="currentColor" className="size-5 text-ink-100" />
+          </span>
+        </button>
+      </Card>
+    ) : null,
+    statuses: <CommunitySection data={data} only="statuses" />,
+    scores: <CommunitySection data={data} only="scores" />,
+    cast: <CastSection mediaId={data.id} />,
+    related:
+      relatedEdges.length > 0 ? (
+        <section>
+          <div className="mb-3 flex items-center">
+            <h2 className="text-lg text-ink-100">{t("detail.related")}</h2>
+            <span className="flex-1" />
+            <Link to={`/franchise/${data.id}`} className={buttonClass("text", "text")}>
+              {t("franchise.view")}
+            </Link>
+          </div>
+          {/* Wraps instead of scrolling sideways: there is room for the whole franchise. */}
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-4">
+            {relatedEdges.map((e) => (
+              <Link key={`${e.relationType}-${e.node.id}`} to={`/media/${e.node.id}`} className="group block">
+                {/* The frame clips a veiled cover's blur to its own corners. */}
+                <div className="aspect-2/3 overflow-hidden rounded-cover transition-transform group-hover:-translate-y-1">
+                  <img
+                    src={e.node.coverImage.large ?? ""}
+                    alt=""
+                    loading="lazy"
+                    className={cn("size-full object-cover", shouldBlur(e.node, level, blurAdult) && "veil")}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-accent-400">{t(`relation.${e.relationType}`, { defaultValue: e.relationType })}</p>
+                <p className="line-clamp-2 text-xs text-ink-300">{displayTitle(e.node.title)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null,
+    trend: <TrendSection mediaId={data.id} />,
+    reviews: <ReviewsSection mediaId={data.id} />,
+    links: <LinkList links={data.externalLinks ?? []} />,
+  };
+  const layout = detailSections(phone);
+  const draw = (ids: DetailSection[]) => ids.map((id) => sections[id] && <div key={id} className="min-w-0">{sections[id]}</div>);
+
   return page(
     <>
       {/* The query container sits here, not on the page, since containment would pin the page's fixed overlays to it. */}
       <div className="@container">
-        <div className="relative" style={frame.header}>
-          <MediaBanner source={banner} veiled={veiled} />
-          {/* A short fade into the page, so the contained banner stays whole above it. */}
-          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface-950 to-transparent" />
-        </div>
-      </div>
-
-      <div className={frame.column}>
-        <div className={frame.row}>
-          {/* The incoming half of the cover-to-hero morph; unconditional because this page shows exactly one cover. */}
-          <div className={frame.cover}>
-            <img
-              src={coverSrc}
-              alt=""
-              style={{ viewTransitionName: "karasu-hero" }}
-              className={cn(
-                "h-57 w-38 rounded-cover border border-surface-700 object-cover shadow-float",
-                veiled && "blur-xl",
-              )}
-            />
-            {veiled && (
-              <button
-                onClick={() => setRevealed(true)}
-                aria-label={title}
-                className="absolute inset-0 grid place-items-center rounded-cover bg-surface-950/45 text-2xs font-semibold text-ink-100 transition-surface hover:bg-surface-950/30"
-              >
-                <span className="rounded-full bg-surface-900/90 px-2.5 py-1">
-                  {t("settings.blurReveal")}
-                </span>
-              </button>
-            )}
-            {/* Only once revealed: a lightbox must not be a way around the blur. */}
-            {!veiled && coverSrc && (
-              <button
-                type="button"
-                onClick={() => setCoverOpen(true)}
-                aria-label={t("detail.viewCover")}
-                className="absolute inset-0 cursor-zoom-in rounded-cover focus-visible:outline-2 focus-visible:outline-accent-500"
-              />
-            )}
-          </div>
-          {coverViewer.mounted && (
-            <Suspense fallback={null}>
-              <CoverViewer
-                src={coverSrc}
-                alt={title}
-                leaving={coverViewer.leaving}
-                onClose={() => setCoverOpen(false)}
-              />
-            </Suspense>
-          )}
-          <div className={frame.heading}>
-            <h1 className={cn("text-heading text-ink-100", isNativeLine(data.title, title) && "font-brand-jp")}>
-              {title}
-            </h1>
-            {/* Native first, romaji only as a fallback: the Japanese face is part of the app's identity. */}
-            {subtitle &&
-              (subtitle.native ? (
-                <p className="font-brand-jp text-base text-ink-500">{subtitle.text}</p>
-              ) : (
-                <p className="text-sm text-ink-500">{subtitle.text}</p>
-              ))}
-            {phone ? (
-              <div className={frame.facts}>
-                <MetaLine data={data} studios={mainStudios.map((s) => s.name)} />
-                <GenreChips genres={data.genres} />
-                <NextEpisode data={data} bar />
-                <TimeLeft data={data} />
-                <div className="flex gap-2">
-                  {canEdit &&
-                    (localPending ? (
-                      // Not "Add to list" before the local list has answered whether the title is on it.
-                      <Shimmer className="h-11 flex-1 rounded-panel" />
-                    ) : (
-                      <StatusMenu
-                        media={data}
-                        entry={entry ?? null}
-                        progressLabel={progressLabel}
-                        variant="sheet"
-                        className="min-w-0 flex-1"
-                      />
-                    ))}
-                  <FavouriteButton
-                    kind={data.type === "MANGA" ? "manga" : "anime"}
-                    id={data.id}
-                    isFavourite={data.isFavourite}
-                    blocked={data.isFavouriteBlocked}
-                    square
-                  />
-                  <IconButton
-                    onClick={() => openUrl(mediaUrl(data.type, data.id))}
-                    aria-label={t("detail.openOnAniList")}
-                    title={t("detail.openOnAniList")}
-                    className={SQUARE}
-                  >
-                    <ExternalLink className="size-5" />
-                  </IconButton>
-                  {android && (
-                    <IconButton
-                      onClick={() => void shareText(mediaUrl(data.type, data.id)).catch(() => {})}
-                      aria-label={t("ctx.share")}
-                      title={t("ctx.share")}
-                      className={SQUARE}
-                    >
-                      <Share2 className="size-5" />
-                    </IconButton>
-                  )}
-                </div>
-                {canPlay && (
-                  <Button className="h-11 w-full rounded-panel" onClick={() => play(data.id)} title={t("common.playNext")}>
-                    <Play className="size-4" fill="currentColor" />
-                    {t("common.playNext")}
-                  </Button>
-                )}
-              </div>
+        <DetailHero
+          phone={phone}
+          banner={<MediaBanner source={banner} veiled={veiled} />}
+          cover={coverImage}
+          title={<h1 className={cn("leading-snug", phone ? "text-xl" : "text-title", isNativeLine(data.title, title) && "font-brand-jp")}>{title}</h1>}
+          subtitle={
+            subtitle &&
+            (subtitle.native ? (
+              <p className="font-brand-jp text-sm text-on-cover-edge/80">{subtitle.text}</p>
             ) : (
-              <>
-                {canEdit ? (
-                  // undefined from useCachedEntry means not loaded yet as well as not listed, so offer nothing until it resolves.
-                  !localPending && (
-                    <StatusMenu
-                      media={data}
-                      entry={entry ?? null}
-                      progressLabel={progressLabel}
-                      variant="dropdown"
-                      className="mt-2.5"
-                    />
-                  )
-                ) : (
-                  // Without an account there is no list to change, so the title only says it is not on one.
-                  <p className="mt-2.5">
-                    <Chip tone="muted" size="xs" className="border-dashed">
-                      {t("detail.notOnList")}
-                    </Chip>
-                  </p>
-                )}
-                <MetaLine data={data} studios={mainStudios.map((s) => s.name)} className="mt-2.5" />
-                <GenreChips genres={data.genres} className="mt-2" />
-                <TimeLeft data={data} className="mt-2" />
-                <NextEpisode data={data} className="mt-2" />
-                {canPlay && (
-                  <Button
-                    className="mt-3"
-                    onClick={() => play(data.id)}
-                    title={t("common.playNext")}
-                  >
-                    <Play className="size-4" fill="currentColor" />
-                    {t("common.playNext")}
-                  </Button>
-                )}
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <FavouriteButton
-                    kind={data.type === "MANGA" ? "manga" : "anime"}
-                    id={data.id}
-                    isFavourite={data.isFavourite}
-                    blocked={data.isFavouriteBlocked}
-                  />
-                  <button
-                    onClick={() => openUrl(mediaUrl(data.type, data.id))}
-                    className="flex items-center gap-1 text-xs text-ink-500 hover:text-accent-400"
-                  >
-                    {t("detail.openOnAniList")} <ExternalLink className="size-3.5" />
-                  </button>
-                  {android && (
-                    <button
-                      onClick={() => void shareText(mediaUrl(data.type, data.id)).catch(() => {})}
-                      className="flex items-center gap-1 text-xs text-ink-500 hover:text-accent-400"
-                    >
-                      {t("ctx.share")} <Share2 className="size-3.5" />
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className={frame.body}>
-          <div className="min-w-0 space-y-6">
-            {data.description && (
-              <Card>
-                <CardTitle>{t("detail.description")}</CardTitle>
-                {/* Elements, not dangerouslySetInnerHTML: lib/anilistHtml parses to nodes so no __html string ever exists. */}
-                <p className="mt-3 max-w-176 text-ui leading-[1.75] text-pretty wrap-anywhere text-ink-300">
-                  <RichText nodes={parseAniListHtml(data.description)} />
-                </p>
-              </Card>
-            )}
-
-            <CommunitySection data={data} />
-
-            {data.type === "ANIME" && data.status !== "NOT_YET_RELEASED" && (
-              <EpisodesSection mediaId={data.id} />
-            )}
-
-            <TrendSection mediaId={data.id} />
-
-            <ReviewsSection mediaId={data.id} />
-
-            {data.trailer?.id && (
-              <Card>
-                <CardTitle>{t("detail.trailer")}</CardTitle>
-                {/* No img: the thumbnail is on a third-party host img-src refuses, and widening it would leak the user's IP. */}
-                <button
-                  onClick={() => openUrl(trailerUrl(data.trailer!))}
-                  aria-label={t("detail.trailerPlay")}
-                  className="group mt-3 grid aspect-video w-full max-w-md place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
-                >
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
-                    <Play fill="currentColor" className="size-5 text-ink-100" />
-                  </span>
-                </button>
-              </Card>
-            )}
-
-          </div>
-
-          <div className="min-w-0 space-y-6">
-            <InformationCard
-              data={data}
-              mainStudios={mainStudios}
-              producers={producers}
-            />
-            <AlternativeTitles data={data} />
-            <TagList tags={data.tags ?? []} />
-            <LinkList links={data.externalLinks ?? []} />
-          </div>
-
-          <div className="2xl:col-span-2">
-            <CastSection mediaId={data.id} />
-          </div>
-
-          {relatedEdges.length > 0 && (
-            <div className="2xl:col-span-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>{t("detail.related")}</CardTitle>
-                <Link
-                  to={`/franchise/${data.id}`}
-                  className="text-xs text-accent-400 hover:underline"
-                >
-                  {t("franchise.view")}
-                </Link>
-              </div>
-              {/* Wraps instead of scrolling sideways: across both columns there is room for the whole franchise. */}
-              <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-4">
-                {relatedEdges.map((e) => (
-                  <Link
-                    key={`${e.relationType}-${e.node.id}`}
-                    to={`/media/${e.node.id}`}
-                    className="group block"
-                  >
-                    {/* The same lift as the trailer thumbnail; the frame clips a veiled cover's blur to its own corners. */}
-                    <div className="aspect-[2/3] overflow-hidden rounded-control transition-transform group-hover:-translate-y-1">
-                      <img
-                        src={e.node.coverImage.large ?? ""}
-                        alt=""
-                        loading="lazy"
-                        className={cn("size-full object-cover", shouldBlur(e.node, level, blurAdult) && "veil")}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-accent-400">
-                      {t(`relation.${e.relationType}`, {
-                        defaultValue: e.relationType,
-                      })}
-                    </p>
-                    <p className="line-clamp-2 text-xs text-ink-300">
-                      {displayTitle(e.node.title)}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+              <p className="text-sm text-on-cover-edge/80">{subtitle.text}</p>
+            ))
+          }
+          meta={<MetaLine data={data} studios={mainStudios.map((s) => s.name)} onCover />}
+        />
       </div>
+      {coverViewer.mounted && (
+        <Suspense fallback={null}>
+          <CoverViewer src={coverSrc} alt={title} leaving={coverViewer.leaving} onClose={() => setCoverOpen(false)} />
+        </Suspense>
+      )}
+      {phone ? (
+        <div className={frame.body}>
+          <div className="space-y-4">
+            <GenreChips genres={data.genres} />
+            {band}
+          </div>
+          {draw(layout.main)}
+        </div>
+      ) : (
+        <div className={frame.body}>
+          <aside className={frame.aside}>
+            {coverImage}
+            <GenreChips genres={data.genres} />
+            {band}
+            {draw(layout.side)}
+          </aside>
+          <div className="min-w-0 space-y-8">{draw(layout.main)}</div>
+        </div>
+      )}
     </>,
   );
 }
@@ -923,7 +858,7 @@ function TrendSection({ mediaId }: { mediaId: number }) {
 }
 
 /** The community's numbers, all from the detail query, drawn with the statistics page's own components. */
-function CommunitySection({ data }: { data: MediaDetail }) {
+function CommunitySection({ data, only }: { data: MediaDetail; only?: "scores" | "statuses" }) {
   const { t, i18n } = useTranslation();
   const scores = data.stats?.scoreDistribution ?? [];
   const statuses = [...(data.stats?.statusDistribution ?? [])].sort(
@@ -955,7 +890,7 @@ function CommunitySection({ data }: { data: MediaDetail }) {
 
   return (
     <div className="@container space-y-4">
-      {rankings.length > 0 && (
+      {rankings.length > 0 && only !== "statuses" && (
         <div className="flex flex-wrap gap-2">
           {rankings.map((r, i) => (
             <Chip key={i} tone="gold" icon={Trophy}>
@@ -965,9 +900,9 @@ function CommunitySection({ data }: { data: MediaDetail }) {
         </div>
       )}
       {(scores.length > 0 || statuses.length > 0) && (
-        // By this section's width, not the window's: the cards pair up only where both keep every label whole.
-        <div className="grid grid-cols-1 gap-4 @chart-pair:grid-cols-2">
-          {scores.length > 0 && (
+        // By this section's width, not the window's, and only when both cards are drawn: one alone takes the row.
+        <div className={cn("grid grid-cols-1 gap-4", !only && "@chart-pair:grid-cols-2")}>
+          {scores.length > 0 && only !== "statuses" && (
             <ScoreColumns
               title={t("detail.communityScores")}
               hint={t("detail.communityScoresHint")}
@@ -976,7 +911,7 @@ function CommunitySection({ data }: { data: MediaDetail }) {
               locale={i18n.language}
             />
           )}
-          {statuses.length > 0 && (
+          {statuses.length > 0 && only !== "scores" && (
             <StatusBar
               locale={i18n.language}
               title={t("detail.communityStatus")}

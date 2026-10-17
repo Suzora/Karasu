@@ -908,6 +908,9 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     typeHint: "Tippen, um Seiten, Befehle und Titel zu finden.",
   },
   detail: {
+    unitEpisodes: "Episoden",
+    unitChapters: "Kapitel",
+    remaining: "noch {{n}}",
     notFound: "Kein solcher Titel",
     notFoundHint: "AniList hat keinen Anime oder Manga mit dieser ID.",
     offlineTitle: "Du bist offline",

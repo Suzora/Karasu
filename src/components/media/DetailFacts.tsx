@@ -9,12 +9,23 @@ import { Chip } from "@/components/ui/chip";
 /** The detail header's facts as parts, so the desktop column and the phone's full-width block say the same things. */
 
 /** Score, format, status, counts, duration, season and the main studios, in one wrapping line. */
-export function MetaLine({ data, studios, className }: { data: MediaDetail; studios: string[]; className?: string }) {
+export function MetaLine({
+  data,
+  studios,
+  className,
+  onCover = false,
+}: {
+  data: MediaDetail;
+  studios: string[];
+  className?: string;
+  /** Over a banner, where the page's ink and gold would sink into the art. */
+  onCover?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-ui text-ink-300", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-ui", onCover ? "text-on-cover-edge/80" : "text-ink-300", className)}>
       {data.averageScore !== null && (
-        <span className="flex items-center gap-1 text-gold">
+        <span className={cn("flex items-center gap-1", onCover ? "text-on-cover-gold" : "text-gold")}>
           <Star className="size-3.5" fill="currentColor" /> {data.averageScore}%
         </span>
       )}
@@ -42,7 +53,7 @@ export function MetaLine({ data, studios, className }: { data: MediaDetail; stud
           {data.seasonYear}
         </span>
       )}
-      {studios.length > 0 && <span className="text-ink-500">{studios.join(", ")}</span>}
+      {studios.length > 0 && <span className={onCover ? undefined : "text-ink-500"}>{studios.join(", ")}</span>}
     </div>
   );
 }

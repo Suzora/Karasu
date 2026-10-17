@@ -906,6 +906,9 @@ export const en = {
     typeHint: "Type to find pages, commands and titles.",
   },
   detail: {
+    unitEpisodes: "episodes",
+    unitChapters: "chapters",
+    remaining: "{{n}} left",
     notFound: "No such title",
     notFoundHint: "AniList has no anime or manga with that id.",
     offlineTitle: "You are offline",
