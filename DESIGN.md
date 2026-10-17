@@ -1062,3 +1062,14 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   and Wrapped; the charts take the width beside it. The key figures become
   tonal cards instead of numbers under an accent stroke. On the phone the
   sections are a field that opens them in a sheet.
+- **2026-10-17:** Search takes A of three mockups, the column the lists, the
+  season page, the calendar and statistics stand on (over B, a Material bar
+  holding the scope with filters as chips and shelves that scroll sideways,
+  and C, a search stage over the season art with a top-ten rail). The column
+  holds the six scopes and every filter; the large rounded search bar and
+  the sections take the width beside it. Discovery covers take the
+  Overview's card: title and meta on the art, score top left, and one circle
+  top right, the quick add for a new title or the editor for a listed one
+  (two hid the score on a narrow cover); the list state is a point in the
+  meta line. On the phone the scope is a field and the
+  filters open from a button, both as sheets.

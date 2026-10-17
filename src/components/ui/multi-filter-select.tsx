@@ -23,6 +23,7 @@ export function MultiFilterSelect({
   options,
   placeholder,
   searchable = false,
+  row = false,
 }: {
   label: string;
   value: MultiValue;
@@ -32,6 +33,8 @@ export function MultiFilterSelect({
   placeholder: string;
   /** Adds a filter field above the list — for the long vocabularies. */
   searchable?: boolean;
+  /** A full-width row for a column, as `FilterSelect`'s. */
+  row?: boolean;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -87,23 +90,24 @@ export function MultiFilterSelect({
   const summary = summarize(value);
 
   return (
-    <div ref={box} className="relative">
+    <div ref={box} className={cn("relative", row && "w-full")}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={label}
         className={cn(
-          "flex h-8.5 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control",
-          "border border-hair bg-surface-900 px-2.5 transition-surface",
-          "hover:bg-surface-850 focus-visible:border-accent-500",
-          !isEmpty(value) && "border-accent-500/60",
+          "flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-surface",
+          row
+            ? "h-10 w-full rounded-full px-4 hover:bg-surface-850 focus-visible:outline-2 focus-visible:outline-accent-500"
+            : "h-8.5 rounded-control border border-hair bg-surface-900 px-2.5 hover:bg-surface-850 focus-visible:border-accent-500",
+          !isEmpty(value) && (row ? "bg-accent-500/10" : "border-accent-500/60"),
         )}
       >
-        <span className="label-text text-ink-500">
+        <span className={row ? "min-w-0 flex-1 truncate text-left text-sm text-ink-300" : "label-text text-ink-500"}>
           {label}
         </span>
-        <span className="max-w-32 truncate text-xs text-ink-300">
+        <span className={cn("max-w-32 truncate text-xs", row && !summary ? "text-ink-600" : "text-ink-300")}>
           {summary ? summary.first : placeholder}
         </span>
         {summary && summary.extra > 0 && (

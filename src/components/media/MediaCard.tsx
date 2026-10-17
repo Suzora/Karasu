@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Pencil, Plus } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
-import { TitleLockup } from "@/components/media/TitleLockup";
-import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
+import { CoverCell } from "@/components/media/CoverCell";
 
 import { formatLabel } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { displayTitle } from "@/api/types";
 import { useDiscoveryEntry } from "@/hooks/useDiscoveryEntry";
 import { statusColorVar } from "@/lib/statusColors";
@@ -39,8 +36,6 @@ export default function MediaCard({
       // The roving cursor is not real DOM focus, so the ring is drawn rather than inherited from `:focus-visible`.
       className={focused ? "rounded-cover ring-2 ring-accent-500" : undefined}
       cover={media.coverImage.large}
-      // Null when the title is not on the list, so an unlisted title has no ring rather than a grey one.
-      statusRing={entry ? statusColorVar(entry.status) : null}
       score={media.averageScore != null ? `${media.averageScore}%` : null}
       adult={media.isAdult === true}
       blurred={shouldBlur(media, level, blurAdult)}
@@ -48,70 +43,47 @@ export default function MediaCard({
       data-media-id={media.id}
       data-media-type={media.type}
       data-media-title={displayTitle(media.title)}
-      // A status point on the art, not a circle beside the pencil: it is no control, and the action corner holds controls.
-      overlay={
-        entry && (
-          <span
-            role="img"
-            aria-label={t(`status.${media.type}.${entry.status}`)}
-            title={t(`status.${media.type}.${entry.status}`)}
-            className={cn("absolute top-2 size-2.5 rounded-full ring-2 ring-on-cover", media.isAdult ? "right-12" : "right-2")}
-            style={{ background: statusColorVar(entry.status) }}
-          />
-        )
+      caption={
+        <>
+          <p className="line-clamp-2 text-xs font-medium leading-snug text-on-cover-edge">{displayTitle(media.title)}</p>
+          {/* The status point leads the meta line: it is no control, and the corner above holds controls only. */}
+          <p className="mt-0.5 flex items-center gap-1.5 text-2xs tabular-nums text-on-cover-edge/80">
+            {entry && (
+              <span
+                role="img"
+                aria-label={t(`status.${media.type}.${entry.status}`)}
+                title={t(`status.${media.type}.${entry.status}`)}
+                className="size-2 shrink-0 rounded-full"
+                style={{ background: statusColorVar(entry.status) }}
+              />
+            )}
+            <span className="truncate">{[formatLabel(media.format, t), media.seasonYear].filter(Boolean).join(" · ")}</span>
+          </p>
+        </>
       }
       actions={
         hasProfile && (
-          <>
-            {/* Below two circles' width a cover keeps one control: the quick add for a new title, the editor for a listed one. */}
+          // One circle, so the score beside it stays readable: the editor for a listed title, the quick add for a new one.
+          entry ? (
+            <IconButton variant="onCover" size="sm" round onClick={() => setEditing(true)} aria-label={t("common.edit")} title={t("common.edit")}>
+              <Pencil className="size-3.5" />
+            </IconButton>
+          ) : (
             <IconButton
               variant="onCover"
               size="sm"
               round
-              onClick={() => setEditing(true)}
-              aria-label={t("common.edit")}
-              title={t("common.edit")}
-              className={entry ? undefined : "@max-cover-pair:hidden"}
+              onClick={() => send({ mediaId: media.id, status: loadDefaultAddStatus() })}
+              disabled={busy}
+              aria-label={t("media.addDefault")}
+              title={t("media.addDefault")}
             >
-              <Pencil className="size-3.5" />
+              <Plus className="size-4" />
             </IconButton>
-            {/* The neutral circle: adding to Planning is not the same weight as a +1, and the accent is reserved for that. */}
-            {!entry && (
-              <IconButton
-                variant="onCover"
-                size="sm"
-                round
-                onClick={() =>
-                  send({
-                    mediaId: media.id,
-                    status: loadDefaultAddStatus(),
-                  })
-                }
-                disabled={busy}
-                aria-label={t("media.addDefault")}
-                title={t("media.addDefault")}
-              >
-                <Plus className="size-4" />
-              </IconButton>
-            )}
-          </>
+          )
         )
       }
     >
-      <Link to={`/media/${media.id}`}>
-        <TitleLockup
-          title={media.title}
-          clamp={2}
-          tone="muted"
-          className="mt-2"
-        />
-      </Link>
-      <CoverMeta>
-        {[formatLabel(media.format, t), media.seasonYear]
-          .filter(Boolean)
-          .join(" · ")}
-      </CoverMeta>
-
       <PresenceIf when={editing}>
         {(leaving) => (
           <EntryDialog

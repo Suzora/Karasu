@@ -14,6 +14,7 @@ export function FilterSelect({
   options,
   placeholder,
   className,
+  row = false,
 }: {
   label: string;
   value: string;
@@ -22,22 +23,26 @@ export function FilterSelect({
   /** Shown as the value when nothing is selected. */
   placeholder?: string;
   className?: string;
+  /** A full-width row for a column: the label at the start, the value at the end, no frame. */
+  row?: boolean;
 }) {
   const current = options.find((o) => o.value === value);
 
   return (
     <div
       className={cn(
-        "relative flex h-8.5 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control",
-        "border border-hair bg-surface-900 px-2.5 transition-surface",
-        "focus-within:border-accent-500 hover:bg-surface-850",
+        "relative flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-surface",
+        row
+          ? "h-10 w-full rounded-full px-4 hover:bg-surface-850 focus-within:outline-2 focus-within:outline-accent-500"
+          : "h-8.5 rounded-control border border-hair bg-surface-900 px-2.5 focus-within:border-accent-500 hover:bg-surface-850",
+        row && value && "bg-accent-500/10",
         className,
       )}
     >
-      <span className="label-text text-ink-500">
+      <span className={row ? "min-w-0 flex-1 truncate text-sm text-ink-300" : "label-text text-ink-500"}>
         {label}
       </span>
-      <span className="max-w-32 truncate text-xs text-ink-300">
+      <span className={cn("max-w-32 truncate text-xs", row && !value ? "text-ink-600" : "text-ink-300")}>
         {current?.label ?? placeholder}
       </span>
       <ChevronDown className="size-3.5 shrink-0 text-ink-600" />

@@ -83,32 +83,28 @@ describe("MediaCard in the account-free profile", () => {
     expect(screen.getByTitle("status.ANIME.CURRENT")).toBeInTheDocument();
   });
 
-  it("keeps one control on a cover too narrow for two circles: the quick add for a new title", async () => {
+  it("keeps one control in the corner: the quick add for a new title, so the score beside it stays readable", async () => {
     const { queryClient } = renderWithProviders(<MediaCard media={media({ id: 999 })} />);
     queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
     await screen.findByRole("button", { name: "media.addDefault" });
-    expect(screen.getByRole("button", { name: "common.edit" })).toHaveClass("@max-cover-pair:hidden");
-    expect(screen.getByRole("button", { name: "media.addDefault" })).not.toHaveClass("@max-cover-pair:hidden");
+    expect(screen.queryByRole("button", { name: "common.edit" })).toBeNull();
   });
 
-  /** The listed mark is no control, so it sits on the art as a status point and leaves the action corner to buttons. */
-  it("marks a listed title with a status point outside the action corner, named for screen readers", async () => {
+  it("offers the editor, and only the editor, for a listed title", async () => {
+    const { queryClient } = renderWithProviders(<MediaCard media={media()} />);
+    queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
+    await screen.findByRole("button", { name: "common.edit" });
+    expect(screen.queryByRole("button", { name: "media.addDefault" })).toBeNull();
+  });
+
+  /** The Overview's card: title and meta on the art, so one link carries the card and the corner holds controls only. */
+  it("carries the title on the art behind one link, with the status point in the meta line", async () => {
     const { queryClient } = renderWithProviders(<MediaCard media={media()} />);
     queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
     const mark = await screen.findByRole("img", { name: "status.ANIME.CURRENT" });
-    expect(mark).toHaveAttribute("title", "status.ANIME.CURRENT");
-    expect(mark).toHaveClass("top-2");
-    // Never beside the pencil, where it read as a second button.
-    const edit = screen.getByRole("button", { name: "common.edit" });
-    expect(edit.parentElement?.contains(mark)).toBe(false);
-    expect(edit).not.toHaveClass("@max-cover-pair:hidden");
-  });
-
-  it("moves the status point aside for the 18+ badge in the same corner", async () => {
-    const { queryClient } = renderWithProviders(<MediaCard media={media({ isAdult: true })} />);
-    queryClient.setQueryData(["mediaList", "ANIME", 0], localList());
-    const mark = await screen.findByRole("img", { name: "status.ANIME.CURRENT" });
-    expect(mark).not.toHaveClass("right-2");
+    expect(mark.parentElement).toHaveTextContent("format.TV");
+    expect(screen.getAllByRole("link").filter((l) => l.getAttribute("href") === "/media/21")).toHaveLength(1);
+    expect(screen.getByRole("link", { name: /One Piece/ })).toBeInTheDocument();
   });
 
   /** A title genuinely absent must still offer the quick add. */

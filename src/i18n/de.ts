@@ -791,6 +791,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     rankChapters: "{{count}} Kapitel",
     rankChaptersOne: "1 Kapitel",
     filtered: "Filter",
+    scopes: "Bereiche",
+    scopePick: "Suchen in: {{scope}}",
   },
   forum: {
     title: "Forum",

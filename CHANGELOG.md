@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 2f38b76 -->
+<!-- generated-through: c55afb6 -->
 
 ### Added
 
@@ -97,6 +97,7 @@ tag time is then optional rather than load-bearing.
 - The season page lets you pick the year and season from a column beside the titles, filter by format or hide what is already on your list, and shows each title as a card with its genres and a countdown to the next episode.
 - The calendar keeps the week, what to show and how to show it in a column beside the schedule, and its week, tiles and agenda views show each episode on a card with its cover.
 - Statistics keeps Anime/Manga, its sections and Wrapped in a column beside the charts, and shows its key figures as cards.
+- Search keeps its scopes and every filter in a column beside the results, and on the phone opens them from a field and a filter button.
 
 ### Security
 

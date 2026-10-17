@@ -60,11 +60,9 @@ import { FilteredNotice } from "@/components/FilteredNotice";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth } from "@/stores/auth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
-import { usePresence } from "@/hooks/usePresence";
 import { Loader } from "@/components/ui/loader";
 import { cn } from "@/lib/utils";
 import { EmptyState, ErrorState, PerchRule, StruckQuery } from "@/components/EmptyState";
-import { Pill } from "@/components/ui/pill";
 import { UserList } from "@/components/social/UserList";
 import { cardClass } from "@/components/ui/card";
 import {
@@ -77,7 +75,9 @@ import {
   sectionTitle,
 } from "@/components/search/BrowseSections";
 import { birthdayDay, sectionOfView } from "@/lib/browseSections";
-import { Cake, Heart } from "lucide-react";
+import { BookOpen, Building2, Cake, ChevronDown, Clapperboard, Heart, SlidersHorizontal, User, UserRound, Users } from "lucide-react";
+import { Popover } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 /** Literal switch, so `i18nKeys.test.ts` sees every key. */
 function sortLabel(sort: string, t: (k: string) => string): string {
@@ -96,6 +96,16 @@ function sortLabel(sort: string, t: (k: string) => string): string {
       return sort;
   }
 }
+
+/** One glyph per scope, so the column is scannable without reading. */
+const SCOPE_ICON: Record<SearchView["scope"], typeof Clapperboard> = {
+  ANIME: Clapperboard,
+  MANGA: BookOpen,
+  USERS: Users,
+  CHARACTERS: UserRound,
+  STAFF: User,
+  STUDIOS: Building2,
+};
 
 export default function Search() {
   const { t } = useTranslation();
@@ -121,10 +131,6 @@ export default function Search() {
   const resultsRef = useRef<HTMLDivElement>(null);
   useScrollMemory(resultsRef, "search");
   const phone = usePhoneShell();
-  // Phone only: the filter chips collapse behind this; desktop has the room and keeps its inline row.
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  // The fold must pop out as well as in; a bare conditional cuts it away mid-frame on collapse.
-  const filterPanel = usePresence(filtersOpen);
   const type: MediaType = isMediaScope(scope) ? scope : "ANIME";
 
   // Debounce: search only after 500 ms of typing pause (spare the rate limit)
@@ -249,86 +255,43 @@ export default function Search() {
     return Array.from({ length: max - 1939 }, (_, i) => String(max - i));
   }, []);
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="px-8 pt-6">
-        <h1 className="text-title">{t("search.title")}</h1>
-        <div className="mt-4 max-w-176">
-          <SearchField
-            size="lg"
-            autoFocus={!restored}
-            // What "/" and the Search action focus when the page is already open, so they refine rather than reset.
-            data-page-search=""
-            value={input}
-            onChange={setInput}
-            label={t("search.placeholder")}
-            clearLabel={t("common.clear")}
-            placeholder={t("search.placeholder")}
-            className="max-w-136"
-          />
-          {/* The scope pills scroll in one row on a phone and wrap on a desktop. */}
-          <div
-            // Only the x axis scrolls and draws no bar: a pill's touch hit area overflows the row vertically.
-            className={cn(
-              "mt-2.5 flex items-center gap-1.5",
-              phone
-                ? "flex-nowrap overflow-x-auto overflow-y-hidden pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                : "flex-wrap",
-            )}
-          >
-            {SCOPES.map((sc) => (
-              <Pill
-                key={sc}
-                active={scope === sc}
-                onClick={() => changeScope(sc)}
-                className="shrink-0 whitespace-nowrap"
-              >
-                {sc === "ANIME"
-                  ? t("search.anime")
-                  : sc === "MANGA"
-                    ? t("search.manga")
-                    : sc === "USERS"
-                      ? t("search.users")
-                      : sc === "CHARACTERS"
-                        ? t("search.characters")
-                        : sc === "STAFF"
-                          ? t("search.staffScope")
-                          : t("search.studios")}
-              </Pill>
-            ))}
-          </div>
-          {/* One control on every width: nine open filters over the results was a wall before the first answer. */}
-          {isMediaScope(scope) && (
-            <div className="mt-2.5 flex items-center gap-2.5">
-              <Pill
-                active={filtersOpen}
-                aria-expanded={filtersOpen}
-                onClick={() => setFiltersOpen((v) => !v)}
-              >
-                {t("search.filters")}
-                {activeFilterCount > 0 && (
-                  <span className="tabular-nums">({activeFilterCount})</span>
-                )}
-              </Pill>
-              {activeFilterCount > 0 && (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="text-xs font-medium text-accent-400 hover:underline"
-                >
-                  {t("list.clearFilter")}
-                </button>
-              )}
-            </div>
-          )}
-          {isMediaScope(scope) && filterPanel.mounted && (
-            <div
-              className={cn(
-                "mt-2.5 flex flex-wrap gap-2",
-                filterPanel.leaving ? "animate-pop-out" : "animate-pop-in",
-              )}
-            >
+  const scopeName = (sc: SearchView["scope"]) =>
+    sc === "ANIME"
+      ? t("search.anime")
+      : sc === "MANGA"
+        ? t("search.manga")
+        : sc === "USERS"
+          ? t("search.users")
+          : sc === "CHARACTERS"
+            ? t("search.characters")
+            : sc === "STAFF"
+              ? t("search.staffScope")
+              : t("search.studios");
+  const scopeRow = (sc: SearchView["scope"], after?: () => void) => {
+    const Icon = SCOPE_ICON[sc];
+    return (
+      <button
+        key={sc}
+        type="button"
+        aria-pressed={scope === sc}
+        onClick={() => {
+          changeScope(sc);
+          after?.();
+        }}
+        className={cn(
+          "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+          scope === sc ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+        )}
+      >
+        <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+        <span className="min-w-0 flex-1 truncate">{scopeName(sc)}</span>
+      </button>
+    );
+  };
+  const filterControls = (row: boolean) => (
+    <>
               <MultiFilterSelect
+                row={row}
                 label={t("search.genreLabel")}
                 value={genre}
                 onChange={(v) => set({ genre: v })}
@@ -337,6 +300,7 @@ export default function Search() {
               />
               {/* Searchable: the tag vocabulary is a scroll rather than a list. */}
               <MultiFilterSelect
+                row={row}
                 label={t("search.tagLabel")}
                 value={tag}
                 onChange={(v) => set({ tag: v })}
@@ -345,6 +309,7 @@ export default function Search() {
                 searchable
               />
               <FilterSelect
+                row={row}
                 label={t("search.yearLabel")}
                 value={year}
                 onChange={(v) => set({ year: v })}
@@ -353,6 +318,7 @@ export default function Search() {
               />
               {scope === "ANIME" && (
                 <FilterSelect
+                row={row}
                   label={t("search.seasonLabel")}
                   value={season}
                   onChange={(v) => set({ season: v })}
@@ -364,6 +330,7 @@ export default function Search() {
                 />
               )}
               <FilterSelect
+                row={row}
                 label={t("list.formatLabel")}
                 value={format}
                 onChange={(v) => set({ format: v })}
@@ -374,6 +341,7 @@ export default function Search() {
                 }))}
               />
               <FilterSelect
+                row={row}
                 label={t("search.statusLabel")}
                 value={status}
                 onChange={(v) => set({ status: v })}
@@ -385,6 +353,7 @@ export default function Search() {
               />
               {/* `sourceLabel` and `originLabel` stay `lib/format`'s; a second copy is how a label gets spelled two ways. */}
               <FilterSelect
+                row={row}
                 label={t("search.sourceLabel")}
                 value={source}
                 onChange={(v) => set({ source: v })}
@@ -395,6 +364,7 @@ export default function Search() {
                 }))}
               />
               <FilterSelect
+                row={row}
                 label={t("list.originLabel")}
                 value={country}
                 onChange={(v) => set({ country: v })}
@@ -405,18 +375,45 @@ export default function Search() {
                 }))}
               />
               <FilterSelect
+                row={row}
                 label={t("list.sortLabel")}
                 // The sections have no sort of their own, so an untouched page shows the URL's and every pick browses.
                 value={active ? filters.sort : sort}
                 onChange={(v) => set({ sort: v })}
                 options={SORTS.map((s) => ({ value: s, label: sortLabel(s, t) }))}
               />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto px-8 py-6 float-clear">
+    </>
+  );
+  const filterHeading = (
+    <div className="flex items-center gap-2 px-4 pb-1">
+      <p className="label-text text-ink-500">
+        {t("search.filters")}
+        {activeFilterCount > 0 && <span className="tabular-nums"> ({activeFilterCount})</span>}
+      </p>
+      <span className="flex-1" />
+      {activeFilterCount > 0 && (
+        <button type="button" onClick={clearFilters} className="text-xs font-medium text-accent-400 hover:underline">
+          {t("list.clearFilter")}
+        </button>
+      )}
+    </div>
+  );
+  const field = (
+    <SearchField
+      size="lg"
+      autoFocus={!restored}
+      // What "/" and the Search action focus when the page is already open, so they refine rather than reset.
+      data-page-search=""
+      value={input}
+      onChange={setInput}
+      label={t("search.placeholder")}
+      clearLabel={t("common.clear")}
+      placeholder={t("search.placeholder")}
+      className="rounded-full px-5"
+    />
+  );
+  const resultsView = (
+    <>
         {scope === "USERS" && <UserSearchResults term={term} />}
         {isPeopleScope(scope) && (
           <PersonSearchResults kind={scope === "CHARACTERS" ? "character" : "staff"} term={term} browse={browse} />
@@ -447,6 +444,84 @@ export default function Search() {
             onMore={() => media.fetchNextPage()}
           />
         )}
+    </>
+  );
+
+  if (phone) {
+    const CurrentIcon = SCOPE_ICON[scope];
+    return (
+      <div ref={resultsRef} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
+        <h1 className="text-title">{t("search.title")}</h1>
+        {field}
+        <div className="flex gap-2">
+          <Popover
+            label={t("search.scopes")}
+            variant="sheet"
+            className="min-w-0 flex-1"
+            renderTrigger={(p) => (
+              <button
+                type="button"
+                {...p}
+                aria-label={t("search.scopePick", { scope: scopeName(scope) })}
+                className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
+              >
+                <CurrentIcon aria-hidden className="size-4 shrink-0 text-ink-500" />
+                <span className="truncate text-base text-ink-100">{scopeName(scope)}</span>
+                <span className="flex-1" />
+                <ChevronDown aria-hidden className="size-4 text-ink-500" />
+              </button>
+            )}
+          >
+            {(api) => <div className="space-y-0.5">{SCOPES.map((sc) => scopeRow(sc, api.close))}</div>}
+          </Popover>
+          {isMediaScope(scope) && (
+            <Popover
+              label={t("search.filters")}
+              variant="sheet"
+              renderTrigger={(p) => (
+                <button
+                  type="button"
+                  {...p}
+                  aria-label={t("search.filters")}
+                  className="relative grid w-12 place-items-center rounded-panel bg-surface-900 surface-outline transition-surface hover:bg-surface-850"
+                >
+                  <SlidersHorizontal aria-hidden className="size-4 text-ink-300" />
+                  {activeFilterCount > 0 && <Badge aria-hidden count={activeFilterCount} floating className="-right-1.5 -top-1.5" />}
+                </button>
+              )}
+            >
+              {() => (
+                <div className="space-y-0.5">
+                  {filterHeading}
+                  {filterControls(true)}
+                </div>
+              )}
+            </Popover>
+          )}
+        </div>
+        {resultsView}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full">
+      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+        <h1 className="mb-3 px-3 text-title">{t("search.title")}</h1>
+        {SCOPES.map((sc) => scopeRow(sc))}
+        {isMediaScope(scope) && (
+          <>
+            <div className="mx-3 my-3 h-px bg-surface-850" />
+            {filterHeading}
+            <div className="space-y-0.5">{filterControls(true)}</div>
+          </>
+        )}
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="pb-3 pl-2 pr-8 pt-6">{field}</div>
+        <div ref={resultsRef} className="min-h-0 flex-1 overflow-y-auto pb-12 pl-2 pr-8 pt-2 float-clear">
+          {resultsView}
+        </div>
       </div>
     </div>
   );

@@ -182,19 +182,23 @@ describe("Search on the way back", () => {
   });
 });
 
-/** Nine filters stood open over the results on the desktop; they fold behind one control there as on the phone. */
+/** On the desktop every filter stands in the column; the phone folds them behind one button. */
 describe("Search filters", () => {
-  it("folds the filters behind one control that counts what is active", async () => {
+  it("shows every filter in the column, counts what is active and clears it", async () => {
     const user = userEvent.setup({ delay: null });
-    renderWithProviders(<Search />, { route: "/search?status=FINISHED" });
-    expect(screen.queryByRole("combobox", { name: "search.statusLabel" })).toBeNull();
-    const toggle = screen.getByRole("button", { name: /search\.filters/ });
-    expect(toggle).toHaveTextContent("(1)");
-    await user.click(toggle);
-    expect(await screen.findByRole("combobox", { name: "search.statusLabel" })).toHaveValue("FINISHED");
+    renderWithProviders(
+      <>
+        <Search />
+        <Url />
+      </>,
+      { route: "/search?status=FINISHED" },
+    );
+    expect(screen.getByRole("combobox", { name: "search.statusLabel" })).toHaveValue("FINISHED");
+    expect(screen.getByRole("complementary")).toHaveTextContent("(1)");
+    await user.click(screen.getByRole("button", { name: "list.clearFilter" }));
+    await waitFor(() => expect(screen.getByTestId("url")).toBeEmptyDOMElement());
   });
 });
-
 
 const title = (id: number, name: string, over: Record<string, unknown> = {}) =>
   ({ ...media({ id, title: { romaji: name, english: name, native: null } }), mediaListEntry: null, ...over });
@@ -362,7 +366,6 @@ describe("Search with nothing typed", () => {
       </>,
       { route: "/search" },
     );
-    await user.click(screen.getByRole("button", { name: /search\.filters/ }));
     const select = await screen.findByRole("combobox", { name: "list.sortLabel" });
     expect(select).toHaveValue("SEARCH_MATCH");
     await user.selectOptions(select, "POPULARITY_DESC");

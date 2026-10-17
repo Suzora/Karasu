@@ -789,6 +789,8 @@ export const en = {
     rankChapters: "{{count}} chapters",
     rankChaptersOne: "1 chapter",
     filtered: "filters",
+    scopes: "Scopes",
+    scopePick: "Search in: {{scope}}",
   },
   forum: {
     title: "Forum",
