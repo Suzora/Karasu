@@ -194,7 +194,8 @@ export function ActivityCard({
       {item.kind === "list" && item.media?.coverImage?.large && (
         <Link
           to={`/media/${item.media.id}`}
-          className="w-11 shrink-0 overflow-hidden rounded-inner"
+          // At the trailing edge, so every row's name and text start at one line whether or not it has a cover.
+          className="order-last w-11 shrink-0 self-start overflow-hidden rounded-inner"
           title={displayTitle(item.media.title)}
         >
           {/* Veiled like every other cover, and never revealed here: the title it links to has its own reveal. */}

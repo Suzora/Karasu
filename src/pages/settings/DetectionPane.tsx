@@ -387,7 +387,7 @@ function AiringMutesList() {
         {rows.map(({ row, label }) => (
           <li
             key={row.mediaId}
-            className="flex items-center gap-3 rounded-control bg-surface-900 py-1 pl-3 pr-1"
+            className="flex items-center gap-3 rounded-control bg-surface-900 surface-outline py-1 pl-3 pr-1"
           >
             <Link
               to={`/media/${row.mediaId}`}
@@ -456,7 +456,7 @@ export function DetectionCorrectionsSection() {
         {rows.map((row) => (
           <li
             key={`${row.mediaType}-${row.season}-${row.title}`}
-            className="flex items-center gap-3 rounded-control bg-surface-900 py-1.5 pl-3 pr-1"
+            className="flex items-center gap-3 rounded-control bg-surface-900 surface-outline py-1.5 pl-3 pr-1"
           >
             <span className="min-w-0 flex-1">
               <Link

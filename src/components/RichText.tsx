@@ -20,14 +20,20 @@ export function ExternalAnchor({
   href,
   children,
   className,
+  title,
+  "aria-label": ariaLabel,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
+  title?: string;
+  "aria-label"?: string;
 }) {
   return (
     <a
       href={href}
+      title={title}
+      aria-label={ariaLabel}
       onClick={(e) => {
         e.preventDefault();
         void openUrl(href);

@@ -15,6 +15,7 @@ export function FilterSelect({
   placeholder,
   className,
   row = false,
+  neutral,
 }: {
   label: string;
   value: string;
@@ -25,8 +26,11 @@ export function FilterSelect({
   className?: string;
   /** A full-width row for a column: the label at the start, the value at the end, no frame. */
   row?: boolean;
+  /** The value that counts as untouched, so a choice that always holds one (a sort) is not tinted as a filter. */
+  neutral?: string;
 }) {
   const current = options.find((o) => o.value === value);
+  const marked = Boolean(value) && value !== neutral;
 
   return (
     <div
@@ -35,14 +39,14 @@ export function FilterSelect({
         row
           ? "h-10 w-full rounded-full px-4 hover:bg-surface-850 focus-within:outline-2 focus-within:outline-accent-500"
           : "h-8.5 rounded-control border border-hair bg-surface-900 px-2.5 focus-within:border-accent-500 hover:bg-surface-850",
-        row && value && "bg-accent-500/10",
+        row && marked && "bg-accent-500/10 surface-outline",
         className,
       )}
     >
       <span className={row ? "min-w-0 flex-1 truncate text-sm text-ink-300" : "label-text text-ink-500"}>
         {label}
       </span>
-      <span className={cn("max-w-32 truncate text-xs", row && !value ? "text-ink-600" : "text-ink-300")}>
+      <span className={cn(row ? "max-w-1/2 truncate text-xs" : "max-w-32 truncate text-xs", row && !value ? "text-ink-600" : "text-ink-300")}>
         {current?.label ?? placeholder}
       </span>
       <ChevronDown className="size-3.5 shrink-0 text-ink-600" />

@@ -124,7 +124,7 @@ export function TileGrid({ tiles }: { tiles: { label: string; value: string }[] 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
       {tiles.map((tile) => (
-        <div key={tile.label} className="rounded-panel bg-surface-900 px-4 py-3.5">
+        <div key={tile.label} className="rounded-panel bg-surface-900 surface-outline px-4 py-3.5">
           <p className="text-2xl font-bold tabular-nums text-ink-100">{tile.value}</p>
           <p className="mt-0.5 label-text text-ink-500">{tile.label}</p>
         </div>
@@ -147,8 +147,8 @@ export function DistributionCard({
   return (
     <Card className="flex h-full flex-col">
       <CardTitle>{title}</CardTitle>
-      {/* The label column takes its longest label, capped; `content-around` spreads the rows through a taller card. */}
-      <div className="mt-3 grid flex-1 grid-cols-[auto_minmax(0,1fr)_auto] content-around items-center gap-x-2 gap-y-1.5 text-xs">
+      {/* The label column takes its longest label, capped; rows stay at the top when a neighbour makes the card taller. */}
+      <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] content-start items-center gap-x-2 gap-y-2 text-xs">
         {data.map((d) => (
           <Fragment key={d.label}>
             <span className="max-w-32 truncate text-ink-500">{d.label}</span>

@@ -39,6 +39,7 @@ import { fuzzyScore, prepareDoc, prepareQuery, type FuzzyDoc } from "@/lib/fuzzy
 import { Button, buttonClass } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusNav, StatusPicker } from "@/components/list/StatusNav";
+import { PageTitle } from "@/components/shell/PageColumn";
 import { CoverOutline, EmptyState, ErrorState, StruckQuery } from "@/components/EmptyState";
 import { ListMoreMenu, ListToolbar } from "@/components/list/ListToolbar";
 import { Presence, PresenceIf } from "@/components/ui/presence";
@@ -672,34 +673,19 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
       <div className="flex min-h-0 flex-1">
         {!phone && (
-          <aside className="w-60 shrink-0 space-y-5 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-            <div className="px-4">
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <h1 className="text-title text-ink-100">
-                  {type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
-                </h1>
-                <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-                  {type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
-                </span>
-              </div>
-            </div>
+          <aside className="w-60 shrink-0 space-y-4 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+            <PageTitle title={type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")} jp={type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")} />
             <StatusNav {...statusProps} />
           </aside>
         )}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className={cn("space-y-3 pb-3 pt-6", phone ? "px-8" : "pl-2 pr-8")}>
             {phone && (
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-baseline gap-2.5">
-                  <h1 className="text-title text-ink-100">
-                    {type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
-                  </h1>
-                  <span className="font-brand-jp text-ui tracking-lockup text-ink-600">
-                    {type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
-                  </span>
-                </div>
-                {actions}
-              </div>
+              <PageTitle
+                title={type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")}
+                jp={type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")}
+                action={actions}
+              />
             )}
             {phone && <StatusPicker {...statusProps} />}
             <div className="flex items-start gap-2">

@@ -600,9 +600,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     lengthBucketCh: "{{range}} Kap.",
     countries: "Herkunftsland",
     spread: "Bewertungsstreuung",
-    perEntry: "Pro Eintrag",
-    episodesEach: "{{n}} Episoden",
-    chaptersEach: "{{n}} Kap.",
+    perEntryEpisodes: "Episoden pro Eintrag",
+    perEntryChapters: "Kapitel pro Eintrag",
     sortByCount: "Anzahl",
     sortByTime: "Zeit",
     sortByChapters: "Kapitel",
@@ -744,6 +743,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     viewList: "Liste",
   },
   search: {
+    sortRow: "Sortierung",
     title: "Suche",
     placeholder: "AniList durchsuchen …",
     searching: "Suche …",
@@ -848,6 +848,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     emptyFiltered: "In dieser Saison passt nichts zu diesen Filtern.",
   },
   calendar: {
+    countHint: "{{n}} Ausstrahlungen in dieser Woche",
     title: "Kalender",
     lens: "Was angezeigt wird",
     lensMine: "Meine Serien",
@@ -1240,6 +1241,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     addToList: "Zur Liste hinzufügen",
   },
   wrapped: {
+    options: "Bild anpassen",
+    optionsPick: "Bild anpassen: {{summary}}",
     title: "Wrapped",
     completed: "Abgeschlossen",
     hours: "Stunden",
@@ -1265,6 +1268,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     period: "Zeitraum",
   },
   media: {
+    communityAverage: "AniList-Durchschnitt",
     addDefault: "Zur Liste hinzufügen",
   },
   social: {

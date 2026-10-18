@@ -99,7 +99,7 @@ describe("UserLists affinity strip", () => {
 });
 
 describe("UserLists status filter", () => {
-  it("names every status with its count in one select, and switching it shows that status", async () => {
+  it("names the status with its count in the lists' picker, and picking another shows that status", async () => {
     const user = userEvent.setup({ delay: null });
     const viewer = signIn();
     theirs.mockResolvedValue(foreign());
@@ -107,11 +107,13 @@ describe("UserLists status filter", () => {
     renderWithProviders(<UserLists user={{ ...them, id: viewer.id }} />);
 
     expect(await screen.findByText("Show 0")).toBeInTheDocument();
-    const select = screen.getByRole("combobox", { name: "common.status" });
-    expect(screen.getByRole("option", { name: "status.ANIME.CURRENT (10)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "status.ANIME.COMPLETED (0)" })).toBeInTheDocument();
+    const trigger = screen.getByRole("button", { name: /^list\.statusPick/ });
+    expect(trigger).toHaveTextContent("status.ANIME.CURRENT10");
 
-    await user.selectOptions(select, "COMPLETED");
+    await user.click(trigger);
+    const completed = await screen.findByRole("tab", { name: /status\.ANIME\.COMPLETED/ });
+    expect(completed).toHaveTextContent("0");
+    await user.click(completed);
 
     expect(screen.queryByText("Show 0")).toBeNull();
     expect(screen.getByText("social.listsEmpty")).toBeInTheDocument();

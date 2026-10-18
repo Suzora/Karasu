@@ -17,8 +17,9 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth, useScoreFormat } from "@/stores/auth";
 import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
 import { TitleLockup } from "@/components/media/TitleLockup";
-import { Pill } from "@/components/ui/pill";
-import { Select } from "@/components/ui/select";
+import { Segmented } from "@/components/ui/segmented";
+import { StatusPicker } from "@/components/list/StatusNav";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { Shimmer } from "@/components/Skeleton";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 
@@ -67,6 +68,8 @@ export function UserLists({ user }: { user: UserProfile }) {
     for (const e of entries) map.get(e.status as MediaListStatus)?.push(e);
     return map;
   }, [entries]);
+  const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, byStatus.get(s)?.length ?? 0])) as Record<MediaListStatus, number>;
+  const phone = usePhoneShell();
 
   const match = useMemo(() => {
     if (!comparing || !mineData) return null;
@@ -90,25 +93,29 @@ export function UserLists({ user }: { user: UserProfile }) {
 
   return (
     <div className="space-y-4">
-      {/* One row at any width: the six statuses fold into a select that carries their counts. */}
-      <div className="flex items-center gap-1.5">
-        {(["ANIME", "MANGA"] as const).map((tp) => (
-          <Pill key={tp} active={type === tp} onClick={() => setType(tp)}>
-            {tp === "ANIME" ? t("common.anime") : t("common.manga")}
-          </Pill>
-        ))}
-        <Select
-          aria-label={t("common.status")}
-          value={status}
-          onChange={(e) => setStatus(e.target.value as MediaListStatus)}
-          className="ml-auto min-w-0"
-        >
-          {STATUS_ORDER.map((s) => (
-            <option key={s} value={s}>
-              {`${t(`status.${type}.${s}`)} (${(byStatus.get(s)?.length ?? 0).toLocaleString(i18n.language)})`}
-            </option>
-          ))}
-        </Select>
+      {/* The six statuses fold into the lists' own picker, which carries their counts. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Segmented
+          aria-label={t("stats.mediaTypeLabel")}
+          value={type}
+          onChange={setType}
+          segments={[
+            { value: "ANIME", label: t("common.anime") },
+            { value: "MANGA", label: t("common.manga") },
+          ]}
+        />
+        <div className="min-w-56 flex-1 sm:max-w-80">
+          <StatusPicker
+            variant={phone ? "sheet" : "dropdown"}
+            type={type}
+            value={status}
+            counts={counts}
+            onChange={setStatus}
+            lists={[]}
+            list=""
+            onList={() => {}}
+          />
+        </div>
       </div>
 
       {match && match.shared > 0 && (

@@ -90,6 +90,13 @@ describe("MediaCard in the account-free profile", () => {
     expect(screen.queryByRole("button", { name: "common.edit" })).toBeNull();
   });
 
+  it("labels AniList's average as the community's and draws it without the star of the user's own score", () => {
+    renderWithProviders(<MediaCard media={media({ averageScore: 85 })} />);
+    const badge = screen.getByTitle("media.communityAverage");
+    expect(badge).toHaveTextContent("85%");
+    expect(badge.querySelector("svg")).toBeNull();
+  });
+
   it("offers the editor, and only the editor, for a listed title", async () => {
     const { queryClient } = renderWithProviders(<MediaCard media={media()} />);
     queryClient.setQueryData(["mediaList", "ANIME", 0], localList());

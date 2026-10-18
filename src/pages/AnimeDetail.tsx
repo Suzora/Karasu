@@ -525,7 +525,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
                 return (
                   <div
                     key={c.node.id}
-                    className="flex items-center justify-between gap-3 rounded-control bg-surface-900 p-2"
+                    className="flex items-center justify-between gap-3 rounded-control bg-surface-900 surface-outline p-2"
                   >
                     <Link
                       to={`/character/${c.node.id}`}
@@ -568,7 +568,7 @@ function CastSection({ mediaId }: { mediaId: number }) {
                 <Link
                   key={`${s.node.id}-${i}`}
                   to={`/staff/${s.node.id}`}
-                  className="flex min-w-0 items-center gap-2.5 rounded-control bg-surface-900 p-2 transition-surface hover:text-accent-400"
+                  className="flex min-w-0 items-center gap-2.5 rounded-control bg-surface-900 surface-outline p-2 transition-surface hover:text-accent-400"
                 >
                   <Avatar src={s.node.image.medium} name={s.node.name.full ?? "?"} />
                   <span className="min-w-0">
@@ -737,7 +737,7 @@ function ReviewCard({
   const down = r.userRating === "DOWN_VOTE";
 
   return (
-    <div className="rounded-control bg-surface-900 p-3">
+    <div className="rounded-control bg-surface-900 surface-outline p-3">
       <div className="flex items-center justify-between gap-3">
         <Link to={`/user/${encodeURIComponent(r.user?.name ?? "")}`} className="min-w-0">
           <UserLockup

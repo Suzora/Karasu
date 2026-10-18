@@ -21,7 +21,7 @@ export function ListShelves({ anime, manga, cols }: { anime: MediaListEntry[]; m
   const blurAdult = useContentFilter((s) => s.blurAdult);
   const list = type === "ANIME" ? anime : manga;
   const toggle = (
-    <div className="flex rounded-full bg-surface-900 p-1">
+    <div className="flex rounded-full bg-surface-900 surface-outline p-1">
       {(["ANIME", "MANGA"] as const).map((v) => (
         <button
           key={v}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useUrlState } from "@/hooks/useUrlState";
 import {
@@ -114,7 +115,7 @@ export default function Seasonal() {
   if (phone) {
     return (
       <div ref={scrollRef} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
-        <h1 className="sr-only">{t("seasonal.title")}</h1>
+        <PageTitle title={t("seasonal.title")} jp="季節" />
         <YearStepper year={year} onStep={stepYear} />
         <SeasonField season={season} onPick={pickSeason} row />
         <FormatPicker {...formatProps} />
@@ -124,16 +125,20 @@ export default function Seasonal() {
   }
 
   return (
-    <div className="flex h-full">
-      <h1 className="sr-only">{t("seasonal.title")}</h1>
-      <aside className="w-60 shrink-0 space-y-4 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-        <YearStepper year={year} onStep={stepYear} />
-        <SeasonField season={season} onPick={pickSeason} />
-        <FormatNav {...formatProps} />
-      </aside>
-      <div ref={scrollRef} className="min-w-0 flex-1 overflow-y-auto pb-12 pl-2 pr-8 pt-6 float-clear">
-        {body}
-      </div>
-    </div>
+    <ColumnPage
+      columnClassName="space-y-4"
+      contentRef={scrollRef}
+      contentClassName="float-clear"
+      column={
+        <>
+          <PageTitle title={t("seasonal.title")} jp="季節" />
+          <YearStepper year={year} onStep={stepYear} />
+          <SeasonField season={season} onPick={pickSeason} />
+          <FormatNav {...formatProps} />
+        </>
+      }
+    >
+      {body}
+    </ColumnPage>
   );
 }

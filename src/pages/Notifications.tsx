@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bird, CheckCheck, Globe, Heart, Inbox, Info, MessageCircle, MessagesSquare, Tv, UserPlus } from "lucide-react";
+import { Bird, CheckCheck, Globe, Heart, Inbox, Info, Layers, MessageCircle, MessagesSquare, Tv, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
+import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { cn } from "@/lib/utils";
 import { NotifFeed } from "@/components/shell/NotifFeed";
@@ -38,26 +40,25 @@ const rowClass = (on: boolean) =>
 
 /** Every notification, Karasu's and AniList's, narrowed by source and kind from the column. */
 export default function Notifications() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const phone = usePhoneShell();
   const [source, setSource] = useState<NotifSource>("all");
   const [kind, setKind] = useState<NotifKind>("all");
   const n = useNotifications({ active: true, source, kind });
 
   const sources: [NotifSource, string, typeof CheckCheck][] = [
-    ["all", t("notif.sourceAll"), Inbox],
+    ["all", t("notif.sourceAll"), Layers],
     ["karasu", "Karasu", Bird],
     ["anilist", "AniList", Globe],
   ];
+  // An action, not a filter, so it sits beside the title as the page's one button rather than among the rows.
   const markAll = (
-    <button type="button" onClick={() => void n.readAll()} className={rowClass(false)}>
-      <CheckCheck aria-hidden className="size-4 shrink-0 opacity-70" />
-      <span className="min-w-0 flex-1 truncate">{t("notif.markAll")}</span>
-    </button>
+    <IconButton variant="ghost" size="sm" round onClick={() => void n.readAll()} aria-label={t("notif.markAll")} title={t("notif.markAll")}>
+      <CheckCheck className="size-4" />
+    </IconButton>
   );
   const column = (
     <div className="space-y-0.5">
-      {markAll}
       {/* Without an AniList account there is one source, and a filter over one source filters nothing. */}
       {n.anilist && (
         <div role="radiogroup" aria-label={t("notif.source")} className="space-y-0.5">
@@ -97,7 +98,7 @@ export default function Notifications() {
   if (phone) {
     return (
       <div data-notifications-page className="space-y-4 px-4 pb-12 pt-4">
-        <h1 className="text-title">{t("notif.title")}</h1>
+        <PageTitle title={t("notif.title")} jp="通知" action={markAll} />
         {column}
         {feed}
       </div>
@@ -105,15 +106,19 @@ export default function Notifications() {
   }
 
   return (
-    <div data-notifications-page className="grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6">
-      <aside className="space-y-1 self-start">
-        {/* Breaks inside the word where it must: the German title is longer than the column. */}
-        <h1 lang={i18n.language} className="mb-2 hyphens-auto break-words px-3 text-title">
-          {t("notif.title")}
-        </h1>
-        {column}
-      </aside>
-      <div className="min-w-0 max-w-3xl">{feed}</div>
+    <div data-notifications-page>
+      <ColumnPage
+        scroll="page"
+        contentClassName="max-w-3xl"
+        column={
+          <>
+            <PageTitle title={t("notif.title")} jp="通知" action={markAll} className="mb-3" />
+            {column}
+          </>
+        }
+      >
+        {feed}
+      </ColumnPage>
     </div>
   );
 }

@@ -37,6 +37,7 @@ export default function MediaCard({
       className={focused ? "rounded-cover ring-2 ring-accent-500" : undefined}
       cover={media.coverImage.large}
       score={media.averageScore != null ? `${media.averageScore}%` : null}
+      communityScore={t("media.communityAverage")}
       adult={media.isAdult === true}
       blurred={shouldBlur(media, level, blurAdult)}
       revealLabel={displayTitle(media.title)}

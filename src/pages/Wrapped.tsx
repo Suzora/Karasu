@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { Download, Sparkles } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import type { Season, WrappedEntry } from "@/api/queries";
 import {
   currentScoreFormat,
@@ -30,9 +30,11 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked, isBlockedGenre } from "@/lib/contentFilter";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
-import { Pill } from "@/components/ui/pill";
+import { Popover } from "@/components/ui/popover";
+import { Segmented } from "@/components/ui/segmented";
+import { ColumnLabel, ColumnPage, PageTitle } from "@/components/shell/PageColumn";
+import { YearStepper } from "@/components/season/SeasonNav";
 import { EmptyState, ErrorState, OutlineYear } from "@/components/EmptyState";
-import { Select } from "@/components/ui/select";
 import markUrl from "@/assets/karasu-mark.svg";
 import { toBase64 } from "@/lib/base64";
 import { backendErrorText } from "@/lib/backendError";
@@ -769,63 +771,73 @@ export default function Wrapped() {
       {label}
     </button>
   );
-  const groupLabel = (label: string) => <p className="px-4 pb-1 pt-3 label-text text-ink-500">{label}</p>;
+  const groupLabel = (label: string) => <ColumnLabel className="pt-3">{label}</ColumnLabel>;
   const ready = years.length > 0;
+  const yearAt = year === null ? -1 : years.indexOf(year);
+  // `years` runs newest first, so a step forward in time is a step back in the array.
+  const stepYear = (step: 1 | -1) => {
+    const next = years[yearAt - step];
+    if (next !== undefined) setYear(next);
+  };
+  const periodName =
+    mode === "year" ? String(year ?? "") : seasonPick ? `${t(`season.${seasonPick.season}`)} ${seasonPick.year}` : "";
 
-  const column = (
+  const saveButton = (
+    <Button className="w-full rounded-full" onClick={save} disabled={!stats}>
+      <Download className="size-4" /> {saved ? t("common.saved") : t("wrapped.save")}
+    </Button>
+  );
+  const options = (
     <div className="space-y-0.5">
-      <div className="px-2 pb-2">
-        <Button className="w-full rounded-full" onClick={save} disabled={!stats}>
-          <Download className="size-4" /> {saved ? t("common.saved") : t("wrapped.save")}
-        </Button>
+      {groupLabel(t("wrapped.period"))}
+      {row(mode === "year", t("wrapped.modeYear"), () => setMode("year"))}
+      {/* A completion list can be all movies and specials, with no broadcast seasons, so the choice would be a dead end. */}
+      {seasons.length > 0 && row(mode === "season", t("wrapped.modeSeason"), () => setMode("season"))}
+      <div className="px-2 pt-1">
+        {mode === "year" ? (
+          year !== null && <YearStepper year={year} onStep={stepYear} canPrev={yearAt < years.length - 1} canNext={yearAt > 0} />
+        ) : (
+          seasonPick && (
+            <SeasonPicker
+              season={seasonPick.season}
+              year={seasonPick.year}
+              years={[...new Set(seasons.map((sn) => sn.year))]}
+              onPick={setSeasonPick}
+            />
+          )
+        )}
       </div>
-      {ready && (
-        <>
-          {groupLabel(t("wrapped.period"))}
-          {row(mode === "year", t("wrapped.modeYear"), () => setMode("year"))}
-          {/* A completion list can be all movies and specials, with no broadcast seasons, so the choice would be a dead end. */}
-          {seasons.length > 0 && row(mode === "season", t("wrapped.modeSeason"), () => setMode("season"))}
-          <div className="px-2 pt-1">
-            {mode === "year" ? (
-              <Select value={year ?? ""} onChange={(e) => setYear(Number(e.target.value))} aria-label={t("wrapped.modeYear")} className="w-full">
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </Select>
-            ) : (
-              seasonPick && (
-                <SeasonPicker
-                  season={seasonPick.season}
-                  year={seasonPick.year}
-                  years={[...new Set(seasons.map((sn) => sn.year))]}
-                  onPick={setSeasonPick}
-                />
-              )
-            )}
-          </div>
-          {groupLabel(t("wrapped.shape"))}
-          {PRESETS.map((p) => row(presetKey === p.key, t(p.labelKey), () => setPresetKey(p.key)))}
-          {groupLabel(t("wrapped.format"))}
-          <div className="flex flex-wrap gap-2 px-2">
-            {(["png", "jpeg"] as const).map((f) => (
-              <Pill key={f} active={format === f} onClick={() => setFormat(f)} className="shrink-0 whitespace-nowrap">
-                {f.toUpperCase()}
-              </Pill>
-            ))}
-          </div>
-          {/* Not a preview control: scale is what gets written to disk, so the pixel size is shown outright. */}
-          {groupLabel(t("wrapped.size"))}
-          <div className="flex flex-wrap gap-2 px-2">
-            {[1, 2, 3].map((n) => (
-              <Pill key={n} active={scale === n} onClick={() => setScale(n)} className="shrink-0 whitespace-nowrap">
-                {n}× · {preset.W * n}px
-              </Pill>
-            ))}
-          </div>
-        </>
-      )}
+      {groupLabel(t("wrapped.shape"))}
+      {PRESETS.map((p) => row(presetKey === p.key, t(p.labelKey), () => setPresetKey(p.key)))}
+      {groupLabel(t("wrapped.format"))}
+      <div className="px-2">
+        <Segmented
+          aria-label={t("wrapped.format")}
+          className="w-full [&>button]:flex-1"
+          value={format}
+          onChange={setFormat}
+          segments={[
+            { value: "png", label: "PNG" },
+            { value: "jpeg", label: "JPEG" },
+          ]}
+        />
+      </div>
+      {groupLabel(t("wrapped.size"))}
+      <div className="space-y-1.5 px-2">
+        <Segmented
+          aria-label={t("wrapped.size")}
+          className="w-full [&>button]:flex-1"
+          value={String(scale) as "1" | "2" | "3"}
+          onChange={(v) => setScale(Number(v))}
+          segments={[
+            { value: "1", label: "1×" },
+            { value: "2", label: "2×" },
+            { value: "3", label: "3×" },
+          ]}
+        />
+        {/* Not a preview control: scale is what gets written to disk, so the pixel size is shown outright. */}
+        <p className="px-2 text-xs tabular-nums text-ink-500">{`${preset.W * scale} × ${preset.H * scale} px`}</p>
+      </div>
     </div>
   );
 
@@ -842,16 +854,54 @@ export default function Wrapped() {
     </div>
   );
 
+  if (phone) {
+    return (
+      <div className="space-y-4 px-4 pb-24 pt-4">
+        <PageTitle title={t("wrapped.title")} jp="振り返り" />
+        {ready && (
+          <>
+            {/* Folded into one field, so the poster this page exists for is on the first screen. */}
+            <Popover
+              label={t("wrapped.options")}
+              variant="sheet"
+              className="w-full"
+              renderTrigger={(p) => (
+                <button
+                  type="button"
+                  {...p}
+                  aria-label={t("wrapped.optionsPick", { summary: `${periodName} · ${t(preset.labelKey)}` })}
+                  className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
+                >
+                  <span className="truncate text-base text-ink-100">{periodName}</span>
+                  <span className="min-w-0 truncate text-sm text-ink-500">{`${t(preset.labelKey)} · ${format.toUpperCase()} ${scale}×`}</span>
+                  <span className="flex-1" />
+                  <ChevronDown aria-hidden className="size-4 shrink-0 text-ink-500" />
+                </button>
+              )}
+            >
+              {() => options}
+            </Popover>
+            {saveButton}
+          </>
+        )}
+        {stage}
+      </div>
+    );
+  }
+
   return (
-    <div className={cn(phone ? "space-y-4 px-4 pb-24 pt-4" : "grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6")}>
-      <aside className={cn("space-y-1", !phone && "self-start")}>
-        <h1 className="mb-2 flex items-center gap-2 px-3 text-title">
-          <Sparkles className="size-5 text-accent-400" /> {t("wrapped.title")}
-        </h1>
-        {column}
-      </aside>
-      <div className="min-w-0">{stage}</div>
-    </div>
+    <ColumnPage
+      scroll="page"
+      column={
+        <>
+          <PageTitle title={t("wrapped.title")} jp="振り返り" className="mb-3" />
+          <div className="px-2 pb-2">{saveButton}</div>
+          {ready && options}
+        </>
+      }
+    >
+      {stage}
+    </ColumnPage>
   );
 }
 

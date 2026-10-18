@@ -17,6 +17,18 @@ describe("SeasonNav", () => {
     expect(onStep.mock.calls).toEqual([[-1], [1]]);
   });
 
+  it("disables an arrow with no year beyond it", () => {
+    renderWithProviders(<YearStepper year={2026} onStep={() => {}} canNext={false} />);
+    expect(screen.getByRole("button", { name: "seasonal.nextYear" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "seasonal.prevYear" })).toBeEnabled();
+  });
+
+  it("draws the two show filters as switches that say whether they are on", () => {
+    renderWithProviders(<FormatNav counts={counts} total={8} filters={{ ...filters, unlisted: true }} onChange={() => {}} />);
+    expect(screen.getByRole("switch", { name: "seasonal.unlisted" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: "seasonal.byScore" })).toHaveAttribute("aria-checked", "false");
+  });
+
   it("offers the four seasons as one choice with the current one checked", () => {
     const onPick = vi.fn();
     renderWithProviders(<SeasonField season="FALL" onPick={onPick} />);
@@ -32,9 +44,9 @@ describe("SeasonNav", () => {
     expect(screen.getByRole("button", { name: /seasonal\.allFormats/ })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: /format\.MOVIE/ }));
     expect(onChange).toHaveBeenCalledWith({ format: "MOVIE" });
-    fireEvent.click(screen.getByRole("button", { name: "seasonal.unlisted" }));
+    fireEvent.click(screen.getByRole("switch", { name: "seasonal.unlisted" }));
     expect(onChange).toHaveBeenCalledWith({ unlisted: true });
-    fireEvent.click(screen.getByRole("button", { name: "seasonal.byScore" }));
+    fireEvent.click(screen.getByRole("switch", { name: "seasonal.byScore" }));
     expect(onChange).toHaveBeenCalledWith({ byScore: true });
   });
 

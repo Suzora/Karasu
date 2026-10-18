@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useNavigationType } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
+import { PageTitle } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useUrlState } from "@/hooks/useUrlState";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -376,7 +377,8 @@ export default function Search() {
               />
               <FilterSelect
                 row={row}
-                label={t("list.sortLabel")}
+                label={row ? t("search.sortRow") : t("list.sortLabel")}
+                neutral="SEARCH_MATCH"
                 // The sections have no sort of their own, so an untouched page shows the URL's and every pick browses.
                 value={active ? filters.sort : sort}
                 onChange={(v) => set({ sort: v })}
@@ -451,7 +453,7 @@ export default function Search() {
     const CurrentIcon = SCOPE_ICON[scope];
     return (
       <div ref={resultsRef} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
-        <h1 className="text-title">{t("search.title")}</h1>
+        <PageTitle title={t("search.title")} jp="検索" />
         {field}
         <div className="flex gap-2">
           <Popover
@@ -507,7 +509,7 @@ export default function Search() {
   return (
     <div className="flex h-full">
       <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-        <h1 className="mb-3 px-3 text-title">{t("search.title")}</h1>
+        <PageTitle title={t("search.title")} jp="検索" className="mb-3" />
         {SCOPES.map((sc) => scopeRow(sc))}
         {isMediaScope(scope) && (
           <>

@@ -366,7 +366,7 @@ describe("Search with nothing typed", () => {
       </>,
       { route: "/search" },
     );
-    const select = await screen.findByRole("combobox", { name: "list.sortLabel" });
+    const select = await screen.findByRole("combobox", { name: "search.sortRow" });
     expect(select).toHaveValue("SEARCH_MATCH");
     await user.selectOptions(select, "POPULARITY_DESC");
     await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent(/^\?sort=POPULARITY_DESC$/));

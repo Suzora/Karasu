@@ -12,6 +12,7 @@ export function CoverCell({
   to,
   cover,
   score,
+  communityScore,
   adult,
   media,
   blurred,
@@ -31,6 +32,8 @@ export function CoverCell({
   cover: string | null;
   /** The gold star badge's content, already formatted: the user's score and AniList's average differ in scale. */
   score?: ReactNode;
+  /** Names AniList's average rather than the user's score: drawn plain without the star, and labelled so. */
+  communityScore?: string;
   /** Marks the title 18+; only visible with the filter off, since `adultQueryArg` excludes adult titles server-side. */
   adult?: boolean;
   /** The title, naming the cover link and the reveal button, so a grid does not announce identical links or "Show"s. */
@@ -148,8 +151,14 @@ export function CoverCell({
 
         <div className="absolute left-2 top-2 flex items-center gap-1">
           {score != null && (
-            <span className="flex items-center gap-1 rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold text-on-cover-gold">
-              <Star className="size-2.5" fill="currentColor" />
+            <span
+              title={communityScore}
+              className={cn(
+                "flex items-center gap-1 rounded-control bg-on-cover/93 px-1.5 py-0.5 text-2xs font-semibold",
+                communityScore ? "text-on-cover-edge" : "text-on-cover-gold",
+              )}
+            >
+              {communityScore ? <span className="sr-only">{communityScore}</span> : <Star className="size-2.5" fill="currentColor" />}
               {score}
             </span>
           )}

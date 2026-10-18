@@ -13,6 +13,7 @@ import {
 import { isTauri } from "@/api/anilist";
 import BackButton from "@/components/shell/BackButton";
 import { ProfileHeader } from "@/components/social/ProfileHeader";
+import { ColumnPage } from "@/components/shell/PageColumn";
 import { UserList } from "@/components/social/UserList";
 import { UserLists } from "@/components/social/UserLists";
 import { UserCompare } from "@/components/social/UserCompare";
@@ -222,45 +223,50 @@ function Tabbed({ user }: { user: UserProfileData }) {
   };
   const phone = usePhoneShell();
 
-  return (
-    <div className={cn("mt-6 px-8", !phone && "grid grid-cols-[15rem_minmax(0,1fr)] gap-6")}>
-      {phone ? (
-        <SectionPicker label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />
-      ) : (
-        <aside className="self-start">
-          <SectionNav label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />
-        </aside>
+  // Keyed on the tab so the panel replays `animate-settle`, as the settings panes do.
+  const panel = (
+    <div key={tab} className={cn("min-w-0 animate-settle", phone && "pt-5")}>
+      {tab === "overview" && <Favourites user={user} />}
+      {tab === "lists" && <UserLists user={user} />}
+      {tab === "compare" && <UserCompare user={user} />}
+      {tab === "activity" && (
+        <ActivityFeed
+          queryKey={["social", "activities", user.id]}
+          source={{ userId: user.id }}
+          emptyTitle={self ? t("social.noActivitySelf") : t("social.noActivity", { name: user.name })}
+        />
       )}
-
-      {/* Keyed on the tab so the panel replays `animate-settle`, as the settings panes do. */}
-      <div key={tab} className={cn("min-w-0 animate-settle", phone && "pt-5")}>
-        {tab === "overview" && <Favourites user={user} />}
-        {tab === "lists" && <UserLists user={user} />}
-        {tab === "compare" && <UserCompare user={user} />}
-        {tab === "activity" && (
-          <ActivityFeed
-            queryKey={["social", "activities", user.id]}
-            source={{ userId: user.id }}
-            emptyTitle={self ? t("social.noActivitySelf") : t("social.noActivity", { name: user.name })}
-          />
-        )}
-        {tab === "followers" && (
-          <UserList
-            queryKey={["social", "followers", user.id]}
-            fetchPage={(page) => followers(user.id, page)}
-            emptyTitle={self ? t("social.noFollowersSelf") : t("social.noFollowers", { name: user.name })}
-          />
-        )}
-        {tab === "following" && (
-          <UserList
-            queryKey={["social", "following", user.id]}
-            fetchPage={(page) => following(user.id, page)}
-            emptyTitle={self ? t("social.noFollowingSelf") : t("social.noFollowing", { name: user.name })}
-          />
-        )}
-        {tab === "forum" && <UserThreads userId={user.id} name={user.name} self={self} />}
-      </div>
+      {tab === "followers" && (
+        <UserList
+          queryKey={["social", "followers", user.id]}
+          fetchPage={(page) => followers(user.id, page)}
+          emptyTitle={self ? t("social.noFollowersSelf") : t("social.noFollowers", { name: user.name })}
+        />
+      )}
+      {tab === "following" && (
+        <UserList
+          queryKey={["social", "following", user.id]}
+          fetchPage={(page) => following(user.id, page)}
+          emptyTitle={self ? t("social.noFollowingSelf") : t("social.noFollowing", { name: user.name })}
+        />
+      )}
+      {tab === "forum" && <UserThreads userId={user.id} name={user.name} self={self} />}
     </div>
+  );
+
+  if (phone) {
+    return (
+      <div className="mt-6 px-8">
+        <SectionPicker label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />
+        {panel}
+      </div>
+    );
+  }
+
+  return (
+    <ColumnPage scroll="page" columnClassName="pt-4" contentClassName="pt-4" column={<SectionNav label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />}>
+      {panel}
+    </ColumnPage>
   );
 }
 

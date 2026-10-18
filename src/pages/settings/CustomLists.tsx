@@ -127,7 +127,7 @@ function ListRows({ type, shape }: { type: MediaType; shape: ListShape }) {
                 />
               </li>
             ) : (
-              <li key={name} className="flex items-center gap-2 rounded-control bg-surface-900 py-1 pl-3 pr-1">
+              <li key={name} className="flex items-center gap-2 rounded-control bg-surface-900 surface-outline py-1 pl-3 pr-1">
                 <span className="min-w-0 flex-1 truncate text-xs text-ink-100">{name}</span>
                 {members && (
                   <span

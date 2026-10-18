@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { CalendarClock, Plus, Star } from "lucide-react";
+import { CalendarClock, Plus } from "lucide-react";
 import type { MediaWithListStatus } from "@/api/queries";
 import { displayTitle } from "@/api/types";
 import { useDiscoveryEntry } from "@/hooks/useDiscoveryEntry";
@@ -32,7 +32,7 @@ export default function SeasonCard({ media, focused = false }: { media: MediaWit
       data-media-type={media.type}
       data-media-title={title}
       // The roving cursor is not real DOM focus, so the ring is drawn rather than inherited from `:focus-visible`.
-      className={cn("flex gap-3 rounded-panel bg-surface-900 p-2.5 transition-surface hover:bg-surface-850", focused && "ring-2 ring-accent-500")}
+      className={cn("flex gap-3 rounded-panel bg-surface-900 surface-outline p-2.5 transition-surface hover:bg-surface-850", focused && "ring-2 ring-accent-500")}
     >
       <Link to={`/media/${media.id}`} tabIndex={-1} aria-hidden className="w-20 shrink-0 overflow-hidden rounded-inner bg-surface-850">
         {media.coverImage.large && (
@@ -54,8 +54,9 @@ export default function SeasonCard({ media, focused = false }: { media: MediaWit
           <span aria-hidden>·</span>
           <span>{t("seasonal.episodes", { n: media.episodes ?? "?" })}</span>
           {media.averageScore != null && (
-            <span className="flex items-center gap-0.5 text-gold">
-              <Star aria-hidden className="size-3.5 fill-current" />
+            // AniList's average, so without the star that marks the user's own score everywhere else.
+            <span title={t("media.communityAverage")} className="tabular-nums text-ink-300">
+              <span className="sr-only">{t("media.communityAverage")} </span>
               {`${media.averageScore}%`}
             </span>
           )}

@@ -28,6 +28,7 @@ import {
 } from "@/lib/calendarView";
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -252,7 +253,11 @@ export default function Calendar() {
     >
       {Icon && <Icon aria-hidden className="size-4 shrink-0 opacity-70" />}
       <span className="min-w-0 flex-1 truncate">{label}</span>
-      {count != null && <span className="text-xs tabular-nums opacity-70">{count}</span>}
+      {count != null && (
+        <span title={t("calendar.countHint", { n: count })} className="text-xs tabular-nums opacity-70">
+          {count}
+        </span>
+      )}
     </button>
   );
   const viewIcon = { week: CalendarDays, tiles: LayoutGrid, agenda: ListIcon } as const;
@@ -305,11 +310,7 @@ export default function Calendar() {
   if (phone) {
     return (
       <div ref={scroller} className="h-full space-y-4 overflow-y-auto px-8 pb-12 pt-4 float-clear">
-        <div className="flex items-center gap-2">
-          <h1 className="text-title">{t("calendar.title")}</h1>
-          <span className="flex-1" />
-          {download}
-        </div>
+        <PageTitle title={t("calendar.title")} jp="カレンダー" action={download} />
         {stepper}
         {backToThisWeek}
         <div className="flex items-center gap-2">
@@ -339,12 +340,13 @@ export default function Calendar() {
   }
 
   return (
-    <div className="flex h-full">
-      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-        <div className="mb-3 flex items-center gap-2 pl-3">
-          <h1 className="min-w-0 flex-1 truncate text-title">{t("calendar.title")}</h1>
-          {download}
-        </div>
+    <ColumnPage
+      contentRef={scroller}
+      // The week grid draws only where its columns fit; the stable gutter keeps the scrollbar from flipping that.
+      contentClassName="[scrollbar-gutter:stable] float-clear"
+      column={
+        <>
+        <PageTitle title={t("calendar.title")} jp="カレンダー" action={download} className="mb-3" />
         {stepper}
         {backToThisWeek}
         <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("calendar.showHeading")}</p>
@@ -353,12 +355,11 @@ export default function Calendar() {
         <div className="mx-3 my-3 h-px bg-surface-850" />
         <p className="px-4 pb-1 label-text text-ink-500">{t("calendar.layoutHeading")}</p>
         {viewSegments.map((sg) => navRow(view === sg.value, sg.label, () => chooseView(sg.value), viewIcon[sg.value]))}
-      </aside>
-      {/* The week grid draws only where its columns fit; the stable gutter keeps the scrollbar from flipping that. */}
-      <div ref={scroller} className="min-w-0 flex-1 overflow-y-auto pb-12 pl-2 pr-8 pt-6 [scrollbar-gutter:stable] float-clear">
-        {body}
-      </div>
-    </div>
+        </>
+      }
+    >
+      {body}
+    </ColumnPage>
   );
 }
 
@@ -496,7 +497,7 @@ function CalendarAgendaRow({ slot, state }: { slot: Slot; state: ReleaseState })
       to={`/media/${slot.media.id}`}
       title={title}
       className={cn(
-        "flex items-center gap-3 rounded-panel bg-surface-900 p-2.5 transition-surface hover:bg-surface-850",
+        "flex items-center gap-3 rounded-panel bg-surface-900 surface-outline p-2.5 transition-surface hover:bg-surface-850",
         state !== "upcoming" && "opacity-55 hover:opacity-100 focus-visible:opacity-100",
       )}
     >
@@ -535,7 +536,7 @@ function DayColumn({
         date.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" }) +
         (isToday ? ` · ${t("calendar.today")}` : "")
       }
-      className={cn("flex min-h-96 flex-col gap-2 rounded-panel p-2", isToday ? "bg-accent-500/5 ring-1 ring-accent-500/40" : "bg-surface-900/50")}
+      className={cn("flex min-h-96 flex-col gap-2 rounded-panel p-2", isToday ? "bg-accent-500/5 ring-1 ring-accent-500/40" : "bg-surface-900/50 surface-outline")}
     >
       <header className={cn("flex items-baseline justify-between gap-1 rounded-full px-2.5 py-1 text-sm", isToday ? "nav-pill" : "text-ink-300")}>
         <span>{date.toLocaleDateString(i18n.language, { weekday: "short" })}</span>

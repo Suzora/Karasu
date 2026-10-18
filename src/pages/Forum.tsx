@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { forumThreads, THREAD_CATEGORIES } from "@/api/social";
 import { SearchField } from "@/components/ui/search-field";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { PageTitle } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useSettledWrite } from "@/hooks/useUrlState";
 import { PresenceIf } from "@/components/ui/presence";
@@ -143,10 +144,7 @@ export default function Forum() {
     <div className={cn("flex h-full", phone && "flex-col")}>
       {phone ? (
         <div className="space-y-4 px-4 pt-4">
-          <div className="flex items-center gap-2">
-            <h1 className="flex-1 text-title">{t("forum.title")}</h1>
-            {newThread}
-          </div>
+          <PageTitle title={t("forum.title")} jp="掲示板" action={newThread} />
           <Popover
             label={t("forum.category")}
             variant="sheet"
@@ -169,12 +167,7 @@ export default function Forum() {
         </div>
       ) : (
         <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-          <div className="mb-2 flex items-center gap-2 pl-3">
-            <h1 className="text-title">{t("forum.title")}</h1>
-            <span className="font-brand-jp text-ui tracking-lockup text-ink-600">掲示板</span>
-            <span className="flex-1" />
-            {newThread}
-          </div>
+          <PageTitle title={t("forum.title")} jp="掲示板" action={newThread} className="mb-3" />
           {column()}
         </aside>
       )}

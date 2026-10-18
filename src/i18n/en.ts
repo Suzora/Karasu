@@ -599,9 +599,8 @@ export const en = {
     lengthBucketCh: "{{range}} ch",
     countries: "Country of origin",
     spread: "Score spread",
-    perEntry: "Per entry",
-    episodesEach: "{{n}} ep",
-    chaptersEach: "{{n}} ch",
+    perEntryEpisodes: "Episodes per entry",
+    perEntryChapters: "Chapters per entry",
     sortByCount: "Count",
     sortByTime: "Time",
     sortByChapters: "Chapters",
@@ -742,6 +741,7 @@ export const en = {
     viewList: "List",
   },
   search: {
+    sortRow: "Sort",
     title: "Search",
     placeholder: "Search AniList…",
     searching: "Searching…",
@@ -846,6 +846,7 @@ export const en = {
     emptyFiltered: "Nothing this season matches these filters.",
   },
   calendar: {
+    countHint: "{{n}} airings this week",
     title: "Calendar",
     lens: "What to show",
     lensMine: "My shows",
@@ -1233,6 +1234,8 @@ export const en = {
     addToList: "Add to list",
   },
   wrapped: {
+    options: "Adjust the picture",
+    optionsPick: "Adjust the picture: {{summary}}",
     title: "Wrapped",
     completed: "Completed",
     hours: "Hours",
@@ -1258,6 +1261,7 @@ export const en = {
     period: "Period",
   },
   media: {
+    communityAverage: "AniList average",
     addDefault: "Add to your list",
   },
   social: {

@@ -63,7 +63,9 @@ src/
                      sheet, global keys, toast, first run, session expired, the
                      what's-new gate (the changelog once after an update), the
                      sync panel, the pull-to-sync indicator, the detection pill
-                     and the floating detection window, and the action host,
+                     and the floating detection window, PageColumn (the column
+                     pages' one frame and title, `ColumnPage` and
+                     `PageTitle`), and the action host,
                      which owns right-click and long press and renders the context
                      menu or the action sheet over one resolved list of actions
                      (actionIcons/actionLabels are its two lookup tables)

@@ -25,8 +25,8 @@ import {
 import { buttonClass } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/user-lockup";
 import { Segmented, type Segment } from "@/components/ui/segmented";
+import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
 import {
   RadarChart,
   Sunburst,
@@ -116,23 +116,17 @@ export default function Statistics() {
   return (
     <StatisticsContent
       userId={viewer.id}
-      name={viewer.name}
       siteUrl={viewer.siteUrl}
-      avatar={viewer.avatar?.large ?? null}
     />
   );
 }
 
 function StatisticsContent({
   userId,
-  name,
   siteUrl,
-  avatar,
 }: {
   userId: number;
-  name: string;
   siteUrl: string;
-  avatar: string | null;
 }) {
   const { t } = useTranslation();
   // Type and tab live in the URL rather than state, so Back from anywhere keeps the selection.
@@ -312,22 +306,22 @@ function StatisticsContent({
     </>
   );
 
+  const linkRow = "press flex hover:no-underline w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100";
+  const phoneActions = (
+    <>
+      <ExternalAnchor href={siteUrl} aria-label={t("ctx.openAniList")} title={t("ctx.openAniList")} className={cn(buttonClass("ghost", "iconControl"), "hover:no-underline")}>
+        <ExternalLink className="size-4" aria-hidden="true" />
+      </ExternalAnchor>
+      <Link to="/wrapped" aria-label={t("wrapped.title")} title={t("wrapped.title")} className={buttonClass("ghost", "iconControl")}>
+        <Sparkles className="size-4" aria-hidden="true" />
+      </Link>
+    </>
+  );
+
   if (phone) {
     return (
       <div className="space-y-4 px-4 pb-24 pt-4">
-        <header className="flex items-center gap-3">
-          <Avatar src={avatar} size="md" fallback={<BarChart3 className="size-4" />} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-title">{t("stats.title")}</h1>
-            {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
-            <ExternalAnchor href={siteUrl} className="flex items-center gap-1 text-xs text-accent-400 hover:underline">
-              {name} <ExternalLink className="size-3.5" />
-            </ExternalAnchor>
-          </div>
-          <Link to="/wrapped" aria-label={t("wrapped.title")} title={t("wrapped.title")} className={buttonClass("ghost", "iconControl")}>
-            <Sparkles className="size-4" aria-hidden="true" />
-          </Link>
-        </header>
+        <PageTitle title={t("stats.title")} jp="統計" action={phoneActions} />
         {typeSwitch}
         <SectionPicker label={t("stats.sectionsLabel")} items={sectionItems} value={activeCategory} onChange={(v) => setView({ category: v })} />
         {content}
@@ -336,29 +330,28 @@ function StatisticsContent({
   }
 
   return (
-    <div className="flex h-full">
-      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-        <header className="mb-4 flex items-center gap-3 px-2">
-          {/* Avatar without the lockup: the text beside it is the screen's title, not the user's name. */}
-          <Avatar src={avatar} size="md" fallback={<BarChart3 className="size-4" />} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-title">{t("stats.title")}</h1>
-            {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
-            <ExternalAnchor href={siteUrl} className="flex min-w-0 items-center gap-1 text-xs text-accent-400 hover:underline">
-              <span className="truncate">{name}</span> <ExternalLink className="size-3.5 shrink-0" />
-            </ExternalAnchor>
-          </div>
-        </header>
+    <ColumnPage
+      contentClassName="space-y-6"
+      column={
+      <>
+        <PageTitle title={t("stats.title")} jp="統計" className="mb-3" />
         <div className="mb-3">{typeSwitch}</div>
         <SectionNav label={t("stats.sectionsLabel")} items={sectionItems} value={activeCategory} onChange={(v) => setView({ category: v })} />
         <div className="mx-3 my-3 h-px bg-surface-850" />
-        <Link to="/wrapped" className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100">
+        <Link to="/wrapped" className={linkRow}>
           <Sparkles aria-hidden className="size-4 shrink-0 opacity-70" />
           {t("wrapped.title")}
         </Link>
-      </aside>
-      <div className="min-w-0 flex-1 space-y-6 overflow-y-auto pb-12 pl-2 pr-8 pt-6">{content}</div>
-    </div>
+        {/* Keep `ExternalAnchor`; a raw target="_blank" anchor goes nowhere because the WebView has no tabs. */}
+        <ExternalAnchor href={siteUrl} className={linkRow}>
+          <ExternalLink aria-hidden className="size-4 shrink-0 opacity-70" />
+          <span className="min-w-0 flex-1 truncate">{t("ctx.openAniList")}</span>
+        </ExternalAnchor>
+      </>
+      }
+    >
+      {content}
+    </ColumnPage>
   );
 }
 
@@ -435,10 +428,8 @@ function AnimeView({
             value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
           },
           {
-            label: t("stats.perEntry"),
-            value: t("stats.episodesEach", {
-              n: formatDecimal(stats.episodesWatched / Math.max(1, stats.count), i18n.language, 1),
-            }),
+            label: t("stats.perEntryEpisodes"),
+            value: formatDecimal(stats.episodesWatched / Math.max(1, stats.count), i18n.language, 1),
           },
         ]}
       />
@@ -503,10 +494,8 @@ function MangaView({
             value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
           },
           {
-            label: t("stats.perEntry"),
-            value: t("stats.chaptersEach", {
-              n: formatDecimal(stats.chaptersRead / Math.max(1, stats.count), i18n.language, 0),
-            }),
+            label: t("stats.perEntryChapters"),
+            value: formatDecimal(stats.chaptersRead / Math.max(1, stats.count), i18n.language, 0),
           },
         ]}
       />
@@ -969,14 +958,17 @@ function OverviewCharts({
         }))}
       />
       {countries.length > 1 && (
-        <StatusBar
-          locale={i18n.language}
-          title={t("stats.countries")}
-          data={countries.map((d) => ({
-            label: t(`country.${d.country}`, { defaultValue: d.country ?? "?" }),
-            count: d.count,
-          }))}
-        />
+        // Last of an odd count, so it takes the whole row rather than leaving half of it empty.
+        <div className={cn(breakdown.length > 0 && "lg:col-span-2")}>
+          <StatusBar
+            locale={i18n.language}
+            title={t("stats.countries")}
+            data={countries.map((d) => ({
+              label: t(`country.${d.country}`, { defaultValue: d.country ?? "?" }),
+              count: d.count,
+            }))}
+          />
+        </div>
       )}
     </div>
   );

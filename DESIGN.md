@@ -159,9 +159,10 @@ bg-surface-900 shadow-float`.
 | `text-ui` (13 px) | the shell's panels, toolbars and dense titles |
 | `text-sm` (14 px) | body, controls |
 | `text-base` (16 px) | card titles |
+| `text-page` (22 px) | a column page's title over its Japanese line (`PageTitle`) |
 | `text-heading` (26 px) | a title's own heading on its detail page |
 | `text-hero`, `text-hero-lg` (28 / 36 px) | the first-run greeting |
-| `text-title` (30 px) | page titles |
+| `text-title` (30 px) | titles outside the column pages (detail, Overview, empty states) |
 
 Headings (`h1` to `h3`) are set in SN Pro at its one weight by element, in
 unlayered rules in `index.css`, so no weight utility can pull one back to the
@@ -1125,3 +1126,24 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   pick), the template, the format and the size, and the poster stands on a
   lightly tinted stage beside it. The poster itself is the exported picture
   and does not change. On the phone the column sits above the stage.
+- **2026-10-18:** After a critique of every surface (28 of 40, the seams
+  between pages the main finding), the column pages share one frame:
+  `PageColumn`'s `ColumnPage` (a 15rem column inset 20 px, the content 8 px
+  beside it, on the page's own scroller or on `<main>`'s) and `PageTitle`,
+  the title in `text-page` with its Japanese line under it on every column
+  page and on the phone, and the page's one action (export, New thread,
+  Mark all read, the phone's list buttons) at the end of that line. 22 px is
+  the size at which "Benachrichtigungen" holds one line in the column. Mark
+  all read left the rows for that spot, since a row there reads as a
+  filter. The tonal cards that had no edge in high contrast carry
+  `surface-outline`. Profile and Wrapped lose their pills and native
+  selects: the profile's type is `Segmented` and its status the lists' own
+  picker, Wrapped steps its year with the season page's arrows and sets
+  format and size with `Segmented`, the pixel size written under them.
+  AniList's average loses the star that marks the user's own score. The
+  season page's two show filters are switches. The activity cover moves to
+  the trailing edge so every row's text starts at one line. On the phone
+  Wrapped folds its choices into a field that opens them as a sheet, under
+  the title and over Save, so the poster is on the first screen; this
+  replaces the column above the stage of the entry before, at the
+  maintainer's word after the critique.

@@ -54,7 +54,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
               onPicked?.();
             }}
             className={cn(
-              "flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+              "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
               s === value ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
             )}
           >
@@ -78,7 +78,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
                 onPicked?.();
               }}
               className={cn(
-                "flex w-full items-center rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+                "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
                 n === list ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
               )}
             >
@@ -91,14 +91,14 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
   );
 }
 
-/** The phone's form of the column: a field naming the current status and its count, opening the column in a sheet. */
-export function StatusPicker(props: Props) {
+/** The column folded into a field naming the current status and its count; a sheet on the phone, a dropdown elsewhere. */
+export function StatusPicker({ variant = "sheet", ...props }: Props & { variant?: "sheet" | "dropdown" }) {
   const { t } = useTranslation();
   const label = t(`status.${props.type}.${props.value}`);
   return (
     <Popover
       label={t("list.statusTabs")}
-      variant="sheet"
+      variant={variant}
       className="w-full"
       renderTrigger={(p) => (
         <button

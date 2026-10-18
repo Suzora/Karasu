@@ -157,7 +157,7 @@ export default function Person({ kind }: { kind: Kind }) {
     <Frame>
       {/* The facts stand in a card beside the rest, as the detail page's side column does. */}
       <div className="grid items-start gap-6 md:grid-cols-[17rem_minmax(0,1fr)]">
-      <header className="space-y-4 rounded-panel bg-surface-900 p-4 md:sticky md:top-4">
+      <header className="space-y-4 rounded-panel bg-surface-900 surface-outline p-4 md:sticky md:top-4">
         {!su && (
           <div className="w-full overflow-hidden rounded-inner bg-surface-850 max-md:w-32">
             {image ? (

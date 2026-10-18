@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Activity, BookOpen, ChevronDown, Clapperboard, Globe, MessageSquare, User, Users } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
+import { ColumnPage, ColumnRule, PageTitle } from "@/components/shell/PageColumn";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useUrlState } from "@/hooks/useUrlState";
 import { feeds, feedVariables, kindsFor, parseFeedView, writeFeedView, type Feed, type FeedKind } from "@/lib/feedView";
@@ -98,7 +99,7 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
   if (phone) {
     return (
       <div className="space-y-4 px-4 pb-24 pt-4">
-        <h1 className="text-title">{t("nav.social")}</h1>
+        <PageTitle title={t("nav.social")} jp="みんな" />
         <Popover
           label={t("social.feedHeading")}
           variant="sheet"
@@ -125,20 +126,20 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
   }
 
   return (
-    <div className="grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6">
-      <aside className="space-y-1 self-start">
-        <div className="mb-2 flex items-baseline gap-2.5 px-3">
-          <h1 className="text-title">{t("nav.social")}</h1>
-          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">みんな</span>
-        </div>
-        {column()}
-        <div className="mx-3 my-3 h-px bg-surface-850" />
-        {profile}
-      </aside>
-      <div className="min-w-0 max-w-3xl space-y-4">
-        <ActivityComposer />
-        {feed}
-      </div>
-    </div>
+    <ColumnPage
+      scroll="page"
+      contentClassName="max-w-3xl space-y-4"
+      column={
+        <>
+          <PageTitle title={t("nav.social")} jp="みんな" className="mb-3" />
+          {column()}
+          <ColumnRule />
+          {profile}
+        </>
+      }
+    >
+      <ActivityComposer />
+      {feed}
+    </ColumnPage>
   );
 }

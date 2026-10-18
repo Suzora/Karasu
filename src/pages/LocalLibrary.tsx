@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { VirtualRows } from "@/components/list/VirtualRows";
+import { PageTitle } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -427,7 +428,7 @@ function LibraryView({ userId }: { userId: number }) {
 
   const folder = (
     // The folder and what the last scan made of it, or the screen never says where the files came from.
-    <div className="space-y-2.5 rounded-panel bg-surface-900 p-3">
+    <div className="space-y-2.5 rounded-panel bg-surface-900 surface-outline p-3">
       <p className="flex min-w-0 items-center gap-2 text-sm text-ink-100">
         <FolderOpen aria-hidden className="size-4 shrink-0 text-ink-500" />
         <span className="truncate tabular-nums">{status?.path ?? t("library.noFolder")}</span>
@@ -451,11 +452,8 @@ function LibraryView({ userId }: { userId: number }) {
 
   return (
     <div className={cn("flex h-full", phone && "flex-col")}>
-      <aside className={cn("shrink-0 space-y-3", phone ? "px-4 pt-4" : "w-64 overflow-y-auto pb-8 pl-5 pr-3 pt-6")}>
-        <div className={cn("flex gap-x-2.5", phone ? "items-baseline" : "flex-col px-3")}>
-          <h1 className="text-title text-ink-100">{t("library.title")}</h1>
-          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">ライブラリ</span>
-        </div>
+      <aside className={cn("shrink-0 space-y-3", phone ? "px-4 pt-4" : "w-60 overflow-y-auto pb-8 pl-5 pr-3 pt-6")}>
+        <PageTitle title={t("library.title")} jp="ライブラリ" />
         {folder}
         {jumps.length > 0 && !phone && (
           <nav aria-label={t("library.jumpTo")} className="space-y-0.5">

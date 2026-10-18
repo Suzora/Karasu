@@ -1,3 +1,4 @@
+import { PageTitle } from "@/components/shell/PageColumn";
 import { useSearchParams } from "react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -240,7 +241,7 @@ export default function Settings() {
     if (listShown) {
       return (
         <div className="space-y-4 p-4">
-          <h1 className="px-1 pt-2 text-title">{t("settings.title")}</h1>
+          <PageTitle title={t("settings.title")} jp="設定" className="pt-2" />
           {/* One line of what each pane holds, so the list answers where a setting is before a pane is opened. */}
           <div className="space-y-1">
             {panes.map((p) => {
@@ -251,7 +252,7 @@ export default function Settings() {
                   key={p.id}
                   type="button"
                   onClick={() => setParams({ pane: p.id })}
-                  className="press flex w-full items-center gap-3 rounded-panel bg-surface-900 px-3.5 py-3 text-left transition-surface hover:bg-surface-850"
+                  className="press flex w-full items-center gap-3 rounded-panel bg-surface-900 surface-outline px-3.5 py-3 text-left transition-surface hover:bg-surface-850"
                 >
                   <span
                     className={cn(
@@ -262,7 +263,7 @@ export default function Settings() {
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={cn("block text-sm font-medium", danger ? "text-danger" : "text-ink-100")}>
+                    <span className="block text-sm font-medium text-ink-100">
                       {t(`settings.pane_${p.id}`)}
                     </span>
                     <span className="line-clamp-2 text-xs text-ink-600">{paneHint(p.id)}</span>
@@ -309,10 +310,7 @@ export default function Settings() {
   return (
     <div className="flex h-full min-h-0">
       <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-        <div className="mb-2 flex flex-col px-3">
-          <h1 className="text-title">{t("settings.title")}</h1>
-          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">設定</span>
-        </div>
+        <PageTitle title={t("settings.title")} jp="設定" className="mb-3" />
         <nav aria-label={t("nav.settings")} className="space-y-0.5">
           {panes.map((p) => {
             const Icon = p.icon;
@@ -329,15 +327,13 @@ export default function Settings() {
                     ? danger
                       ? "bg-danger/12 text-danger"
                       : "nav-pill"
-                    : danger
-                      ? "text-danger hover:bg-danger/10"
-                      : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+                    : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
                 )}
               >
                 <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
                 <span className="min-w-0 flex-1 truncate">{t(`settings.pane_${p.id}`)}</span>
-                {/* Only a flag here; explaining is the job of the pane's own note. */}
-                {danger && <AlertTriangle aria-hidden className="size-3.5 shrink-0" />}
+                {/* Only a flag here, in the danger colour while the row itself rests; the pane's own note explains. */}
+                {danger && <AlertTriangle aria-hidden className="size-3.5 shrink-0 text-danger" />}
               </button>
             );
           })}

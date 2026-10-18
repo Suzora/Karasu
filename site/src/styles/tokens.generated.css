@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 06190843d649) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 dad382d5264a) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -34,6 +34,9 @@
   /* Page titles, a step above text-2xl, in the brand face. */
   --text-title: 1.875rem;
   --text-title--line-height: 1.2;
+  /* A column page's title over its Japanese line, sized so the longest German title holds one line in the column. */
+  --text-page: 1.375rem;
+  --text-page--line-height: 1.25;
   /* A title's own heading on its detail page, a step under a screen title so a long name wraps a line sooner. */
   --text-heading: 1.625rem;
   --text-heading--line-height: 1.25;

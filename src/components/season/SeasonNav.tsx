@@ -24,19 +24,29 @@ export const FORMAT_ICON: Record<string, typeof Tv> = {
 const rowClass = "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11";
 const restClass = "text-ink-300 hover:bg-surface-850 hover:text-ink-100";
 
-/** The season's year in large type between its two arrows, which keep the season and move the year. */
-export function YearStepper({ year, onStep }: { year: number; onStep: (step: 1 | -1) => void }) {
+/** The year in large type between its two arrows; an arrow with nowhere to go is disabled. */
+export function YearStepper({
+  year,
+  onStep,
+  canPrev = true,
+  canNext = true,
+}: {
+  year: number;
+  onStep: (step: 1 | -1) => void;
+  canPrev?: boolean;
+  canNext?: boolean;
+}) {
   const { t } = useTranslation();
-  const arrow = "press grid size-10 shrink-0 place-items-center rounded-full text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100";
+  const arrow = "press grid size-10 shrink-0 place-items-center rounded-full text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100 disabled:pointer-events-none disabled:opacity-40";
   return (
     <div className="flex items-center gap-1">
-      <button type="button" onClick={() => onStep(-1)} aria-label={t("seasonal.prevYear")} className={arrow}>
+      <button type="button" onClick={() => onStep(-1)} disabled={!canPrev} aria-label={t("seasonal.prevYear")} className={arrow}>
         <ChevronLeft aria-hidden className="size-4" />
       </button>
-      <span aria-hidden className="flex-1 text-center text-title tabular-nums text-ink-100">
+      <span aria-live="polite" className="flex-1 text-center text-title tabular-nums text-ink-100">
         {year}
       </span>
-      <button type="button" onClick={() => onStep(1)} aria-label={t("seasonal.nextYear")} className={arrow}>
+      <button type="button" onClick={() => onStep(1)} disabled={!canNext} aria-label={t("seasonal.nextYear")} className={arrow}>
         <ChevronRight aria-hidden className="size-4" />
       </button>
     </div>
@@ -101,10 +111,21 @@ export function FormatNav({ counts, total, filters, onChange, onPicked }: Format
       <span className="text-xs tabular-nums opacity-70">{n}</span>
     </button>
   );
+  // A switch, not a pick: its track says on or off even when no row in the group is chosen.
   const toggle = (on: boolean, label: string, Icon: typeof Tv, patch: Partial<SeasonFilters>) => (
-    <button type="button" aria-pressed={on} onClick={() => onChange(patch)} className={cn(rowClass, on ? "nav-pill" : restClass)}>
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(patch)} className={cn(rowClass, restClass)}>
       <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
-      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {/* Wraps rather than truncating: the track takes the room a truncated label would need. */}
+      <span className="min-w-0 flex-1 leading-snug">{label}</span>
+      <span
+        aria-hidden
+        className={cn(
+          "inline-flex h-4.75 w-8.5 shrink-0 items-center rounded-full border transition-surface",
+          on ? "border-accent-600 bg-accent-600" : "border-surface-700 bg-surface-700",
+        )}
+      >
+        <span className={cn("size-4.25 rounded-full transition-[translate,background-color]", on ? "translate-x-3.75 bg-accent-ink" : "bg-ink-100")} />
+      </span>
     </button>
   );
   return (
