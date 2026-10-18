@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: bb543a9d -->
+<!-- generated-through: c80c62eb -->
 
 ### Added
 
@@ -106,6 +106,7 @@ tag time is then optional rather than load-bearing.
 - Settings match the other pages, with the pane's name and summary above its options.
 - Wrapped keeps Save, the period and the export choices in a column beside the poster.
 - Every page with a column now has the same width and the same title with its Japanese line under it, and the page's one action beside it; high contrast outlines every card, the AniList average no longer looks like your own score, the season filters are switches, and Wrapped on the phone shows the poster straight away.
+- The calendar's week now starts today, the statistics show the status split once, the episode button reads "+1" so it can't be mistaken for adding a title, progress under every cover looks the same, staff roles and languages appear in your language, spoilers in quotes look as they do in the feed, pages load with placeholders instead of a spinner, and the Wrapped poster keeps its colours in the light theme.
 
 ### Security
 

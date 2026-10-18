@@ -2777,6 +2777,15 @@ shape, and the question that follows them.
   six loaded pages are six requests, which is why `UserList` keeps a long
   `staleTime` and never calls it — and `maxPages` evicts from the far end, so
   the pages being read are the ones that vanish.
+- **The season page is the one list that pages by itself, and it is
+  bounded.** Its sections count each format, so the counts are the season's
+  only if every title is there: page one (50 by popularity) held 6 of Fall
+  2026's 13 movies and 2 of its 15 TV shorts (#76). Measured on 2026-10-18,
+  unauthenticated: Winter to Fall 2026 and Fall 2025 held 95 to 109 titles,
+  two or three pages each. `seasonalAnime` asks page after page until
+  `hasNextPage` is false, at most `SEASON_MAX_PAGES` (6), each page an
+  allowlisted `seasonal` answer cached for six hours, so a season costs two
+  or three requests once and none on a revisit.
 - **Two queries per mount, at most.** Same cause. The profile spends its two on
   the user and the follower totals; everything else arrives when a tab is
   activated, which is a second user-initiated moment rather than a fourth

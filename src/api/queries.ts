@@ -262,16 +262,26 @@ export function currentSeason(): { season: Season; year: number } {
   return seasonOf(new Date());
 }
 
-export async function seasonalAnime(
-  season: Season,
-  year: number,
-  page = 1,
-  isAdult?: boolean,
-) {
-  const data = await gql<{
-    Page: { pageInfo: { hasNextPage: boolean }; media: MediaWithListStatus[] };
-  }>(SEASONAL_QUERY, { season, year, page, ...adultVars(isAdult), ...scoreFormatVar() }, { source: "seasonal", ttlSec: 6 * TTL.hour });
-  return data.Page;
+/** A bound on the season's pages, so a season AniList misreports cannot spend the shared budget without end. */
+const SEASON_MAX_PAGES = 6;
+
+/** Every title of a season, page after page and each page cached, since its per-format counts must be the season's. */
+export async function seasonalAnime(season: Season, year: number, isAdult?: boolean): Promise<MediaWithListStatus[]> {
+  const seen = new Set<number>();
+  const out: MediaWithListStatus[] = [];
+  for (let page = 1; page <= SEASON_MAX_PAGES; page++) {
+    const data = await gql<{
+      Page: { pageInfo: { hasNextPage: boolean }; media: MediaWithListStatus[] };
+    }>(SEASONAL_QUERY, { season, year, page, ...adultVars(isAdult), ...scoreFormatVar() }, { source: "seasonal", ttlSec: 6 * TTL.hour });
+    // Popularity can move a title across a page edge between two requests, so one met twice is kept once.
+    for (const m of data.Page.media) {
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      out.push(m);
+    }
+    if (!data.Page.pageInfo.hasNextPage) break;
+  }
+  return out;
 }
 
 // --- Search browse ------------------------------------------------------------

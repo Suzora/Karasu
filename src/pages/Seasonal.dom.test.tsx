@@ -17,7 +17,7 @@ vi.mock("@/api/anilist", async (orig) => ({
 
 vi.mock("@/api/queries", async (orig) => ({
   ...(await orig<typeof import("@/api/queries")>()),
-  seasonalAnime: (...args: unknown[]) => seasonal(...args),
+  seasonalAnime: (...args: unknown[]) => seasonal(...args).then((r: { media: unknown[] }) => r.media),
 }));
 
 import Seasonal from "./Seasonal";

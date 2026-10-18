@@ -50,12 +50,12 @@ export default function Seasonal() {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["seasonal", season, year, level],
-    queryFn: () => seasonalAnime(season, year, 1, adultQueryArg(level)),
+    queryFn: () => seasonalAnime(season, year, adultQueryArg(level)),
     enabled: isTauri && filterReady,
     staleTime: 30 * 60 * 1000,
   });
 
-  const visible = useMemo(() => (data?.media ?? []).filter((m) => !isBlocked(m, level)), [data, level]);
+  const visible = useMemo(() => (data ?? []).filter((m) => !isBlocked(m, level)), [data, level]);
   const { groups, counts, total } = useMemo(() => seasonSections(visible, filters), [visible, filters]);
   // Grouped, then flattened back, so the roving index counts in the order the eye reads.
   const results = useMemo(() => flattenGroups(groups), [groups]);
