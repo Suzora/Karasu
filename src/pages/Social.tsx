@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Activity, BookOpen, ChevronDown, Clapperboard, Globe, MessageSquare, User, Users } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
-import { ColumnPage, ColumnRule, PageTitle } from "@/components/shell/PageColumn";
+import { ColumnPage, ColumnPageSkeleton, ColumnRule, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useUrlState } from "@/hooks/useUrlState";
 import { feeds, feedVariables, kindsFor, parseFeedView, writeFeedView, type Feed, type FeedKind } from "@/lib/feedView";
@@ -20,7 +20,7 @@ export default function Social() {
   const mode = useAuth((s) => s.mode);
   const viewer = useAuth((s) => s.viewer);
 
-  if (loading) return null;
+  if (loading) return <ColumnPageSkeleton />;
 
   if (mode !== "anilist" || !viewer) {
     return (
@@ -90,7 +90,7 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
     />
   );
   const profile = (
-    <Link to={`/user/${encodeURIComponent(viewerName)}`} className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100">
+    <Link to={`/user/${encodeURIComponent(viewerName)}`} className={columnRow()}>
       <User aria-hidden className="size-4 shrink-0 opacity-70" />
       {t("social.myProfile")}
     </Link>

@@ -21,11 +21,14 @@ describe("NextEpisode", () => {
 });
 
 describe("MetaLine on artwork", () => {
-  it("takes the artwork's light ink and gold, which hold on any banner", () => {
+  it("takes the artwork's light ink, and names the average as the community's without the user's star", () => {
     const data = { averageScore: 85, format: "TV", status: "RELEASING", episodes: 14, chapters: null, volumes: null, duration: 24, seasonYear: 2026, season: "SUMMER" } as unknown as MediaDetail;
     const { container } = render(<MetaLine data={data} studios={[]} onCover />);
     expect(container.firstElementChild).toHaveClass("text-on-cover-edge/80");
-    expect(screen.getByText("85%", { exact: false })).toHaveClass("text-on-cover-gold");
+    const score = screen.getByTitle("media.communityAverage");
+    expect(score).toHaveClass("text-on-cover-edge");
+    expect(score).toHaveTextContent("85%");
+    expect(score.querySelector("svg")).toBeNull();
   });
 
   it("keeps the studio in the artwork's ink instead of the page's muted grey", () => {

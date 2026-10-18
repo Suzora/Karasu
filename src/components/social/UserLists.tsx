@@ -15,7 +15,8 @@ import { affinity, affinityGap, affinityPct } from "@/lib/affinity";
 import { isBlocked, shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth, useScoreFormat } from "@/stores/auth";
-import { CoverCell, CoverMeta } from "@/components/media/CoverCell";
+import { CoverCell } from "@/components/media/CoverCell";
+import { ProgressMarks } from "@/components/media/ProgressMarks";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { Segmented } from "@/components/ui/segmented";
 import { StatusPicker } from "@/components/list/StatusNav";
@@ -166,16 +167,19 @@ export function UserLists({ user }: { user: UserProfile }) {
                 blurred={shouldBlur(e.media, level, blurAdult)}
                 revealLabel={displayTitle(e.media.title)}
                 score={e.score > 0 ? formatScore(theirFormat, e.score, i18n.language) : undefined}
-                progress={total ? { current: e.progress, total } : null}
-              >
-                <Link to={`/media/${e.mediaId}`}>
-                  <TitleLockup title={e.media.title} clamp={2} tone="muted" className="mt-2" />
-                </Link>
-                <CoverMeta>
-                  {e.progress}
-                  {total ? ` / ${total}` : ""}
-                </CoverMeta>
-              </CoverCell>
+                caption={
+                  <>
+                    <Link to={`/media/${e.mediaId}`}>
+                      <TitleLockup title={e.media.title} clamp={2} tone="muted" />
+                    </Link>
+                    <p className="mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">
+                      {e.progress}
+                      {total ? ` / ${total}` : ""}
+                    </p>
+                    <ProgressMarks progress={e.progress} total={total ?? null} />
+                  </>
+                }
+              />
             );
           })}
         </div>

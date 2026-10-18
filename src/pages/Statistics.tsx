@@ -23,10 +23,10 @@ import {
   type ContentFilterLevel,
 } from "@/lib/contentFilter";
 import { buttonClass } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
+import { CardGridSkeleton } from "@/components/Skeleton";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Segmented, type Segment } from "@/components/ui/segmented";
-import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
+import { ColumnPage, ColumnPageSkeleton, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import {
   RadarChart,
   Sunburst,
@@ -74,7 +74,7 @@ export default function Statistics() {
   const mode = useAuth((s) => s.mode);
   const [params, setParams] = useSearchParams();
 
-  if (loading) return null;
+  if (loading) return <ColumnPageSkeleton />;
 
   // The account-free profile gets every panel counted from the list rather than a sign-in wall.
   if (!viewer && mode === "local") {
@@ -270,7 +270,12 @@ function StatisticsContent({
   );
   const content = (
     <>
-      {isLoading && <Loader label={t("common.loading")} />}
+      {isLoading && (
+        <div className="space-y-6">
+          <CardGridSkeleton className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6" cardClassName="h-20" />
+          <CardGridSkeleton count={4} className="grid gap-4 lg:grid-cols-2" cardClassName="h-56" />
+        </div>
+      )}
       {/* The stats can land while the list fails, and a list-counted panel left empty reads as an answer. */}
       {!isLoading && listFailed && (
         <p className="text-sm text-gold">{t("stats.listUnavailable")}</p>
@@ -306,7 +311,7 @@ function StatisticsContent({
     </>
   );
 
-  const linkRow = "press flex hover:no-underline w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100";
+  const linkRow = cn(columnRow(), "hover:no-underline");
   const phoneActions = (
     <>
       <ExternalAnchor href={siteUrl} aria-label={t("ctx.openAniList")} title={t("ctx.openAniList")} className={cn(buttonClass("ghost", "iconControl"), "hover:no-underline")}>
@@ -895,21 +900,18 @@ function OverviewCharts({
   // Keep the cards stretched as flex columns; `items-start` leaves ragged gaps between the panels instead.
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <StatusBar
-        locale={i18n.language}
-        title={t("stats.statuses")}
-        data={stats.statuses.map((d) => ({
-          label: t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }),
-          count: d.count,
-          color: isListStatus(d.status) ? statusColorVar(d.status) : undefined,
-        }))}
-      />
-      <DistributionCard locale={i18n.language}
-        title={t("stats.formats")}
-        data={stats.formats.map((d) => ({ label: formatLabel(d.format, t) || "?", count: d.count }))}
-      />
-      {/* The year series live on the Years tab; two homes for one chart is how they drift apart. */}
-
+      {/* The sunburst's inner ring is the status split, so the bar stands in only where there is no sunburst. */}
+      {breakdown.length === 0 && (
+        <StatusBar
+          locale={i18n.language}
+          title={t("stats.statuses")}
+          data={stats.statuses.map((d) => ({
+            label: t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }),
+            count: d.count,
+            color: isListStatus(d.status) ? statusColorVar(d.status) : undefined,
+          }))}
+        />
+      )}
       {breakdown.length > 0 && (
         <Card className="flex h-full flex-col">
           <CardTitle>{t("stats.breakdown")}</CardTitle>
@@ -944,7 +946,11 @@ function OverviewCharts({
         </Card>
       )}
 
-      {/* The radar and the treemap live on Genres & Tags, one home per chart. */}
+      <DistributionCard locale={i18n.language}
+        title={t("stats.formats")}
+        data={stats.formats.map((d) => ({ label: formatLabel(d.format, t) || "?", count: d.count }))}
+      />
+      {/* The year series live on Years, the radar and the treemap on Genres & Tags: one home per chart. */}
       <DistributionCard locale={i18n.language}
         title={t("stats.lengths")}
         data={lengths.map((d) => ({
@@ -958,17 +964,14 @@ function OverviewCharts({
         }))}
       />
       {countries.length > 1 && (
-        // Last of an odd count, so it takes the whole row rather than leaving half of it empty.
-        <div className={cn(breakdown.length > 0 && "lg:col-span-2")}>
-          <StatusBar
-            locale={i18n.language}
-            title={t("stats.countries")}
-            data={countries.map((d) => ({
-              label: t(`country.${d.country}`, { defaultValue: d.country ?? "?" }),
-              count: d.count,
-            }))}
-          />
-        </div>
+        <StatusBar
+          locale={i18n.language}
+          title={t("stats.countries")}
+          data={countries.map((d) => ({
+            label: t(`country.${d.country}`, { defaultValue: d.country ?? "?" }),
+            count: d.count,
+          }))}
+        />
       )}
     </div>
   );

@@ -506,11 +506,11 @@ export default function Thread() {
           )}
           <span className="flex items-center gap-1">
             <MessageSquare className="size-3.5" />
-            <span className="tabular-nums">{data.replyCount ?? 0}</span>
+            <span className="tabular-nums">{(data.replyCount ?? 0).toLocaleString(i18n.language)}</span>
           </span>
           <span className="flex items-center gap-1">
             <Eye className="size-3.5" />
-            <span className="tabular-nums">{data.viewCount ?? 0}</span>
+            <span className="tabular-nums">{(data.viewCount ?? 0).toLocaleString(i18n.language)}</span>
           </span>
           <LikeButton id={data.id} type="THREAD" likeCount={data.likeCount ?? 0} isLiked={data.isLiked === true} />
           {data.createdAt && (

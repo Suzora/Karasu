@@ -26,13 +26,16 @@ import SeasonPicker, { SEASON_KANJI } from "@/components/ui/season-picker";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth";
+import { effectiveAccent, useTheme } from "@/stores/theme";
+import { accentShades } from "@/lib/contrast";
+import { DEFAULT_ACCENT } from "@/lib/designTokens";
 import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked, isBlockedGenre } from "@/lib/contentFilter";
 import { Button, buttonClass } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
+import { CardGridSkeleton } from "@/components/Skeleton";
 import { Popover } from "@/components/ui/popover";
 import { Segmented } from "@/components/ui/segmented";
-import { ColumnLabel, ColumnPage, PageTitle } from "@/components/shell/PageColumn";
+import { ColumnLabel, ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { YearStepper } from "@/components/season/SeasonNav";
 import { EmptyState, ErrorState, OutlineYear } from "@/components/EmptyState";
 import markUrl from "@/assets/karasu-mark.svg";
@@ -73,11 +76,6 @@ const PRESETS: Preset[] = [
   { key: "compressed", labelKey: "wrapped.presetCompressed", W: 780, H: 980, includeGenres: false, maxGenres: 0, includeTitles: false, maxTitles: 0 },
   { key: "detailed", labelKey: "wrapped.presetDetailed", W: 1200, H: 1900, includeGenres: true, maxGenres: 5, includeTitles: true, maxTitles: 5 },
 ];
-
-function cssVar(name: string, fallback: string): string {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name);
-  return v.trim() || fallback;
-}
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -210,12 +208,16 @@ function drawCard(
   /** A very wide crop has no room for a stacked column, so at that aspect the medium blocks sit side by side. */
   const row = preset.W / preset.H > 2;
 
-  const a4 = cssVar("--color-accent-400", "#8b9dff");
-  const a5 = cssVar("--color-accent-500", "#6c7fff");
-  const a6 = cssVar("--color-accent-600", a5);
-  const accentRgb = cssVar("--accent-rgb", "108, 127, 255");
-  const w1 = cssVar("--w1", accentRgb);
-  const w2 = cssVar("--w2", accentRgb);
+  // The poster is dark in every theme, so its accent is the dark palette's, not the live theme's darkened one.
+  const { accent, accentSource, systemAccent } = useTheme.getState();
+  const chosen = effectiveAccent(accentSource, accent, systemAccent);
+  const shades = accentShades(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(chosen) ? chosen : DEFAULT_ACCENT, { light: false });
+  const a4 = shades.a400;
+  const a5 = shades.a500;
+  const a6 = shades.a600;
+  const accentRgb = shades.rgb;
+  const w1 = shades.w1;
+  const w2 = shades.w2;
 
   const face = (weight: number, size: number, jp = false) => {
     ctx.font = `${weight} ${size}px ${jp ? FONT_JP : FONT}`;
@@ -536,7 +538,7 @@ function drawCard(
   // The mark bleeds off the bottom-right corner under the text; the alpha is high because the art is near-black.
   const markW = em * 42;
   const markH = mark ? markHeight(mark, markW) : 0;
-  drawMark(ctx, mark, W - markW * 0.4, H - markH * 0.4, markW, 0.34, -7);
+  drawMark(ctx, mark, W - markW * 0.2, H - markH * 0.2, markW, 0.34, -7);
 
   // Centred, so a card that cannot fill its crop is framed by the ground rather than hung from the top.
   card.paint(Math.max(0, (H - card.totalH) / 2));
@@ -763,10 +765,7 @@ export default function Wrapped() {
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={cn(
-        "press flex w-full items-center rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-      )}
+      className={columnRow(on)}
     >
       {label}
     </button>
@@ -842,14 +841,14 @@ export default function Wrapped() {
   );
 
   const stage = loading ? (
-    <Loader label={t("common.loading")} />
+    <CardGridSkeleton count={1} cardClassName={cn("rounded-hero", phone ? "h-96" : "h-160")} />
   ) : error ? (
     <ErrorState error={error} onRetry={() => refetch()} title={(reason) => t("list.loadError", { message: reason })} />
   ) : !ready ? (
     <EmptyState visual={<OutlineYear year={new Date().getFullYear()} />} title={t("wrapped.empty")} />
   ) : (
     // A tinted stage, so the poster reads as the picture that will be saved rather than as part of the page.
-    <div className={cn("grid place-items-center rounded-hero bg-surface-900/60", phone ? "p-4" : "p-8")}>
+    <div className={cn("grid place-items-center rounded-hero bg-surface-900/60 surface-outline", phone ? "p-4" : "p-8")}>
       <canvas ref={canvasRef} className="w-full max-w-2xl rounded-sheet shadow-float" />
     </div>
   );

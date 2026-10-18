@@ -567,7 +567,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         dateOfDeath: null,
         siteUrl: "https://anilist.co/staff/500",
         ...fav,
-        staffMedia: { edges: [0, 1, 2, 3, 4, 5].map((i) => ({ staffRole: i % 2 ? "Main" : "Supporting", node: socialMedia(i) })) },
+        staffMedia: { edges: [0, 1, 2, 3, 4, 5].map((i) => ({ staffRole: ["Theme Song Performance (OP)", "Director", "Original Creator", "Script (ep 3)", "Character Design", "Music"][i], node: socialMedia(i) })) },
         characters: { nodes: [{ id: 41, name: { full: "Roxy Migurdia" }, image: { medium: cover(3) } }, { id: 42, name: { full: "Kobeni Higashiyama" }, image: { medium: cover(6) } }] },
       },
     };

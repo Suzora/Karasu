@@ -2,15 +2,6 @@ import type { MediaListEntry, MediaListStatus } from "@/api/types";
 
 /** The calendar's date arithmetic, done through local `Date` methods because epoch arithmetic breaks across DST. */
 
-/** Unix seconds of the local Monday 00:00 of the week containing `nowMs`. */
-export function weekStartOf(nowMs: number): number {
-  const d = new Date(nowMs);
-  d.setHours(0, 0, 0, 0);
-  // getDay is Sunday-first; the calendar is Monday-first, as a week of airing anime is.
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return Math.floor(d.getTime() / 1000);
-}
-
 /** `startSec` moved by `n` local days, staying at local midnight across DST. */
 export function addDays(startSec: number, n: number): number {
   const d = new Date(startSec * 1000);

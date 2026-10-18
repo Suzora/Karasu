@@ -13,7 +13,7 @@ import { isBlocked, shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth, useScoreFormat } from "@/stores/auth";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Pill } from "@/components/ui/pill";
+import { Segmented } from "@/components/ui/segmented";
 import { Shimmer } from "@/components/Skeleton";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { TileGrid } from "@/components/stats/panels";
@@ -104,13 +104,15 @@ export function UserCompare({ user }: { user: UserProfile }) {
   const scale = scoreScale(viewerFormat);
 
   const toggle = (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {(["ANIME", "MANGA"] as const).map((tp) => (
-        <Pill key={tp} active={type === tp} onClick={() => setType(tp)}>
-          {tp === "ANIME" ? t("common.anime") : t("common.manga")}
-        </Pill>
-      ))}
-    </div>
+    <Segmented
+      aria-label={t("stats.mediaTypeLabel")}
+      value={type}
+      onChange={setType}
+      segments={[
+        { value: "ANIME", label: t("common.anime") },
+        { value: "MANGA", label: t("common.manga") },
+      ]}
+    />
   );
 
   // A failed refetch keeps the lists it had, so an error replaces the comparison only when there is none to show.

@@ -149,7 +149,7 @@ describe("the profile's Compare tab", () => {
     fetchMine.mockResolvedValue(listResult([]));
     mount("Mikan", "compare");
     expect(await screen.findByText(/common\.error/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /common\.manga/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /common\.manga/ })).toBeInTheDocument();
   });
 
   it("keeps a comparison it has when a later refetch fails, with the error beside it", async () => {

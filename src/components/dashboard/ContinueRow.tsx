@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Play, Plus } from "lucide-react";
+import { Play } from "lucide-react";
 import { displayTitle, maxProgress, type MediaListEntry, type MediaType } from "@/api/types";
 import { SectionHeader } from "@/components/ui/section-header";
 import { EmptyState, PerchRule } from "@/components/EmptyState";
@@ -11,6 +11,7 @@ import { useListMutations } from "@/hooks/useListMutations";
 import { shouldBlur } from "@/lib/contentFilter";
 import { continueRow, progressMarks, progressShare } from "@/lib/overview";
 import { cn } from "@/lib/utils";
+import { PlusOne } from "@/components/ui/plus-one";
 import { useContentFilter } from "@/stores/contentFilter";
 
 /** The narrowest a card may get before the row holds one fewer. */
@@ -85,7 +86,7 @@ function ContinueCard({ entry, type, onPlusOne }: { entry: MediaListEntry; type:
               <circle cx="20" cy="20" r={RING_R} fill="none" strokeWidth="3" strokeLinecap="round" className="stroke-accent-400" strokeDasharray={`${RING_C * share} ${RING_C}`} />
             </svg>
             <span className="grid size-7 place-items-center rounded-full bg-on-cover/75 text-on-cover-edge backdrop-blur">
-              <Plus className="size-4" />
+              <PlusOne />
             </span>
           </button>
         )}

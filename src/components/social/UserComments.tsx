@@ -8,7 +8,8 @@ import { userForumComments } from "@/api/social";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { Busy, Shimmer } from "@/components/Skeleton";
-import { renderPlain } from "@/lib/anilistMarkdown";
+import { renderPlain, SPOILER_MARK } from "@/lib/anilistMarkdown";
+import { SpoilerMarks } from "@/components/SpoilerMarks";
 import { nextPageParam } from "@/lib/paging";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import { staggerDelay } from "@/lib/motion";
@@ -120,10 +121,10 @@ export function UserComments({
               {c.createdAt != null && relTimeFromSeconds(c.createdAt, i18n.language, t("notif.now"))}
             </span>
           </div>
-          {/* The comment flattened to plain text through the shared parser; a spoiler stays the word "Spoiler" here. */}
+          {/* The comment flattened to plain text through the shared parser, each spoiler drawn as the feed's chip. */}
           {c.comment && (
             <p className="mt-1.5 line-clamp-2 pl-5.5 text-xs leading-relaxed text-ink-500">
-              {renderPlain(c.comment, 200, t("social.mdSpoiler"))}
+              <SpoilerMarks text={renderPlain(c.comment, 200, SPOILER_MARK)} />
             </p>
           )}
         </Link>

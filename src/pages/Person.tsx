@@ -1,3 +1,4 @@
+import { languageName, staffRoleLabel } from "@/lib/staffRoles";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
@@ -179,7 +180,7 @@ export default function Person({ kind }: { kind: Kind }) {
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-600">
             {su?.isAnimationStudio && <span>{t("person.animationStudio")}</span>}
             {st?.primaryOccupations?.length ? (
-              <span>{st.primaryOccupations.join(" · ")}</span>
+              <span>{st.primaryOccupations.map((o) => staffRoleLabel(o, t)).join(" · ")}</span>
             ) : null}
             {data.favourites != null && data.favourites > 0 && (
               <span className="flex items-center gap-1">
@@ -215,7 +216,7 @@ export default function Person({ kind }: { kind: Kind }) {
               />
               <Fact label={t("person.bloodType")} value={ch?.bloodType} />
               <Fact label={t("person.homeTown")} value={st?.homeTown} />
-              <Fact label={t("person.language")} value={st?.languageV2} />
+              <Fact label={t("person.language")} value={st?.languageV2 ? languageName(st.languageV2, i18n.language) : null} />
               <Fact
                 label={t("person.yearsActive")}
                 value={st?.yearsActive?.length ? st.yearsActive.join("–") : null}

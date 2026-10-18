@@ -7,6 +7,7 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { staggerDelay } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { characterRoleLabel } from "./roleLabel";
+import { staffRoleLabel } from "@/lib/staffRoles";
 
 /** A scrolling cover row shared by the person pages; the content filter runs here since no connection takes `isAdult`. */
 export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
@@ -19,11 +20,15 @@ export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">
       {visible.map((e, i) => {
-        // A character's role is AniList's closed enum and reads translated; a staff role is free text and stays as written.
+        // A character's role is AniList's closed enum; a staff role is free text, translated where its main part is known.
         const main = e.characterRole === "MAIN" || e.isMainStudio === true;
         const role = e.characterRole
           ? characterRoleLabel(e.characterRole, t) || e.characterRole
-          : (e.staffRole ?? (e.isMainStudio === true ? t("person.mainStudio") : null));
+          : e.staffRole
+            ? staffRoleLabel(e.staffRole, t)
+            : e.isMainStudio === true
+              ? t("person.mainStudio")
+              : null;
         return (
           <Link
             key={`${e.node.id}-${i}`}

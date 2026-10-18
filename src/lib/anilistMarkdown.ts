@@ -810,6 +810,9 @@ export function parseAniListMarkdown(
   return { nodes, truncated };
 }
 
+/** Stands in for a spoiler in plain text so a component can draw the spoiler chip there; a private-use character. */
+export const SPOILER_MARK = "\uE000";
+
 /** One line of plain text through the same parser; a spoiler becomes the placeholder, never its text. */
 export function renderPlain(src: string, max = 200, spoiler = "[…]"): string {
   const { nodes } = parseAniListMarkdown(src);

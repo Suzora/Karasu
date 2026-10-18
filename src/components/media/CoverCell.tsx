@@ -17,7 +17,6 @@ export function CoverCell({
   media,
   blurred,
   revealLabel,
-  progress,
   actions,
   overlay,
   statusRing,
@@ -42,8 +41,6 @@ export function CoverCell({
   media?: Filterable | null;
   /** Blur the artwork until clicked; an explicit override that wins over `media`, so leave it out unless needed. */
   blurred?: boolean;
-  /** Draws the bar flush to the bottom edge. Omit when there is no total. */
-  progress?: { current: number; total: number } | null;
   /** Overlaid bottom-right — the action circles. */
   actions?: ReactNode;
   /** Anything else laid over the artwork, rendered above the base scrim and below the badge and actions. */
@@ -60,10 +57,6 @@ export function CoverCell({
   /** The metadata lines below the cover. */
   children?: ReactNode;
 }) {
-  const pct = progress
-    ? Math.min((progress.current / progress.total) * 100, 100)
-    : 0;
-
   // Revealed per cell and forgotten on unmount: a reveal that persisted would be a second setting nobody asked for.
   const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
@@ -179,28 +172,10 @@ export function CoverCell({
             {actions}
           </div>
         )}
-
-        {progress && !caption && (
-          // A border revealed by clip-path, not a bar: a straight strip inside the rounded clip loses its ends to the corners.
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 rounded-cover border-b-[3px] border-on-cover/60" />
-            <div
-              className="absolute inset-0 rounded-cover border-b-[3px] border-accent-500 transition-[clip-path] duration-(--duration-expressive) ease-(--ease-out-expo)"
-              style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
-            />
-          </div>
-        )}
       </div>
 
       {caption && <div className="mt-2 px-0.5">{caption}</div>}
       {children}
     </div>
-  );
-}
-
-/** The quiet third line under a cover — progress, or format and year; its own container, so a part can yield to width. */
-export function CoverMeta({ children }: { children: ReactNode }) {
-  return (
-    <p className="@container mt-0.5 text-xs tabular-nums text-ink-600">{children}</p>
   );
 }

@@ -1,5 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
-import { cn } from "@/lib/utils";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 /** The width an edge's fade takes, and the room kept beside an item scrolled into view so the fade never covers it. */
 export const EDGE_PX = 32;
@@ -61,33 +60,4 @@ export function useScrollEdges(
   }, [scroller]);
 
   return { edges, read };
-}
-
-/** A row that scrolls sideways under a fade at whichever edge has more, instead of cutting its last item mid-word. */
-export function ScrollRow({
-  className,
-  innerClassName,
-  children,
-}: {
-  /** On the scroller, for its place in the layout. */
-  className?: string;
-  /** On the row inside it, which holds the items and their gaps. */
-  innerClassName?: string;
-  children: ReactNode;
-}) {
-  const scroller = useRef<HTMLDivElement>(null);
-  const content = useRef<HTMLDivElement>(null);
-  const { edges, read } = useScrollEdges(scroller, content);
-  return (
-    <div
-      ref={scroller}
-      onScroll={read}
-      className={cn("overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}
-      style={edgeMask(edges)}
-    >
-      <div ref={content} className={cn("flex w-max", innerClassName)}>
-        {children}
-      </div>
-    </div>
-  );
 }

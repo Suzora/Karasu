@@ -6,6 +6,8 @@ import type { AiringSlot } from "@/api/queries";
 import { forgetPlaces } from "@/lib/scrollMemory";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
 
+const asked = vi.hoisted(() => ({ weeks: [] as number[] }));
+
 vi.mock("@/api/anilist", async (orig) => ({
   ...(await orig<typeof import("@/api/anilist")>()),
   isTauri: true,
@@ -14,8 +16,9 @@ vi.mock("@/api/anilist", async (orig) => ({
 
 vi.mock("@/api/queries", async (orig) => ({
   ...(await orig<typeof import("@/api/queries")>()),
-  airingWeek: (gt: number): Promise<AiringSlot[]> =>
-    Promise.resolve([
+  airingWeek: (gt: number): Promise<AiringSlot[]> => {
+    asked.weeks.push(gt);
+    return Promise.resolve([
       {
         id: 1,
         episode: 3,
@@ -30,7 +33,8 @@ vi.mock("@/api/queries", async (orig) => ({
           genres: [],
         },
       } as unknown as AiringSlot,
-    ]),
+    ]);
+  },
 }));
 
 import Calendar from "./Calendar";
@@ -63,6 +67,17 @@ beforeEach(() => {
 afterEach(() => {
   signOut();
   forgetPlaces();
+});
+
+describe("Calendar's week", () => {
+  it("starts today, as the Overview's week does, rather than on the Monday before", async () => {
+    asked.weeks.length = 0;
+    renderWithProviders(<Harness />, { route: "/calendar" });
+    await screen.findByRole("button", { name: "calendar.nextWeek" });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    expect(asked.weeks[0]).toBe(Math.floor(today.getTime() / 1000));
+  });
 });
 
 describe("Calendar and Back", () => {

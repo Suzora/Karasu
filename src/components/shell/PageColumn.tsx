@@ -1,5 +1,7 @@
 import type { ReactNode, Ref } from "react";
 import { cn } from "@/lib/utils";
+import { Busy, Shimmer } from "@/components/Skeleton";
+import { usePhoneShell } from "@/hooks/usePhoneShell";
 
 /** A screen's title with its Japanese line under it, and the page's one action at the end of that line. */
 export function PageTitle({ title, jp, action, className }: { title: ReactNode; jp: string; action?: ReactNode; className?: string }) {
@@ -13,6 +15,14 @@ export function PageTitle({ title, jp, action, className }: { title: ReactNode; 
         {action && <span className="ml-auto flex shrink-0 items-center gap-1">{action}</span>}
       </div>
     </div>
+  );
+}
+
+/** A column row's classes, chosen or at rest; every pill and link in a column takes these. */
+export function columnRow(on = false) {
+  return cn(
+    "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+    on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
   );
 }
 
@@ -54,5 +64,37 @@ export function ColumnPage({
         {children}
       </div>
     </div>
+  );
+}
+
+/** A column page before anything is known about it, such as the account: the frame drawn, its words and rows not. */
+export function ColumnPageSkeleton() {
+  const phone = usePhoneShell();
+  const blocks = (
+    <div className="space-y-4">
+      {[0, 1, 2].map((i) => (
+        <Shimmer key={i} index={i} className="h-32 rounded-panel" />
+      ))}
+    </div>
+  );
+  if (phone) {
+    return (
+      <Busy className="space-y-4 px-4 pt-4">
+        <Shimmer className="h-7 w-40" />
+        <Shimmer className="h-12 rounded-panel" />
+        {blocks}
+      </Busy>
+    );
+  }
+  return (
+    <Busy className="flex">
+      <div className="w-60 shrink-0 space-y-2 pb-8 pl-5 pr-3 pt-6">
+        <Shimmer className="mb-4 ml-1 h-7 w-36" />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Shimmer key={i} index={i} className="h-10 rounded-full" />
+        ))}
+      </div>
+      <div className="min-w-0 flex-1 pb-12 pl-2 pr-8 pt-6">{blocks}</div>
+    </Busy>
   );
 }

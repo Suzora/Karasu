@@ -55,6 +55,17 @@ export function CoverGridSkeleton({ count = 12 }: { count?: number }) {
   );
 }
 
+/** Tonal cards that have not loaded, in the grid the caller's cards will take, so the page keeps its shape. */
+export function CardGridSkeleton({ count = 6, className, cardClassName = "h-28" }: { count?: number; className?: string; cardClassName?: string }) {
+  return (
+    <Busy className={className}>
+      {Array.from({ length: count }, (_, i) => (
+        <Shimmer key={i} index={i} className={cn("rounded-panel", cardClassName)} />
+      ))}
+    </Busy>
+  );
+}
+
 /** A section heading that hasn't arrived: the rule stays, the words don't. */
 export function HeaderSkeleton({ index = 0 }: { index?: number }) {
   return (

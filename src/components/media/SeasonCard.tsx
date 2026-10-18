@@ -64,7 +64,7 @@ export default function SeasonCard({ media, focused = false }: { media: MediaWit
         {media.genres.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {media.genres.slice(0, 3).map((g) => (
-              <span key={g} className="rounded-full bg-surface-850 px-2 py-0.5 text-2xs text-ink-300">
+              <span key={g} className="rounded-full bg-surface-850 px-2 py-0.5 text-2xs text-ink-300 surface-outline">
                 {g}
               </span>
             ))}
@@ -87,7 +87,7 @@ export default function SeasonCard({ media, focused = false }: { media: MediaWit
                 type="button"
                 onClick={() => setEditing(true)}
                 aria-label={`${t("common.edit")}: ${t(`status.${media.type}.${entry.status}`)}`}
-                className="press flex shrink-0 items-center gap-1.5 rounded-full bg-surface-850 px-2.5 py-1 text-2xs text-ink-300 transition-surface hover:text-ink-100 coarse:hit-area"
+                className="press flex shrink-0 items-center gap-1.5 rounded-full bg-surface-850 px-2.5 py-1 text-2xs text-ink-300 surface-outline transition-surface hover:text-ink-100 coarse:hit-area"
               >
                 <span aria-hidden className="size-2 rounded-full" style={{ background: statusColorVar(entry.status) }} />
                 {t(`status.${media.type}.${entry.status}`)}

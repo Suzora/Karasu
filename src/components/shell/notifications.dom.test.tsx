@@ -412,7 +412,8 @@ describe("notifications", () => {
     expect(screen.getByRole("button", { name: /^Hoshi notif\.siteActivityReplySubscribed Mikan social\.sentWatchedEpisode/ })).toBeInTheDocument();
     expect(baseElement.querySelectorAll('img[src="https://example.test/frieren.jpg"]').length).toBeGreaterThan(0);
     // A spoiler is named, never shown; a forum comment is quoted without its image.
-    expect(screen.getByText(/^notif\.quoted:.*Done at last\. \[social\.mdSpoiler\]/)).toBeInTheDocument();
+    const quote = screen.getByText(/^notif\.quoted:.*Done at last\./);
+    expect(quote).toHaveTextContent(/Done at last\. social\.mdSpoiler/);
     expect(screen.queryByText(/It ends well/)).toBeNull();
     expect(screen.getByText(/^notif\.quoted:.*Agreed, and the art too\./)).toBeInTheDocument();
     // A group names its subjects on one line.

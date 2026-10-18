@@ -2,18 +2,18 @@ import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { captionFor, sentenceFor } from "@/components/social/activitySentence";
 import { formatProgress, PROGRESS_VERBS, splitSentence } from "@/lib/activity";
-import { renderPlain } from "@/lib/anilistMarkdown";
+import { renderPlain, SPOILER_MARK } from "@/lib/anilistMarkdown";
+import { SpoilerMarks } from "@/components/SpoilerMarks";
 import { shouldBlur } from "@/lib/contentFilter";
 import type { NotifSubject } from "@/lib/siteNotifications";
 import { isNativeLine } from "@/lib/titleLanguage";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
 
-type Translate = ReturnType<typeof useTranslation>["t"];
 type ListSubject = Extract<NotifSubject, { kind: "list" }>;
 
-/** A post's words on one line, its spoilers named rather than shown. */
-const plain = (text: string, t: Translate, max = 200) => renderPlain(text, max, `[${t("social.mdSpoiler")}]`);
+/** A post's words on one line, each spoiler a mark that `SpoilerMarks` draws as the chip. */
+const plain = (text: string, max = 200) => renderPlain(text, max, SPOILER_MARK);
 
 /** A title in its slot, in Kosugi Maru when it is the native spelling. */
 function Title({ subject }: { subject: ListSubject }) {
@@ -61,18 +61,24 @@ function SubjectText({ subject }: { subject: NotifSubject }) {
       );
     }
     case "text":
-      return subject.ownerName
-        ? t("notif.quotedBy", { name: subject.ownerName, text: plain(subject.text, t) })
-        : t("notif.quoted", { text: plain(subject.text, t) });
+      return (
+        <SpoilerMarks
+          text={
+            subject.ownerName
+              ? t("notif.quotedBy", { name: subject.ownerName, text: plain(subject.text) })
+              : t("notif.quoted", { text: plain(subject.text) })
+          }
+        />
+      );
     case "comment":
-      return t("notif.quoted", { text: plain(subject.text, t) });
+      return <SpoilerMarks text={t("notif.quoted", { text: plain(subject.text) })} />;
   }
 }
 
 /** A group member in a few words: the title, or the start of the quote. */
 function SubjectShort({ subject }: { subject: NotifSubject }) {
   const { t } = useTranslation();
-  return subject.kind === "list" ? <Title subject={subject} /> : t("notif.quoted", { text: plain(subject.text, t, 80) });
+  return subject.kind === "list" ? <Title subject={subject} /> : <SpoilerMarks text={t("notif.quoted", { text: plain(subject.text, 80) })} />;
 }
 
 const blockClass = "mt-1.5 flex min-w-0 gap-2 border-l-2 border-hair py-0.5 pl-2 text-xs";

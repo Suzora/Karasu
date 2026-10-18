@@ -10,7 +10,6 @@ import {
   GalleryVerticalEnd,
   Heart,
   LayoutGrid,
-  Star,
   TrendingUp,
   Trophy,
   type LucideIcon,
@@ -296,14 +295,14 @@ function RankedRow({ media: m, rank }: { media: BrowseMedia; rank: number }) {
       {/* Keep `min-w-0`, not `shrink-0`: a long German count must not hand the page a sideways scroll. */}
       <div className="min-w-0 text-right">
         {m.averageScore != null && (
-          <p className="flex items-center justify-end gap-1 text-sm font-semibold tabular-nums text-ink-100">
-            <Star className="size-3.5 text-gold" fill="currentColor" />
+          <p title={t("media.communityAverage")} className="text-sm font-semibold tabular-nums text-ink-100">
+            <span className="sr-only">{t("media.communityAverage")} </span>
             {m.averageScore}%
           </p>
         )}
         {m.popularity != null && (
           <p className="whitespace-nowrap text-2xs tabular-nums text-ink-600">
-            {t("search.rankUsers", { n: compactCount(m.popularity, i18n.language) })}
+            {t("search.rankUsers", { n: m.popularity.toLocaleString(i18n.language) })}
           </p>
         )}
       </div>

@@ -69,8 +69,9 @@ describe("UserComments paging states", () => {
     renderWithProviders(<UserComments userId={3} emptyTitle="empty" />);
 
     expect(await screen.findByText("Who did it?")).toBeInTheDocument();
-    // The word "Spoiler" (its key, under the stubbed `t`) stands in for the text.
-    expect(screen.getByText(/social\.mdSpoiler did it, obviously/)).toBeInTheDocument();
+    // The feed's spoiler chip (its key, under the stubbed `t`) stands in for the text.
+    expect(screen.getByText("social.mdSpoiler")).toHaveClass("rounded-inner");
+    expect(screen.getByText(/did it, obviously/)).toBeInTheDocument();
     expect(screen.queryByText(/butler/)).toBeNull();
   });
 

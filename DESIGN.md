@@ -392,7 +392,7 @@ no row here, add the primitive first.
 | something a finger flicks away | `useFlickDismiss` (the toast): follows a downward drag at 60 %, dismisses past 40 px or 400 px/s, springs back otherwise, and swallows the click its release fires |
 | a dialog | `Modal`: `size` from `sm` to `2xl`, `description` and `icon` in the header, `footer` pinned under a body that scrolls; `alert` for a question that interrupts (`alertdialog`, over other dialogs, answered by its buttons with the harmless one first); `bare` for a full-screen view such as the cover; `dismissable={false}` while something runs that must not be left half done. Escape closes only the dialog holding focus |
 | keeping an overlay alive through its exit | `Presence`, `PresenceIf` |
-| a row of choices wider than its room | `ScrollRow`: scrolls sideways under a fade at whichever edge hides more, never cutting the last item mid-word; the status tabs read their edges from the same hook |
+| a row of choices wider than its room | scrolls sideways under a fade at whichever edge hides more (`useScrollEdges` in `ui/scroll-row`), never cutting the last item mid-word, as the status tabs do |
 | a wait with no shape | `Loader`; a known shape is `Skeleton`, built from `Shimmer`, which a quick load never shows, inside one `Busy` (a single status with a hidden caption, the blocks silent) |
 | a busy icon (sync, refresh, install) | `Spinner` with `spinning`, the only place `animate-spin` may appear |
 | nothing to show | `EmptyState`, with a drawn `visual` or, where none fits, `icon` for a plain glyph at 32 px |
@@ -1147,3 +1147,21 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   the title and over Save, so the poster is on the first screen; this
   replaces the column above the stage of the entry before, at the
   maintainer's word after the critique.
+- **2026-10-18:** A second critique (30 of 40) and its findings, taken
+  together with the maintainer. The calendar's week runs seven days from
+  today, as the Overview's does, so "the whole calendar" opens on what the
+  strip promised; the arrows still step seven days. Statistics draws the
+  status split once, as the sunburst's inner ring, and the status bar only
+  where there is no sunburst. Stepping an episode is "+1" in figures on
+  every button that does it (`PlusOne`), so the plus glyph means adding a
+  title and nothing else. AniList's average carries no star anywhere,
+  the detail hero and the Top 100 included. Progress under a cover is one
+  component, `ProgressMarks`, on the lists and the profile's lists, and the
+  line inside the cover is gone; the profile's favourites stand on the
+  app's cover grid. A spoiler in a quote is the feed's chip, inert there
+  (`SpoilerMarks`). Staff roles, occupations and languages read in the
+  user's language where AniList's English is known. Column pages that
+  load show their frame as skeletons instead of a spinner or a blank page.
+  The Wrapped poster takes the dark palette's accent in every theme, since
+  the poster is dark in every theme and the light theme's darker shades
+  vanished on it, the exported file included.

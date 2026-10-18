@@ -8,7 +8,6 @@ import {
   localMidnight,
   releaseState,
   weekDays,
-  weekStartOf,
 } from "./calendar";
 import type { MediaListEntry } from "@/api/types";
 
@@ -18,27 +17,9 @@ import type { MediaListEntry } from "@/api/types";
 const at = (y: number, mo: number, d: number, h = 0, mi = 0) =>
   Math.floor(new Date(y, mo - 1, d, h, mi).getTime() / 1000);
 
-describe("weekStartOf", () => {
-  it("lands on a local Monday at midnight", () => {
-    // 2026-08-13 is a Thursday.
-    const start = weekStartOf(new Date(2026, 7, 13, 15, 30).getTime());
-    const d = new Date(start * 1000);
-    expect(d.getDay()).toBe(1);
-    expect([d.getHours(), d.getMinutes(), d.getSeconds()]).toEqual([0, 0, 0]);
-    expect(d.getDate()).toBe(10);
-  });
-
-  it("a Monday is its own week start, a Sunday belongs to the week before", () => {
-    const monday = weekStartOf(new Date(2026, 7, 10, 0, 0).getTime());
-    expect(new Date(monday * 1000).getDate()).toBe(10);
-    const sunday = weekStartOf(new Date(2026, 7, 16, 23, 59).getTime());
-    expect(new Date(sunday * 1000).getDate()).toBe(10);
-  });
-});
-
 describe("weekDays / addDays", () => {
   it("yields seven consecutive local midnights", () => {
-    const days = weekDays(weekStartOf(new Date(2026, 7, 13).getTime()));
+    const days = weekDays(at(2026, 8, 10));
     expect(days).toHaveLength(7);
     for (const [i, sec] of days.entries()) {
       const d = new Date(sec * 1000);
@@ -54,18 +35,16 @@ describe("weekDays / addDays", () => {
 
   it("addDays stays at midnight across a DST-length week", () => {
     // Late March, where European zones change clocks; without DST it is seven ordinary days and holds either way.
-    const days = weekDays(weekStartOf(new Date(2026, 2, 26).getTime()));
+    const days = weekDays(at(2026, 3, 23));
     for (const sec of days) {
       expect(new Date(sec * 1000).getHours()).toBe(0);
     }
-    expect(addDays(days[0], 7)).toBe(
-      weekStartOf(new Date(days[0] * 1000).getTime() + 8 * 86400 * 1000),
-    );
+    expect(addDays(days[0], 7)).toBe(at(2026, 3, 30));
   });
 });
 
 describe("bucketByLocalDay", () => {
-  const days = weekDays(weekStartOf(new Date(2026, 7, 13).getTime()));
+  const days = weekDays(at(2026, 8, 10));
 
   it("sorts each day's bucket by time and keeps days apart", () => {
     const items = [

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CalendarClock, Clock, Star } from "lucide-react";
+import { CalendarClock, Clock } from "lucide-react";
 import type { MediaDetail } from "@/api/queries";
 import { countdown, formatLabel, mediaStatusLabel } from "@/lib/format";
 import { formatMinutes, remainingMinutes } from "@/lib/estimate";
@@ -25,8 +25,10 @@ export function MetaLine({
   return (
     <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-ui", onCover ? "text-on-cover-edge/80" : "text-ink-300", className)}>
       {data.averageScore !== null && (
-        <span className={cn("flex items-center gap-1", onCover ? "text-on-cover-gold" : "text-gold")}>
-          <Star className="size-3.5" fill="currentColor" /> {data.averageScore}%
+        // AniList's average, so without the star that marks the user's own score.
+        <span title={t("media.communityAverage")} className={cn("font-semibold tabular-nums", onCover ? "text-on-cover-edge" : "text-ink-100")}>
+          <span className="sr-only">{t("media.communityAverage")} </span>
+          {data.averageScore}%
         </span>
       )}
       {data.format && <span>{formatLabel(data.format, t)}</span>}
@@ -104,7 +106,7 @@ export function NextEpisode({ data, bar = false, className }: { data: MediaDetai
     return (
       <div
         className={cn(
-          "flex items-center gap-2 rounded-control border border-accent-500/30 bg-accent-500/10 px-3 py-2 text-sm",
+          "flex items-center gap-2 rounded-control border border-accent-500/30 bg-accent-500/10 px-3 py-2 text-sm hc-edge",
           className,
         )}
       >

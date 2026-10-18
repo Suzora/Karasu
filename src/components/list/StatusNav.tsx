@@ -105,10 +105,14 @@ export function StatusPicker({ variant = "sheet", ...props }: Props & { variant?
           type="button"
           {...p}
           aria-label={t("list.statusPick", { status: label })}
-          className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
+          // The dropdown sits in a toolbar beside a segmented switch, so it takes a control's height rather than a field's.
+          className={cn(
+            "flex w-full items-center gap-3 bg-surface-900 text-left surface-outline transition-surface hover:bg-surface-850",
+            variant === "dropdown" ? "h-8.5 rounded-control px-3" : "rounded-panel px-4 py-3",
+          )}
         >
           <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: statusColorVar(props.value) }} />
-          <span className="text-base text-ink-100">{label}</span>
+          <span className={cn(variant === "dropdown" ? "text-sm" : "text-base", "text-ink-100")}>{label}</span>
           <span className="text-sm tabular-nums text-ink-500">{props.counts[props.value]}</span>
           {props.list && <span className="min-w-0 truncate text-sm text-ink-500">· {props.list}</span>}
           <span className="flex-1" />

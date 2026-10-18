@@ -1,7 +1,7 @@
 import { memo, useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { CheckCheck, Pencil, Play, Plus } from "lucide-react";
+import { CheckCheck, Pencil, Play } from "lucide-react";
 import { useLibrary } from "@/stores/library";
 import {
   displayTitle,
@@ -14,6 +14,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { TitleLockup } from "@/components/media/TitleLockup";
 import { countdown, formatLabel, fuzzyDate, mediaStatusLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { PlusOne } from "@/components/ui/plus-one";
 import { SelectBox } from "./SelectBox";
 import { TagChips } from "./TagChips";
 import { ScoreSelect } from "./ScoreSelect";
@@ -350,7 +351,7 @@ export const ListRow = memo(function ListRow({
           aria-label={t("common.plusOne")}
           title={t("common.plusOne")}
         >
-          <Plus className="size-3.5" />
+          <PlusOne className="text-2xs" />
         </IconButton>
         {entry.status !== "COMPLETED" && (
           <IconButton

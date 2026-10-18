@@ -13,10 +13,10 @@ import {
   bucketByLocalDay,
   foldQuietDays,
   fromList,
+  localMidnight,
   fromSchedule,
   releaseState,
   weekDays,
-  weekStartOf,
   type ReleaseState,
 } from "@/lib/calendar";
 import {
@@ -28,7 +28,7 @@ import {
 } from "@/lib/calendarView";
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
-import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
+import { ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -75,10 +75,11 @@ export default function Calendar() {
   const level = useContentFilter((s) => s.level);
 
   const lens: Lens = params.get("lens") === "all" ? "all" : "mine";
-  const currentWeek = weekStartOf(Date.now());
+  // The week runs seven days from today, as the Overview's does, so what it promises is what this page opens on.
+  const currentWeek = localMidnight(Math.floor(Date.now() / 1000));
   const rawWeek = Number(params.get("week"));
-  // A week param must be a real week start; anything else snaps to the week it falls in.
-  const week = Number.isFinite(rawWeek) && rawWeek > 0 ? weekStartOf(rawWeek * 1000) : currentWeek;
+  // A week param snaps to the local midnight of its day; the seven days run from there.
+  const week = Number.isFinite(rawWeek) && rawWeek > 0 ? localMidnight(rawWeek) : currentWeek;
   const weekEnd = addDays(week, 7);
   const days = weekDays(week);
 
@@ -241,15 +242,14 @@ export default function Calendar() {
       {t("calendar.thisWeek")}
     </button>
   );
-  const navRow = (on: boolean, label: string, onClick: () => void, Icon?: typeof Download, count?: number) => (
+  const navRow = (on: boolean, label: string, onClick: () => void, Icon?: typeof Download, count?: number, hint?: string) => (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={cn(
-        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-      )}
+      disabled={hint !== undefined}
+      title={hint}
+      className={cn(columnRow(on), "disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink-300")}
     >
       {Icon && <Icon aria-hidden className="size-4 shrink-0 opacity-70" />}
       <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -354,6 +354,8 @@ export default function Calendar() {
         {navRow(lens === "all", t("calendar.lensAll"), () => setView({ lens: "all" }), undefined, lens === "all" ? slots.length : undefined)}
         <div className="mx-3 my-3 h-px bg-surface-850" />
         <p className="px-4 pb-1 label-text text-ink-500">{t("calendar.layoutHeading")}</p>
+        {/* The week stays in the column when the window is too narrow for it, disabled and saying why, so the rows hold still. */}
+        {!weekFits(measured, phone) && <span key="week" className="block">{navRow(false, t("calendar.viewWeek"), () => {}, viewIcon.week, undefined, t("calendar.weekTooNarrow"))}</span>}
         {viewSegments.map((sg) => navRow(view === sg.value, sg.label, () => chooseView(sg.value), viewIcon[sg.value]))}
         </>
       }

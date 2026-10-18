@@ -39,15 +39,15 @@ export function ThreadRow({ thread }: { thread: ThreadSummary }) {
         <span>{thread.user?.name}</span>
         <span className="flex items-center gap-1">
           <MessageSquare className="size-3.5" />
-          <span className="tabular-nums">{thread.replyCount ?? 0}</span>
+          <span className="tabular-nums">{(thread.replyCount ?? 0).toLocaleString(i18n.language)}</span>
         </span>
         <span className="flex items-center gap-1">
           <Eye className="size-3.5" />
-          <span className="tabular-nums">{thread.viewCount ?? 0}</span>
+          <span className="tabular-nums">{(thread.viewCount ?? 0).toLocaleString(i18n.language)}</span>
         </span>
         <span className="flex items-center gap-1">
           <Heart className="size-3.5" />
-          <span className="tabular-nums">{thread.likeCount ?? 0}</span>
+          <span className="tabular-nums">{(thread.likeCount ?? 0).toLocaleString(i18n.language)}</span>
         </span>
         {/* Last activity rather than creation — a thread's age is not what
             anyone scanning a forum list is looking for. */}

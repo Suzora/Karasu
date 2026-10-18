@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0323a735 -->
+<!-- generated-through: bb543a9d -->
 
 ### Added
 
@@ -105,6 +105,7 @@ tag time is then optional rather than load-bearing.
 - Notifications can be filtered by kind, the local library keeps its folder and section shortcuts in a column, and character and staff pages show their facts in a card beside the roles.
 - Settings match the other pages, with the pane's name and summary above its options.
 - Wrapped keeps Save, the period and the export choices in a column beside the poster.
+- Every page with a column now has the same width and the same title with its Japanese line under it, and the page's one action beside it; high contrast outlines every card, the AniList average no longer looks like your own score, the season filters are switches, and Wrapped on the phone shows the poster straight away.
 
 ### Security
 

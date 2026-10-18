@@ -1,13 +1,14 @@
 import { memo, type MouseEvent } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { displayTitle, maxProgress, type MediaListEntry } from "@/api/types";
 import { formatScore } from "@/lib/scoreFormat";
 import { countdown, formatLabel } from "@/lib/format";
 import { useScoreFormat } from "@/stores/auth";
 import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
+import { PlusOne } from "@/components/ui/plus-one";
 import { SelectBox } from "./SelectBox";
 import { canIncrement } from "./shared";
 
@@ -138,7 +139,7 @@ export const PhoneRow = memo(function PhoneRow({
             aria-label={t("common.plusOne")}
             title={t("common.plusOne")}
           >
-            <Plus className="size-4" />
+            <PlusOne />
           </IconButton>
           <IconButton
             variant="surface"

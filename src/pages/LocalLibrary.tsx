@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { VirtualRows } from "@/components/list/VirtualRows";
-import { PageTitle } from "@/components/shell/PageColumn";
+import { PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -438,8 +438,9 @@ function LibraryView({ userId }: { userId: number }) {
           {t("library.filesMatched", { files: status.filesSeen.toLocaleString(i18n.language), matched: status.matched })}
         </p>
       )}
-      <div className="flex gap-2">
-        <Button variant="secondary" size="sm" className="flex-1 rounded-full" onClick={rescan} disabled={scanning}>
+      {/* Wraps as a pair rather than breaking a label: the German scan label is wider than half the column. */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" size="sm" className="flex-1 whitespace-nowrap rounded-full" onClick={rescan} disabled={scanning}>
           <Spinner spinning={scanning} className="size-3.5" />
           {scanning ? t("settings.libraryScanning") : t("settings.libraryScan")}
         </Button>
@@ -465,7 +466,7 @@ function LibraryView({ userId }: { userId: number }) {
                   key={id}
                   type="button"
                   onClick={() => jumpTo(id)}
-                  className="press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 coarse:min-h-11"
+                  className={columnRow()}
                 >
                   <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
                   <span className="min-w-0 flex-1 truncate">{jumpLabel[id]}</span>
@@ -1019,10 +1020,7 @@ function LibraryRow({
             title={t("library.overflowHint")}
             className="shrink-0 rounded-inner border border-gold/40 bg-gold/10 px-1.5 py-1 text-2xs tabular-nums text-gold transition-surface hover:bg-gold/20"
           >
-            {t("library.overflowChip", {
-              files: lib.episodes.length,
-              episodes: lib.overflow.knownEpisodes,
-            })}
+            {t("library.overflowChip", { episodes: lib.overflow.knownEpisodes })}
           </button>
         )}
 

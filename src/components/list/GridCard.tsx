@@ -1,13 +1,14 @@
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCheck, Pencil, Plus } from "lucide-react";
+import { CheckCheck, Pencil } from "lucide-react";
 import { displayTitle, maxProgress, type MediaListEntry } from "@/api/types";
 import { formatScore } from "@/lib/scoreFormat";
 import { useScoreFormat } from "@/stores/auth";
 import { IconButton } from "@/components/ui/icon-button";
 import { CoverCell } from "@/components/media/CoverCell";
-import { progressMarks } from "@/lib/overview";
+import { ProgressMarks } from "@/components/media/ProgressMarks";
 import { cn } from "@/lib/utils";
+import { PlusOne } from "@/components/ui/plus-one";
 import { SelectBox } from "./SelectBox";
 import { TagChips } from "./TagChips";
 import { canIncrement } from "./shared";
@@ -121,7 +122,7 @@ export const GridCard = memo(function GridCard({
                 aria-label={t("common.plusOne")}
                 title={t("common.plusOne")}
               >
-                <Plus className="size-4" />
+                <PlusOne />
               </IconButton>
             )}
           </div>
@@ -137,7 +138,6 @@ export const GridCard = memo(function GridCard({
 function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number | null; unit: string }) {
   const { t } = useTranslation();
   const { media } = entry;
-  const marks = progressMarks(entry.progress, max);
   return (
     <>
       <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(media.title)}</p>
@@ -158,17 +158,7 @@ function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number 
           </>
         )}
       </p>
-      {marks.kind === "ticks" ? (
-        <div aria-hidden className="flex gap-px">
-          {Array.from({ length: marks.total }, (_, i) => (
-            <span key={i} data-tick={i < marks.done ? "done" : "left"} className={cn("h-1 flex-1 rounded-mark", i < marks.done ? "bg-accent-400" : "bg-surface-700")} />
-          ))}
-        </div>
-      ) : (
-        <div aria-hidden className="h-1 overflow-hidden rounded-full bg-surface-700">
-          <div className="h-full rounded-full bg-accent-400" style={{ width: `${marks.share * 100}%` }} />
-        </div>
-      )}
+      <ProgressMarks progress={entry.progress} total={max} />
     </>
   );
 }

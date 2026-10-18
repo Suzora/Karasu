@@ -2891,11 +2891,11 @@ them away without re-measuring.
   column on the desktop and a picker on the phone; the statistics left it
   for `SectionNav` the same day and the profile on 2026-10-18, and the
   favourites still use it.
-- **The cover progress line is a border, not a bar.** A straight strip inside
-  the cover's rounded clip (`rounded-cover`) had its ends eaten by the corner
-  circles; the line is a `border-b` on an inset-0 overlay revealed by
-  `clip-path`, so it bends into the frame's own corners and a +1 still
-  animates the growth.
+- **Progress under a cover is one component, `ProgressMarks`.** A tick per
+  episode where they fit and a bar past that (`lib/overview` `progressMarks`),
+  under the title in the caption, on the list's cards and the profile's lists
+  alike. The line inside the cover went on 2026-10-18; the Overview's continue
+  row and the detail page's band keep their own larger forms.
 - **`min-w-0`, not `shrink-0`, on a row's trailing text block.** `DigestRow`'s
   (the calendar's agenda row until 2026-10-17) right side was pinned at max-content by `shrink-0`, and one long German note
   handed the whole page a sideways scroll (`<main>`'s `overflow-y-auto`

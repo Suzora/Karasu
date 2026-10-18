@@ -673,8 +673,8 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
       <div className="flex min-h-0 flex-1">
         {!phone && (
-          <aside className="w-60 shrink-0 space-y-4 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
-            <PageTitle title={type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")} jp={type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")} />
+          <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+            <PageTitle className="mb-3" title={type === "ANIME" ? t("list.animeTitle") : t("list.mangaTitle")} jp={type === "ANIME" ? t("list.animeNative") : t("list.mangaNative")} />
             <StatusNav {...statusProps} />
           </aside>
         )}

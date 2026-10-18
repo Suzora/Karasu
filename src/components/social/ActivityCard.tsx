@@ -191,6 +191,8 @@ export function ActivityCard({
 
   return (
     <article className={cn(variant === "row" ? "py-2.5" : cardClass("flat"), "flex gap-3", variant === "card" && "p-3")}>
+      {/* A row without a cover keeps its slot, so the link and like controls stand at one place down the feed. */}
+      {!(item.kind === "list" && item.media?.coverImage?.large) && <span aria-hidden className="order-last w-11 shrink-0" />}
       {item.kind === "list" && item.media?.coverImage?.large && (
         <Link
           to={`/media/${item.media.id}`}

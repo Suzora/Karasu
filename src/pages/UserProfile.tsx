@@ -35,7 +35,9 @@ import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked } from "@/lib/contentFilter";
 import { isSelf } from "@/lib/follows";
 import { cn } from "@/lib/utils";
-import { MediaStrip } from "@/components/media/MediaStrip";
+import { CoverCell } from "@/components/media/CoverCell";
+import { TitleLockup } from "@/components/media/TitleLockup";
+import { displayTitle } from "@/api/types";
 import { chipClass } from "@/components/ui/chip";
 
 /** The loaded page's frame, so Back stands where it will stay while the profile loads or fails. */
@@ -310,7 +312,7 @@ function Favourites({ user }: { user: UserProfileData }) {
         />
       )}
 
-      {/* The person pages' strip, so these covers are filtered, veiled and staggered as theirs are. */}
+      {/* The app's cover grid at the covers-per-row width, filtered above and veiled by the cell. */}
       {([
         ["anime", anime, Library],
         ["manga", manga, BookOpen],
@@ -322,7 +324,23 @@ function Favourites({ user }: { user: UserProfileData }) {
               title={kind === "anime" ? t("social.favAnime") : t("social.favManga")}
               meta={String(list.length)}
             />
-            <MediaStrip edges={list.map((node) => ({ node }))} />
+            <div className="media-grid gap-x-4 gap-y-6">
+              {list.map((m) => (
+                <CoverCell
+                  key={m.id}
+                  to={`/media/${m.id}`}
+                  cover={m.coverImage?.large ?? null}
+                  media={m}
+                  adult={m.isAdult === true}
+                  revealLabel={displayTitle(m.title)}
+                  caption={
+                    <Link to={`/media/${m.id}`}>
+                      <TitleLockup title={m.title} clamp={2} tone="muted" />
+                    </Link>
+                  }
+                />
+              ))}
+            </div>
           </section>
         ) : null,
       )}

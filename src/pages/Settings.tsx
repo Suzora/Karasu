@@ -344,7 +344,7 @@ export default function Settings() {
       <div key={active} className="min-w-0 flex-1 animate-settle overflow-y-auto float-clear">
         <div className="flex max-w-3xl flex-col gap-6 pb-12 pl-2 pr-8 pt-6">
           <header className="space-y-0.5">
-            <h2 className={cn("text-xl text-ink-100", "danger" in pane && pane.danger && "text-danger")}>{t(`settings.pane_${pane.id}`)}</h2>
+            <h2 className={cn("text-lg text-ink-100", "danger" in pane && pane.danger && "text-danger")}>{t(`settings.pane_${pane.id}`)}</h2>
             <p className="text-sm text-ink-500">{paneHint(pane.id)}</p>
           </header>
           {rendered}

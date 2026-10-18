@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import { Loader } from "@/components/ui/loader";
+import { CardGridSkeleton } from "@/components/Skeleton";
 import { useNavigate } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
@@ -84,7 +84,7 @@ export default function Seasonal() {
       {error && (
         <ErrorState error={error} onRetry={() => refetch()} inline={groups.length > 0} className={groups.length > 0 ? "mb-4" : undefined} />
       )}
-      {isLoading && <Loader label={t("seasonal.loading")} />}
+      {isLoading && <CardGridSkeleton count={9} className="grid grid-cols-1 gap-3 @2xl:grid-cols-2 @6xl:grid-cols-3" />}
       {!isLoading && !error && results.length === 0 && (
         // Four verticals rather than the schedule's seven: a season is a shorter unit than a week.
         <EmptyState visual={<TickMarks count={4} />} title={t(total > 0 ? "seasonal.emptyFiltered" : "seasonal.empty")} />
