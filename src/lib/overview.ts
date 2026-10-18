@@ -33,7 +33,7 @@ export function continueRow(anime: MediaListEntry[], manga: MediaListEntry[]): {
   ].sort((a, b) => b.entry.updatedAt - a.entry.updatedAt);
 }
 
-/** The phone pager's current page from its scroll offset; `pageWidth` is one page's width including the peek. */
+/** The phone pager's current page from its scroll offset; `pageWidth` is the step from one page to the next. */
 export function pagerIndex(scrollLeft: number, pageWidth: number, count: number): number {
   if (pageWidth <= 0) return 0;
   return Math.min(count - 1, Math.max(0, Math.round(scrollLeft / pageWidth)));

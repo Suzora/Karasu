@@ -815,11 +815,6 @@ nav a {
     linear-gradient(0deg, color-mix(in srgb, var(--color-on-cover) 50%, transparent), transparent 60%);
 }
 
-/* One page of the phone Overview's pager, narrower than the screen so the next page peeks in at the edge. */
-@utility w-pager-page {
-  width: calc(100% - 1.75rem);
-}
-
 /* The pager's dots, floating just above the phone's bottom bar so they stay in reach while the page scrolls. */
 @utility pager-dots {
   position: fixed;

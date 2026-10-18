@@ -7,7 +7,7 @@ const pages = [
   { label: "Stats", node: <p>second page</p> },
 ];
 
-/** The phone Overview's two pages: swiped sideways, the next one peeking in, dots that say where you are. */
+/** The phone Overview's two pages: swiped sideways, each as wide as the phone, dots that say where you are. */
 describe("OverviewPager", () => {
   it("draws both pages and one dot per page, the first marked current", () => {
     render(<OverviewPager pages={pages} />);
@@ -20,26 +20,27 @@ describe("OverviewPager", () => {
   it("scrolls to a page when its dot is tapped", () => {
     render(<OverviewPager pages={pages} />);
     const track = document.querySelector<HTMLElement>("[data-pager]")!;
-    const first = track.firstElementChild as HTMLElement;
-    Object.defineProperty(first, "offsetWidth", { value: 330 });
+    Object.defineProperty(track.children[1], "offsetLeft", { value: 405 });
     track.scrollTo = vi.fn();
     fireEvent.click(screen.getByRole("button", { name: "Stats" }));
-    expect(track.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: 330 }));
+    expect(track.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: 405 }));
   });
 
   it("marks the page the track has scrolled to", () => {
     render(<OverviewPager pages={pages} />);
     const track = document.querySelector<HTMLElement>("[data-pager]")!;
-    Object.defineProperty(track.firstElementChild as HTMLElement, "offsetWidth", { value: 330 });
-    track.scrollLeft = 320;
+    Object.defineProperty(track.children[1], "offsetLeft", { value: 405 });
+    track.scrollLeft = 390;
     fireEvent.scroll(track);
     expect(screen.getByRole("button", { name: "Stats" })).toHaveAttribute("aria-current", "true");
   });
 
-  it("lets the next page peek in rather than filling the width", () => {
+  /** A page that peeked the next one in read as an Overview that did not fit the phone. */
+  it("gives each page the phone's whole width, with the next one out of sight", () => {
     render(<OverviewPager pages={pages} />);
-    const first = document.querySelector<HTMLElement>("[data-pager]")!.firstElementChild!;
-    expect(first.className).toContain("w-pager-page");
+    const track = document.querySelector<HTMLElement>("[data-pager]")!;
+    for (const page of track.children) expect(page).toHaveClass("w-full");
+    expect(track).toHaveClass("gap-8");
   });
 
   it("caps the page not showing at the screen's height, so a short page leaves no long empty scroll", () => {
