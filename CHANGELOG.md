@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: b341a86 -->
+<!-- generated-through: 6ef84b2 -->
 
 ### Added
 
@@ -104,6 +104,7 @@ tag time is then optional rather than load-bearing.
 - Activity lets you switch between the people you follow, everyone and your own posts, and filter by status updates, anime or manga entries; the forum lists its categories in a column.
 - Notifications can be filtered by kind, the local library keeps its folder and section shortcuts in a column, and character and staff pages show their facts in a card beside the roles.
 - Settings match the other pages, with the pane's name and summary above its options.
+- Wrapped keeps Save, the period and the export choices in a column beside the poster.
 
 ### Security
 

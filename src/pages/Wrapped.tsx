@@ -38,7 +38,6 @@ import { toBase64 } from "@/lib/base64";
 import { backendErrorText } from "@/lib/backendError";
 import { showToast } from "@/stores/toast";
 import { needsJapaneseFace } from "@/lib/titleLanguage";
-import { ScrollRow } from "@/components/ui/scroll-row";
 
 /** Poster type and geometry are written in em, like the design, so one layout serves every crop. */
 const FONT = '"SN Pro", system-ui, sans-serif';
@@ -561,6 +560,7 @@ export default function Wrapped() {
   const [presetKey, setPresetKey] = useState<PresetKey>("page");
   const [format, setFormat] = useState<ImageFormat>("png");
   const [scale, setScale] = useState(2);
+  const phone = usePhoneShell();
   const preset = PRESETS.find((p) => p.key === presetKey) ?? PRESETS[2];
 
   // Derived from the two cached lists, which already carry every field Wrapped reads; no request of its own.
@@ -755,31 +755,39 @@ export default function Wrapped() {
     }
   };
 
-  return (
-    <div className="mx-auto max-w-4xl p-8 3xl:max-w-5xl">
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h1 className="flex items-center gap-2 text-title">
-          <Sparkles className="size-5 text-accent-400" /> {t("wrapped.title")}
-        </h1>
-        {years.length > 0 && (
-          <>
-            <div className="flex items-center gap-1.5">
-              <Pill active={mode === "year"} onClick={() => setMode("year")}>
-                {t("wrapped.modeYear")}
-              </Pill>
-              {/* A completion list can be all movies and specials, with no broadcast seasons, so the pill would be a dead end. */}
-              {seasons.length > 0 && (
-                <Pill active={mode === "season"} onClick={() => setMode("season")}>
-                  {t("wrapped.modeSeason")}
-                </Pill>
-              )}
-            </div>
+  const row = (on: boolean, label: string, onClick: () => void) => (
+    <button
+      key={label}
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(
+        "press flex w-full items-center rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+      )}
+    >
+      {label}
+    </button>
+  );
+  const groupLabel = (label: string) => <p className="px-4 pb-1 pt-3 label-text text-ink-500">{label}</p>;
+  const ready = years.length > 0;
+
+  const column = (
+    <div className="space-y-0.5">
+      <div className="px-2 pb-2">
+        <Button className="w-full rounded-full" onClick={save} disabled={!stats}>
+          <Download className="size-4" /> {saved ? t("common.saved") : t("wrapped.save")}
+        </Button>
+      </div>
+      {ready && (
+        <>
+          {groupLabel(t("wrapped.period"))}
+          {row(mode === "year", t("wrapped.modeYear"), () => setMode("year"))}
+          {/* A completion list can be all movies and specials, with no broadcast seasons, so the choice would be a dead end. */}
+          {seasons.length > 0 && row(mode === "season", t("wrapped.modeSeason"), () => setMode("season"))}
+          <div className="px-2 pt-1">
             {mode === "year" ? (
-              <Select
-                value={year ?? ""}
-                onChange={(e) => setYear(Number(e.target.value))}
-                aria-label={t("wrapped.modeYear")}
-              >
+              <Select value={year ?? ""} onChange={(e) => setYear(Number(e.target.value))} aria-label={t("wrapped.modeYear")} className="w-full">
                 {years.map((y) => (
                   <option key={y} value={y}>
                     {y}
@@ -796,94 +804,54 @@ export default function Wrapped() {
                 />
               )
             )}
-          </>
-        )}
-        <Button className="ml-auto" onClick={save} disabled={!stats}>
-          <Download className="size-4" /> {saved ? t("common.saved") : t("wrapped.save")}
-        </Button>
-      </div>
-
-      {years.length > 0 && (
-        <div className="mb-4 space-y-2.5">
-          <ExportRow label={t("wrapped.shape")}>
-            {PRESETS.map((p) => (
-              <Pill
-                key={p.key}
-                active={presetKey === p.key}
-                onClick={() => setPresetKey(p.key)}
-                className="shrink-0 whitespace-nowrap"
-              >
-                {t(p.labelKey)}
-              </Pill>
-            ))}
-          </ExportRow>
-          <ExportRow label={t("wrapped.format")}>
+          </div>
+          {groupLabel(t("wrapped.shape"))}
+          {PRESETS.map((p) => row(presetKey === p.key, t(p.labelKey), () => setPresetKey(p.key)))}
+          {groupLabel(t("wrapped.format"))}
+          <div className="flex flex-wrap gap-2 px-2">
             {(["png", "jpeg"] as const).map((f) => (
-              <Pill
-                key={f}
-                active={format === f}
-                onClick={() => setFormat(f)}
-                className="shrink-0 whitespace-nowrap"
-              >
+              <Pill key={f} active={format === f} onClick={() => setFormat(f)} className="shrink-0 whitespace-nowrap">
                 {f.toUpperCase()}
               </Pill>
             ))}
-          </ExportRow>
+          </div>
           {/* Not a preview control: scale is what gets written to disk, so the pixel size is shown outright. */}
-          <ExportRow label={t("wrapped.size")}>
+          {groupLabel(t("wrapped.size"))}
+          <div className="flex flex-wrap gap-2 px-2">
             {[1, 2, 3].map((n) => (
-              <Pill
-                key={n}
-                active={scale === n}
-                onClick={() => setScale(n)}
-                className="shrink-0 whitespace-nowrap"
-              >
+              <Pill key={n} active={scale === n} onClick={() => setScale(n)} className="shrink-0 whitespace-nowrap">
                 {n}× · {preset.W * n}px
               </Pill>
             ))}
-          </ExportRow>
-        </div>
+          </div>
+        </>
       )}
+    </div>
+  );
 
-      {loading ? (
-        <Loader label={t("common.loading")} />
-      ) : error ? (
-        <ErrorState
-          error={error}
-          onRetry={() => refetch()}
-          title={(reason) => t("list.loadError", { message: reason })}
-        />
-      ) : years.length === 0 ? (
-        <EmptyState visual={<OutlineYear year={new Date().getFullYear()} />} title={t("wrapped.empty")} />
-      ) : (
-        <canvas
-          ref={canvasRef}
-          className="w-full max-w-2xl rounded-sheet border border-hair shadow-float"
-        />
-      )}
+  const stage = loading ? (
+    <Loader label={t("common.loading")} />
+  ) : error ? (
+    <ErrorState error={error} onRetry={() => refetch()} title={(reason) => t("list.loadError", { message: reason })} />
+  ) : !ready ? (
+    <EmptyState visual={<OutlineYear year={new Date().getFullYear()} />} title={t("wrapped.empty")} />
+  ) : (
+    // A tinted stage, so the poster reads as the picture that will be saved rather than as part of the page.
+    <div className={cn("grid place-items-center rounded-hero bg-surface-900/60", phone ? "p-4" : "p-8")}>
+      <canvas ref={canvasRef} className="w-full max-w-2xl rounded-sheet shadow-float" />
+    </div>
+  );
+
+  return (
+    <div className={cn(phone ? "space-y-4 px-4 pb-24 pt-4" : "grid grid-cols-[15rem_minmax(0,1fr)] gap-6 px-8 pb-12 pt-6")}>
+      <aside className={cn("space-y-1", !phone && "self-start")}>
+        <h1 className="mb-2 flex items-center gap-2 px-3 text-title">
+          <Sparkles className="size-5 text-accent-400" /> {t("wrapped.title")}
+        </h1>
+        {column}
+      </aside>
+      <div className="min-w-0">{stage}</div>
     </div>
   );
 }
 
-/** One labelled export row: scrolls on the phone, wraps on desktop; keep shrink-0 on the pills or they compress. */
-function ExportRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  const phone = usePhoneShell();
-  const content = (
-    <>
-      <span className="w-14 shrink-0 label-text text-ink-500">{label}</span>
-      {children}
-    </>
-  );
-  // On the phone the choices scroll sideways under an edge fade, which says there is more instead of cutting a word.
-  return phone ? (
-    <ScrollRow innerClassName="items-center gap-2 pb-1">{content}</ScrollRow>
-  ) : (
-    <div className="flex flex-wrap items-center gap-2">{content}</div>
-  );
-}

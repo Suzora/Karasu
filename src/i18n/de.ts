@@ -1262,6 +1262,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     presetPage: "Seite",
     presetCompressed: "Kompakt",
     presetDetailed: "Detailliert",
+    period: "Zeitraum",
   },
   media: {
     addDefault: "Zur Liste hinzufügen",

@@ -1119,3 +1119,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   summary over its cards, which start beside the column instead of centred.
   The phone's pane list becomes tonal cards. A restyle that moves no
   setting, so a before/after board rather than three mockups.
+- **2026-10-18:** Wrapped takes C of three frames (over A, Save at the foot
+  of the column, and B, a strip of export choices over the poster): the
+  column holds Save at the top, then the period (year or season and its
+  pick), the template, the format and the size, and the poster stands on a
+  lightly tinted stage beside it. The poster itself is the exported picture
+  and does not change. On the phone the column sits above the stage.

@@ -1255,6 +1255,7 @@ export const en = {
     presetPage: "Page",
     presetCompressed: "Compressed",
     presetDetailed: "Detailed",
+    period: "Period",
   },
   media: {
     addDefault: "Add to your list",
