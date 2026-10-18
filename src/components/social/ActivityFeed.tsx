@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useInfiniteQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
@@ -23,6 +24,7 @@ export function ActivityFeed({
   requestSource,
   enabled = true,
   variant = "card",
+  step,
 }: {
   queryKey: QueryKey;
   source: ActivitySource;
@@ -34,10 +36,13 @@ export function ActivityFeed({
   enabled?: boolean;
   /** `row` draws the entries flat inside a panel of the caller's, without each one's frame and owner. */
   variant?: "card" | "row";
+  /** Shows this many entries and this many more per press, asking AniList for a page only once those run out. */
+  step?: number;
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const level = useContentFilter((s) => s.level);
+  const [shown, setShown] = useState(step ?? Infinity);
 
   const q = useInfiniteQuery({
     queryKey,
@@ -87,9 +92,18 @@ export function ActivityFeed({
     return <EmptyState visual={<PerchRule />} title={emptyTitle} hint={emptyHint} />;
   }
 
+  const visible = items.slice(0, shown);
+  const more = items.length > shown || q.hasNextPage;
+  const loadMore = () => {
+    const next = shown + (step ?? 0);
+    if (step) setShown(next);
+    // A page is asked for only once the entries already in hand cannot fill the next step.
+    if (q.hasNextPage && items.length < (step ? next : Infinity)) void q.fetchNextPage();
+  };
+
   return (
     <div className="space-y-2">
-      {items.map((item, i) => (
+      {visible.map((item, i) => (
         <div
           key={`${item.kind}-${item.id}`}
           className="animate-rise-in"
@@ -100,13 +114,13 @@ export function ActivityFeed({
       ))}
 
       {q.error && <ErrorState error={q.error} inline className="pt-1" />}
-      {q.hasNextPage && (
+      {more && (
         <div className="pt-1">
           <Button
             variant="secondary"
             size="sm"
             disabled={q.isFetchingNextPage}
-            onClick={() => void q.fetchNextPage()}
+            onClick={loadMore}
           >
             {q.isFetchingNextPage ? t("social.loadingMore") : t("social.loadMorePlain")}
           </Button>

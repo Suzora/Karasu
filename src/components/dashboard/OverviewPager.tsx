@@ -1,32 +1,33 @@
 import { useRef, useState, type ReactNode } from "react";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { pagerIndex } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 
-/** The phone Overview as pages side by side: each the phone's width, swiped sideways, floating dots to say and switch. */
-export function OverviewPager({ pages }: { pages: { label: string; node: ReactNode }[] }) {
+/** The phone Overview as pages side by side: each the phone's width and its own scroller, dots to say and switch. */
+export function OverviewPager({ pages }: { pages: { label: string; slot: string; node: ReactNode }[] }) {
   const track = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState(0);
-  // The step from one page to the next, gap included, read off the second page's place.
-  const step = () => (track.current?.children[1] as HTMLElement | undefined)?.offsetLeft ?? 0;
+  // A page is the track's whole width, so one step sideways is the track's own width.
+  const step = () => track.current?.clientWidth ?? 0;
   const go = (i: number) => track.current?.scrollTo({ left: i * step(), behavior: "smooth" });
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <div
         ref={track}
         data-pager
         onScroll={(e) => setAt(pagerIndex(e.currentTarget.scrollLeft, step(), pages.length))}
-        className="-mx-4 flex items-start gap-8 snap-x snap-mandatory scroll-px-4 overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {pages.map((p, i) => (
-          <section key={p.label} aria-label={p.label} className={cn("w-full min-w-0 shrink-0 snap-start", i !== at && "max-h-screen overflow-hidden")}>
+        {pages.map((p) => (
+          <PagerPage key={p.slot} label={p.label} slot={p.slot}>
             {p.node}
-          </section>
+          </PagerPage>
         ))}
       </div>
       <div className="pager-dots z-30 flex items-center gap-2 rounded-full bg-surface-800/95 px-3 py-2 shadow-float backdrop-blur">
         {pages.map((p, i) => (
           <button
-            key={p.label}
+            key={p.slot}
             type="button"
             aria-label={p.label}
             aria-current={i === at ? true : undefined}
@@ -36,5 +37,20 @@ export function OverviewPager({ pages }: { pages: { label: string; node: ReactNo
         ))}
       </div>
     </div>
+  );
+}
+
+/** One page: it scrolls on its own and keeps its own place, so the other page never moves with it. */
+function PagerPage({ label, slot, children }: { label: string; slot: string; children: ReactNode }) {
+  const scroller = useRef<HTMLElement>(null);
+  useScrollMemory(scroller, slot);
+  return (
+    <section
+      ref={scroller}
+      aria-label={label}
+      className="h-full w-full min-w-0 shrink-0 snap-start overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 pb-24 pt-4 float-clear"
+    >
+      {children}
+    </section>
   );
 }

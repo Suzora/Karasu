@@ -92,14 +92,14 @@ function DashboardContent({ userId }: { userId: number }) {
   );
   const rail = <OverviewRail userId={userId} anime={allAnime} manga={allManga} settled={settled} beside={beside} ready={!isLoading && !error} />;
 
-  // The phone pages sideways, so the statistics sit one swipe away instead of under every section.
+  // The phone pages sideways, each page scrolling on its own, so the statistics sit one swipe away.
   if (phone) {
     return (
-      <div ref={root} className="px-4 pb-24 pt-4">
+      <div ref={root} className="h-full">
         <OverviewPager
           pages={[
-            { label: t("dashboard.pageOverview"), node: middleColumn },
-            { label: t("dashboard.pageMine"), node: rail },
+            { label: t("dashboard.pageOverview"), slot: "overview", node: middleColumn },
+            { label: t("dashboard.pageMine"), slot: "overview-mine", node: rail },
           ]}
         />
       </div>

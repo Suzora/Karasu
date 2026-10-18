@@ -423,7 +423,7 @@ the list shelf (a status's titles as cover spines on a rule in the status
 colour), the continue card (one tick per episode up to 40, a bar past it,
 and a progress ring round +1), the week plan (days as columns, the hour
 downwards, a now line; a list of days below 40 rem) and the banner's
-48-hour strip, and on the phone the pager (two pages, each the phone's width,
+48-hour strip, and on the phone the pager (two pages, each the phone's width and its own scroller,
 floating dots above the bottom bar). Text on the banner and the cards is `on-cover-edge` on the
 `on-cover` scrim (`banner-scrim`) in every look.
 
@@ -1173,9 +1173,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   filters, formats and switches, and the calendar's two groups went. Every
   column row is `columnRow`, every phone field `PickerField`, so the six
   hand-built copies of each can no longer drift apart.
-- **2026-10-18:** The phone Overview's pages fill the phone's width. The
-  next page no longer peeks in at the edge, which read on the phone as an
-  Overview that did not fit the screen (maintainer's report, with a
-  screenshot). The pages sit a gap apart wider than the side padding, so the
-  neighbour stays out of sight until a swipe, and the dots still say there
-  is a second page.
+- **2026-10-18:** The phone Overview's pages fill the phone's width and
+  each scrolls on its own. The next page no longer peeks in at the edge,
+  which read on the phone as an Overview that did not fit the screen
+  (maintainer's report, with a screenshot); swiping stays, and the dots
+  still say there is a second page. Each page keeps its own place, so
+  reading the activity never moves the lists. One's own activity, on the
+  phone and beside the desktop page alike, shows five entries and five more
+  per press of Load more, and is never a box of its own to scroll through.
