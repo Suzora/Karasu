@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: eb87847 -->
+<!-- generated-through: b341a86 -->
 
 ### Added
 
@@ -103,6 +103,7 @@ tag time is then optional rather than load-bearing.
 - Covers are the same size on every screen, set by Covers per row, and a narrow cover keeps its add button clear of the score.
 - Activity lets you switch between the people you follow, everyone and your own posts, and filter by status updates, anime or manga entries; the forum lists its categories in a column.
 - Notifications can be filtered by kind, the local library keeps its folder and section shortcuts in a column, and character and staff pages show their facts in a card beside the roles.
+- Settings match the other pages, with the pane's name and summary above its options.
 
 ### Security
 

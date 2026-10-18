@@ -1113,3 +1113,9 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   standing card in the column, as on the detail page, with the description,
   the roles and the voices beside it. On the phone each column sits above
   the content.
+- **2026-10-18:** Settings keep their column and take the other pages'
+  shape: the same width and pill rows, the title with 設定 at the top in
+  place of a small label, no dividing line, and the pane's name and one-line
+  summary over its cards, which start beside the column instead of centred.
+  The phone's pane list becomes tonal cards. A restyle that moves no
+  setting, so a before/after board rather than three mockups.

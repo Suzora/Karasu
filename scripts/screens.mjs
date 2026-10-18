@@ -66,6 +66,7 @@ export const SCREENS = [
   { id: "d2-liste", w: 1232, h: 800, route: "/list", act: (p) => p.locator("[data-media-id]").nth(2).click({ button: "right" }) },
   { id: "d3-detail", w: 1232, h: 800, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "d4-einstellungen", w: 1232, h: 800, route: "/settings?pane=appearance" },
+  { id: "d-einstellungen-fenster", w: 1536, h: 960, route: "/settings?pane=detection" },
   { id: "d56-hinzufuegen", w: 1232, h: 800, route: "/media/178789", mock: "off-list", act: (p) => statusButton(p).click() },
   { id: "p41-hinzufuegen", w: 405, h: 860, phone: true, route: "/media/178789", mock: "off-list", act: (p) => statusButton(p).click() },
   { id: "d57-statusfarbe", w: 1232, h: 900, route: "/settings?pane=appearance", mock: "status-low", act: async (p) => {

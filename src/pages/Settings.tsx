@@ -242,7 +242,7 @@ export default function Settings() {
         <div className="space-y-4 p-4">
           <h1 className="px-1 pt-2 text-title">{t("settings.title")}</h1>
           {/* One line of what each pane holds, so the list answers where a setting is before a pane is opened. */}
-          <div className="overflow-hidden rounded-panel border border-hair bg-surface-900 [&>*+*]:border-t [&>*+*]:border-hair">
+          <div className="space-y-1">
             {panes.map((p) => {
               const Icon = p.icon;
               const danger = "danger" in p && p.danger;
@@ -251,7 +251,7 @@ export default function Settings() {
                   key={p.id}
                   type="button"
                   onClick={() => setParams({ pane: p.id })}
-                  className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-surface hover:bg-surface-850 focus-inset"
+                  className="press flex w-full items-center gap-3 rounded-panel bg-surface-900 px-3.5 py-3 text-left transition-surface hover:bg-surface-850"
                 >
                   <span
                     className={cn(
@@ -308,42 +308,51 @@ export default function Settings() {
 
   return (
     <div className="flex h-full min-h-0">
-      <nav aria-label={t("nav.settings")} className="flex w-48 shrink-0 flex-col gap-0.5 border-r border-hair p-3">
-        <h1 className="px-2.5 pb-2 pt-1 label-text text-ink-500">
-          {t("settings.title")}
-        </h1>
-        {panes.map((p) => {
-          const Icon = p.icon;
-          const danger = "danger" in p && p.danger;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              aria-current={p.id === active ? "page" : undefined}
-              onClick={() => setParams(p.id === "account" ? {} : { pane: p.id })}
-              className={cn(
-                "flex items-center gap-2.5 rounded-full px-3 py-2 text-left text-ui transition-surface coarse:min-h-11",
-                p.id === active
-                  ? danger
-                    ? "bg-danger/12 text-danger"
-                    : "nav-pill"
-                  : danger
-                    ? "text-danger hover:bg-danger/10"
-                    : "text-ink-500 hover:bg-surface-850 hover:text-ink-100",
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1">{t(`settings.pane_${p.id}`)}</span>
-              {/* Only a flag here; explaining is the job of the pane's own note. */}
-              {danger && <AlertTriangle aria-hidden className="size-3.5 shrink-0" />}
-            </button>
-          );
-        })}
-      </nav>
+      <aside className="w-60 shrink-0 space-y-1 overflow-y-auto pb-8 pl-5 pr-3 pt-6">
+        <div className="mb-2 flex flex-col px-3">
+          <h1 className="text-title">{t("settings.title")}</h1>
+          <span className="font-brand-jp text-ui tracking-lockup text-ink-600">設定</span>
+        </div>
+        <nav aria-label={t("nav.settings")} className="space-y-0.5">
+          {panes.map((p) => {
+            const Icon = p.icon;
+            const danger = "danger" in p && p.danger;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                aria-current={p.id === active ? "page" : undefined}
+                onClick={() => setParams(p.id === "account" ? {} : { pane: p.id })}
+                className={cn(
+                  "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
+                  p.id === active
+                    ? danger
+                      ? "bg-danger/12 text-danger"
+                      : "nav-pill"
+                    : danger
+                      ? "text-danger hover:bg-danger/10"
+                      : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
+                )}
+              >
+                <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
+                <span className="min-w-0 flex-1 truncate">{t(`settings.pane_${p.id}`)}</span>
+                {/* Only a flag here; explaining is the job of the pane's own note. */}
+                {danger && <AlertTriangle aria-hidden className="size-3.5 shrink-0" />}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
 
       {/* Keyed on the pane so switching replays `settle`; a swap in place looks like the page not reacting. */}
       <div key={active} className="min-w-0 flex-1 animate-settle overflow-y-auto float-clear">
-        <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">{rendered}</div>
+        <div className="flex max-w-3xl flex-col gap-6 pb-12 pl-2 pr-8 pt-6">
+          <header className="space-y-0.5">
+            <h2 className={cn("text-xl text-ink-100", "danger" in pane && pane.danger && "text-danger")}>{t(`settings.pane_${pane.id}`)}</h2>
+            <p className="text-sm text-ink-500">{paneHint(pane.id)}</p>
+          </header>
+          {rendered}
+        </div>
       </div>
     </div>
   );
