@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from "react";
-import { ChevronDown, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { PickerField, columnRow } from "@/components/shell/PageColumn";
 
 export interface SectionItem<T extends string> {
   value: T;
@@ -52,10 +52,7 @@ export function SectionNav<T extends string>({ label, items, value, onChange, on
             onChange(v);
             onPicked?.();
           }}
-          className={cn(
-            "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-            v === value ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-          )}
+          className={columnRow(v === value)}
         >
           <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
           <span className="min-w-0 flex-1 truncate">{name}</span>
@@ -69,25 +66,12 @@ export function SectionNav<T extends string>({ label, items, value, onChange, on
 /** The phone's form of the column: a field naming the current section, opening the column in a sheet. */
 export function SectionPicker<T extends string>(props: Props<T>) {
   const current = props.items.find((i) => i.value === props.value) ?? props.items[0];
-  const Icon = current.icon;
   return (
     <Popover
       label={props.label}
       variant="sheet"
       className="w-full"
-      renderTrigger={(p) => (
-        <button
-          type="button"
-          {...p}
-          aria-label={`${props.label}: ${current.label}`}
-          className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-        >
-          <Icon aria-hidden className="size-4 shrink-0 text-ink-500" />
-          <span className="text-base text-ink-100">{current.label}</span>
-          <span className="flex-1" />
-          <ChevronDown aria-hidden className="size-4 text-ink-500" />
-        </button>
-      )}
+      renderTrigger={(p) => <PickerField trigger={p} label={`${props.label}: ${current.label}`} icon={current.icon} value={current.label} />}
     >
       {(api) => <SectionNav {...props} onPicked={api.close} />}
     </Popover>

@@ -1,10 +1,9 @@
 import type { KeyboardEvent } from "react";
-import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import { Popover } from "@/components/ui/popover";
 import { statusColorVar } from "@/lib/statusColors";
-import { cn } from "@/lib/utils";
+import { ColumnLabel, PickerField, columnRow } from "@/components/shell/PageColumn";
 
 interface Props {
   type: MediaType;
@@ -53,10 +52,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
               onChange(s);
               onPicked?.();
             }}
-            className={cn(
-              "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-              s === value ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-            )}
+            className={columnRow(s === value)}
           >
             <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: statusColorVar(s) }} />
             <span className="min-w-0 flex-1 truncate">{t(`status.${type}.${s}`)}</span>
@@ -66,8 +62,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
       </div>
       {lists.length > 0 && (
         <>
-          <div className="mx-3 my-3 h-px bg-surface-850" />
-          <p className="px-4 pb-1 label-text text-ink-500">{t("list.customList")}</p>
+          <ColumnLabel>{t("list.customList")}</ColumnLabel>
           {lists.map((n) => (
             <button
               key={n}
@@ -77,10 +72,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
                 onList(n === list ? "" : n);
                 onPicked?.();
               }}
-              className={cn(
-                "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-                n === list ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-              )}
+              className={columnRow(n === list)}
             >
               <span className="min-w-0 flex-1 truncate">{n}</span>
             </button>
@@ -101,23 +93,14 @@ export function StatusPicker({ variant = "sheet", ...props }: Props & { variant?
       variant={variant}
       className="w-full"
       renderTrigger={(p) => (
-        <button
-          type="button"
-          {...p}
-          aria-label={t("list.statusPick", { status: label })}
-          // The dropdown sits in a toolbar beside a segmented switch, so it takes a control's height rather than a field's.
-          className={cn(
-            "flex w-full items-center gap-3 bg-surface-900 text-left surface-outline transition-surface hover:bg-surface-850",
-            variant === "dropdown" ? "h-8.5 rounded-control px-3" : "rounded-panel px-4 py-3",
-          )}
-        >
-          <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: statusColorVar(props.value) }} />
-          <span className={cn(variant === "dropdown" ? "text-sm" : "text-base", "text-ink-100")}>{label}</span>
-          <span className="text-sm tabular-nums text-ink-500">{props.counts[props.value]}</span>
-          {props.list && <span className="min-w-0 truncate text-sm text-ink-500">· {props.list}</span>}
-          <span className="flex-1" />
-          <ChevronDown aria-hidden className="size-4 text-ink-500" />
-        </button>
+        <PickerField
+          trigger={p}
+          size={variant === "dropdown" ? "control" : "field"}
+          label={t("list.statusPick", { status: label })}
+          lead={<span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: statusColorVar(props.value) }} />}
+          value={label}
+          meta={`${props.counts[props.value]}${props.list ? ` · ${props.list}` : ""}`}
+        />
       )}
     >
       {(api) => <StatusNav {...props} onPicked={api.close} />}

@@ -1,12 +1,11 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Activity, BookOpen, ChevronDown, Clapperboard, Globe, MessageSquare, User, Users } from "lucide-react";
+import { Activity, BookOpen, Clapperboard, Globe, MessageSquare, User, Users } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
-import { ColumnPage, ColumnPageSkeleton, ColumnRule, PageTitle, columnRow } from "@/components/shell/PageColumn";
+import { ColumnLabel, ColumnPage, ColumnPageSkeleton, ColumnRule, PageTitle, PickerField, columnRow } from "@/components/shell/PageColumn";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useUrlState } from "@/hooks/useUrlState";
 import { feeds, feedVariables, kindsFor, parseFeedView, writeFeedView, type Feed, type FeedKind } from "@/lib/feedView";
-import { cn } from "@/lib/utils";
 import { ActivityFeed } from "@/components/social/ActivityFeed";
 import { ActivityComposer } from "@/components/social/ActivityComposer";
 import { EmptyState, PerchRule } from "@/components/EmptyState";
@@ -62,10 +61,7 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={cn(
-        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-      )}
+      className={columnRow(on)}
     >
       <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
       <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -73,9 +69,9 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
   );
   const column = (after?: () => void) => (
     <div className="space-y-0.5">
-      <p className="px-4 pb-1 label-text text-ink-500">{t("social.feedHeading")}</p>
+      <ColumnLabel first>{t("social.feedHeading")}</ColumnLabel>
       {feeds.map((f) => row(view.feed === f, t(feedKey[f]), FEED_ICON[f], () => { pickFeed(f); after?.(); }))}
-      <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("social.kindHeading")}</p>
+      <ColumnLabel>{t("social.kindHeading")}</ColumnLabel>
       {kindsFor(view.feed).map((k) => row(view.kind === k, t(kindKey[k]), KIND_ICON[k], () => { pickKind(k); after?.(); }))}
     </div>
   );
@@ -105,16 +101,11 @@ function Feeds({ viewerId, viewerName }: { viewerId: number; viewerName: string 
           variant="sheet"
           className="w-full"
           renderTrigger={(p) => (
-            <button
-              type="button"
-              {...p}
-              aria-label={t("social.feedPick", { feed: t(feedKey[view.feed]), kind: t(kindKey[view.kind]) })}
-              className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-            >
-              <span className="truncate text-base text-ink-100">{`${t(feedKey[view.feed])} · ${t(kindKey[view.kind])}`}</span>
-              <span className="flex-1" />
-              <ChevronDown aria-hidden className="size-4 text-ink-500" />
-            </button>
+            <PickerField
+              trigger={p}
+              label={t("social.feedPick", { feed: t(feedKey[view.feed]), kind: t(kindKey[view.kind]) })}
+              value={`${t(feedKey[view.feed])} · ${t(kindKey[view.kind])}`}
+            />
           )}
         >
           {(api) => column(api.close)}

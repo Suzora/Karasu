@@ -1,8 +1,9 @@
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownWideNarrow, ChevronDown, ChevronLeft, ChevronRight, Clapperboard, Disc3, EyeOff, Film, MonitorPlay, Shapes, Sparkles, Timer, Tv } from "lucide-react";
+import { ArrowDownWideNarrow, ChevronLeft, ChevronRight, Clapperboard, Disc3, EyeOff, Film, MonitorPlay, Shapes, Sparkles, Timer, Tv } from "lucide-react";
 import type { Season } from "@/api/queries";
 import { Popover } from "@/components/ui/popover";
+import { ColumnLabel, PickerField, columnRow } from "@/components/shell/PageColumn";
 import { FORMAT_ORDER } from "@/lib/formatGroups";
 import { formatLabel } from "@/lib/format";
 import type { SeasonFilters } from "@/lib/seasonView";
@@ -21,7 +22,6 @@ export const FORMAT_ICON: Record<string, typeof Tv> = {
   MUSIC: Clapperboard,
 };
 
-const rowClass = "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11";
 const restClass = "text-ink-300 hover:bg-surface-850 hover:text-ink-100";
 
 /** The year in large type between its two arrows; an arrow with nowhere to go is disabled. */
@@ -105,7 +105,7 @@ export function FormatNav({ counts, total, filters, onChange, onPicked }: Format
     onPicked?.();
   };
   const item = (value: string, label: string, n: number, Icon: typeof Tv | null) => (
-    <button key={value || "all"} type="button" aria-pressed={filters.format === value} onClick={() => pick(value)} className={cn(rowClass, filters.format === value ? "nav-pill" : restClass)}>
+    <button key={value || "all"} type="button" aria-pressed={filters.format === value} onClick={() => pick(value)} className={columnRow(filters.format === value)}>
       {Icon && <Icon aria-hidden className="size-4 shrink-0 opacity-70" />}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       <span className="text-xs tabular-nums opacity-70">{n}</span>
@@ -113,7 +113,7 @@ export function FormatNav({ counts, total, filters, onChange, onPicked }: Format
   );
   // A switch, not a pick: its track says on or off even when no row in the group is chosen.
   const toggle = (on: boolean, label: string, Icon: typeof Tv, patch: Partial<SeasonFilters>) => (
-    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(patch)} className={cn(rowClass, restClass)}>
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(patch)} className={columnRow()}>
       <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
       {/* Wraps rather than truncating: the track takes the room a truncated label would need. */}
       <span className="min-w-0 flex-1 leading-snug">{label}</span>
@@ -130,7 +130,7 @@ export function FormatNav({ counts, total, filters, onChange, onPicked }: Format
   );
   return (
     <div className="space-y-0.5">
-      <p className="px-4 pb-1 label-text text-ink-500">{t("seasonal.formats")}</p>
+      <ColumnLabel first>{t("seasonal.formats")}</ColumnLabel>
       {item("", t("seasonal.allFormats"), total, null)}
       {formats.map((f) => item(f, formatLabel(f, t), counts[f], FORMAT_ICON[f] ?? Shapes))}
       {other > 0 && !filters.format && (
@@ -140,8 +140,7 @@ export function FormatNav({ counts, total, filters, onChange, onPicked }: Format
           <span className="text-xs tabular-nums opacity-70">{other}</span>
         </p>
       )}
-      <div className="mx-3 my-3 h-px bg-surface-850" />
-      <p className="px-4 pb-1 label-text text-ink-500">{t("seasonal.show")}</p>
+      <ColumnLabel>{t("seasonal.show")}</ColumnLabel>
       {toggle(filters.unlisted, t("seasonal.unlisted"), EyeOff, { unlisted: !filters.unlisted })}
       {toggle(filters.byScore, t("seasonal.byScore"), ArrowDownWideNarrow, { byScore: !filters.byScore })}
     </div>
@@ -160,18 +159,13 @@ export function FormatPicker(props: FormatProps) {
       variant="sheet"
       className="w-full"
       renderTrigger={(p) => (
-        <button
-          type="button"
-          {...p}
-          aria-label={t("seasonal.formatPick", { format: label })}
-          className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-        >
-          <span className="text-base text-ink-100">{label}</span>
-          <span className="text-sm tabular-nums text-ink-500">{filters.format ? counts[filters.format] ?? 0 : total}</span>
-          {narrowed && <span aria-hidden className="size-1.5 rounded-full bg-accent-400" />}
-          <span className="flex-1" />
-          <ChevronDown aria-hidden className="size-4 text-ink-500" />
-        </button>
+        <PickerField
+          trigger={p}
+          label={t("seasonal.formatPick", { format: label })}
+          value={label}
+          meta={filters.format ? counts[filters.format] ?? 0 : total}
+          marked={narrowed}
+        />
       )}
     >
       {(api) => <FormatNav {...props} onPicked={api.close} />}

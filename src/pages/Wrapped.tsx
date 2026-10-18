@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { ChevronDown, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import type { Season, WrappedEntry } from "@/api/queries";
 import {
   currentScoreFormat,
@@ -35,7 +35,7 @@ import { Button, buttonClass } from "@/components/ui/button";
 import { CardGridSkeleton } from "@/components/Skeleton";
 import { Popover } from "@/components/ui/popover";
 import { Segmented } from "@/components/ui/segmented";
-import { ColumnLabel, ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
+import { ColumnLabel, ColumnPage, PageTitle, PickerField, columnRow } from "@/components/shell/PageColumn";
 import { YearStepper } from "@/components/season/SeasonNav";
 import { EmptyState, ErrorState, OutlineYear } from "@/components/EmptyState";
 import markUrl from "@/assets/karasu-mark.svg";
@@ -865,17 +865,12 @@ export default function Wrapped() {
               variant="sheet"
               className="w-full"
               renderTrigger={(p) => (
-                <button
-                  type="button"
-                  {...p}
-                  aria-label={t("wrapped.optionsPick", { summary: `${periodName} · ${t(preset.labelKey)}` })}
-                  className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-                >
-                  <span className="truncate text-base text-ink-100">{periodName}</span>
-                  <span className="min-w-0 truncate text-sm text-ink-500">{`${t(preset.labelKey)} · ${format.toUpperCase()} ${scale}×`}</span>
-                  <span className="flex-1" />
-                  <ChevronDown aria-hidden className="size-4 shrink-0 text-ink-500" />
-                </button>
+                <PickerField
+                  trigger={p}
+                  label={t("wrapped.optionsPick", { summary: `${periodName} · ${t(preset.labelKey)}` })}
+                  value={periodName}
+                  meta={`${t(preset.labelKey)} · ${format.toUpperCase()} ${scale}×`}
+                />
               )}
             >
               {() => options}

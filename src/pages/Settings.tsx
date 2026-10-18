@@ -1,4 +1,4 @@
-import { PageTitle } from "@/components/shell/PageColumn";
+import { PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { useSearchParams } from "react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -321,14 +321,7 @@ export default function Settings() {
                 type="button"
                 aria-current={p.id === active ? "page" : undefined}
                 onClick={() => setParams(p.id === "account" ? {} : { pane: p.id })}
-                className={cn(
-                  "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-                  p.id === active
-                    ? danger
-                      ? "bg-danger/12 text-danger"
-                      : "nav-pill"
-                    : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-                )}
+                className={cn(columnRow(p.id === active && !danger), p.id === active && danger && "bg-danger/12 text-danger hover:bg-danger/12 hover:text-danger")}
               >
                 <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
                 <span className="min-w-0 flex-1 truncate">{t(`settings.pane_${p.id}`)}</span>

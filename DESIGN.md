@@ -1165,3 +1165,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   The Wrapped poster takes the dark palette's accent in every theme, since
   the poster is dark in every theme and the light theme's darker shades
   vanished on it, the exported file included.
+- **2026-10-18:** A final polish of the column pages, refinement only. A
+  column's groups part by space alone (`ColumnLabel`, space above every
+  label but the first); a line stands only before the last group when that
+  group's links leave the page (Activity's profile, Statistics' Wrapped and
+  AniList). The lines between statuses and custom lists, scopes and
+  filters, formats and switches, and the calendar's two groups went. Every
+  column row is `columnRow`, every phone field `PickerField`, so the six
+  hand-built copies of each can no longer drift apart.

@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: c80c62eb -->
+<!-- generated-through: 852074f5 -->
 
 ### Added
 
@@ -82,6 +82,7 @@ tag time is then optional rather than load-bearing.
 
 - A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.
 - The Year filter in Search finds manga by the year they started, where it found none before.
+- The season page lists every title of the season again, including the movies, TV shorts and OVAs that fell below the 50 most popular ([#76](https://github.com/Suzora/Karasu/issues/76)).
 
 ### Fixed
 
@@ -107,6 +108,7 @@ tag time is then optional rather than load-bearing.
 - Wrapped keeps Save, the period and the export choices in a column beside the poster.
 - Every page with a column now has the same width and the same title with its Japanese line under it, and the page's one action beside it; high contrast outlines every card, the AniList average no longer looks like your own score, the season filters are switches, and Wrapped on the phone shows the poster straight away.
 - The calendar's week now starts today, the statistics show the status split once, the episode button reads "+1" so it can't be mistaken for adding a title, progress under every cover looks the same, staff roles and languages appear in your language, spoilers in quotes look as they do in the feed, pages load with placeholders instead of a spinner, and the Wrapped poster keeps its colours in the light theme.
+- The left columns space their groups the same way on every page, with a dividing line only before links that leave the page.
 
 ### Security
 

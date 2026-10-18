@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from "react";
 import { VirtualRows } from "@/components/list/VirtualRows";
-import { PageTitle, columnRow } from "@/components/shell/PageColumn";
+import { ColumnLabel, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -458,7 +458,7 @@ function LibraryView({ userId }: { userId: number }) {
         {folder}
         {jumps.length > 0 && !phone && (
           <nav aria-label={t("library.jumpTo")} className="space-y-0.5">
-            <p className="px-4 pb-1 label-text text-ink-500">{t("library.jumpTo")}</p>
+            <ColumnLabel first>{t("library.jumpTo")}</ColumnLabel>
             {jumps.map(({ id, count }) => {
               const Icon = jumpIcon[id];
               return (

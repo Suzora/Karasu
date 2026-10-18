@@ -28,7 +28,7 @@ import {
 } from "@/lib/calendarView";
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
-import { ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
+import { ColumnLabel, ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { isBlocked } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -349,11 +349,10 @@ export default function Calendar() {
         <PageTitle title={t("calendar.title")} jp="カレンダー" action={download} className="mb-3" />
         {stepper}
         {backToThisWeek}
-        <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("calendar.showHeading")}</p>
+        <ColumnLabel>{t("calendar.showHeading")}</ColumnLabel>
         {navRow(lens === "mine", t("calendar.lensMine"), () => setView({ lens: "mine" }), undefined, lens === "mine" ? slots.length : undefined)}
         {navRow(lens === "all", t("calendar.lensAll"), () => setView({ lens: "all" }), undefined, lens === "all" ? slots.length : undefined)}
-        <div className="mx-3 my-3 h-px bg-surface-850" />
-        <p className="px-4 pb-1 label-text text-ink-500">{t("calendar.layoutHeading")}</p>
+        <ColumnLabel>{t("calendar.layoutHeading")}</ColumnLabel>
         {/* The week stays in the column when the window is too narrow for it, disabled and saying why, so the rows hold still. */}
         {!weekFits(measured, phone) && <span key="week" className="block">{navRow(false, t("calendar.viewWeek"), () => {}, viewIcon.week, undefined, t("calendar.weekTooNarrow"))}</span>}
         {viewSegments.map((sg) => navRow(view === sg.value, sg.label, () => chooseView(sg.value), viewIcon[sg.value]))}

@@ -1,14 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Bookmark, ChevronDown, Hash, MessageSquare, PenSquare, Search } from "lucide-react";
+import { Bookmark, Hash, MessageSquare, PenSquare, Search } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { Popover } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { forumThreads, THREAD_CATEGORIES } from "@/api/social";
 import { SearchField } from "@/components/ui/search-field";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
-import { PageTitle } from "@/components/shell/PageColumn";
+import { ColumnLabel, PageTitle, PickerField, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useSettledWrite } from "@/hooks/useUrlState";
 import { PresenceIf } from "@/components/ui/presence";
@@ -99,10 +99,7 @@ export default function Forum() {
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={cn(
-        "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-        on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-      )}
+      className={columnRow(on)}
     >
       <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
       <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -114,7 +111,7 @@ export default function Forum() {
       {/* A category filter means nothing to a search or a subscription list, so the list stands under browse alone. */}
       {lens === "browse" && (
         <>
-          <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("forum.category")}</p>
+          <ColumnLabel>{t("forum.category")}</ColumnLabel>
           {row(categoryId === undefined, t("forum.categoryAll"), Hash, () => { setCategory(undefined); after?.(); })}
           {THREAD_CATEGORIES.map((c) => row(categoryId === c.id, c.name, Hash, () => { setCategory(c.id); after?.(); }))}
         </>
@@ -149,18 +146,10 @@ export default function Forum() {
             label={t("forum.category")}
             variant="sheet"
             className="w-full"
-            renderTrigger={(p) => (
-              <button
-                type="button"
-                {...p}
-                aria-label={t("forum.viewPick", { view: lens === "browse" ? `${lensName(lens)} · ${categoryName}` : lensName(lens) })}
-                className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-              >
-                <span className="truncate text-base text-ink-100">{lens === "browse" ? `${lensName(lens)} · ${categoryName}` : lensName(lens)}</span>
-                <span className="flex-1" />
-                <ChevronDown aria-hidden className="size-4 text-ink-500" />
-              </button>
-            )}
+            renderTrigger={(p) => {
+              const view = lens === "browse" ? `${lensName(lens)} · ${categoryName}` : lensName(lens);
+              return <PickerField trigger={p} label={t("forum.viewPick", { view })} icon={LENS_ICON[lens]} value={view} />;
+            }}
           >
             {(api) => column(api.close)}
           </Popover>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useNavigationType } from "react-router";
 import { useColumnCount } from "@/hooks/useColumnCount";
 import { useGridRoving } from "@/hooks/useGridRoving";
-import { PageTitle } from "@/components/shell/PageColumn";
+import { PageTitle, PickerField, columnRow } from "@/components/shell/PageColumn";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
 import { useUrlState } from "@/hooks/useUrlState";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -76,7 +76,7 @@ import {
   sectionTitle,
 } from "@/components/search/BrowseSections";
 import { birthdayDay, sectionOfView } from "@/lib/browseSections";
-import { BookOpen, Building2, Cake, ChevronDown, Clapperboard, Heart, SlidersHorizontal, User, UserRound, Users } from "lucide-react";
+import { BookOpen, Building2, Cake, Clapperboard, Heart, SlidersHorizontal, User, UserRound, Users } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 
@@ -279,10 +279,7 @@ export default function Search() {
           changeScope(sc);
           after?.();
         }}
-        className={cn(
-          "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-          scope === sc ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-        )}
+        className={columnRow(scope === sc)}
       >
         <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
         <span className="min-w-0 flex-1 truncate">{scopeName(sc)}</span>
@@ -461,17 +458,7 @@ export default function Search() {
             variant="sheet"
             className="min-w-0 flex-1"
             renderTrigger={(p) => (
-              <button
-                type="button"
-                {...p}
-                aria-label={t("search.scopePick", { scope: scopeName(scope) })}
-                className="flex w-full items-center gap-3 rounded-panel bg-surface-900 px-4 py-3 text-left surface-outline transition-surface hover:bg-surface-850"
-              >
-                <CurrentIcon aria-hidden className="size-4 shrink-0 text-ink-500" />
-                <span className="truncate text-base text-ink-100">{scopeName(scope)}</span>
-                <span className="flex-1" />
-                <ChevronDown aria-hidden className="size-4 text-ink-500" />
-              </button>
+              <PickerField trigger={p} label={t("search.scopePick", { scope: scopeName(scope) })} icon={CurrentIcon} value={scopeName(scope)} />
             )}
           >
             {(api) => <div className="space-y-0.5">{SCOPES.map((sc) => scopeRow(sc, api.close))}</div>}
@@ -513,8 +500,7 @@ export default function Search() {
         {SCOPES.map((sc) => scopeRow(sc))}
         {isMediaScope(scope) && (
           <>
-            <div className="mx-3 my-3 h-px bg-surface-850" />
-            {filterHeading}
+            <div className="pt-5">{filterHeading}</div>
             <div className="space-y-0.5">{filterControls(true)}</div>
           </>
         )}

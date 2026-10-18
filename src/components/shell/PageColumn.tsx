@@ -1,4 +1,6 @@
 import type { ReactNode, Ref } from "react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
+import type { PopoverTriggerProps } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Busy, Shimmer } from "@/components/Skeleton";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
@@ -26,14 +28,59 @@ export function columnRow(on = false) {
   );
 }
 
-/** A heading for a group of rows in a column, with the inset the rows' own text starts at. */
-export function ColumnLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("px-4 pb-1 label-text text-ink-500", className)}>{children}</p>;
+/** A heading for a group of rows, inset to the rows' text; space above it parts the groups, `first` drops that space. */
+export function ColumnLabel({ children, first = false, className }: { children: ReactNode; first?: boolean; className?: string }) {
+  return <p className={cn("px-4 pb-1 label-text text-ink-500", !first && "pt-5", className)}>{children}</p>;
 }
 
-/** The line between a column's groups. */
+/** The line before a column's last group, the links that leave the page; groups within the page part by space alone. */
 export function ColumnRule() {
   return <div className="mx-3 my-3 h-px bg-surface-850" />;
+}
+
+/** The phone's form of a column: one field naming the current choice, which opens the column as a sheet. */
+export function PickerField({
+  trigger,
+  label,
+  value,
+  meta,
+  icon: Icon,
+  lead,
+  marked = false,
+  size = "field",
+}: {
+  trigger: PopoverTriggerProps;
+  /** The field's accessible name, which says what is chosen as well as what the field is for. */
+  label: string;
+  value: ReactNode;
+  meta?: ReactNode;
+  icon?: LucideIcon;
+  /** Drawn where the icon goes, for a mark that is not an icon (a status's colour). */
+  lead?: ReactNode;
+  /** A dot saying a filter beyond the shown choice is on. */
+  marked?: boolean;
+  /** `control` sits in a toolbar beside a segmented switch; `field` is the phone's full-width field. */
+  size?: "field" | "control";
+}) {
+  return (
+    <button
+      type="button"
+      {...trigger}
+      aria-label={label}
+      className={cn(
+        "flex w-full min-w-0 items-center gap-3 bg-surface-900 text-left surface-outline transition-surface hover:bg-surface-850",
+        size === "control" ? "h-8.5 rounded-control px-3" : "rounded-panel px-4 py-3",
+      )}
+    >
+      {lead}
+      {Icon && <Icon aria-hidden className="size-4 shrink-0 text-ink-500" />}
+      <span className={cn("min-w-0 truncate text-ink-100", size === "control" ? "text-sm" : "text-base")}>{value}</span>
+      {meta != null && <span className="min-w-0 shrink truncate text-sm tabular-nums text-ink-500">{meta}</span>}
+      {marked && <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-accent-400" />}
+      <span className="flex-1" />
+      <ChevronDown aria-hidden className="size-4 shrink-0 text-ink-500" />
+    </button>
+  );
 }
 
 /** The desktop page beside its column in one geometry; `own` scrolls the content alone, `page` lets `<main>` scroll both. */

@@ -3,9 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Bird, CheckCheck, Globe, Heart, Inbox, Info, Layers, MessageCircle, MessagesSquare, Tv, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
-import { ColumnPage, PageTitle } from "@/components/shell/PageColumn";
+import { ColumnLabel, ColumnPage, PageTitle, columnRow } from "@/components/shell/PageColumn";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
-import { cn } from "@/lib/utils";
 import { NotifFeed } from "@/components/shell/NotifFeed";
 import { useNotifications, type Leave } from "@/hooks/useNotifications";
 import { NOTIF_KINDS, type NotifKind, type NotifSource } from "@/lib/notifGroups";
@@ -32,11 +31,7 @@ const kindKey = {
   notices: "notif.kindNotices",
 } as const;
 
-const rowClass = (on: boolean) =>
-  cn(
-    "press flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-surface coarse:min-h-11",
-    on ? "nav-pill" : "text-ink-300 hover:bg-surface-850 hover:text-ink-100",
-  );
+const rowClass = (on: boolean) => columnRow(on);
 
 /** Every notification, Karasu's and AniList's, narrowed by source and kind from the column. */
 export default function Notifications() {
@@ -62,7 +57,7 @@ export default function Notifications() {
       {/* Without an AniList account there is one source, and a filter over one source filters nothing. */}
       {n.anilist && (
         <div role="radiogroup" aria-label={t("notif.source")} className="space-y-0.5">
-          <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("notif.sourceHeading")}</p>
+          <ColumnLabel first>{t("notif.sourceHeading")}</ColumnLabel>
           {sources.map(([value, label, Icon]) => (
             <button key={value} type="button" role="radio" aria-checked={source === value} onClick={() => setSource(value)} className={rowClass(source === value)}>
               <Icon aria-hidden className="size-4 shrink-0 opacity-70" />
@@ -71,7 +66,7 @@ export default function Notifications() {
           ))}
         </div>
       )}
-      <p className="px-4 pb-1 pt-3 label-text text-ink-500">{t("notif.kindHeading")}</p>
+      <ColumnLabel first={!n.anilist}>{t("notif.kindHeading")}</ColumnLabel>
       {NOTIF_KINDS.map((k) => {
         const Icon = KIND_ICON[k];
         return (
