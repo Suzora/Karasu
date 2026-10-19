@@ -86,7 +86,8 @@ src/
                      (radar/sunburst/treemap), AreaChart, DotPlot, GradientBars,
                      Heatmap
     dashboard/       the parts the Overview draws — banner with search and
-                     48-hour strip, list shelves, continue row, week plan,
+                     48-hour strip, list shelves, catch-up row (aired episodes
+                     not yet watched), continue row, week plan,
                      coming up, the right rail (detection, figures, own
                      activity, birthdays) and the phone's two-page pager;
                      every decision is `lib/overview`

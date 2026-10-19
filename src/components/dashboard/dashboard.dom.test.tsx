@@ -16,9 +16,10 @@ vi.mock("@/hooks/useElementWidth", () => ({
 
 import { ListShelves } from "./ListShelves";
 import { ContinueRow } from "./ContinueRow";
+import { CatchUpRow } from "./CatchUp";
 import { WeekPlan } from "./WeekPlan";
 import { ComingUp } from "./ComingUp";
-import { WEEK_SECS } from "@/lib/overview";
+import { WEEK_SECS, catchUp } from "@/lib/overview";
 
 const NOW = Math.floor(Date.now() / 1000);
 
@@ -67,6 +68,41 @@ describe("ContinueRow", () => {
     renderWithProviders(<ContinueRow userId={1} anime={[e]} manga={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "common.plusOne" }));
     expect(mutate).toHaveBeenCalledWith({ mediaId: 1, progress: 4 });
+  });
+});
+
+describe("CatchUpRow", () => {
+  const airing = (id: number, progress: number, episode: number) =>
+    entry({ id, progress, updatedAt: id, media: media({ id, episodes: 12, nextAiringEpisode: { episode, airingAt: NOW + 3600 } }) });
+
+  it("shows every title behind with its count, the next episode and the aired episodes outlined", () => {
+    const items = catchUp([airing(1, 3, 6), airing(2, 0, 2)], NOW);
+    renderWithProviders(<CatchUpRow userId={1} items={items} />);
+    expect(screen.getByRole("heading", { name: "dashboard.catchUp" })).toBeInTheDocument();
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(2);
+    expect(cards[1]).toHaveTextContent("dashboard.catchUpBadge");
+    expect(cards[1]).toHaveTextContent("dashboard.catchUpNext");
+    expect(cards[1].querySelectorAll('[data-tick="done"]')).toHaveLength(3);
+    expect(cards[1].querySelectorAll('[data-tick="aired"]')).toHaveLength(2);
+  });
+
+  it("saves the next episode from the +1", () => {
+    renderWithProviders(<CatchUpRow userId={1} items={catchUp([airing(7, 3, 6)], NOW)} />);
+    fireEvent.click(screen.getByRole("button", { name: "common.plusOne" }));
+    expect(mutate).toHaveBeenCalledWith({ mediaId: 7, progress: 4 });
+  });
+
+  it("draws nothing once every title is caught up", () => {
+    const { container } = renderWithProviders(<CatchUpRow userId={1} items={catchUp([airing(1, 5, 6)], NOW)} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("leaves the continue row without the titles it shows", () => {
+    const behind = airing(1, 0, 4);
+    const current = entry({ id: 2, progress: 1, updatedAt: 0, media: media({ id: 2, episodes: 12 }) });
+    renderWithProviders(<ContinueRow userId={1} anime={[behind, current]} manga={[]} skip={new Set([1])} />);
+    expect(screen.getAllByRole("article")).toHaveLength(1);
   });
 });
 

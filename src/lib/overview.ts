@@ -33,6 +33,28 @@ export function continueRow(anime: MediaListEntry[], manga: MediaListEntry[]): {
   ].sort((a, b) => b.entry.updatedAt - a.entry.updatedAt);
 }
 
+export interface CatchUp {
+  entry: MediaListEntry;
+  /** The episodes out so far, by AniList's schedule. */
+  aired: number;
+  behind: number;
+  next: number;
+}
+
+/** Airing anime being watched with aired episodes left unwatched, the most recently touched first; the rest drop out. */
+export function catchUp(anime: MediaListEntry[], now: number): CatchUp[] {
+  return anime
+    .flatMap((entry) => {
+      const next = entry.media.nextAiringEpisode;
+      if (!watching(entry) || !next) return [];
+      const scheduled = next.airingAt <= now ? next.episode : next.episode - 1;
+      const aired = entry.media.episodes ? Math.min(scheduled, entry.media.episodes) : scheduled;
+      const behind = aired - entry.progress;
+      return behind > 0 ? [{ entry, aired, behind, next: entry.progress + 1 }] : [];
+    })
+    .sort((a, b) => b.entry.updatedAt - a.entry.updatedAt);
+}
+
 /** The phone pager's current page from its scroll offset; `pageWidth` is the step from one page to the next. */
 export function pagerIndex(scrollLeft: number, pageWidth: number, count: number): number {
   if (pageWidth <= 0) return 0;
