@@ -80,6 +80,7 @@ tag time is then optional rather than load-bearing.
 
 ### Fixed
 
+- On the phone, each page of the Overview fills the screen and scrolls on its own, and your activity on the Overview shows five entries at a time with Load more instead of a box to scroll through.
 - A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.
 - The Year filter in Search finds manga by the year they started, where it found none before.
 - The season page lists every title of the season again, including the movies, TV shorts and OVAs that fell below the 50 most popular ([#76](https://github.com/Suzora/Karasu/issues/76)).

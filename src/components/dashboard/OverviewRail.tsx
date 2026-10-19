@@ -21,8 +21,10 @@ import { useNowPlaying } from "@/stores/nowPlaying";
 import { useOverviewRail } from "@/stores/overviewRail";
 
 const panel = "rounded-panel bg-surface-900 surface-outline";
+/** One's own activity shows this many, and as many more per press, so it never needs a scroller of its own. */
+const ACTIVITY_STEP = 5;
 
-/** The Overview's right column: the detected title, the figures, one's own AniList activity to the window's end, birthdays. */
+/** The Overview's right column: the detected title, the figures, one's own AniList activity a few at a time, birthdays. */
 export function OverviewRail({
   userId,
   anime,
@@ -54,7 +56,7 @@ export function OverviewRail({
   const anilist = mode === "anilist" && userId > 0;
 
   return (
-    <aside className={cn("flex min-w-0 flex-col gap-4", beside && "sticky top-0 max-h-[calc(100dvh-2.25rem)] overflow-y-auto py-6")}>
+    <aside className={cn("flex min-w-0 flex-col gap-4", beside && "sticky top-0 max-h-[calc(100dvh-2.25rem)] overflow-y-auto overflow-x-hidden py-6")}>
       {shows && <RailDetection />}
       {ready ? <RailStats anime={anime} manga={manga} /> : <Shimmer className="h-72 w-full rounded-panel" />}
       <section className={cn(panel, "flex min-h-40 flex-col p-4", beside && "flex-1")}>
@@ -68,16 +70,15 @@ export function OverviewRail({
           )}
         </div>
         {anilist ? (
-          <div className="-mx-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4">
-            <ActivityFeed
-              queryKey={["social", "activities", userId]}
-              source={{ userId }}
-              requestSource={OWN_ACTIVITY.source}
-              enabled={settled}
-              variant="row"
-              emptyTitle={t("social.noActivitySelf")}
-            />
-          </div>
+          <ActivityFeed
+            queryKey={["social", "activities", userId]}
+            source={{ userId }}
+            requestSource={OWN_ACTIVITY.source}
+            enabled={settled}
+            variant="row"
+            step={ACTIVITY_STEP}
+            emptyTitle={t("social.noActivitySelf")}
+          />
         ) : (
           <p className="text-sm text-ink-500">{t("dashboard.ownActivityNeedsAccount")}</p>
         )}

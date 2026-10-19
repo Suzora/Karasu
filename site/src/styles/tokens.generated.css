@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 dad382d5264a) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 9b4a01289bb1) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -696,11 +696,6 @@
   background-image:
     linear-gradient(90deg, color-mix(in srgb, var(--color-on-cover) 90%, transparent), color-mix(in srgb, var(--color-on-cover) 55%, transparent) 50%, transparent),
     linear-gradient(0deg, color-mix(in srgb, var(--color-on-cover) 50%, transparent), transparent 60%);
-}
-
-/* One page of the phone Overview's pager, narrower than the screen so the next page peeks in at the edge. */
-@utility w-pager-page {
-  width: calc(100% - 1.75rem);
 }
 
 /* The pager's dots, floating just above the phone's bottom bar so they stay in reach while the page scrolls. */

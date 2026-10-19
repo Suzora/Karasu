@@ -55,6 +55,20 @@ describe("ActivityFeed options", () => {
     expect(screen.queryByText("Kyusetzu")).toBeNull();
   });
 
+  /** The Overview shows a handful and grows on a press, so nobody scrolls through a feed inside a page. */
+  it("shows a step of entries at a time and reveals the next on a press, asking AniList only once those run out", async () => {
+    fetchPage.mockReset();
+    fetchPage.mockResolvedValueOnce(page([1, 2, 3, 4, 5, 6, 7], true)).mockResolvedValueOnce(page([8, 9], false));
+    renderWithProviders(<ActivityFeed queryKey={["own", 9]} source={{ userId: 1 }} step={5} emptyTitle="none" />);
+    await screen.findByText("post 5");
+    expect(screen.queryByText("post 6")).toBeNull();
+    screen.getByRole("button", { name: "social.loadMorePlain" }).click();
+    expect(await screen.findByText("post 7")).toBeInTheDocument();
+    await waitFor(() => expect(fetchPage).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("post 9")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "social.loadMorePlain" })).toBeNull();
+  });
+
   it("pages by a button only", async () => {
     fetchPage.mockReset();
     fetchPage.mockResolvedValueOnce(page([1], true));

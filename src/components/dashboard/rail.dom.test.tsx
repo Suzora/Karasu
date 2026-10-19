@@ -55,6 +55,21 @@ describe("OverviewRail", () => {
     expect(useOverviewRail.getState().showsDetection).toBe(false);
   });
 
+  /** The activity is a short list that grows on a press, never a box of its own to scroll through. */
+  it("shows five of one's own activities, a load-more button after them, and no scroller of its own", async () => {
+    signIn();
+    const USER = { id: 1, name: "Kyusetzu", avatar: null, isFollowing: null, isFollower: null };
+    const post = (id: number) => ({ __typename: "TextActivity", id, text: `post ${id}`, createdAt: 100, likeCount: 0, isLiked: false, replyCount: 0, siteUrl: `https://anilist.co/activity/${id}`, user: USER });
+    activities.mockResolvedValue({ pageInfo: { total: 8, currentPage: 1, lastPage: 1, hasNextPage: false }, activities: [1, 2, 3, 4, 5, 6, 7, 8].map(post) });
+    renderWithProviders(<OverviewRail userId={1} anime={[]} manga={[]} settled beside={false} ready />);
+    const fifth = await screen.findByText("post 5");
+    expect(screen.queryByText("post 6")).toBeNull();
+    expect(screen.getByRole("button", { name: "social.loadMorePlain" })).toBeInTheDocument();
+    for (let el: HTMLElement | null = fifth; el && el.tagName !== "ASIDE"; el = el.parentElement) {
+      expect(el).not.toHaveClass("overflow-y-auto");
+    }
+  });
+
   it("starts with the statistics when nothing plays", () => {
     signIn();
     renderWithProviders(<OverviewRail userId={1} anime={[]} manga={[]} settled beside ready />);
@@ -122,7 +137,7 @@ describe("OverviewRail before and without data", () => {
   it("never scrolls the feed sideways, whatever its buttons' hit areas reach", () => {
     signIn();
     renderWithProviders(<OverviewRail userId={1} anime={[]} manga={[]} settled beside ready />);
-    const section = screen.getByText("dashboard.ownActivity").closest("section")!;
-    expect(section.querySelector(".overflow-y-auto")).toHaveClass("overflow-x-hidden");
+    const aside = screen.getByText("dashboard.ownActivity").closest("aside")!;
+    expect(aside).toHaveClass("overflow-y-auto", "overflow-x-hidden");
   });
 });
