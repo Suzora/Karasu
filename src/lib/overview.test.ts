@@ -7,6 +7,7 @@ import {
   STRIP_SECS,
   TICK_LIMIT,
   WEEK_SECS,
+  catchUp,
   comingUp,
   continueRow,
   greetingKey,
@@ -87,6 +88,38 @@ describe("timetableSlot", () => {
   it("returns null outside the seven days", () => {
     expect(timetableSlot(starts[7], starts)).toBeNull();
     expect(timetableSlot(starts[0] - 1, starts)).toBeNull();
+  });
+});
+
+describe("catchUp", () => {
+  const behind = (id: number, progress: number, episode: number, at = NOW + 3600, over: Partial<Parameters<typeof entry>[0]> = {}) =>
+    entry({ id, progress, updatedAt: id, media: media({ id, episodes: 12, nextAiringEpisode: { episode, airingAt: at } }), ...over });
+
+  it("counts the aired episodes not yet watched and names the next one", () => {
+    expect(catchUp([behind(1, 3, 6)], NOW)).toEqual([expect.objectContaining({ aired: 5, behind: 2, next: 4 })]);
+  });
+
+  it("counts an episode whose airing time has passed, since the list can be older than the schedule", () => {
+    expect(catchUp([behind(1, 3, 6, NOW - 60)], NOW)[0]).toMatchObject({ aired: 6, behind: 3 });
+  });
+
+  it("drops a title that is up to date, one with no schedule and one not being watched", () => {
+    const upToDate = behind(1, 5, 6);
+    const noSchedule = entry({ id: 2, progress: 1, media: media({ id: 2, episodes: 12, nextAiringEpisode: null }) });
+    const planned = behind(3, 0, 6, NOW + 3600, { status: "PLANNING" });
+    const paused = behind(4, 0, 6, NOW + 3600, { status: "PAUSED" });
+    expect(catchUp([upToDate, noSchedule, planned, paused], NOW)).toEqual([]);
+  });
+
+  it("keeps a rewatch and lists the most recently touched title first", () => {
+    const older = behind(1, 0, 3);
+    const rewatch = behind(2, 0, 3, NOW + 3600, { status: "REPEATING" });
+    expect(catchUp([older, rewatch], NOW).map((c) => c.entry.id)).toEqual([2, 1]);
+  });
+
+  it("never counts past the episodes the title has", () => {
+    const short = entry({ id: 1, progress: 10, media: media({ id: 1, episodes: 12, nextAiringEpisode: { episode: 20, airingAt: NOW - 60 } }) });
+    expect(catchUp([short], NOW)[0]).toMatchObject({ aired: 12, behind: 2 });
   });
 });
 

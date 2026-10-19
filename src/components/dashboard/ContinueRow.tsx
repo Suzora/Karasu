@@ -9,7 +9,7 @@ import { canIncrement } from "@/components/list/shared";
 import { useElementWidth } from "@/hooks/useElementWidth";
 import { useListMutations } from "@/hooks/useListMutations";
 import { shouldBlur } from "@/lib/contentFilter";
-import { continueRow, progressMarks, progressShare } from "@/lib/overview";
+import { continueRow, progressMarks, progressShare, type CatchUp } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 import { PlusOne } from "@/components/ui/plus-one";
 import { useContentFilter } from "@/stores/contentFilter";
@@ -22,14 +22,27 @@ const RING_R = 17;
 const RING_C = 2 * Math.PI * RING_R;
 
 /** Continue watching and reading: one row, anime and manga mixed, each card counting its episodes. */
-export function ContinueRow({ userId, anime, manga }: { userId: number; anime: MediaListEntry[]; manga: MediaListEntry[] }) {
+export function ContinueRow({
+  userId,
+  anime,
+  manga,
+  skip,
+}: {
+  userId: number;
+  anime: MediaListEntry[];
+  manga: MediaListEntry[];
+  /** Entry ids the catch-up row already shows, so no title stands twice. */
+  skip?: Set<number>;
+}) {
   const { t } = useTranslation();
   const row = useRef<HTMLDivElement>(null);
   const width = useElementWidth(row);
   const cols = width > 0 ? Math.max(2, Math.floor((width + GAP) / (CARD_MIN + GAP))) : 6;
   const animeSave = useListMutations(userId, "ANIME").save;
   const mangaSave = useListMutations(userId, "MANGA").save;
-  const items = continueRow(anime, manga).slice(0, cols);
+  const items = continueRow(anime, manga)
+    .filter(({ entry }) => !skip?.has(entry.id))
+    .slice(0, cols);
   return (
     <section>
       <SectionHeader icon={Play} title={t("dashboard.continueBoth")} />
@@ -54,7 +67,8 @@ export function ContinueRow({ userId, anime, manga }: { userId: number; anime: M
   );
 }
 
-function ContinueCard({ entry, type, onPlusOne }: { entry: MediaListEntry; type: MediaType; onPlusOne: () => void }) {
+/** One title to go on with; `catchUp` marks the aired episodes not yet watched and names the next. */
+export function ContinueCard({ entry, type, onPlusOne, catchUp }: { entry: MediaListEntry; type: MediaType; onPlusOne: () => void; catchUp?: CatchUp }) {
   const { t } = useTranslation();
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
@@ -71,7 +85,7 @@ function ContinueCard({ entry, type, onPlusOne }: { entry: MediaListEntry; type:
           )}
         </Link>
         <span className="pointer-events-none absolute left-2.5 top-2.5 rounded-inner bg-on-cover/75 px-2 py-0.5 text-2xs font-medium text-on-cover-edge backdrop-blur">
-          {t(type === "ANIME" ? "common.anime" : "common.manga")}
+          {catchUp ? t("dashboard.catchUpBadge", { n: catchUp.behind }) : t(type === "ANIME" ? "common.anime" : "common.manga")}
         </span>
         {canIncrement(entry) && (
           <button
@@ -94,22 +108,32 @@ function ContinueCard({ entry, type, onPlusOne }: { entry: MediaListEntry; type:
       <div className="mt-2 px-0.5">
         <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{title}</p>
         <p className="mb-2 mt-0.5 text-xs text-ink-500">
-          {entry.progress} / {total ?? "?"}
-          {total ? ` · ${t("dashboard.remaining", { n: Math.max(0, total - entry.progress) })}` : ""}
+          {catchUp ? (
+            t("dashboard.catchUpNext", { n: catchUp.next })
+          ) : (
+            <>
+              {entry.progress} / {total ?? "?"}
+              {total ? ` · ${t("dashboard.remaining", { n: Math.max(0, total - entry.progress) })}` : ""}
+            </>
+          )}
         </p>
         {marks.kind === "ticks" ? (
           <div className="flex gap-0.5">
             {Array.from({ length: marks.total }, (_, i) => (
               <span
                 key={i}
-                data-tick={i < marks.done ? "done" : i === marks.done ? "next" : "left"}
-                className={cn("h-1.5 flex-1 rounded-mark", i < marks.done ? "bg-accent-400" : i === marks.done ? "bg-ink-500" : "bg-surface-700")}
+                data-tick={i < marks.done ? "done" : catchUp && i < catchUp.aired ? "aired" : i === marks.done ? "next" : "left"}
+                className={cn(
+                  "h-1.5 flex-1 rounded-mark",
+                  i < marks.done ? "bg-accent-400" : catchUp && i < catchUp.aired ? "ring-1 ring-inset ring-accent-400" : i === marks.done ? "bg-ink-500" : "bg-surface-700",
+                )}
               />
             ))}
           </div>
         ) : (
-          <div data-bar className="h-1.5 overflow-hidden rounded-full bg-surface-700">
-            <div className="h-full rounded-full bg-accent-400" style={{ width: `${marks.share * 100}%` }} />
+          <div data-bar className="relative h-1.5 overflow-hidden rounded-full bg-surface-700">
+            {catchUp && <div data-aired className="absolute inset-y-0 left-0 rounded-full ring-1 ring-inset ring-accent-400" style={{ width: `${progressShare(catchUp.aired, total) * 100}%` }} />}
+            <div className="relative h-full rounded-full bg-accent-400" style={{ width: `${marks.share * 100}%` }} />
           </div>
         )}
       </div>

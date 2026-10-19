@@ -12,6 +12,8 @@ import RecommendedSection from "@/components/media/RecommendedSection";
 import { OverviewBanner } from "@/components/dashboard/OverviewBanner";
 import { ListShelves } from "@/components/dashboard/ListShelves";
 import { ContinueRow } from "@/components/dashboard/ContinueRow";
+import { CatchUpRow } from "@/components/dashboard/CatchUp";
+import { catchUp } from "@/lib/overview";
 import { WeekPlan } from "@/components/dashboard/WeekPlan";
 import { ComingUp } from "@/components/dashboard/ComingUp";
 import { OverviewRail } from "@/components/dashboard/OverviewRail";
@@ -70,6 +72,8 @@ function DashboardContent({ userId }: { userId: number }) {
   const middle = beside ? width - RAIL_SPACE : width;
   const shelfCols = phone ? 2 : Math.min(6, Math.max(2, Math.floor(middle / SHELF_MIN)));
   const settled = !isLoading && !mangaLoading;
+  const behind = useMemo(() => catchUp(allAnime, Math.floor(Date.now() / 1000)), [allAnime]);
+  const inCatchUp = useMemo(() => new Set(behind.map((c) => c.entry.id)), [behind]);
 
   const middleColumn = (
     <div className={cn("min-w-0 space-y-8", beside && "pb-12 pt-6")}>
@@ -81,7 +85,8 @@ function DashboardContent({ userId }: { userId: number }) {
       ) : (
         <>
           <ListShelves anime={allAnime} manga={allManga} cols={shelfCols} />
-          <ContinueRow userId={userId} anime={allAnime} manga={allManga} />
+          <CatchUpRow userId={userId} items={behind} />
+          <ContinueRow userId={userId} anime={allAnime} manga={allManga} skip={inCatchUp} />
           <WeekPlan anime={allAnime} />
           <ComingUp anime={allAnime} />
           <RecommendedSection type="ANIME" entries={allAnime} />

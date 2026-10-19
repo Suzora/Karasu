@@ -66,6 +66,20 @@ describe("Dashboard", () => {
     ]);
   });
 
+  it("puts the titles behind right above the continue row, and only there", async () => {
+    const now = Math.floor(Date.now() / 1000);
+    lists.mockImplementation(async (_u: number, type: string) =>
+      type === "ANIME"
+        ? listResult([entry({ id: 1, progress: 1, media: media({ id: 1, episodes: 12, nextAiringEpisode: { episode: 4, airingAt: now + 3600 } }) })])
+        : listResult([]),
+    );
+    renderWithProviders(<Dashboard />);
+    await screen.findByText("dashboard.catchUp");
+    const order = h2s();
+    expect(order.indexOf("dashboard.catchUp")).toBe(order.indexOf("dashboard.continueBoth") - 1);
+    expect(screen.getAllByRole("article")).toHaveLength(1);
+  });
+
   it("puts the rail beside the page when there is room and below it when there is not", async () => {
     const { unmount } = renderWithProviders(<Dashboard />);
     expect((await screen.findByText("dashboard.stats")).closest("aside")).toHaveClass("sticky");

@@ -421,7 +421,8 @@ notices, and the frames around the virtual lists.
 **The Overview's own elements** (2026-10-17), in `components/dashboard/`:
 the list shelf (a status's titles as cover spines on a rule in the status
 colour), the continue card (one tick per episode up to 40, a bar past it,
-and a progress ring round +1), the week plan (days as columns, the hour
+a progress ring round +1, and on the catch-up row an outlined tick per aired
+episode not yet watched), the week plan (days as columns, the hour
 downwards, a now line; a list of days below 40 rem) and the banner's
 48-hour strip, and on the phone the pager (two pages, each the phone's width and its own scroller,
 floating dots above the bottom bar). Text on the banner and the cards is `on-cover-edge` on the
@@ -1181,3 +1182,14 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   reading the activity never moves the lists. One's own activity, on the
   phone and beside the desktop page alike, shows five entries and five more
   per press of Load more, and is never a box of its own to scroll through.
+- **2026-10-19:** The Overview gains a Catch up section (#79), the
+  maintainer's pick of three (a section of its own, the titles marked
+  inside Continue watching, a list in the right column). It sits right
+  above Continue watching and reading and shows every airing anime on
+  Watching or Rewatching with aired episodes not yet watched, by AniList's
+  own schedule, as continue cards: "N new" on the cover, the next episode
+  under the title, +1. The continue row then leaves those titles out, so
+  none shows twice, and the section is gone while nothing is owed. An
+  aired episode not yet watched is a third tick state, an accent outline
+  between the filled ticks and the grey ones, so it reads in every look
+  without a new colour.

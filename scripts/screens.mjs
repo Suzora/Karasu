@@ -36,6 +36,17 @@ const toCard = (title) => (p) =>
     const heading = [...document.querySelectorAll("h2, h3")].find((h) => h.textContent?.trim() === t);
     (heading?.closest(".rounded-panel") ?? heading)?.scrollIntoView({ block: "start" });
   }, title);
+/** Scrolls the first of these section headings that the page shows to just under the top of its scroller. */
+const toFirstHeading = (titles) => async (p) => {
+  await p.waitForTimeout(400);
+  await p.evaluate((ts) => {
+    const heading = [...document.querySelectorAll("h2")].find((h) => ts.includes(h.textContent?.trim() ?? ""));
+    heading?.scrollIntoView({ block: "start" });
+    let box = heading?.parentElement;
+    while (box && !(box.scrollHeight > box.clientHeight && getComputedStyle(box).overflowY !== "visible")) box = box.parentElement;
+    box?.scrollBy(0, -24);
+  }, titles);
+};
 /** Centres a setting the way a deep link lands on it, for the screens that start from one. */
 const landOn = (setting, card) => async (p) => {
   await p.waitForTimeout(400);
@@ -63,6 +74,8 @@ export const SCREENS = [
   { id: "p1-seite-eins", w: 405, h: 860, phone: true, route: "/" },
   { id: "p1-seite-zwei", w: 405, h: 860, phone: true, route: "/", act: (p) => p.evaluate(() => { const el = document.querySelector("[data-pager]"); el?.scrollTo({ left: el.scrollWidth }); }) },
   { id: "p1-seite-wischen", w: 405, h: 860, phone: true, route: "/", act: (p) => p.evaluate(() => { const el = document.querySelector("[data-pager]"); if (el) { el.style.scrollSnapType = "none"; el.scrollLeft = el.clientWidth * 0.45; } }) },
+  { id: "d101-uebersicht-aufholen", w: 1536, h: 960, route: "/", act: toFirstHeading(["Aufholen", "Weiterschauen und -lesen"]) },
+  { id: "p72-uebersicht-aufholen", w: 405, h: 860, phone: true, route: "/", act: toFirstHeading(["Aufholen", "Weiterschauen und -lesen"]) },
   { id: "d2-liste", w: 1232, h: 800, route: "/list", act: (p) => p.locator("[data-media-id]").nth(2).click({ button: "right" }) },
   { id: "d3-detail", w: 1232, h: 800, route: "/media/178789", act: (p) => statusButton(p).click() },
   { id: "d4-einstellungen", w: 1232, h: 800, route: "/settings?pane=appearance" },
