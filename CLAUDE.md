@@ -1411,6 +1411,26 @@ async update the real code makes after an await warns instead.
   and About's "Save report" opened no window and the WebView stopped
   answering; on the new one a "Select Folder" and a "Save File" window opened
   and it kept answering.
+- **The main window opens at the end of setup, never before it.** Tauri
+  builds the windows of `tauri.conf.json` *before* it calls the setup hook,
+  and on Android tao runs the Rust `main`, and with it the hook, on a thread
+  of its own, so the WebView loaded while setup was still opening the
+  database. A first start, which creates that database, was slow enough for
+  the page to call `set_ui_page` before `UiPage` was managed; `app.state`
+  panicked inside the JNI `ipc` call on the `JavaBridge` thread, which cannot
+  unwind, and the process aborted, once per install. An F-Droid reviewer
+  found it on 2026-10-18 (Samsung SM-G998B, Android 15, 1.44.0.873: SIGABRT
+  through `Rust_ipc` / `Ipc.postMessage` about 1.7 s in); the cause is read
+  from that tombstone and the crates' source, not reproduced on a device. So
+  the window entry says `create: false`, `open_main_window` builds it as the
+  hook's last step, and `no_window_opens_before_setup` fails the gate on any
+  window Tauri would open by itself. The desktop could not race, since setup
+  ran on the event loop's thread and no message reached a command before it
+  returned; there the window now appears once setup is done. The second
+  half: `survive_panics` wraps the command handler in `catch_unwind`, so a
+  sync command that panics rejects its call, and the panic hook logs it,
+  instead of ending the app on every platform; an `async` command's panic
+  stays inside its tokio task and leaves the call unanswered.
 - **Android gets two plugins of its own, and the battery plugin was
   rejected.** `attach_mobile` in `lib.rs` (a cfg pair on `target_os =
   "android"`, with the crates in the Android dependency table so no desktop
