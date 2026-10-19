@@ -169,8 +169,53 @@ fn hide_window_in_dev(app: &tauri::App, tray_present: bool) {
     }
 }
 
-#[cfg(all(desktop, not(debug_assertions)))]
+#[cfg(not(all(desktop, debug_assertions)))]
 fn hide_window_in_dev(_app: &tauri::App, _tray_present: bool) {}
+
+/// Builds the main window from its config entry, which says `create: false` so Tauri does not open it before setup.
+fn open_main_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let config = app
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|w| w.label == "main")
+        .ok_or("tauri.conf.json has no main window")?
+        .clone();
+    tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.build()?;
+    Ok(())
+}
+
+/// Wraps the command handler so a panicking command rejects its call instead of ending the process.
+fn survive_panics(
+    handler: impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Sync + 'static,
+) -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Sync + 'static {
+    move |invoke| {
+        unwind_guard(
+            invoke,
+            |invoke| invoke.resolver.clone(),
+            &handler,
+            |resolver| resolver.reject("Karasu hit an internal error; the log has the details."),
+        )
+    }
+}
+
+/// Runs `handler`; on a panic `rescue` gets what `keep` took first, and the call counts as handled.
+fn unwind_guard<I, K>(
+    input: I,
+    keep: impl FnOnce(&I) -> K,
+    handler: impl FnOnce(I) -> bool,
+    rescue: impl FnOnce(K),
+) -> bool {
+    let kept = keep(&input);
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| handler(input))) {
+        Ok(handled) => handled,
+        Err(_) => {
+            rescue(kept);
+            true
+        }
+    }
+}
 
 /// Set by `RunEvent::ExitRequested`, read by `RunEvent::Exit`: the one way to tell a requested exit from an imposed one.
 static EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
@@ -351,11 +396,6 @@ pub fn run() {
                 hotkey::HotkeyBackend::Grab,
                 hotkey::HotkeyState::Off,
             ))));
-            // The window exists and the page has not painted, so the stored zoom lands before anything is drawn.
-            commands::apply_ui_zoom(
-                app.handle(),
-                commands::read_ui_zoom(&app.state::<db::Db>()),
-            );
             // The verbose switch survives a restart, so "turn it on and reproduce it" need not be re-armed each launch.
             logging::set_debug(
                 app.state::<db::Db>()
@@ -407,9 +447,18 @@ pub fn run() {
 
             setup_platform(app);
 
+            // Last, so the page cannot invoke a command before every piece of state above is managed.
+            open_main_window(app)?;
+            // The window exists and the page has not painted, so the stored zoom lands before anything is drawn.
+            commands::apply_ui_zoom(
+                app.handle(),
+                commands::read_ui_zoom(&app.state::<db::Db>()),
+            );
+            hide_window_in_dev(app, app.state::<TrayPresent>().0);
+
             Ok(())
         })
-        .invoke_handler(specta_builder().invoke_handler())
+        .invoke_handler(survive_panics(specta_builder().invoke_handler()))
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app, event| match event {
@@ -656,8 +705,6 @@ fn setup_platform(app: &tauri::App) {
         }
     };
     app.manage(TrayPresent(built));
-    // Debug builds only, and only with a tray to come back from.
-    hide_window_in_dev(app, built);
 
     // The session's backend from the start, so Settings words its hint for Wayland even with no key set.
     hotkey::publish(
@@ -713,3 +760,36 @@ fn sweep_apk_updates(app: &tauri::AppHandle) {
 
 #[cfg(not(target_os = "android"))]
 fn sweep_apk_updates(_app: &tauri::AppHandle) {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A window Tauri opens itself exists before setup, and on Android its page could then reach unmanaged state.
+    #[test]
+    fn no_window_opens_before_setup() {
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../tauri.conf.json")).expect("tauri.conf.json parses");
+        let windows = config["app"]["windows"].as_array().expect("a windows list");
+        assert!(windows.iter().any(|w| w["label"] == "main"), "open_main_window looks for this label");
+        for window in windows {
+            assert_eq!(window["create"], false, "{window}");
+        }
+    }
+
+    #[test]
+    fn a_panicking_command_is_rescued_and_counted_as_handled() {
+        let mut rescued = None;
+        let handled = unwind_guard(7, |n| *n, |_| panic!("a command failed"), |n| rescued = Some(n));
+        assert!(handled);
+        assert_eq!(rescued, Some(7));
+    }
+
+    #[test]
+    fn a_command_that_returns_keeps_its_answer() {
+        let mut rescued = false;
+        assert!(!unwind_guard((), |_| (), |_| false, |_| rescued = true));
+        assert!(unwind_guard((), |_| (), |_| true, |_| rescued = true));
+        assert!(!rescued);
+    }
+}
