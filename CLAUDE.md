@@ -2941,6 +2941,19 @@ them away without re-measuring.
   under the title in the caption, on the list's cards and the profile's lists
   alike. The line inside the cover went on 2026-10-18; the Overview's continue
   row and the detail page's band keep their own larger forms.
+- **`hit-area` needs `relative` on the same element, and two gates say so.**
+  The utility is an `::after` positioned absolutely and sized
+  `max(100%, 2.75rem)` of its containing block, so on an element with no
+  position of its own it takes the nearest positioned ancestor: the season
+  page's status pills, `coarse:hit-area` without `relative`, each grew to
+  the phone's whole scroller, and the last card in DOM order took every tap
+  on the page, so a tap on the title, a gap or an arrow opened that card's
+  entry editor (the maintainer's Android report, 2026-10-20; reproduced in
+  the harness's phone shell, where `elementFromPoint` at the page title
+  answered the fifth card's pill). The style audit's `hit-area-unanchored`
+  fails a class list that carries `hit-area` without `relative`, and every
+  `shoot` reports `unanchored`, the hit-area elements whose computed
+  position is static, as a problem beside `sideways`.
 - **`min-w-0`, not `shrink-0`, on a row's trailing text block.** `DigestRow`'s
   (the calendar's agenda row until 2026-10-17) right side was pinned at max-content by `shrink-0`, and one long German note
   handed the whole page a sideways scroll (`<main>`'s `overflow-y-auto`

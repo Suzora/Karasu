@@ -463,8 +463,10 @@ async function shoot() {
           // A page that scrolls its own div hides its overflow from <main>, so each of those counts as well.
           return main ? Math.max(...[main, ...main.querySelectorAll(".overflow-y-auto")].map((b) => b.scrollWidth - b.clientWidth)) : 0;
         });
-        report.push({ name, errors, unknown, sideways });
-        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : [])];
+        // A hit-area is an ::after sized by its positioned ancestor, so on a static element it is the whole page's.
+        const unanchored = await page.evaluate(() => [...document.querySelectorAll('[class*="hit-area"]')].filter((el) => getComputedStyle(el).position === "static").length);
+        report.push({ name, errors, unknown, sideways, unanchored });
+        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : []), ...(unanchored > 0 ? [`${unanchored} hit-area element(s) with no position of their own`] : [])];
         if (problems.length) console.log(`${name}: ${problems.join("; ")}`);
         await context.close();
       }
