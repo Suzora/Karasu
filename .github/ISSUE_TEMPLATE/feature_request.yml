@@ -1,6 +1,7 @@
 name: Feature request
 description: Suggest something Karasu should do.
 labels: ["enhancement"]
+type: Feature
 body:
   - type: markdown
     attributes:
