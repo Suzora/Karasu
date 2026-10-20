@@ -196,6 +196,8 @@ export const SCREENS = [
   { id: "d52-bibliothek", w: 1232, h: 1000, route: "/library" },
   { id: "d53-figur", w: 1232, h: 1000, route: "/character/41" },
   { id: "d54-staff", w: 1232, h: 1000, route: "/staff/500" },
+  { id: "d102-staff-rollen", w: 1232, h: 1400, route: "/staff/500", act: toFirstHeading(["Rollen"]) },
+  { id: "p73-staff-rollen", w: 405, h: 1600, phone: true, route: "/staff/500", act: toFirstHeading(["Rollen"]) },
   { id: "d55-ueber", w: 1232, h: 1000, route: "/about" },
   { id: "d94-neu-stable", w: 1232, h: 800, route: "/", mock: "neu-stable", act: (p) => p.getByRole("dialog").waitFor() },
   { id: "d95-neu-nightly", w: 1232, h: 800, route: "/", mock: "neu-nightly", act: (p) => p.getByRole("dialog").waitFor() },

@@ -75,6 +75,7 @@ tag time is then optional rather than load-bearing.
 
 ### Added
 
+- A voice actor's page lists every role AniList knows under a Roles heading, grouped by the year the title started from the newest down, with upcoming titles first: the cover with the character's face, the character's name, the format and whether it is a main role, 25 at a time with a Load more button ([#81](https://github.com/Suzora/Karasu/issues/81)).
 - The Overview has a Catch up section for airing anime you are behind on: each shows how many episodes have aired since your progress and which one is next, with +1, and leaves once you have caught up ([#79](https://github.com/Suzora/Karasu/issues/79)).
 - After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
 - Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.

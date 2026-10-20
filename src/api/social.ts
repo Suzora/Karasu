@@ -1743,6 +1743,45 @@ export async function staff(id: number): Promise<StaffDetail> {
   return data.Staff;
 }
 
+/** One voice role: the title, the character voiced and the role's weight; the title's start year is what groups them. */
+export interface StaffRoleEdge {
+  id: number;
+  characterRole: string | null;
+  characterName: string | null;
+  node: (SocialMedia & { startDate: { year: number | null } | null }) | null;
+  characters: { id: number; name: { full: string | null }; image: { medium: string | null } | null }[] | null;
+}
+
+export interface StaffRolesPage {
+  pageInfo: { currentPage: number; hasNextPage: boolean };
+  edges: StaffRoleEdge[];
+}
+
+/** Newest title first, an undated one ahead of all; the page is AniList's cap for this connection, `total` no count. */
+export const STAFF_ROLES_QUERY = `
+query ($id: Int!, $page: Int!) {
+  Staff(id: $id) {
+    characterMedia(sort: START_DATE_DESC, page: $page, perPage: 25) {
+      pageInfo { currentPage hasNextPage }
+      edges {
+        id characterRole characterName
+        node { ${SOCIAL_MEDIA} startDate { year } }
+        characters { id name { full } image { medium } }
+      }
+    }
+  }
+}`;
+
+/** One page of a voice actor's roles; a staff member AniList does not know answers an empty last page. */
+export async function staffRoles(id: number, page: number): Promise<StaffRolesPage> {
+  const data = await gql<{ Staff: { characterMedia: StaffRolesPage | null } | null }>(
+    STAFF_ROLES_QUERY,
+    { id, page },
+    { source: "staffRoles", ttlSec: TTL.day },
+  );
+  return data.Staff?.characterMedia ?? { pageInfo: { currentPage: page, hasNextPage: false }, edges: [] };
+}
+
 export interface StudioDetail {
   id: number;
   name: string | null;

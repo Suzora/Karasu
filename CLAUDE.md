@@ -2813,6 +2813,19 @@ shape, and the question that follows them.
   the user and the follower totals; everything else arrives when a tab is
   activated, which is a second user-initiated moment rather than a fourth
   concurrent request clearing a pre-flight check that has not been updated yet.
+- **A voice actor's roles are the staff page's second request, and the one
+  list there that pages.** `STAFF_ROLES_QUERY` asks `Staff.characterMedia`
+  by `START_DATE_DESC`, so an undated title comes first and `lib/roleYears`
+  files it under Upcoming; `Person` holds it in a `useInfiniteQuery` paged
+  by a button, source `staffRoles`, allowlisted for a day. Measured on
+  2026-10-20 against a prolific actor (staff 105071): the connection serves
+  25 a page whatever `perPage` asks, and its `pageInfo.total` read 500 on
+  page 1, 475 on page 20 and 329 on page 14, the real last page, so the
+  count is never shown while `hasNextPage` holds and the button is the
+  countless one. The sort is the title's start date, not when the actor
+  joined, so a long-running series files under its first year, as on the
+  website. The grouping dedupes by edge id, since AniList can repeat an
+  edge across two pages fetched minutes apart.
 - **Search with nothing typed browses, in one cached request per scope.**
   `lib/browseSections` is the table: each medium's sections in AniList's own
   order, each an alias of one aliased-`Page` query (`ANIME_BROWSE_QUERY`,

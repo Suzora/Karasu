@@ -550,6 +550,24 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         media: { edges: [0, 1, 2, 3].map((i) => ({ characterRole: i === 0 ? "MAIN" : "SUPPORTING", voiceActors: [{ id: 500, name: { full: "Konomi Kohara" }, image: { medium: cover(5) } }], node: socialMedia(i) })) },
       },
     };
+  // A voice actor's roles by year, a page at a time: the first full and a second behind it, so the button draws.
+  if (/characterMedia/.test(q)) {
+    const page = Number(variables?.page ?? 1);
+    const years = [null, 2026, 2026, 2026, 2026, 2025, 2025, 2025, 2025, 2025, 2025, 2024, 2024, 2024, 2024, 2023, 2023, 2023, 2022, 2022, 2021, 2021, 2020, 2019, 2018];
+    const formats = ["TV", "TV", "MOVIE", "OVA", "TV", "ONA", "TV_SHORT", "SPECIAL"];
+    const names = ["Roxy Migurdia", "Kobeni Higashiyama", "Aiko Tanabe", "Mei Hoshino", "Yuna Sakuraba", "Yui Katsura", "Hana Mori", "Nao Kisaragi", "Chiyo Umino", "Sora Amane"];
+    const edges =
+      page === 1
+        ? years.map((year, i) => ({
+            id: 7000 + i,
+            characterRole: i % 3 === 0 ? "MAIN" : i % 7 === 6 ? "BACKGROUND" : "SUPPORTING",
+            characterName: null,
+            node: { ...socialMedia(i), format: formats[i % formats.length], startDate: { year } },
+            characters: [{ id: 9000 + i, name: { full: names[i % names.length] }, image: { medium: cover(i + 3) } }],
+          }))
+        : [];
+    return { Staff: { characterMedia: { pageInfo: { currentPage: page, hasNextPage: page === 1 }, edges } } };
+  }
   if (/\bStaff\s*\(\s*id/.test(q))
     return {
       Staff: {
