@@ -1204,4 +1204,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   name the character. Twenty-five roles a request and the rest behind a
   Load more button, so a prolific actor's few hundred roles never cost a
   burst; the count stands in the header only once every page is in.
-  Appears in and Characters stay above it as the quick summary.
+  Appears in and Characters stay above it as the quick summary. The same
+  day, at the maintainer's word, the character page lists its appearances
+  and the studio page its productions in the same cards, the Japanese voice
+  actor's face on a character's, the main-studio mark in the accent on a
+  studio's; their popularity strips went, since the year list holds every
+  title the strip sampled. The undated group reads "No date yet" rather
+  than "Upcoming", because a cancelled title has no date either.

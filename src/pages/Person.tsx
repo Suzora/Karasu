@@ -4,19 +4,21 @@ import { useInfiniteQuery, useQuery, type InfiniteData, type UseInfiniteQueryRes
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Drama, ExternalLink, Heart, Users } from "lucide-react";
+import { Clapperboard, Drama, ExternalLink, Heart, Users, type LucideIcon } from "lucide-react";
 import {
   character,
+  characterMedia,
   staff,
   staffRoles,
   studio,
+  studioMedia,
   type CharacterDetail,
   type StaffDetail,
-  type StaffRolesPage,
   type StudioDetail,
+  type YearPage,
 } from "@/api/social";
 import { rolesByYear } from "@/lib/roleYears";
-import { RoleYears } from "@/components/media/RoleYears";
+import { RoleYears, type YearEdge } from "@/components/media/RoleYears";
 import { Button } from "@/components/ui/button";
 import { isTauri } from "@/api/anilist";
 import BackButton from "@/components/shell/BackButton";
@@ -96,13 +98,18 @@ export default function Person({ kind }: { kind: Kind }) {
     retry: false,
   });
 
-  // A voice actor's roles, a page per press: the second request a staff page makes, and the last it makes unasked.
-  const roles = useInfiniteQuery({
-    queryKey: ["staffRoles", numericId],
-    queryFn: ({ pageParam }) => staffRoles(numericId, pageParam),
+  // The page's year list, a page per press: the second request a person page makes, and the last it makes unasked.
+  const years = useInfiniteQuery({
+    queryKey: ["personYears", kind, numericId],
+    queryFn: ({ pageParam }): Promise<YearPage<YearEdge>> =>
+      kind === "character"
+        ? characterMedia(numericId, pageParam)
+        : kind === "staff"
+          ? staffRoles(numericId, pageParam)
+          : studioMedia(numericId, pageParam),
     initialPageParam: 1,
-    getNextPageParam: (last: StaffRolesPage) => (last.pageInfo.hasNextPage ? last.pageInfo.currentPage + 1 : undefined),
-    enabled: kind === "staff" && isTauri && Number.isFinite(numericId) && numericId > 0,
+    getNextPageParam: (last: YearPage<YearEdge>) => (last.pageInfo.hasNextPage ? last.pageInfo.currentPage + 1 : undefined),
+    enabled: isTauri && Number.isFinite(numericId) && numericId > 0,
     staleTime: 60 * 60 * 1000,
     retry: false,
   });
@@ -168,7 +175,8 @@ export default function Person({ kind }: { kind: Kind }) {
   const native = ch?.name.native ?? st?.name.native ?? null;
   const image = (ch ?? st)?.image?.large ?? null;
   const description = (ch ?? st)?.description ?? null;
-  const edges = (ch?.media ?? st?.staffMedia ?? su?.media)?.edges ?? [];
+  // The strip stays for the staff page alone, whose year list is the voice roles; the other two list everything by year.
+  const edges = st?.staffMedia?.edges ?? [];
 
   return (
     <Frame>
@@ -263,15 +271,13 @@ export default function Person({ kind }: { kind: Kind }) {
         </div>
       )}
 
-      {st && <StaffRoles query={roles} />}
+      {st && <YearSection query={years} title={t("person.roles")} icon={Drama} />}
+      {ch && <YearSection query={years} title={t("person.appearances")} icon={Clapperboard} />}
+      {su && <YearSection query={years} title={t("person.productions")} icon={Clapperboard} />}
 
       {edges.length > 0 && (
         <section className="mb-8 space-y-3">
-          <SectionHeader
-            icon={Users}
-            title={su ? t("person.productions") : t("person.appearsIn")}
-            meta={String(edges.length)}
-          />
+          <SectionHeader icon={Users} title={t("person.appearsIn")} meta={String(edges.length)} />
           <MediaStrip edges={edges} />
         </section>
       )}
@@ -301,8 +307,8 @@ export default function Person({ kind }: { kind: Kind }) {
   );
 }
 
-/** A voice actor's roles by year; the count stands in the header only once every page is in, since AniList's total lies. */
-function StaffRoles({ query }: { query: UseInfiniteQueryResult<InfiniteData<StaffRolesPage>> }) {
+/** A person page's titles by year; the count stands in the header only once every page is in, since AniList's total lies. */
+function YearSection({ query, title, icon }: { query: UseInfiniteQueryResult<InfiniteData<YearPage<YearEdge>>>; title: string; icon: LucideIcon }) {
   const { t } = useTranslation();
   const pages = query.data?.pages;
   const years = useMemo(() => rolesByYear((pages ?? []).map((p) => p.edges)), [pages]);
@@ -310,7 +316,7 @@ function StaffRoles({ query }: { query: UseInfiniteQueryResult<InfiniteData<Staf
   if (count === 0 && !query.hasNextPage && !query.isError) return null;
   return (
     <section className="mb-8 space-y-3">
-      <SectionHeader icon={Drama} title={t("person.roles")} meta={query.hasNextPage || query.isError ? undefined : String(count)} />
+      <SectionHeader icon={icon} title={title} meta={query.hasNextPage || query.isError ? undefined : String(count)} />
       <RoleYears years={years} />
       {query.isError && <p className="text-sm text-ink-500">{t("person.rolesFailed")}</p>}
       {(query.hasNextPage || query.isError) && (

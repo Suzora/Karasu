@@ -12,6 +12,8 @@ pub const CACHEABLE: &[(&str, u32)] = &[
     ("franchise", 24 * 3600),
     ("person", 24 * 3600),
     ("staffRoles", 24 * 3600),
+    ("characterMedia", 24 * 3600),
+    ("studioMedia", 24 * 3600),
     ("cast", 7 * 24 * 3600),
     ("episodes", 7 * 24 * 3600),
     ("genreTags", 7 * 24 * 3600),
@@ -66,11 +68,13 @@ mod tests {
         assert_eq!(allowed_ttl("search", 3600), None);
     }
 
-    /// A voice actor's roles come a page at a time, and each page keeps a day like the person it belongs to.
+    /// The person pages' year lists come a page at a time, and each page keeps a day like the person it belongs to.
     #[test]
-    fn a_page_of_staff_roles_keeps_a_day() {
-        assert_eq!(allowed_ttl("staffRoles", 7 * 24 * 3600), Some(24 * 3600));
-        assert_eq!(allowed_ttl("staffRoles", 3600), Some(3600));
+    fn a_page_of_a_person_page_keeps_a_day() {
+        for source in ["staffRoles", "characterMedia", "studioMedia"] {
+            assert_eq!(allowed_ttl(source, 7 * 24 * 3600), Some(24 * 3600));
+            assert_eq!(allowed_ttl(source, 3600), Some(3600));
+        }
     }
 
     /// The key is stable for the same request and differs by viewer, so a shared machine cannot cross accounts.

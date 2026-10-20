@@ -534,7 +534,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
   if (/activityHistory/.test(q)) return userStats();
   // A character and a voice actor with their shows, so the person pages draw full rather than not-found.
   const fav = { favourites: 12_480, isFavourite: false, isFavouriteBlocked: false };
-  if (/\bCharacter\s*\(\s*id/.test(q))
+  if (/\bCharacter\s*\(\s*id/.test(q) && !/\$page: Int!/.test(q))
     return {
       Character: {
         id: Number(variables?.id ?? 41),
@@ -550,24 +550,26 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         media: { edges: [0, 1, 2, 3].map((i) => ({ characterRole: i === 0 ? "MAIN" : "SUPPORTING", voiceActors: [{ id: 500, name: { full: "Konomi Kohara" }, image: { medium: cover(5) } }], node: socialMedia(i) })) },
       },
     };
-  // A voice actor's roles by year, a page at a time: the first full and a second behind it, so the button draws.
-  if (/characterMedia/.test(q)) {
+  // The person pages' year lists, a page at a time: the first full and a second behind it, so the button draws.
+  const yearPage = (make: (i: number) => Record<string, unknown>) => {
     const page = Number(variables?.page ?? 1);
     const years = [null, 2026, 2026, 2026, 2026, 2025, 2025, 2025, 2025, 2025, 2025, 2024, 2024, 2024, 2024, 2023, 2023, 2023, 2022, 2022, 2021, 2021, 2020, 2019, 2018];
     const formats = ["TV", "TV", "MOVIE", "OVA", "TV", "ONA", "TV_SHORT", "SPECIAL"];
+    const edges = page === 1 ? years.map((year, i) => ({ id: 7000 + i, node: { ...socialMedia(i), format: formats[i % formats.length], startDate: { year } }, ...make(i) })) : [];
+    return { pageInfo: { currentPage: page, hasNextPage: page === 1 }, edges };
+  };
+  const weight = (i: number) => (i % 3 === 0 ? "MAIN" : i % 7 === 6 ? "BACKGROUND" : "SUPPORTING");
+  if (/characterMedia/.test(q)) {
     const names = ["Roxy Migurdia", "Kobeni Higashiyama", "Aiko Tanabe", "Mei Hoshino", "Yuna Sakuraba", "Yui Katsura", "Hana Mori", "Nao Kisaragi", "Chiyo Umino", "Sora Amane"];
-    const edges =
-      page === 1
-        ? years.map((year, i) => ({
-            id: 7000 + i,
-            characterRole: i % 3 === 0 ? "MAIN" : i % 7 === 6 ? "BACKGROUND" : "SUPPORTING",
-            characterName: null,
-            node: { ...socialMedia(i), format: formats[i % formats.length], startDate: { year } },
-            characters: [{ id: 9000 + i, name: { full: names[i % names.length] }, image: { medium: cover(i + 3) } }],
-          }))
-        : [];
-    return { Staff: { characterMedia: { pageInfo: { currentPage: page, hasNextPage: page === 1 }, edges } } };
+    return { Staff: { characterMedia: yearPage((i) => ({ characterRole: weight(i), characterName: null, characters: [{ id: 9000 + i, name: { full: names[i % names.length] }, image: { medium: cover(i + 3) } }] })) } };
   }
+  if (/\$page: Int!/.test(q) && /\bCharacter\(/.test(q)) {
+    const voices = ["Konomi Kohara", "Yuka Hoshizora", "Ren Takagi"];
+    return { Character: { media: yearPage((i) => ({ characterRole: weight(i), voiceActors: [{ id: 500 + (i % 3), name: { full: voices[i % 3] }, image: { medium: cover(i + 5) } }] })) } };
+  }
+  if (/\$page: Int!/.test(q) && /\bStudio\(/.test(q)) return { Studio: { media: yearPage((i) => ({ isMainStudio: i % 4 !== 3 })) } };
+  if (/\bStudio\s*\(\s*id/.test(q))
+    return { Studio: { id: Number(variables?.id ?? 31), name: "Studio Bind", isAnimationStudio: true, siteUrl: "https://anilist.co/studio/31", favourites: 9_120, isFavourite: false } };
   if (/\bStaff\s*\(\s*id/.test(q))
     return {
       Staff: {
