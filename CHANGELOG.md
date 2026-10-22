@@ -75,6 +75,7 @@ tag time is then optional rather than load-bearing.
 
 ### Added
 
+- Statistics are denser and show more: every title you scored against the community's mean as one chart, where you are harsher or kinder per genre, what you finish per genre, how your genres shifted over the years, the weekdays and months you are active, how fast you finish each format, where your watch time went, and your rewatches. The cards pack at their own height in two columns, three on a wide window, and the radar, the tag map and the separate formats card went, since other cards already show those figures. On the phone, the Years tab no longer scrolls sideways.
 - A voice actor's page lists every role AniList knows under a Roles heading, grouped by the year the title started from the newest down, with undated titles first: the cover with the character's face, the character's name, the format and whether it is a main role, 25 at a time with a Load more button ([#81](https://github.com/Suzora/Karasu/issues/81)).
 - A character's page lists its appearances the same way, with the Japanese voice actor's face on each card, and a studio's page its productions, marking the ones it was the main studio of; both replace the short row of popular titles.
 - The Overview has a Catch up section for airing anime you are behind on: each shows how many episodes have aired since your progress and which one is next, with +1, and leaves once you have caught up ([#79](https://github.com/Suzora/Karasu/issues/79)).

@@ -6,6 +6,7 @@ import { BarChart3, CalendarRange, ExternalLink, Sparkles, Star, Tags, Users } f
 import { SectionNav, SectionPicker, type SectionItem } from "@/components/stats/SectionNav";
 import {
   userStatistics,
+  type ActivityHistoryDay,
   type AnimeStats,
   type Distribution,
   type MangaStats,
@@ -27,34 +28,49 @@ import { CardGridSkeleton } from "@/components/Skeleton";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Segmented, type Segment } from "@/components/ui/segmented";
 import { ColumnPage, ColumnPageSkeleton, PageTitle, columnRow } from "@/components/shell/PageColumn";
-import {
-  RadarChart,
-  Sunburst,
-  ToneLegend,
-  Treemap,
-  type Slice,
-} from "@/components/stats/Charts";
+import { Sunburst, ToneLegend, type Slice } from "@/components/stats/Charts";
 import { STATUS_ORDER, type MediaListStatus } from "@/api/types";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Empty, type Category, type RankedCategory } from "@/components/stats/shared";
-import { DistributionCard, ScoreColumns, StatusBar, TileGrid } from "@/components/stats/panels";
+import { ScoreColumns, StatusBar } from "@/components/stats/panels";
 import { GradientBars } from "@/components/stats/GradientBars";
-import { DotPlot } from "@/components/stats/DotPlot";
 import { AreaChart } from "@/components/stats/AreaChart";
+import {
+  CardPack,
+  CompletionPace,
+  FigureTiles,
+  GenreDeltas,
+  GenreDrift,
+  GenreOutcomes,
+  LengthCard,
+  Rhythm,
+  ScoreScatter,
+  TimeShare,
+} from "@/components/stats/insights";
 import { Heatmap } from "@/components/stats/Heatmap";
 import { ExternalAnchor } from "@/components/RichText";
 import { ErrorState } from "@/components/EmptyState";
 import { DayHeatmap } from "@/components/stats/DayHeatmap";
 import {
   activityHeatmap,
+  completionMonths,
+  completionPace,
   dayHeatmapFromHistory,
+  genreDeltas,
+  genreDrift,
+  genreOutcomes,
+  rewatchTotals,
   scoreDelta,
+  scorePairs,
   seasonalHistory,
+  timeShare,
+  weekdayTotals,
   type ActivityHeatmap,
   type DayHeatmap as DayHeatmapData,
   type ScoreDeltaSummary,
   type SeasonCount,
 } from "@/lib/localStats";
+import type { MediaListEntry } from "@/api/types";
 import { RankedList, fmt, scoreText } from "@/components/stats/RankedList";
 import LocalStatistics from "@/components/stats/LocalStatistics";
 import { formatDecimal, formatLabel, formatSigned } from "@/lib/format";
@@ -163,7 +179,7 @@ function StatisticsContent({
     staleTime: 30 * 60 * 1000,
   });
 
-  // Hoisted out of WatchTimeEstimate so the list request runs beside the stats query instead of after it.
+  // Asked here rather than in the overview, so the list request runs beside the stats query instead of after it.
   const level = useContentFilter((s) => s.level);
   // Read `isError` beside `data`, or a failed list renders every derived panel's empty answer as settled fact.
   const { data: animeList, isError: animeListFailed } = useQuery({
@@ -291,6 +307,9 @@ function StatisticsContent({
             heatmap={heatmap}
             dayHeatmap={dayHeatmap}
             seasons={seasons}
+            entries={localEntries}
+            history={data?.stats?.activityHistory}
+            remainingTotal={remainingTotal}
           />
         ) : (
           <MangaView
@@ -301,13 +320,10 @@ function StatisticsContent({
             heatmap={heatmap}
             dayHeatmap={dayHeatmap}
             seasons={seasons}
+            entries={localEntries}
+            history={data?.stats?.activityHistory}
           />
         ))}
-
-      {stats &&
-        type === "ANIME" &&
-        activeCategory === "overview" &&
-        remainingTotal !== null && <WatchTimeEstimate total={remainingTotal} />}
     </>
   );
 
@@ -360,22 +376,6 @@ function StatisticsContent({
   );
 }
 
-/** "Time to finish your watching list", summed from the cached anime list. */
-function WatchTimeEstimate({ total }: { total: number }) {
-  const { t } = useTranslation();
-
-  if (total <= 0) return null;
-  return (
-    <Card>
-      <CardTitle>{t("stats.timeToFinish")}</CardTitle>
-      <p className="mt-2 text-2xl font-bold tabular-nums">
-        {formatMinutes(total, t)}
-      </p>
-      <p className="text-xs text-ink-600">{t("stats.timeToFinishHint")}</p>
-    </Card>
-  );
-}
-
 function AnimeView({
   stats,
   category,
@@ -384,6 +384,9 @@ function AnimeView({
   heatmap,
   dayHeatmap,
   seasons,
+  entries,
+  history,
+  remainingTotal,
 }: {
   stats: AnimeStats;
   category: Category;
@@ -392,12 +395,15 @@ function AnimeView({
   heatmap: ActivityHeatmap | null;
   dayHeatmap: DayHeatmapData | null;
   seasons: SeasonCount[];
+  entries: MediaListEntry[];
+  history: ActivityHistoryDay[] | null | undefined;
+  remainingTotal: number | null;
 }) {
   const { t, i18n } = useTranslation();
   if (stats.count === 0) return <Empty />;
 
   if (category === "ratings") {
-    return <RatingsView stats={stats} type="ANIME" delta={delta} />;
+    return <RatingsView stats={stats} type="ANIME" delta={delta} entries={entries} />;
   }
 
   if (category === "years") {
@@ -407,12 +413,14 @@ function AnimeView({
         heatmap={heatmap}
         dayHeatmap={dayHeatmap}
         seasons={seasons}
+        entries={entries}
+        history={history}
       />
     );
   }
 
   if (category === "genresTags") {
-    return <GenresTagsView stats={stats} type="ANIME" />;
+    return <GenresTagsView stats={stats} type="ANIME" entries={entries} />;
   }
 
   if (category === "people") {
@@ -420,25 +428,29 @@ function AnimeView({
   }
 
   const days = stats.minutesWatched / 60 / 24;
+  const rewatch = rewatchTotals(entries);
   return (
-    <div className="space-y-6">
-      <TileGrid
+    <div className="space-y-4">
+      <FigureTiles
         tiles={[
           { label: t("stats.entries"), value: fmt(stats.count, i18n.language) },
           { label: t("stats.episodes"), value: fmt(stats.episodesWatched, i18n.language) },
           { label: t("stats.daysWatched"), value: formatDecimal(days, i18n.language, 1) },
           { label: t("stats.meanScore"), value: scoreText(stats.meanScore, i18n.language) },
-          {
-            label: t("stats.spread"),
-            value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
-          },
+          { label: t("stats.spread"), value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}` },
           {
             label: t("stats.perEntryEpisodes"),
             value: formatDecimal(stats.episodesWatched / Math.max(1, stats.count), i18n.language, 1),
           },
+          {
+            label: t("stats.rewatches"),
+            value: fmt(rewatch.repeats, i18n.language),
+            note: rewatch.most ? t("stats.rewatchNote", { titles: rewatch.titles, title: rewatch.most.title, times: rewatch.most.times }) : undefined,
+          },
+          ...(remainingTotal ? [{ label: t("stats.timeToFinish"), value: formatMinutes(remainingTotal, t) }] : []),
         ]}
       />
-      <OverviewCharts stats={stats} type="ANIME" breakdown={breakdown} />
+      <OverviewCharts stats={stats} type="ANIME" breakdown={breakdown} entries={entries} />
     </div>
   );
 }
@@ -451,6 +463,8 @@ function MangaView({
   heatmap,
   dayHeatmap,
   seasons,
+  entries,
+  history,
 }: {
   stats: MangaStats;
   category: Category;
@@ -459,12 +473,14 @@ function MangaView({
   heatmap: ActivityHeatmap | null;
   dayHeatmap: DayHeatmapData | null;
   seasons: SeasonCount[];
+  entries: MediaListEntry[];
+  history: ActivityHistoryDay[] | null | undefined;
 }) {
   const { t, i18n } = useTranslation();
   if (stats.count === 0) return <Empty />;
 
   if (category === "ratings") {
-    return <RatingsView stats={stats} type="MANGA" delta={delta} />;
+    return <RatingsView stats={stats} type="MANGA" delta={delta} entries={entries} />;
   }
 
   if (category === "years") {
@@ -474,37 +490,42 @@ function MangaView({
         heatmap={heatmap}
         dayHeatmap={dayHeatmap}
         seasons={seasons}
+        entries={entries}
+        history={history}
       />
     );
   }
 
   if (category === "genresTags") {
-    return <GenresTagsView stats={stats} type="MANGA" />;
+    return <GenresTagsView stats={stats} type="MANGA" entries={entries} />;
   }
 
   if (category === "people") {
     return <PeopleView stats={stats} type="MANGA" />;
   }
 
+  const reread = rewatchTotals(entries);
   return (
-    <div className="space-y-6">
-      <TileGrid
+    <div className="space-y-4">
+      <FigureTiles
         tiles={[
           { label: t("stats.entries"), value: fmt(stats.count, i18n.language) },
           { label: t("stats.chapters"), value: fmt(stats.chaptersRead, i18n.language) },
           { label: t("stats.volumes"), value: fmt(stats.volumesRead, i18n.language) },
           { label: t("stats.meanScore"), value: scoreText(stats.meanScore, i18n.language) },
-          {
-            label: t("stats.spread"),
-            value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}`,
-          },
+          { label: t("stats.spread"), value: `± ${formatDecimal(stats.standardDeviation, i18n.language, 1)}` },
           {
             label: t("stats.perEntryChapters"),
             value: formatDecimal(stats.chaptersRead / Math.max(1, stats.count), i18n.language, 0),
           },
+          {
+            label: t("stats.rereads"),
+            value: fmt(reread.repeats, i18n.language),
+            note: reread.most ? t("stats.rewatchNote", { titles: reread.titles, title: reread.most.title, times: reread.most.times }) : undefined,
+          },
         ]}
       />
-      <OverviewCharts stats={stats} type="MANGA" breakdown={breakdown} />
+      <OverviewCharts stats={stats} type="MANGA" breakdown={breakdown} entries={entries} />
     </div>
   );
 }
@@ -531,72 +552,32 @@ function rowsFor(
   }
 }
 
-/** The Genres & Tags tab: the radar, the treemap, the taste check and the two ranked lists. */
+/** The Genres & Tags tab: where the user parts from the crowd, what they finish, and the two ranked lists. */
 function GenresTagsView({
   stats,
   type,
+  entries,
 }: {
   stats: AnimeStats | MangaStats;
   type: MediaType;
+  entries: MediaListEntry[];
 }) {
   const { t, i18n } = useTranslation();
   const level = useContentFilter((s) => s.level);
   const scoreMax = scoreScale(useScoreFormat()).max;
-
-  // Filter before slicing, or a blocked name costs a slot; the treemap falls back to genres without tags.
   const safeGenres = rowsFor(stats, "genres", level);
   const safeTags = rowsFor(stats, "tags", level);
-  const radarGenres = safeGenres.slice(0, 6);
-  const treemapTags = (safeTags.length ? safeTags : safeGenres).slice(0, 14);
-  // Genres against your own average, not the crowd's; the community version lives on the Ratings tab.
-  const genreDots = [...safeGenres]
-    .filter((g) => g.meanScore > 0)
-    .sort((a, b) => Math.abs(b.meanScore - stats.meanScore) - Math.abs(a.meanScore - stats.meanScore))
-    .slice(0, 8)
-    .map((g) => ({ label: g.genre ?? "?", mine: g.meanScore, other: stats.meanScore }));
+  // The list's own genres pass the same filter as AniList's ranked names, so a blocked genre never gets a row.
+  const shown = <T extends { genre: string }>(rows: T[]) => rows.filter((r) => !isBlockedGenre(r.genre, level));
+  const deltas = shown(genreDeltas(entries, scoreMax));
+  const outcomes = shown(genreOutcomes(entries));
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 lg:grid-cols-2">
-        {radarGenres.length > 2 && (
-          <Card className="flex h-full flex-col">
-            <CardTitle>{t("stats.genreShape")}</CardTitle>
-            <p className="mt-1 text-xs text-ink-600">{t("stats.genreShapeHint")}</p>
-            <div className="mt-2 flex flex-1 items-center justify-center">
-              <div className="w-full max-w-72">
-                <RadarChart locale={i18n.language}
-                  axes={radarGenres.map((g) => ({ label: g.genre ?? "?", value: g.count }))}
-                />
-              </div>
-            </div>
-          </Card>
-        )}
-        {genreDots.length > 1 && (
-          <DotPlot
-            locale={i18n.language}
-            title={t("stats.genreTaste")}
-            hint={t("stats.genreTasteHint")}
-            legendMine={t("stats.legendGenreMean")}
-            legendOther={t("stats.legendOverallMean")}
-            rows={genreDots}
-            max={scoreMax}
-          />
-        )}
-        {treemapTags.length > 3 && (
-          <Card className="flex h-full flex-col lg:col-span-2">
-            <CardTitle>{t("stats.tagMap")}</CardTitle>
-            <div className="mt-3 flex flex-1 items-center">
-              <Treemap
-                data={treemapTags.map((entry) => ({
-                  label: entry.tag?.name ?? entry.genre ?? "?",
-                  value: entry.count,
-                }))}
-              />
-            </div>
-          </Card>
-        )}
-      </div>
-
+    <div className="space-y-4">
+      <CardPack>
+        <GenreDeltas rows={deltas} locale={i18n.language} />
+        <GenreOutcomes rows={outcomes} type={type} locale={i18n.language} />
+      </CardPack>
       <section className="space-y-3">
         <SectionHeader icon={BarChart3} title={t("stats.genres")} />
         <RankedList entries={safeGenres} category="genres" type={type} />
@@ -643,15 +624,17 @@ function PeopleView({
   );
 }
 
-/** The Ratings tab: the distribution, the means per format and status, and the community comparison. */
+/** The Ratings tab: the distribution, every scored title against the community, and the means per format and status. */
 function RatingsView({
   stats,
   type,
   delta,
+  entries,
 }: {
   stats: AnimeStats | MangaStats;
   type: MediaType;
   delta: ScoreDeltaSummary | null;
+  entries: MediaListEntry[];
 }) {
   const { t, i18n } = useTranslation();
   const scoreMax = scoreScale(useScoreFormat()).max;
@@ -669,22 +652,18 @@ function RatingsView({
       }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {delta && (
-        <TileGrid
+        <FigureTiles
           tiles={[
             { label: t("stats.yourMean"), value: formatDecimal(delta.meanMine, i18n.language, 2) },
             { label: t("stats.communityMean"), value: formatDecimal(delta.meanCommunity, i18n.language, 2) },
-            {
-              label: t("stats.meanDelta"),
-              value: formatSigned(delta.meanDelta, i18n.language, 2),
-            },
+            { label: t("stats.meanDelta"), value: formatSigned(delta.meanDelta, i18n.language, 2) },
             { label: t("stats.scoredTitles"), value: fmt(delta.count, i18n.language) },
           ]}
         />
       )}
-
-      <div className="grid gap-4 lg:grid-cols-2">
+      <CardPack>
         <ScoreColumns
           title={t("stats.scoreDist")}
           hint={t("stats.scoreDistHint")}
@@ -692,6 +671,7 @@ function RatingsView({
           max={scoreMax}
           locale={i18n.language}
         />
+        <ScoreScatter pairs={scorePairs(entries, scoreMax)} max={scoreMax} locale={i18n.language} />
         {/* Pinned to the full scale, or two close means read as a landslide. */}
         <GradientBars
           title={t("stats.meanByFormat")}
@@ -703,41 +683,28 @@ function RatingsView({
           title={t("stats.meanByStatus")}
           hint={t("stats.meanByStatusHint")}
           domain={scoreMax}
-          rows={meanRows(stats.statuses, (d) =>
-            t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }),
-          )}
+          rows={meanRows(stats.statuses, (d) => t(`status.${type}.${d.status}`, { defaultValue: d.status ?? "?" }))}
         />
-        {delta && (delta.harshest.length > 0 || delta.kindest.length > 0) && (
-          <DotPlot
-            locale={i18n.language}
-            title={t("stats.vsCommunity")}
-            hint={t("stats.vsCommunityHint")}
-            legendMine={t("stats.legendMine")}
-            legendOther={t("stats.legendCommunity")}
-            rows={[...delta.harshest, ...delta.kindest].map((r) => ({
-              label: r.title,
-              mine: r.mine,
-              other: r.community,
-            }))}
-            max={scoreMax}
-          />
-        )}
-      </div>
+      </CardPack>
     </div>
   );
 }
 
-/** The Years tab: release years, start years, and only ever one of the two activity grids on screen. */
+/** The Years tab: taste over time, one of the two activity grids, then the year series, rhythm and pace packed. */
 function YearsView({
   stats,
   heatmap,
   dayHeatmap,
   seasons,
+  entries,
+  history,
 }: {
   stats: AnimeStats | MangaStats;
   heatmap: ActivityHeatmap | null;
   dayHeatmap: DayHeatmapData | null;
   seasons: SeasonCount[];
+  entries: MediaListEntry[];
+  history: ActivityHistoryDay[] | null | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const scoreMax = scoreScale(useScoreFormat()).max;
@@ -787,86 +754,73 @@ function YearsView({
     [i18n.language],
   );
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {released.length > 1 && (
-        <Card className="flex h-full flex-col">
-          <CardTitle>{t("stats.releaseYears")}</CardTitle>
-          <p className="mt-1 text-xs text-ink-600">{t("stats.releaseYearsHint")}</p>
-          <div className="mt-4 flex flex-1 items-center">
-            <AreaChart
-              data={released.map((d) => ({
-                label: String(d.releaseYear ?? 0),
-                value: d.count,
-              }))}
-            />
-          </div>
-        </Card>
-      )}
-      {started.length > 1 && (
-        <Card className="flex h-full flex-col">
-          <CardTitle>{t("stats.startYears")}</CardTitle>
-          <p className="mt-1 text-xs text-ink-600">{t("stats.startYearsHint")}</p>
-          <div className="mt-4 flex flex-1 items-center">
-            <AreaChart
-              data={started.map((d) => ({
-                label: String(d.startYear ?? 0),
-                value: d.count,
-              }))}
-            />
-          </div>
-        </Card>
-      )}
-      {dayHeatmap && (
-        <div className="lg:col-span-2">
-          <DayHeatmap
-            title={t("stats.activityDays")}
-            hint={t("stats.activityDaysHint")}
-            data={dayHeatmap}
-            monthLabels={monthLabels}
-            dayLabels={dayLabels}
-            formatDay={formatDay}
-            rangeLabel={t("stats.activityRange", {
-              from: formatDay(dayHeatmap.from),
-              to: formatDay(dayHeatmap.to),
-              total: dayHeatmap.total,
-            })}
-            legendLess={t("stats.legendLess")}
-            legendMore={t("stats.legendMore")}
-          />
+  const yearCard = (title: string, hint: string, data: { label: string; value: number }[]) =>
+    data.length > 1 ? (
+      <Card className="flex flex-col">
+        <CardTitle>{title}</CardTitle>
+        <p className="mt-1 text-xs text-ink-600">{hint}</p>
+        <div className="mt-3">
+          <AreaChart data={data} height={130} />
         </div>
+      </Card>
+    ) : null;
+
+  return (
+    <div className="space-y-4">
+      <GenreDrift data={genreDrift(entries)} />
+      {/* Block children, never grid items: a grid track grows to the day grid's full width and scrolls the phone sideways. */}
+      {dayHeatmap && (
+        <DayHeatmap
+          title={t("stats.activityDays")}
+          hint={t("stats.activityDaysHint")}
+          data={dayHeatmap}
+          monthLabels={monthLabels}
+          dayLabels={dayLabels}
+          formatDay={formatDay}
+          rangeLabel={t("stats.activityRange", {
+            from: formatDay(dayHeatmap.from),
+            to: formatDay(dayHeatmap.to),
+            total: dayHeatmap.total,
+          })}
+          legendLess={t("stats.legendLess")}
+          legendMore={t("stats.legendMore")}
+        />
       )}
       {heatmap && (
-        <div className="lg:col-span-2">
-          <Heatmap
-            title={t("stats.activityHeatmap")}
-            hint={t("stats.activityHeatmapHint")}
-            years={heatmap.years}
-            max={heatmap.max}
-            monthLabels={monthLabels}
+        <Heatmap
+          title={t("stats.activityHeatmap")}
+          hint={t("stats.activityHeatmapHint")}
+          years={heatmap.years}
+          max={heatmap.max}
+          monthLabels={monthLabels}
+        />
+      )}
+      <CardPack>
+        {yearCard(t("stats.releaseYears"), t("stats.releaseYearsHint"), released.map((d) => ({ label: String(d.releaseYear ?? 0), value: d.count })))}
+        {yearCard(t("stats.startYears"), t("stats.startYearsHint"), started.map((d) => ({ label: String(d.startYear ?? 0), value: d.count })))}
+        <Rhythm weekdays={weekdayTotals(history)} months={completionMonths(entries)} locale={i18n.language} />
+        <CompletionPace rows={completionPace(entries)} locale={i18n.language} formatLabel={(f) => formatLabel(f, t) || "?"} />
+        {startMeans.length > 1 && (
+          <GradientBars
+            title={t("stats.meanByStartYear")}
+            hint={t("stats.meanByStartYearHint")}
+            domain={scoreMax}
+            rows={startMeans}
           />
-        </div>
-      )}
-      {startMeans.length > 1 && (
-        <GradientBars
-          title={t("stats.meanByStartYear")}
-          hint={t("stats.meanByStartYearHint")}
-          domain={scoreMax}
-          rows={startMeans}
-        />
-      )}
-      {seasons.length > 0 && (
-        <GradientBars
-          title={t("stats.seasonHabits")}
-          hint={t("stats.seasonHabitsHint")}
-          rows={seasons.map((s) => ({
-            label: t(`season.${s.season}`, { defaultValue: s.season }),
-            value: s.count,
-            text: fmt(s.count, i18n.language),
-            sub: s.meanScore > 0 ? `★ ${formatDecimal(s.meanScore, i18n.language, 1)}` : undefined,
-          }))}
-        />
-      )}
+        )}
+        {seasons.length > 0 && (
+          <GradientBars
+            title={t("stats.seasonHabits")}
+            hint={t("stats.seasonHabitsHint")}
+            rows={seasons.map((s) => ({
+              label: t(`season.${s.season}`, { defaultValue: s.season }),
+              value: s.count,
+              text: fmt(s.count, i18n.language),
+              sub: s.meanScore > 0 ? `★ ${formatDecimal(s.meanScore, i18n.language, 1)}` : undefined,
+            }))}
+          />
+        )}
+      </CardPack>
     </div>
   );
 }
@@ -875,16 +829,14 @@ function OverviewCharts({
   stats,
   type,
   breakdown,
+  entries,
 }: {
   stats: AnimeStats | MangaStats;
   type: MediaType;
   breakdown: Slice[];
+  entries: MediaListEntry[];
 }) {
   const { t, i18n } = useTranslation();
-  // AniList returns the length buckets unordered, so sort on the number each one opens with.
-  const lengths = [...stats.lengths]
-    .filter((d) => d.length)
-    .sort((a, b) => parseInt(a.length ?? "0", 10) - parseInt(b.length ?? "0", 10));
   const countries = [...stats.countries].filter((d) => d.country);
   // The sunburst's outer ring needs its own key on its own card; summed by raw format, so a label never splits one.
   const formatsInBreakdown = useMemo(() => {
@@ -897,10 +849,9 @@ function OverviewCharts({
     }
     return [...totals].sort((a, b) => b[1].value - a[1].value).map(([key, f]) => ({ key, ...f }));
   }, [breakdown]);
-  // Keep the cards stretched as flex columns; `items-start` leaves ragged gaps between the panels instead.
+  // The ring's outer key is the format count, so there is no separate formats card; the bar stands in without a list.
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {/* The sunburst's inner ring is the status split, so the bar stands in only where there is no sunburst. */}
+    <CardPack>
       {breakdown.length === 0 && (
         <StatusBar
           locale={i18n.language}
@@ -913,56 +864,31 @@ function OverviewCharts({
         />
       )}
       {breakdown.length > 0 && (
-        <Card className="flex h-full flex-col">
+        <Card className="flex flex-col">
           <CardTitle>{t("stats.breakdown")}</CardTitle>
           <p className="mt-1 text-xs text-ink-600">{t("stats.breakdownHint")}</p>
-          {/* Chart beside its key, the key dropping beneath only where the card is too narrow to read it beside the ring. */}
-          <div className="mt-3 flex flex-1 flex-wrap items-center gap-6">
-            <div className="w-40 shrink-0 sm:w-48">
+          <div className="mt-3 flex flex-wrap items-center gap-5">
+            <div className="w-36 shrink-0 sm:w-44">
               <Sunburst data={breakdown} />
             </div>
-            <div className="min-w-36 flex-1 space-y-3">
-              <ToneLegend locale={i18n.language}
-                items={breakdown.map((b) => ({ label: b.label, value: b.value, color: b.color }))}
-              />
-              {/* The outer ring's key, so its formats are readable without hovering. */}
+            <div className="min-w-32 flex-1 space-y-2">
+              <ToneLegend locale={i18n.language} items={breakdown.map((b) => ({ label: b.label, value: b.value, color: b.color }))} />
               {formatsInBreakdown.length > 0 && (
-                <div>
-                  <p className="mb-1.5 label-text text-ink-500">
-                    {t("stats.outerRing")}
-                  </p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {formatsInBreakdown.map((f) => (
-                      <span key={f.key} className="text-2xs text-ink-500">
-                        {f.label}
-                        <span className="ml-1 tabular-nums text-ink-300">{f.value.toLocaleString(i18n.language)}</span>
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  <span className="label-text text-ink-500">{t("stats.outerRing")}</span>
+                  {formatsInBreakdown.map((f) => (
+                    <span key={f.key} className="text-2xs text-ink-500">
+                      {f.label}
+                      <span className="ml-1 tabular-nums text-ink-300">{f.value.toLocaleString(i18n.language)}</span>
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </Card>
       )}
-
-      <DistributionCard locale={i18n.language}
-        title={t("stats.formats")}
-        data={stats.formats.map((d) => ({ label: formatLabel(d.format, t) || "?", count: d.count }))}
-      />
-      {/* The year series live on Years, the radar and the treemap on Genres & Tags: one home per chart. */}
-      <DistributionCard locale={i18n.language}
-        title={t("stats.lengths")}
-        data={lengths.map((d) => ({
-          label:
-            type !== "ANIME"
-              ? t("stats.lengthBucketCh", { range: d.length })
-              : d.length === "1"
-                ? t("stats.lengthBucketEpOne", { range: d.length })
-                : t("stats.lengthBucketEp", { range: d.length }),
-          count: d.count,
-        }))}
-      />
+      <LengthCard lengths={stats.lengths} type={type} locale={i18n.language} />
       {countries.length > 1 && (
         <StatusBar
           locale={i18n.language}
@@ -973,7 +899,8 @@ function OverviewCharts({
           }))}
         />
       )}
-    </div>
+      {type === "ANIME" && <TimeShare data={timeShare(entries)} locale={i18n.language} />}
+    </CardPack>
   );
 }
 

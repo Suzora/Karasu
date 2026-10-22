@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { TONES } from "@/components/stats/tones";
 import { compactCount } from "@/lib/format";
@@ -130,39 +129,5 @@ export function TileGrid({ tiles }: { tiles: { label: string; value: string }[] 
         </div>
       ))}
     </div>
-  );
-}
-
-export function DistributionCard({
-  title,
-  data,
-  locale,
-}: {
-  title: string;
-  data: { label: string; count: number }[];
-  locale: string;
-}) {
-  if (data.length === 0) return null;
-  const max = Math.max(...data.map((d) => d.count), 1);
-  return (
-    <Card className="flex h-full flex-col">
-      <CardTitle>{title}</CardTitle>
-      {/* The label column takes its longest label, capped; rows stay at the top when a neighbour makes the card taller. */}
-      <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] content-start items-center gap-x-2 gap-y-2 text-xs">
-        {data.map((d) => (
-          <Fragment key={d.label}>
-            <span className="max-w-32 truncate text-ink-500">{d.label}</span>
-            <div className="h-3 overflow-hidden rounded-inner bg-surface-800">
-              <div
-                // Switching ANIME/MANGA re-measures the bars rather than cutting to the new lengths.
-                className="h-full rounded-inner bg-accent-500 transition-[width] duration-(--duration-expressive) ease-out-expo"
-                style={{ width: `${(d.count / max) * 100}%` }}
-              />
-            </div>
-            <span className="min-w-8 text-right tabular-nums text-ink-500">{d.count.toLocaleString(locale)}</span>
-          </Fragment>
-        ))}
-      </div>
-    </Card>
   );
 }

@@ -90,31 +90,60 @@ function media(i: number, manga: boolean) {
   };
 }
 
+/** A list spread over years, genres, lengths and rewatches, so the statistics drafts have something to count. */
+const RICH_GENRES = [["Action", "Fantasy"], ["Drama", "Romance"], ["Comedy", "Slice of Life"], ["Sci-Fi", "Mystery"], ["Adventure", "Fantasy"], ["Action", "Drama"], ["Romance", "Comedy"], ["Horror", "Mystery"], ["Sports"], ["Fantasy", "Adventure", "Drama"]];
+function richen(i: number, m: ReturnType<typeof media>, status: string) {
+  const year = 2019 + ((i * 5) % 8);
+  const startMonth = 1 + ((i * 7) % 12);
+  const spanDays = [3, 9, 20, 45, 120, 400, 14, 60][i % 8];
+  const start = new Date(Date.UTC(year, startMonth - 1, 1 + (i % 26)));
+  const end = new Date(start.getTime() + spanDays * 86_400_000);
+  const genres = i < REAL.length ? m.genres : RICH_GENRES[i % RICH_GENRES.length];
+  const format = m.type === "MANGA" ? m.format : i % 9 === 4 ? "MOVIE" : i % 11 === 6 ? "ONA" : i % 13 === 8 ? "OVA" : "TV";
+  const episodes = m.type === "MANGA" ? null : format === "MOVIE" ? 1 : [12, 24, 13, 25, 12, 52, 11, 37][i % 8];
+  const done = status === "COMPLETED" || status === "REPEATING";
+  return {
+    media: { ...m, title: i < REAL.length ? m.title : { ...m.title, romaji: `${TITLES[i % TITLES.length]}${i >= TITLES.length ? ` ${Math.floor(i / TITLES.length) + 1}` : ""}` }, genres, format, episodes, duration: format === "MOVIE" ? 105 : format === "ONA" ? 8 : 24, season: ["WINTER", "SPRING", "SUMMER", "FALL"][i % 4], seasonYear: year, averageScore: 52 + ((i * 17) % 43) },
+    score: i % 4 === 0 ? 0 : 4 + ((i * 3) % 7),
+    repeat: i % 7 === 0 ? 1 + (i % 3) : 0,
+    progress: done ? (episodes ?? m.chapters ?? 12) : 1 + (i % 9),
+    startedAt: { year: start.getUTCFullYear(), month: start.getUTCMonth() + 1, day: start.getUTCDate() },
+    completedAt: done ? { year: end.getUTCFullYear(), month: end.getUTCMonth() + 1, day: end.getUTCDate() } : null,
+  };
+}
+
+function baseEntry(i: number, m: ReturnType<typeof media>, status: (typeof STATUSES)[number], manga: boolean) {
+  return {
+    id: (manga ? 9000 : 5000) + i,
+    mediaId: m.id,
+    status,
+    score: i % 3 === 0 ? 0 : 5 + (i % 5),
+    progress: status === "COMPLETED" ? (m.episodes ?? 12) : i % 9,
+    progressVolumes: manga ? i % 4 : 0,
+    repeat: 0,
+    notes: null,
+    updatedAt: now - i * 3600,
+    private: false,
+    hiddenFromStatusLists: !manga && i === 8,
+    customLists: manga
+      ? { Oneshots: i % 6 === 0, Lieblinge: i % 4 === 1 }
+      : { Rewatch: i % 5 === 0, Ghibli: i % 7 === 1, "Seasonals — Airing": i < 4 },
+    advancedScores: {},
+    startedAt: { year: 2026, month: 3, day: 1 },
+    // Finished titles carry a date this year, so the year in review has something to count.
+    completedAt: status === "COMPLETED" ? { year: 2026, month: 1 + (i % 9), day: 1 + (i % 27) } : null,
+    media: m,
+  };
+}
+
 function list(manga: boolean) {
-  const entries = Array.from({ length: 36 }, (_, i) => {
+  const rich = mock === "stats-rich";
+  const entries = Array.from({ length: rich ? 72 : 36 }, (_, i) => {
     const m = media(i, manga);
-    const status = i < 12 ? "CURRENT" : STATUSES[i % STATUSES.length];
-    return {
-      id: (manga ? 9000 : 5000) + i,
-      mediaId: m.id,
-      status,
-      score: i % 3 === 0 ? 0 : 5 + (i % 5),
-      progress: status === "COMPLETED" ? (m.episodes ?? 12) : i % 9,
-      progressVolumes: manga ? i % 4 : 0,
-      repeat: 0,
-      notes: null,
-      updatedAt: now - i * 3600,
-      private: false,
-      hiddenFromStatusLists: !manga && i === 8,
-      customLists: manga
-        ? { Oneshots: i % 6 === 0, Lieblinge: i % 4 === 1 }
-        : { Rewatch: i % 5 === 0, Ghibli: i % 7 === 1, "Seasonals — Airing": i < 4 },
-      advancedScores: {},
-      startedAt: { year: 2026, month: 3, day: 1 },
-      // Finished titles carry a date this year, so the year in review has something to count.
-      completedAt: status === "COMPLETED" ? { year: 2026, month: 1 + (i % 9), day: 1 + (i % 27) } : null,
-      media: m,
-    };
+    // The rich list finishes more than it starts, since most of the drafts count completed titles.
+    const status = i < 12 ? "CURRENT" : rich && i % 5 !== 1 && i % 5 !== 3 ? "COMPLETED" : STATUSES[i % STATUSES.length];
+    const entry = baseEntry(i, m, status, manga);
+    return rich ? { ...entry, ...richen(i, m, status) } : entry;
   });
   // The first real title leaves the list, so its detail page offers the add flow.
   const listed = mock === "off-list" ? entries.filter((e) => e.mediaId !== REAL[0].id) : entries;
@@ -265,7 +294,9 @@ function userStats() {
   });
   const day = 86_400;
   const today = Math.floor(now / day) * day;
-  const activityHistory = Array.from({ length: 180 }, (_, i) => ({ date: today - i * day, amount: (i * 7) % 5 === 0 ? 0 : ((i * 13) % 9) + 1 }));
+  // The rich list leans on the weekend, so a weekday chart has a shape to show.
+  const weekend = (t: number) => mock === "stats-rich" && [0, 6].includes(new Date(t * 1000).getUTCDay()) ? 4 : 0;
+  const activityHistory = Array.from({ length: 180 }, (_, i) => ({ date: today - i * day, amount: (i * 7) % 5 === 0 ? 0 : ((i * 13) % 9) + 1 + weekend(today - i * day) }));
   return { User: { id: viewer.id, name: viewer.name, stats: { activityHistory }, statistics: { anime: block(false), manga: block(true) } } };
 }
 

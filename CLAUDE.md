@@ -83,7 +83,8 @@ src/
                      local library runs several of them in one scroller, so
                      each measures its own `scrollMargin`
     stats/           the parts Statistics draws — panels, ranked list, Charts
-                     (radar/sunburst/treemap), AreaChart, DotPlot, GradientBars,
+                     (the sunburst), the insight cards and `CardPack`
+                     (insights), AreaChart, DotPlot, GradientBars,
                      Heatmap
     dashboard/       the parts the Overview draws — banner with search and
                      48-hour strip, list shelves, catch-up row (aired episodes
@@ -880,7 +881,8 @@ On 2026-10-12 the day's sync panel, entry dialog and copy took the figures to
 329.8, 17.9, 28.4 and 527.1 KiB, and the maintainer set the window's budget to
 500 KiB and all script to 700, with the largest lazy chunk at 30, to leave room
 for a while. On 2026-10-17 the redesign took the stylesheet to 18.2 KiB, and
-the maintainer set its budget to 50 KiB for the screens still to come. A
+the maintainer set its budget to 50 KiB for the screens still to come. On 2026-10-22 the statistics page's insight cards took the German
+copy, the largest lazy chunk, to 30.3 KiB, and its budget went to 32. A
 raise names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
@@ -2831,6 +2833,24 @@ shape, and the question that follows them.
   edge id, since AniList can repeat an edge across two pages fetched
   minutes apart. The studio's detail query carries no media any more; the
   character's keeps its popularity edges for the "Voiced by" row alone.
+- **The statistics page shows each measurement once, and adds none of its
+  own requests.** Every insight card (`components/stats/insights`) reads
+  `lib/localStats` over the cached list the page already holds, or the
+  `activityHistory` the statistics request already carries: the scatter of
+  every scored title (`scorePairs`), harsher and kinder per genre
+  (`genreDeltas`), what gets finished (`genreOutcomes`), taste over time
+  (`genreDrift`), the rhythm (`weekdayTotals`, `completionMonths`), the pace
+  (`completionPace`, days counted inclusively), the watch time
+  (`timeShare`, progress × runtime × every viewing) and the rewatches. A new
+  card names the figure no other card shows; the radar, the tag treemap and
+  the formats card went on 2026-10-22 because the ranked lists and the
+  sunburst's outer ring already carried theirs. `CardPack` lays the cards in
+  CSS columns at their own height, so no card stretches to a neighbour; a
+  wide grid such as the day heatmap stays outside it as a block, because a
+  grid or column track grows to its widest child's min-content and scrolled
+  the phone's Years tab sideways by 99 px. The screens harness's
+  `stats-rich` mock (72 entries over eight years) is what the `d105`–`d108`
+  and `p76`–`p79` rows shoot.
 - **Search with nothing typed browses, in one cached request per scope.**
   `lib/browseSections` is the table: each medium's sections in AniList's own
   order, each an alias of one aliased-`Page` query (`ANIME_BROWSE_QUERY`,

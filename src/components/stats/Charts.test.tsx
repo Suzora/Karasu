@@ -1,68 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { RadarChart, Sunburst, ToneLegend, Treemap } from "./Charts";
+import { Sunburst, ToneLegend } from "./Charts";
 import { inkOn } from "./tones";
 import { html, texts } from "@/test/markup";
 
 /** Static markup needs no DOM, so the filename stays without `.dom`; the tests ask only what the output holds. */
-
-describe("Treemap", () => {
-  const data = [
-    { label: "Male Protagonist", value: 353 },
-    { label: "Heterosexual", value: 163 },
-    { label: "School", value: 134 },
-    { label: "Isekai", value: 105 },
-  ];
-
-  it("fills the width it is given rather than sitting in the middle of it", () => {
-    const markup = html(<Treemap data={data} />);
-    // A pinned height under `xMidYMid meet` would centre the map and leave most of the card empty.
-    expect(markup).toMatch(/viewBox="0 0 1000 300"/);
-    expect(markup).not.toMatch(/style="[^"]*height/);
-  });
-
-  it("labels every tile it has room for, and numbers the rest", () => {
-    const out = texts(html(<Treemap data={data} />));
-    for (const d of data) {
-      expect(out).toContain(String(d.value));
-    }
-    expect(out.some((t) => t.startsWith("Male Protagonist"))).toBe(true);
-  });
-
-  it("drops a value only when the tile is too small to hold one", () => {
-    // One dominant tile and a sliver: the sliver is what thinning is for.
-    const out = texts(html(<Treemap data={[
-      { label: "Huge", value: 5000 },
-      { label: "Sliver", value: 1 },
-    ]} />));
-    expect(out).toContain("5000");
-    expect(out).not.toContain("Sliver");
-  });
-});
-
-describe("RadarChart", () => {
-  // No axis may equal half the maximum, or the half-ring label doubles as that axis's own count.
-  const axes = [
-    { label: "Action", value: 120 },
-    { label: "Fantasy", value: 90 },
-    { label: "Comedy", value: 70 },
-    { label: "Drama", value: 45 },
-  ];
-
-  it("writes each axis's count next to its label", () => {
-    const out = texts(html(<RadarChart locale="en" axes={axes} />));
-    for (const a of axes) {
-      expect(out).toContain(a.label);
-      expect(out).toContain(String(a.value));
-    }
-  });
-
-  it("labels the rings, so the polygon is a measurement and not just a shape", () => {
-    const out = texts(html(<RadarChart locale="en" axes={axes} />));
-    // The outer ring always equals the largest axis, so its string is counted rather than merely found.
-    expect(out.filter((v) => v === "120")).toHaveLength(2); // ring + axis
-    expect(out).toContain("60"); // the half ring, which is nobody's count
-  });
-});
 
 describe("Sunburst", () => {
   const data = [
