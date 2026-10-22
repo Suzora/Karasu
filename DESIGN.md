@@ -1211,3 +1211,16 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   studio's; their popularity strips went, since the year list holds every
   title the strip sampled. The undated group reads "No date yet" rather
   than "Upcoming", because a cancelled title has no date either.
+- **2026-10-22:** Statistics takes more charts and less air, at the
+  maintainer's word after a look at a plot catalog (anyplot.ai): all three
+  sets of three mockups (A, the scatter of every scored title against the
+  community, harsher and kinder per genre, what gets finished per genre;
+  B, taste over time, the weekday and month rhythm, the days to finish per
+  format; C, rewatches and the remaining time as figures, where the watch
+  time went, series length with its mean score), then in a second round D
+  of three arrangements: the cards pack at their own height in two columns,
+  three from 2xl (over E, three compact columns at every desktop width, and
+  F, the stretched two-column grid). A measurement shown once: the radar,
+  the tag treemap and the formats card went, since the ranked lists and the
+  sunburst's outer ring carry the same numbers. The key figures are one
+  compact tile row, four across, eight on a wide window.

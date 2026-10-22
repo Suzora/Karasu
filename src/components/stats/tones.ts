@@ -10,9 +10,6 @@ export const TONES = [
   "var(--color-graph-none)",
 ];
 
-/** Ink over `TONES[i]`; keep the bare `i`, later treemap tiles fade to grey where accent ink vanishes. */
-export const onAccent = (i: number) => (i < 2 ? "fill-accent-ink" : "fill-ink-300");
-
 /** A fill class for text on a fill of `hex`, from the two inks that stay fixed while the theme flips. */
 export const inkOn = (hex: string) =>
   readableInk(hex, PURE_INK) === PURE_INK.dark ? "fill-on-cover" : "fill-on-cover-edge";

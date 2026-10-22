@@ -8,10 +8,10 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 919;
+pub const COMMIT_NUMBER: u32 = 921;
 
 /// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
-pub const FULL_VERSION: &str = "1.62.0.919";
+pub const FULL_VERSION: &str = "1.63.1.921";
 
 /// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {

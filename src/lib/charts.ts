@@ -5,13 +5,6 @@ export interface Point {
   y: number;
 }
 
-export interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
 export function polar(cx: number, cy: number, r: number, deg: number): Point {
   const rad = ((deg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -68,87 +61,4 @@ export function slices(values: number[]): { start: number; end: number }[] {
     at += (Math.max(0, v) / total) * 360;
     return { start, end: at };
   });
-}
-
-/** The corners of a radar polygon from the top; `max` is passed in so several series can share a scale. */
-export function radarPoints(
-  values: number[],
-  max: number,
-  cx: number,
-  cy: number,
-  r: number,
-): Point[] {
-  const step = 360 / Math.max(1, values.length);
-  return values.map((v, i) =>
-    polar(cx, cy, max > 0 ? (Math.max(0, v) / max) * r : 0, i * step),
-  );
-}
-
-export const pointsAttr = (points: Point[]): string =>
-  points.map((p) => `${round(p.x)},${round(p.y)}`).join(" ");
-
-// Line-path helpers belong to the Years tab's AreaChart, which takes them from d3-shape.
-
-const round = (n: number) => Math.round(n * 100) / 100;
-
-/** Squarified treemap over values sorted descending, since slice-and-dice produces slivers that carry no area impression. */
-export function squarify(values: number[], w: number, h: number): Rect[] {
-  const out: Rect[] = [];
-  const total = values.reduce((sum, v) => sum + v, 0);
-  if (total <= 0 || w <= 0 || h <= 0) return values.map(() => ({ x: 0, y: 0, w: 0, h: 0 }));
-
-  // Work in area units so a value maps straight onto a rectangle.
-  const areas = values.map((v) => (v / total) * w * h);
-  let x = 0;
-  let y = 0;
-  let free = { w, h };
-  let index = 0;
-
-  while (index < areas.length) {
-    const short = Math.min(free.w, free.h);
-    const row: number[] = [];
-    let rowArea = 0;
-
-    // Grow the row while the worst aspect ratio keeps improving.
-    while (index + row.length < areas.length) {
-      const next = areas[index + row.length];
-      if (row.length > 0 && worst(row, rowArea, short) < worst([...row, next], rowArea + next, short)) {
-        break;
-      }
-      row.push(next);
-      rowArea += next;
-    }
-
-    const thickness = rowArea / short;
-    let along = 0;
-    for (const area of row) {
-      const length = area / thickness;
-      out.push(
-        free.w >= free.h
-          ? { x, y: y + along, w: thickness, h: length }
-          : { x: x + along, y, w: length, h: thickness },
-      );
-      along += length;
-    }
-
-    if (free.w >= free.h) {
-      x += thickness;
-      free = { w: free.w - thickness, h: free.h };
-    } else {
-      y += thickness;
-      free = { w: free.w, h: free.h - thickness };
-    }
-    index += row.length;
-  }
-
-  return out;
-}
-
-/** Worst aspect ratio in a row of areas laid across a side of length `side`. */
-function worst(row: number[], sum: number, side: number): number {
-  const max = Math.max(...row);
-  const min = Math.min(...row);
-  const s2 = side * side;
-  const sum2 = sum * sum;
-  return Math.max((s2 * max) / sum2, sum2 / (s2 * min));
 }

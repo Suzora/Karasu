@@ -1,4 +1,4 @@
-import type { FuzzyDate, MediaListEntry } from "@/api/types";
+import type { FuzzyDate, MediaListEntry, MediaListStatus } from "@/api/types";
 import { displayTitle } from "@/api/types";
 
 /** Statistics AniList cannot answer, computed from the cached list; community scores are put on the display scale. */
@@ -288,4 +288,236 @@ export function dayHeatmapFromHistory(
   }
 
   return { weeks, months, total, from, to };
+}
+
+// --- The insight panels: each reads the list (and AniList's history) and asks for nothing ---
+
+/** One title the user and the community both scored, both on the display scale. */
+export interface ScorePair {
+  mediaId: number;
+  title: string;
+  mine: number;
+  community: number;
+}
+
+/** Every title with both scores, once each; the scatter draws all of them where the dumbbell drew ten. */
+export function scorePairs(entries: MediaListEntry[], max = 10): ScorePair[] {
+  const seen = new Set<number>();
+  const pairs: ScorePair[] = [];
+  for (const e of entries) {
+    if (seen.has(e.mediaId)) continue;
+    seen.add(e.mediaId);
+    const community = e.media.averageScore;
+    if (!e.score || e.score <= 0 || community == null || community <= 0) continue;
+    pairs.push({ mediaId: e.mediaId, title: displayTitle(e.media.title), mine: e.score, community: (community / 100) * max });
+  }
+  return pairs;
+}
+
+export interface GenreDelta {
+  genre: string;
+  /** Mean of mine minus the community's over the genre's titles; positive is kinder. */
+  delta: number;
+  count: number;
+}
+
+/** Where the user is harsher or kinder than the community, per genre with at least `minCount` scored titles. */
+export function genreDeltas(entries: MediaListEntry[], max = 10, minCount = 3, limit = 10): GenreDelta[] {
+  const sums = new Map<string, { delta: number; count: number }>();
+  const genresOf = new Map(entries.map((e) => [e.mediaId, e.media.genres ?? []]));
+  for (const p of scorePairs(entries, max)) {
+    for (const genre of genresOf.get(p.mediaId) ?? []) {
+      const b = sums.get(genre) ?? { delta: 0, count: 0 };
+      b.delta += p.mine - p.community;
+      b.count += 1;
+      sums.set(genre, b);
+    }
+  }
+  return [...sums]
+    .filter(([, b]) => b.count >= minCount)
+    .map(([genre, b]) => ({ genre, delta: b.delta / b.count, count: b.count }))
+    .sort((a, b) => b.delta - a.delta)
+    .slice(0, limit);
+}
+
+/** The statuses a started title can end in, finished first; planning means it never started. */
+export const OUTCOME_ORDER: MediaListStatus[] = ["COMPLETED", "REPEATING", "CURRENT", "PAUSED", "DROPPED"];
+
+export interface GenreOutcome {
+  genre: string;
+  total: number;
+  /** Share of completed and rewatched titles, 0–1. */
+  finished: number;
+  byStatus: Partial<Record<MediaListStatus, number>>;
+}
+
+/** How the titles of each genre ended, for the genres with the most started titles. */
+export function genreOutcomes(entries: MediaListEntry[], minCount = 3, limit = 8): GenreOutcome[] {
+  const seen = new Set<number>();
+  const byGenre = new Map<string, Partial<Record<MediaListStatus, number>>>();
+  for (const e of entries) {
+    if (seen.has(e.mediaId) || !OUTCOME_ORDER.includes(e.status)) continue;
+    seen.add(e.mediaId);
+    for (const genre of e.media.genres ?? []) {
+      const counts = byGenre.get(genre) ?? {};
+      counts[e.status] = (counts[e.status] ?? 0) + 1;
+      byGenre.set(genre, counts);
+    }
+  }
+  return [...byGenre]
+    .map(([genre, byStatus]) => {
+      const total = Object.values(byStatus).reduce((a, b) => a + (b ?? 0), 0);
+      const finished = ((byStatus.COMPLETED ?? 0) + (byStatus.REPEATING ?? 0)) / total;
+      return { genre, total, finished, byStatus };
+    })
+    .filter((r) => r.total >= minCount)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+}
+
+/** The key of the band that holds every genre outside the top ones. */
+export const OTHER_GENRES = "";
+
+export interface GenreDriftData {
+  years: number[];
+  /** The top genres, most frequent first, then `OTHER_GENRES`. */
+  keys: string[];
+  /** One row per year, a count per key. */
+  rows: Record<string, number>[];
+}
+
+/** Genre counts per start year (the completion year where no start is known), for the share-over-time area. */
+export function genreDrift(entries: MediaListEntry[], top = 5, maxYears = 8): GenreDriftData | null {
+  const seen = new Set<number>();
+  const totals = new Map<string, number>();
+  const perYear = new Map<number, Map<string, number>>();
+  for (const e of entries) {
+    const year = e.startedAt?.year ?? e.completedAt?.year;
+    if (!year || seen.has(e.mediaId)) continue;
+    seen.add(e.mediaId);
+    const counts = perYear.get(year) ?? new Map<string, number>();
+    for (const genre of e.media.genres ?? []) {
+      totals.set(genre, (totals.get(genre) ?? 0) + 1);
+      counts.set(genre, (counts.get(genre) ?? 0) + 1);
+    }
+    perYear.set(year, counts);
+  }
+  const years = [...perYear.keys()].sort((a, b) => a - b).slice(-maxYears);
+  if (years.length < 3) return null;
+  const leaders = [...totals].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, top).map(([g]) => g);
+  const rows = years.map((year) => {
+    const row: Record<string, number> = Object.fromEntries(leaders.map((g) => [g, 0]));
+    row[OTHER_GENRES] = 0;
+    for (const [genre, n] of perYear.get(year)!) {
+      if (leaders.includes(genre)) row[genre] = n;
+      else row[OTHER_GENRES] += n;
+    }
+    return row;
+  });
+  return { years, keys: [...leaders, OTHER_GENRES], rows };
+}
+
+/** AniList's activity summed by weekday, Monday first; null for an account with none. */
+export function weekdayTotals(history: { date: number; amount: number }[] | null | undefined): number[] | null {
+  const days = Array.from({ length: 7 }, () => 0);
+  let total = 0;
+  for (const h of history ?? []) {
+    if (!Number.isFinite(h?.date) || !Number.isFinite(h?.amount) || h.amount <= 0) continue;
+    days[(new Date(historyDay(h.date) * 1000).getUTCDay() + 6) % 7] += h.amount;
+    total += h.amount;
+  }
+  return total > 0 ? days : null;
+}
+
+/** Completions per calendar month, each title once; a date with no month is skipped, never pinned to January. */
+export function completionMonths(entries: MediaListEntry[]): number[] | null {
+  const seen = new Set<number>();
+  const months = Array.from({ length: 12 }, () => 0);
+  let total = 0;
+  for (const e of entries) {
+    const m = e.completedAt?.month;
+    if (!m || m < 1 || m > 12 || seen.has(e.mediaId)) continue;
+    seen.add(e.mediaId);
+    months[m - 1] += 1;
+    total += 1;
+  }
+  return total > 0 ? months : null;
+}
+
+export interface PaceRow {
+  format: string;
+  count: number;
+  q1: number;
+  median: number;
+  q3: number;
+}
+
+const dayOf = (d: FuzzyDate | null): number | null =>
+  d?.year && d.month && d.day ? Date.UTC(d.year, d.month - 1, d.day) / 86_400_000 : null;
+
+/** Linear-interpolated quantile of a sorted list. */
+function quantileOf(sorted: number[], q: number): number {
+  const at = (sorted.length - 1) * q;
+  const lo = Math.floor(at);
+  return sorted[lo] + (sorted[Math.min(lo + 1, sorted.length - 1)] - sorted[lo]) * (at - lo);
+}
+
+/** Days from the first to the last day per format, counted inclusively, for finished titles with both dates. */
+export function completionPace(entries: MediaListEntry[], minCount = 3): PaceRow[] {
+  const seen = new Set<number>();
+  const spans = new Map<string, number[]>();
+  for (const e of entries) {
+    if (seen.has(e.mediaId) || (e.status !== "COMPLETED" && e.status !== "REPEATING")) continue;
+    const a = dayOf(e.startedAt);
+    const b = dayOf(e.completedAt);
+    if (a == null || b == null || b < a) continue;
+    seen.add(e.mediaId);
+    const key = e.media.format ?? "";
+    spans.set(key, [...(spans.get(key) ?? []), b - a + 1]);
+  }
+  return [...spans]
+    .filter(([, v]) => v.length >= minCount)
+    .map(([format, v]) => {
+      const s = [...v].sort((p, q) => p - q);
+      return { format, count: s.length, q1: quantileOf(s, 0.25), median: quantileOf(s, 0.5), q3: quantileOf(s, 0.75) };
+    })
+    .sort((a, b) => a.median - b.median);
+}
+
+export interface TimeShare {
+  /** Minutes across the whole list. */
+  total: number;
+  rows: { mediaId: number; title: string; minutes: number }[];
+}
+
+/** Watch time per title (progress × runtime × every viewing), the longest first. */
+export function timeShare(entries: MediaListEntry[], top = 10): TimeShare | null {
+  const seen = new Set<number>();
+  const rows: TimeShare["rows"] = [];
+  for (const e of entries) {
+    if (seen.has(e.mediaId) || !e.progress) continue;
+    seen.add(e.mediaId);
+    rows.push({ mediaId: e.mediaId, title: displayTitle(e.media.title), minutes: e.progress * (e.media.duration ?? 24) * (1 + (e.repeat ?? 0)) });
+  }
+  const total = rows.reduce((s, r) => s + r.minutes, 0);
+  if (total === 0) return null;
+  return { total, rows: rows.sort((a, b) => b.minutes - a.minutes).slice(0, top) };
+}
+
+/** Rewatches summed, the titles that have any, and the one seen most often in all. */
+export function rewatchTotals(entries: MediaListEntry[]): { repeats: number; titles: number; most: { title: string; times: number } | null } {
+  const seen = new Set<number>();
+  let repeats = 0;
+  let titles = 0;
+  let most: { title: string; times: number } | null = null;
+  for (const e of entries) {
+    if (seen.has(e.mediaId)) continue;
+    seen.add(e.mediaId);
+    const n = e.repeat ?? 0;
+    if (n <= 0) continue;
+    repeats += n;
+    titles += 1;
+    if (!most || n + 1 > most.times) most = { title: displayTitle(e.media.title), times: n + 1 };
+  }
+  return { repeats, titles, most };
 }

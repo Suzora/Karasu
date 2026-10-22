@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   activityHeatmap,
+  completionMonths,
+  completionPace,
   dayHeatmapFromHistory,
+  genreDeltas,
+  genreDrift,
+  genreOutcomes,
+  OTHER_GENRES,
+  rewatchTotals,
+  scorePairs,
+  timeShare,
+  weekdayTotals,
   historyDay,
   localTotals,
   scoreDelta,
@@ -280,5 +290,133 @@ describe("dayHeatmapFromHistory", () => {
     ])!;
     expect(grid.weeks[0][0]).toMatchObject({ amount: 5, level: 7 });
     expect(grid.total).toBe(5);
+  });
+});
+
+// --- The insight panels --------------------------------------------------------------
+
+const rich = (
+  mediaId: number,
+  over: Partial<MediaListEntry> & { genres?: string[]; averageScore?: number | null; format?: string; duration?: number | null } = {},
+) => {
+  const { genres = ["Action"], averageScore = 70, format = "TV", duration = 24, ...entry } = over;
+  return {
+    id: mediaId,
+    mediaId,
+    status: "COMPLETED",
+    score: 0,
+    progress: 12,
+    repeat: 0,
+    startedAt: null,
+    completedAt: null,
+    ...entry,
+    media: { id: mediaId, title: { romaji: `Show ${mediaId}`, english: null, native: null }, genres, averageScore, format, duration },
+  } as unknown as MediaListEntry;
+};
+const day = (y: number, m: number, d: number) => ({ year: y, month: m, day: d });
+
+describe("scorePairs", () => {
+  it("puts both scores on the display scale and skips a title with either missing", () => {
+    const pairs = scorePairs([rich(1, { score: 8, averageScore: 70 }), rich(2, { score: 0 }), rich(3, { score: 6, averageScore: null }), rich(1, { score: 2 })], 10);
+    expect(pairs).toEqual([{ mediaId: 1, title: "Show 1", mine: 8, community: 7 }]);
+  });
+});
+
+describe("genreDeltas", () => {
+  it("is the mean of mine minus the community's per genre, kindest first, and drops a genre under the minimum", () => {
+    const rows = genreDeltas(
+      [
+        rich(1, { score: 9, averageScore: 70, genres: ["Drama", "Comedy"] }),
+        rich(2, { score: 8, averageScore: 70, genres: ["Drama"] }),
+        rich(3, { score: 4, averageScore: 80, genres: ["Comedy"] }),
+        rich(4, { score: 7, averageScore: 70, genres: ["Horror"] }),
+      ],
+      10,
+      2,
+    );
+    expect(rows.map((r) => r.genre)).toEqual(["Drama", "Comedy"]);
+    expect(rows[0].delta).toBeCloseTo(1.5);
+    expect(rows[1].delta).toBeCloseTo(-1);
+    expect(rows[1].count).toBe(2);
+  });
+});
+
+describe("genreOutcomes", () => {
+  it("counts started titles per status and leaves planned ones out", () => {
+    const rows = genreOutcomes(
+      [
+        rich(1, { genres: ["Drama"] }),
+        rich(2, { genres: ["Drama"], status: "DROPPED" }),
+        rich(3, { genres: ["Drama"], status: "REPEATING" }),
+        rich(4, { genres: ["Drama"], status: "PLANNING" }),
+      ],
+      2,
+    );
+    expect(rows).toEqual([{ genre: "Drama", total: 3, finished: 2 / 3, byStatus: { COMPLETED: 1, DROPPED: 1, REPEATING: 1 } }]);
+  });
+});
+
+describe("genreDrift", () => {
+  it("keeps the most frequent genres and folds the rest into the other band, per start year", () => {
+    const drift = genreDrift(
+      [
+        rich(1, { genres: ["A", "B"], startedAt: day(2020, 1, 1) }),
+        rich(2, { genres: ["A", "C"], startedAt: day(2021, 1, 1) }),
+        rich(3, { genres: ["A"], startedAt: day(2022, 1, 1) }),
+        rich(4, { genres: ["B"], completedAt: day(2022, 5, 1) }),
+      ],
+      2,
+    );
+    expect(drift?.years).toEqual([2020, 2021, 2022]);
+    expect(drift?.keys).toEqual(["A", "B", OTHER_GENRES]);
+    expect(drift?.rows[1]).toEqual({ A: 1, B: 0, [OTHER_GENRES]: 1 });
+    expect(drift?.rows[2]).toEqual({ A: 1, B: 1, [OTHER_GENRES]: 0 });
+  });
+
+  it("answers null under three years, since a share over two points is not a trend", () => {
+    expect(genreDrift([rich(1, { startedAt: day(2020, 1, 1) }), rich(2, { startedAt: day(2021, 1, 1) })])).toBeNull();
+  });
+});
+
+describe("weekdayTotals", () => {
+  it("sums AniList's history by weekday, Monday first", () => {
+    // 2024-01-01 was a Monday; AniList stamps a London midnight, an hour before UTC in summer.
+    const monday = Date.UTC(2024, 0, 1) / 1000;
+    const sunday = Date.UTC(2024, 5, 30) / 1000 - 3600;
+    expect(weekdayTotals([{ date: monday, amount: 3 }, { date: sunday, amount: 2 }, { date: monday, amount: 1 }])).toEqual([4, 0, 0, 0, 0, 0, 2]);
+    expect(weekdayTotals([])).toBeNull();
+  });
+});
+
+describe("completionMonths", () => {
+  it("counts each title's completion month once and skips a date without a month", () => {
+    const months = completionMonths([rich(1, { completedAt: day(2023, 4, 2) }), rich(1, { completedAt: day(2024, 4, 2) }), rich(2, { completedAt: { year: 2023, month: null, day: null } })]);
+    expect(months?.[3]).toBe(1);
+    expect(months?.reduce((a, b) => a + b, 0)).toBe(1);
+  });
+});
+
+describe("completionPace", () => {
+  it("gives the median and the middle half of the days from start to finish, per format, fastest first", () => {
+    const tv = [1, 3, 5, 7, 9].map((d, i) => rich(10 + i, { startedAt: day(2024, 1, 1), completedAt: day(2024, 1, 1 + d) }));
+    const movies = [0, 0, 0].map((_, i) => rich(20 + i, { format: "MOVIE", startedAt: day(2024, 2, 1), completedAt: day(2024, 2, 1) }));
+    const rows = completionPace([...tv, ...movies, rich(30, { status: "CURRENT", startedAt: day(2024, 1, 1) })]);
+    expect(rows.map((r) => r.format)).toEqual(["MOVIE", "TV"]);
+    expect(rows[0]).toMatchObject({ count: 3, median: 1 });
+    expect(rows[1]).toMatchObject({ count: 5, q1: 4, median: 6, q3: 8 });
+  });
+});
+
+describe("timeShare", () => {
+  it("weighs progress by runtime and counts every rewatch", () => {
+    const share = timeShare([rich(1, { progress: 10, duration: 30, repeat: 1 }), rich(2, { progress: 12 }), rich(3, { progress: 1, duration: null })], 2);
+    expect(share?.total).toBe(600 + 288 + 24);
+    expect(share?.rows.map((r) => r.mediaId)).toEqual([1, 2]);
+  });
+});
+
+describe("rewatchTotals", () => {
+  it("sums the repeats, the titles with any, and names the one seen most", () => {
+    expect(rewatchTotals([rich(1, { repeat: 2 }), rich(2, { repeat: 1 }), rich(3)])).toEqual({ repeats: 3, titles: 2, most: { title: "Show 1", times: 3 } });
   });
 });
