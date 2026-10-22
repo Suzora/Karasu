@@ -85,6 +85,12 @@ export function sourceLabel(source: string, t: (k: string) => string): string | 
       return t("syncPanel.src_ownActivity");
     case "person":
       return t("syncPanel.src_person");
+    case "staffRoles":
+      return t("syncPanel.src_staffRoles");
+    case "characterMedia":
+      return t("syncPanel.src_characterMedia");
+    case "studioMedia":
+      return t("syncPanel.src_studioMedia");
     case "franchise":
       return t("syncPanel.src_franchise");
     case "browse":

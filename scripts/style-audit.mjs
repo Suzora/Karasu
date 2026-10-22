@@ -36,6 +36,7 @@ export const RULES = {
   "motion-arbitrary": "a bracketed duration, delay or easing",
   "spin-outside-spinner": "animate-spin outside the spinner primitive",
   "outline-removed": "outline-none with no focus style beside it",
+  "hit-area-unanchored": "hit-area with no position of its own beside it",
   "class-fragment": "a class built from a template fragment, which Tailwind cannot see",
   "icon-size": "an icon size off the icon scale",
   "library-boundary": "a UI library imported outside its wrapper",
@@ -169,6 +170,9 @@ function stringsUnder(node, out = []) {
   return out;
 }
 
+/** A position of the element's own, which a hit-area's `::after` needs or it fills the nearest positioned ancestor. */
+const POSITIONED = /(?:^|:)!?(?:relative|absolute|fixed|sticky)!?$/;
+
 /** Everything the audit finds in one file's text; `path` decides the spinner and library exceptions. */
 export function auditText(text, path, colours = definedColours()) {
   const { program, errors } = parseSync(path, text);
@@ -182,11 +186,12 @@ export function auditText(text, path, colours = definedColours()) {
 
   const visitString = (node, value, parents) => {
     const group = groupOf(node, parents);
-    if (!groups.has(group)) groups.set(group, { node, tokens: [], outlines: [] });
+    if (!groups.has(group)) groups.set(group, { node, tokens: [], outlines: [], hits: [] });
     const entry = groups.get(group);
     for (const token of tokensOf(value)) {
       for (const rule of tokenRules(token, path, colours)) add(node, rule, token);
       if (/(?:^|:)!?outline-none!?$/.test(token)) entry.outlines.push({ node, token, parents });
+      if (/(?:^|:)hit-area(?:-y)?$/.test(token)) entry.hits.push({ node, token });
       entry.tokens.push(token);
     }
     for (const m of value.matchAll(/--color-([a-z0-9]+(?:-[a-z0-9]+)*)(?![a-z0-9-])/g)) {
@@ -255,6 +260,10 @@ export function auditText(text, path, colours = definedColours()) {
   for (const { tokens, outlines } of groups.values()) {
     if (outlines.length === 0 || tokens.some((t) => FOCUS_STYLE.test(t))) continue;
     for (const o of outlines) if (!wrapperShowsFocus(o.parents)) add(o.node, "outline-removed", o.token);
+  }
+  for (const { tokens, hits } of groups.values()) {
+    if (hits.length === 0 || tokens.some((t) => POSITIONED.test(t))) continue;
+    for (const h of hits) add(h.node, "hit-area-unanchored", h.token);
   }
   return findings.sort((a, b) => a.line - b.line || a.rule.localeCompare(b.rule));
 }
@@ -340,6 +349,8 @@ const FIXTURES = [
   { text: `<input className="focus:outline-none" />`, want: ["outline-removed"] },
   { text: `<input className={cn("focus:outline-none", "focus:border-accent-500")} />`, want: [] },
   { text: `<label className="focus-within:border-accent-500"><input className="focus:outline-none" /></label>`, want: [] },
+  { text: `<><button className="press coarse:hit-area px-2" /><a className="hit-area-y" /></>`, want: ["hit-area-unanchored", "hit-area-unanchored"] },
+  { text: `<><button className={cn("relative coarse:hit-area", on && "px-2")} /><b className="absolute hit-area-y" /></>`, want: [] },
   { text: "const v = `var(--color-status-${s.toLowerCase()})`;", want: [] },
   { text: "const a = cn(`grid-cols-${n} gap-2`, `${side}-4`); const k = t(`status.${type}.${s}`); const u = `karasu-${key}`;", want: ["class-fragment", "class-fragment"] },
   { text: `import { Plus } from "lucide-react";\n<><Plus className="size-3 text-ink-500" /><Plus className="size-4" /><Plus size={18} /></>`, want: ["icon-size", "icon-size"] },

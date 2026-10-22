@@ -1193,3 +1193,21 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   aired episode not yet watched is a third tick state, an accent outline
   between the filled ticks and the grey ones, so it reads in every look
   without a new colour.
+- **2026-10-20:** A voice actor's page gains a Roles section (#81), the
+  maintainer's pick of three (cards under each year, rows under each year,
+  a ledger with the year beside). Every voice role AniList lists, grouped
+  by the year its title started, newest first, with Upcoming ahead for a
+  title that has no date yet, as cover cards: the character's face over
+  the cover's corner with a ring in the page's surface, the title, the
+  character's name, then the format and the role's weight in one line, a
+  main role in the accent. The cover opens the title, the face and the
+  name the character. Twenty-five roles a request and the rest behind a
+  Load more button, so a prolific actor's few hundred roles never cost a
+  burst; the count stands in the header only once every page is in.
+  Appears in and Characters stay above it as the quick summary. The same
+  day, at the maintainer's word, the character page lists its appearances
+  and the studio page its productions in the same cards, the Japanese voice
+  actor's face on a character's, the main-studio mark in the accent on a
+  studio's; their popularity strips went, since the year list holds every
+  title the strip sampled. The undated group reads "No date yet" rather
+  than "Upcoming", because a cancelled title has no date either.

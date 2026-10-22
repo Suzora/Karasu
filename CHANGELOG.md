@@ -75,12 +75,15 @@ tag time is then optional rather than load-bearing.
 
 ### Added
 
+- A voice actor's page lists every role AniList knows under a Roles heading, grouped by the year the title started from the newest down, with undated titles first: the cover with the character's face, the character's name, the format and whether it is a main role, 25 at a time with a Load more button ([#81](https://github.com/Suzora/Karasu/issues/81)).
+- A character's page lists its appearances the same way, with the Japanese voice actor's face on each card, and a studio's page its productions, marking the ones it was the main studio of; both replace the short row of popular titles.
 - The Overview has a Catch up section for airing anime you are behind on: each shows how many episodes have aired since your progress and which one is next, with +1, and leaves once you have caught up ([#79](https://github.com/Suzora/Karasu/issues/79)).
 - After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
 - Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.
 
 ### Fixed
 
+- On the phone, a tap anywhere on the season page no longer opens the entry editor of one title: the status pill's enlarged touch target had grown to the whole page.
 - On Android, the first start after installing no longer closes Karasu a moment after it opens, and an internal error in any action now shows as an error instead of closing the app.
 - On the phone, each page of the Overview fills the screen and scrolls on its own, and your activity on the Overview shows five entries at a time with Load more instead of a box to scroll through.
 - A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.

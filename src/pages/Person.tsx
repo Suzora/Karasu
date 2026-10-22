@@ -1,18 +1,25 @@
 import { languageName, staffRoleLabel } from "@/lib/staffRoles";
-import type { ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, type ReactNode } from "react";
+import { useInfiniteQuery, useQuery, type InfiniteData, type UseInfiniteQueryResult } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink, Heart, Users } from "lucide-react";
+import { Clapperboard, Drama, ExternalLink, Heart, Users, type LucideIcon } from "lucide-react";
 import {
   character,
+  characterMedia,
   staff,
+  staffRoles,
   studio,
+  studioMedia,
   type CharacterDetail,
   type StaffDetail,
   type StudioDetail,
+  type YearPage,
 } from "@/api/social";
+import { rolesByYear } from "@/lib/roleYears";
+import { RoleYears, type YearEdge } from "@/components/media/RoleYears";
+import { Button } from "@/components/ui/button";
 import { isTauri } from "@/api/anilist";
 import BackButton from "@/components/shell/BackButton";
 import { Avatar } from "@/components/ui/user-lockup";
@@ -91,6 +98,22 @@ export default function Person({ kind }: { kind: Kind }) {
     retry: false,
   });
 
+  // The page's year list, a page per press: the second request a person page makes, and the last it makes unasked.
+  const years = useInfiniteQuery({
+    queryKey: ["personYears", kind, numericId],
+    queryFn: ({ pageParam }): Promise<YearPage<YearEdge>> =>
+      kind === "character"
+        ? characterMedia(numericId, pageParam)
+        : kind === "staff"
+          ? staffRoles(numericId, pageParam)
+          : studioMedia(numericId, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (last: YearPage<YearEdge>) => (last.pageInfo.hasNextPage ? last.pageInfo.currentPage + 1 : undefined),
+    enabled: isTauri && Number.isFinite(numericId) && numericId > 0,
+    staleTime: 60 * 60 * 1000,
+    retry: false,
+  });
+
   if (!Number.isFinite(numericId) || numericId <= 0) {
     return (
       <Frame>
@@ -152,7 +175,8 @@ export default function Person({ kind }: { kind: Kind }) {
   const native = ch?.name.native ?? st?.name.native ?? null;
   const image = (ch ?? st)?.image?.large ?? null;
   const description = (ch ?? st)?.description ?? null;
-  const edges = (ch?.media ?? st?.staffMedia ?? su?.media)?.edges ?? [];
+  // The strip stays for the staff page alone, whose year list is the voice roles; the other two list everything by year.
+  const edges = st?.staffMedia?.edges ?? [];
 
   return (
     <Frame>
@@ -247,13 +271,13 @@ export default function Person({ kind }: { kind: Kind }) {
         </div>
       )}
 
+      {st && <YearSection query={years} title={t("person.roles")} icon={Drama} />}
+      {ch && <YearSection query={years} title={t("person.appearances")} icon={Clapperboard} />}
+      {su && <YearSection query={years} title={t("person.productions")} icon={Clapperboard} />}
+
       {edges.length > 0 && (
         <section className="mb-8 space-y-3">
-          <SectionHeader
-            icon={Users}
-            title={su ? t("person.productions") : t("person.appearsIn")}
-            meta={String(edges.length)}
-          />
+          <SectionHeader icon={Users} title={t("person.appearsIn")} meta={String(edges.length)} />
           <MediaStrip edges={edges} />
         </section>
       )}
@@ -280,6 +304,32 @@ export default function Person({ kind }: { kind: Kind }) {
       </div>
       </div>
     </Frame>
+  );
+}
+
+/** A person page's titles by year; the count stands in the header only once every page is in, since AniList's total lies. */
+function YearSection({ query, title, icon }: { query: UseInfiniteQueryResult<InfiniteData<YearPage<YearEdge>>>; title: string; icon: LucideIcon }) {
+  const { t } = useTranslation();
+  const pages = query.data?.pages;
+  const years = useMemo(() => rolesByYear((pages ?? []).map((p) => p.edges)), [pages]);
+  const count = years.reduce((n, y) => n + y.roles.length, 0);
+  if (count === 0 && !query.hasNextPage && !query.isError) return null;
+  return (
+    <section className="mb-8 space-y-3">
+      <SectionHeader icon={icon} title={title} meta={query.hasNextPage || query.isError ? undefined : String(count)} />
+      <RoleYears years={years} />
+      {query.isError && <p className="text-sm text-ink-500">{t("person.rolesFailed")}</p>}
+      {(query.hasNextPage || query.isError) && (
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={query.isFetchingNextPage}
+          onClick={() => void (query.isError && !pages?.length ? query.refetch() : query.fetchNextPage())}
+        >
+          {query.isFetchingNextPage ? t("social.loadingMore") : query.isError ? t("common.retry") : t("social.loadMorePlain")}
+        </Button>
+      )}
+    </section>
   );
 }
 

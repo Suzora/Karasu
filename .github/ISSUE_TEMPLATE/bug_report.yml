@@ -1,6 +1,7 @@
 name: Bug report
 description: Something in Karasu does not work the way it should.
 labels: ["bug"]
+type: Bug
 body:
   - type: markdown
     attributes:

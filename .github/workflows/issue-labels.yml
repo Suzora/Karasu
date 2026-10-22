@@ -1,6 +1,6 @@
 name: Issue labels
 
-# Adds labels from the form's answers: type from its headings, platform from a dropdown or the diagnostics OS row.
+# Labels and the issue type from the form's answers: kind from its headings, platform from a dropdown or the OS row.
 
 on:
   issues:
@@ -45,16 +45,20 @@ jobs:
               if (platform === name || os === name || install.startsWith(name)) labels.add(name);
             }
 
+            const issue = { owner: context.repo.owner, repo: context.repo.repo, issue_number: context.payload.issue.number };
+
+            // The type from the same headings, for an issue the form's `type:` line did not reach; never overwrites one.
+            const type = labels.has("bug") ? "Bug" : labels.has("enhancement") ? "Feature" : null;
+            if (type && !context.payload.issue.type) {
+              await github.rest.issues.update({ ...issue, type });
+              core.info(`type: ${type}`);
+            }
+
             const have = new Set(context.payload.issue.labels.map((l) => l.name));
             const add = [...labels].filter((l) => !have.has(l));
             if (add.length === 0) {
-              core.info("nothing to add");
+              core.info("no label to add");
               return;
             }
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              labels: add,
-            });
+            await github.rest.issues.addLabels({ ...issue, labels: add });
             core.info(`added: ${add.join(", ")}`);

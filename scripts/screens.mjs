@@ -196,6 +196,10 @@ export const SCREENS = [
   { id: "d52-bibliothek", w: 1232, h: 1000, route: "/library" },
   { id: "d53-figur", w: 1232, h: 1000, route: "/character/41" },
   { id: "d54-staff", w: 1232, h: 1000, route: "/staff/500" },
+  { id: "d102-staff-rollen", w: 1232, h: 1400, route: "/staff/500", act: toFirstHeading(["Rollen"]) },
+  { id: "p73-staff-rollen", w: 405, h: 1600, phone: true, route: "/staff/500", act: toFirstHeading(["Rollen"]) },
+  { id: "d104-studio", w: 1232, h: 1400, route: "/studio/31" },
+  { id: "p75-studio", w: 405, h: 1600, phone: true, route: "/studio/31" },
   { id: "d55-ueber", w: 1232, h: 1000, route: "/about" },
   { id: "d94-neu-stable", w: 1232, h: 800, route: "/", mock: "neu-stable", act: (p) => p.getByRole("dialog").waitFor() },
   { id: "d95-neu-nightly", w: 1232, h: 800, route: "/", mock: "neu-nightly", act: (p) => p.getByRole("dialog").waitFor() },
@@ -461,8 +465,10 @@ async function shoot() {
           // A page that scrolls its own div hides its overflow from <main>, so each of those counts as well.
           return main ? Math.max(...[main, ...main.querySelectorAll(".overflow-y-auto")].map((b) => b.scrollWidth - b.clientWidth)) : 0;
         });
-        report.push({ name, errors, unknown, sideways });
-        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : [])];
+        // A hit-area is an ::after sized by its positioned ancestor, so on a static element it is the whole page's.
+        const unanchored = await page.evaluate(() => [...document.querySelectorAll('[class*="hit-area"]')].filter((el) => getComputedStyle(el).position === "static").length);
+        report.push({ name, errors, unknown, sideways, unanchored });
+        const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : []), ...(unanchored > 0 ? [`${unanchored} hit-area element(s) with no position of their own`] : [])];
         if (problems.length) console.log(`${name}: ${problems.join("; ")}`);
         await context.close();
       }
