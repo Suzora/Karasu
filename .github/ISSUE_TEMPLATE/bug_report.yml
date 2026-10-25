@@ -6,28 +6,37 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. **Most of this form fills itself in:** open
-        Karasu → **About** → **Copy diagnostics**, then paste into the first
-        field. That covers the version, your OS, portable mode, which detection
-        sources are on and — on Linux — your distro, desktop and whether you are
-        on Wayland or X11.
+        Thanks for reporting. **Most of this form fills itself in:** open the
+        screen where the problem happens, then go to **About** → **Copy
+        diagnostics** and paste into the first field. The report says which
+        screen you came from, so open the right one first if you can.
+
+        It starts with a short summary — this run's warnings and errors, the
+        AniList budget and failed requests, the offline queue, what detection
+        is doing right now — and folds the rest under it: system and WebView,
+        detection and library, the background checks, the settings that change
+        behaviour, and storage. No token, password, server address, library
+        path or title is included, and your user name is taken out of the data
+        folder and the route. Do read it over before posting.
 
         If Karasu will not start at all, skip that field and fill in the rest by
-        hand; the "Anything else" box at the bottom is the place for it.
+        hand.
 
   - type: textarea
     id: diagnostics
     attributes:
       label: Diagnostics
       description: >-
-        From About → Copy diagnostics. The data folder is redacted for you; no
-        token, password, server address or library path is included.
-      render: markdown
+        About → Copy diagnostics, pasted as it comes. It is already Markdown, so
+        the folded sections stay folded in the issue.
       placeholder: |
-        | | |
+        **Karasu diagnostics**
+
+        `1.67.0.926` · prerelease · windows x86_64 · installer · up 2 h 14 min · …
+
+        | At a glance | |
         |---|---|
-        | Karasu | 0.69.0.231 |
-        | OS | windows |
+        | Problems this run | 1 errors · 3 warnings · 0 panics · 0 loop restarts |
         …
     validations:
       required: false
@@ -37,23 +46,58 @@ body:
     attributes:
       label: Version
       description: Only if you could not paste the diagnostics above. About shows it.
-      placeholder: "0.69.0.231"
+      placeholder: "1.67.0.926"
     validations:
       required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      description: The part of Karasu the problem is in, so it reaches the right code first.
+      options:
+        - Detection and automatic updating (a player, a browser, Jellyfin)
+        - My lists and editing an entry
+        - Sync, the offline queue or AniList errors
+        - Local library (files on disk)
+        - Notifications and the bell
+        - Search, season, calendar or a title's page
+        - Profiles, social feed or forum
+        - Statistics or Wrapped
+        - Settings, sign-in or account
+        - Installing, updating or starting the app
+        - Layout, display or performance
+        - Something else
+    validations:
+      required: true
 
   - type: dropdown
     id: install
     attributes:
       label: How did you install it?
       description: >-
-        This decides whether the in-app updater can work, and on Linux whether
-        autostart can.
+        This decides whether the in-app updater can work, which libraries Linux
+        loads, and on Android whether updates come from F-Droid or the app.
       options:
         - Windows installer (Karasu_..._x64-setup.exe)
+        - Windows, portable mode
         - Linux AppImage
         - Linux .deb or .rpm
-        - Android APK (sideloaded)
+        - Linux Flatpak (built yourself)
+        - Android APK from GitHub
+        - Android from F-Droid
         - Built from source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often does it happen?
+      options:
+        - Every time
+        - Sometimes
+        - Once so far
     validations:
       required: true
 
@@ -64,8 +108,9 @@ body:
       description: >-
         Only if you are on Linux **and** could not paste the diagnostics. If
         Karasu will not launch or crashes, please also give your GPU and Mesa
-        version (`glxinfo -B` or `lspci -k`), and for the `.deb`/`.rpm` your
-        `webkit2gtk-4.1` version — the AppImage carries its own.
+        version (`glxinfo -B` or `lspci -k`), for the `.deb`/`.rpm` your
+        `webkit2gtk-4.1` version — the AppImage carries its own — and the output
+        of `coredumpctl info karasu` if there is a crash.
       placeholder: "Fedora 44, GNOME, wayland, AMD, Mesa 26.1"
     validations:
       required: false
@@ -83,10 +128,11 @@ body:
     attributes:
       label: Steps to reproduce
       description: >-
-        For a detection problem, the **exact** filename or page title matters —
-        the recognition pipeline is a release-name parser, so a parse bug cannot
-        be reproduced without the literal string. Settings → Detection shows
-        what Karasu currently sees.
+        For a detection problem, name the player or browser and give the
+        **exact** filename, window title or tab title — the recognition is a
+        release-name parser, so a parse bug cannot be reproduced without the
+        literal string. Settings → Detection shows what Karasu currently sees.
+        For a list or sync problem, say which entry and what you changed.
       placeholder: |
         1. Play `[Group] Frieren - 05 (1080p) [A1B2C3D4].mkv` in mpv
         2. Wait for the scrobble countdown
@@ -99,12 +145,13 @@ body:
     attributes:
       label: Log
       description: >-
-        Settings → Advanced → Log, or About → Save report for the whole thing.
-        If the problem is hard to catch, turn on **Verbose logging** there,
-        reproduce it, then copy. Credentials are replaced with
-        `<CREDENTIAL_…>` before anything is written, but do read it over —
-        with verbose logging on it can contain titles and file paths.
-      render: text
+        For anything the summary does not explain: turn on **Verbose logging**
+        (Settings → Advanced → Log), reproduce the problem, then use About →
+        **Save report…** and drag the saved `.md` file here — it carries the
+        same report, every warning and error kept this run, and the whole log.
+        Credentials are replaced with `<CREDENTIAL_…>` before anything is
+        written, but with verbose logging on the log names titles and file
+        paths, so read it over first.
     validations:
       required: false
 
@@ -112,7 +159,7 @@ body:
     id: anything-else
     attributes:
       label: Anything else?
-      description: Screenshots, and anything that did not fit above.
+      description: Screenshots or a short screen recording, and anything that did not fit above.
     validations:
       required: false
 

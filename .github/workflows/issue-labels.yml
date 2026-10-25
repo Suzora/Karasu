@@ -40,7 +40,7 @@ jobs:
             // Platform: the feature form asks outright; a bug report says it in the install dropdown or the diagnostics OS row.
             const platform = answer("Does this apply to a particular platform?").toLowerCase();
             const install = answer("How did you install it?").toLowerCase();
-            const os = (body.match(/^\|\s*OS\s*\|\s*([a-z]+)\s*\|/mi)?.[1] ?? "").toLowerCase();
+            const os = (body.match(/^\|\s*OS\s*\|\s*([a-z]+)\b/mi)?.[1] ?? "").toLowerCase();
             for (const name of ["windows", "linux", "android"]) {
               if (platform === name || os === name || install.startsWith(name)) labels.add(name);
             }

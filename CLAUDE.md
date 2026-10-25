@@ -166,14 +166,20 @@ src-tauri/src/
                      cannot place — 25 per request, capped at 8 requests a
                      scan, scored by the same matcher
   logging.rs         the background log: a bounded in-memory ring for the
-                     viewer plus a rotating `karasu.log` beside the database.
+                     viewer plus a rotating `karasu.log` beside the database,
+                     and a second ring of warnings and errors alone with the
+                     run's counts, which verbose logging cannot flush.
                      `scrub` strips credentials on write; `debug_changed` is
                      the per-key dedupe the 5 s detection poll logs through.
                      Owns the panic hook and `supervise`, which puts a panicked
                      background loop back
   diagnostics.rs     the facts a bug report needs, composed from the commands
                      that already know them (never re-derived), plus the
-                     Linux-only distro/desktop/session probe
+                     Linux-only distro/desktop/session probe and the
+                     WebView's own half (`ClientFacts`: route, window, theme,
+                     user agent); rendered as a summary that stays open and
+                     folded sections under it, with this run's warnings and
+                     errors grouped by kind from `logging`'s problem ring
   net.rs             where every outbound HTTP client is born — one seam so a
                      TLS fix cannot miss a builder. Android gets webpki roots
                      with a *named* aws-lc-rs provider (the default-provider

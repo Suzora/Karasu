@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f730b75 -->
+<!-- generated-through: 799e81a -->
 
 ### Added
 
@@ -123,6 +123,7 @@ tag time is then optional rather than load-bearing.
 - Every page with a column now has the same width and the same title with its Japanese line under it, and the page's one action beside it; high contrast outlines every card, the AniList average no longer looks like your own score, the season filters are switches, and Wrapped on the phone shows the poster straight away.
 - The calendar's week now starts today, the statistics show the status split once, the episode button reads "+1" so it can't be mistaken for adding a title, progress under every cover looks the same, staff roles and languages appear in your language, spoilers in quotes look as they do in the feed, pages load with placeholders instead of a spinner, and the Wrapped poster keeps its colours in the light theme.
 - The left columns space their groups the same way on every page, with a dividing line only before links that leave the page.
+- The diagnostics report starts with a summary of this run's problems, the AniList budget, the sync queue and what detection is doing, folds the details into sections, and keeps every warning and error even with verbose logging on.
 
 ### Security
 
