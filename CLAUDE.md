@@ -2034,6 +2034,25 @@ async update the real code makes after an await warns instead.
   So `kindsFor("everyone")` leaves status updates out and the URL falls back
   to everything. Whether a signed-in request answers it was not measured;
   read a signed-in answer before offering it.
+- **`weightedScore` is `averageScore` under its new name.** AniList's change of 2026-10-25 renamed the
+  site's "Average Score" to "Weighted Score"; measured on 2026-10-24, signed out, both fields answered the
+  same number on every title that had one (67/67 where `meanScore` read 68) and null together below the
+  popularity floor, and introspection no longer lists `averageScore`. So every query asks
+  `averageScore: weightedScore`, an alias that keeps the field name the types, the list cache, the MAL
+  export and the statistics read. The same change folded the forum's Misc category (17) into General: it
+  answers no threads, so it left `THREAD_CATEGORIES` and an old `?cat=17` reads as all categories. The
+  new Events category answered no thread under any id up to 30, so it is not listed until one does. The
+  three adult sub-options (`includeAdultContentInSearch`, `includeAdultContentInQuickSearch`,
+  `displayAdultActivities`) are AniList's own and change nothing Karasu shows, since every search sends
+  `isAdult` from the content filter and the feeds filter locally.
+- **`mutualFollowers` means both ways, and answers signed out.** Measured on 2026-10-25 for user
+  6421433: its eight rows were exactly the intersection of that user's followers and following, so a
+  profile's Mutuals tab is about that profile, not about the viewer, and its total is a real count (8
+  against 8). `FOLLOW_COUNTS_QUERY` carries it as a third `Page` alias, which cannot 404. `DeleteFollower`
+  was validated by sending it signed out: it parses and answers `Unauthorized`, while a misspelt field
+  is refused before that; it has not run against a real account. Removing a follower patches the
+  viewer's own lists after AniList answers (`useRemoveFollower`), never optimistically, since a wrong
+  guess there cannot be put back.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

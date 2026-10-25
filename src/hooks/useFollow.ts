@@ -18,7 +18,7 @@ export function useFollow() {
     });
 
     // Follower, following and search pages are infinite queries, so every loaded page is walked.
-    for (const scope of ["followers", "following", "userSearch"] as const) {
+    for (const scope of ["followers", "following", "mutual", "userSearch"] as const) {
       qc.setQueriesData<InfiniteData<UserPage>>({ queryKey: ["social", scope] }, (old) => {
         if (!old) return old;
         let touched = false;
@@ -86,7 +86,7 @@ function readRelation(
   for (const [, data] of qc.getQueriesData<UserProfile>({ queryKey: ["social", "user"] })) {
     if (data && data.id === userId) return followRelation(data);
   }
-  for (const scope of ["followers", "following", "userSearch"] as const) {
+  for (const scope of ["followers", "following", "mutual", "userSearch"] as const) {
     for (const [, data] of qc.getQueriesData<InfiniteData<UserPage>>({
       queryKey: ["social", scope],
     })) {

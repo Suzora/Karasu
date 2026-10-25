@@ -56,6 +56,9 @@ const SOCIAL_USER = `id name avatar { medium } isFollowing isFollower`;
 export interface AniListUserOptions {
   titleLanguage: string | null;
   displayAdultContent: boolean | null;
+  includeAdultContentInSearch?: boolean | null;
+  includeAdultContentInQuickSearch?: boolean | null;
+  displayAdultActivities?: boolean | null;
   airingNotifications: boolean | null;
   profileColor: string | null;
   timezone: string | null;
@@ -158,6 +161,9 @@ query ($name: String, $id: Int) {
     options {
       titleLanguage
       displayAdultContent
+      includeAdultContentInSearch
+      includeAdultContentInQuickSearch
+      displayAdultActivities
       airingNotifications
       profileColor
       timezone
@@ -200,21 +206,26 @@ export const FOLLOW_COUNTS_QUERY = `
 query ($userId: Int!) {
   followers: Page(perPage: 1) { pageInfo { total } followers(userId: $userId) { id } }
   following: Page(perPage: 1) { pageInfo { total } following(userId: $userId) { id } }
+  mutual: Page(perPage: 1) { pageInfo { total } mutualFollowers(userId: $userId) { id } }
 }`;
 
 export interface FollowCounts {
   followers: number;
   following: number;
+  /** People who follow this user and whom this user follows back. */
+  mutual: number;
 }
 
 export async function followCounts(userId: number): Promise<FollowCounts> {
   const data = await gql<{
     followers: { pageInfo: { total: number } };
     following: { pageInfo: { total: number } };
+    mutual: { pageInfo: { total: number } } | null;
   }>(FOLLOW_COUNTS_QUERY, { userId });
   return {
     followers: data.followers?.pageInfo?.total ?? 0,
     following: data.following?.pageInfo?.total ?? 0,
+    mutual: data.mutual?.pageInfo?.total ?? 0,
   };
 }
 
@@ -237,6 +248,15 @@ query ($userId: Int!, $page: Int) {
   }
 }`;
 
+/** Who follows this user and is followed back, which AniList answers for any profile, signed in or not. */
+export const MUTUAL_FOLLOWERS_QUERY = `
+query ($userId: Int!, $page: Int) {
+  Page(page: $page, perPage: 50) {
+    ${PAGE_INFO}
+    mutualFollowers(userId: $userId, sort: USERNAME) { ${SOCIAL_USER} }
+  }
+}`;
+
 export interface UserPage {
   pageInfo: PageInfo;
   users: SocialUser[];
@@ -256,6 +276,14 @@ export async function following(userId: number, page = 1): Promise<UserPage> {
     { userId, page },
   );
   return { pageInfo: data.Page.pageInfo, users: data.Page.following ?? [] };
+}
+
+export async function mutualFollowers(userId: number, page = 1): Promise<UserPage> {
+  const data = await gql<{ Page: { pageInfo: PageInfo; mutualFollowers: SocialUser[] } }>(
+    MUTUAL_FOLLOWERS_QUERY,
+    { userId, page },
+  );
+  return { pageInfo: data.Page.pageInfo, users: data.Page.mutualFollowers ?? [] };
 }
 
 // --- User search ----------------------------------------------------------
@@ -530,6 +558,12 @@ mutation ($userId: Int!) {
   ToggleFollow(userId: $userId) { id name isFollowing isFollower }
 }`;
 
+/** Ends someone's following of the viewer; AniList answers with the user whose follow was removed. */
+export const DELETE_FOLLOWER_MUTATION = `
+mutation ($userId: Int!) {
+  DeleteFollower(userId: $userId) { id name isFollowing isFollower }
+}`;
+
 /** Likes for anything likeable; `MessageActivity` gets no fragment, so private mail cannot round-trip. */
 export const TOGGLE_LIKE_MUTATION = `
 mutation ($id: Int!, $type: LikeableType!) {
@@ -617,6 +651,11 @@ export async function toggleFollow(userId: number): Promise<ToggleFollowResult> 
     { userId },
   );
   return data.ToggleFollow;
+}
+
+export async function removeFollower(userId: number): Promise<ToggleFollowResult> {
+  const data = await gql<{ DeleteFollower: ToggleFollowResult }>(DELETE_FOLLOWER_MUTATION, { userId });
+  return data.DeleteFollower;
 }
 
 /** Post a status update, a carve-out CLAUDE.md records; answers in the `ACTIVITY_QUERY` shape for the feed. */
@@ -912,6 +951,9 @@ mutation (
   $timezone: String
   $activityMergeTime: Int
   $displayAdultContent: Boolean
+  $includeAdultContentInSearch: Boolean
+  $includeAdultContentInQuickSearch: Boolean
+  $displayAdultActivities: Boolean
   $airingNotifications: Boolean
   $restrictMessagesToFollowing: Boolean
   $notificationOptions: [NotificationOptionInput]
@@ -928,6 +970,9 @@ mutation (
     timezone: $timezone
     activityMergeTime: $activityMergeTime
     displayAdultContent: $displayAdultContent
+    includeAdultContentInSearch: $includeAdultContentInSearch
+    includeAdultContentInQuickSearch: $includeAdultContentInQuickSearch
+    displayAdultActivities: $displayAdultActivities
     airingNotifications: $airingNotifications
     restrictMessagesToFollowing: $restrictMessagesToFollowing
     notificationOptions: $notificationOptions
@@ -939,6 +984,7 @@ mutation (
     donatorBadge
     options {
       titleLanguage displayAdultContent airingNotifications profileColor
+      includeAdultContentInSearch includeAdultContentInQuickSearch displayAdultActivities
       timezone activityMergeTime staffNameLanguage restrictMessagesToFollowing
       notificationOptions { type enabled }
       disabledListActivity { disabled type }
@@ -1049,7 +1095,7 @@ export async function updateListOptions(type: "ANIME" | "MANGA", write: ListOpti
 
 // --- Forum index ----------------------------------------------------------
 
-/** AniList's forum categories, hardcoded because no root query lists them; a new one still shows under "All". */
+/** AniList's forum categories, hardcoded because no root query lists them; Misc went into General (CLAUDE.md). */
 export const THREAD_CATEGORIES: { id: number; name: string }[] = [
   { id: 1, name: "Anime" },
   { id: 2, name: "Manga" },
@@ -1066,7 +1112,6 @@ export const THREAD_CATEGORIES: { id: number; name: string }[] = [
   { id: 14, name: "List Customisation" },
   { id: 15, name: "Recommendations" },
   { id: 16, name: "Forum Games" },
-  { id: 17, name: "Misc" },
   { id: 18, name: "AniList Apps" },
 ];
 

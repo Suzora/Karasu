@@ -527,7 +527,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     return { Page: { media: franchise().filter((m) => ids.has(m.id)) } };
   }
   if (/followers:\s*Page/.test(q))
-    return { followers: { pageInfo: { total: 12 }, followers: [] }, following: { pageInfo: { total: 30 }, following: [] } };
+    return { followers: { pageInfo: { total: 12 }, followers: [] }, following: { pageInfo: { total: 30 }, following: [] }, mutual: { pageInfo: { total: 5 }, mutualFollowers: [] } };
   const pageOf = (rows: Record<string, unknown>) => ({ Page: { pageInfo: { hasNextPage: true, total: 5000, currentPage: 1, lastPage: 200 }, ...rows } });
   if (/activityReplies\s*\(/.test(q)) return pageOf({ activityReplies: REPLIES });
   if (/\bActivity\s*\(\s*id/.test(q)) return { Activity: ACTIVITIES.find((a) => a.id === Number(variables?.id)) ?? ACTIVITIES[1] };
@@ -557,7 +557,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
     return pageOf(/characters\(/.test(q) ? { characters: rows } : { staff: rows });
   }
   if (/\bPage\b/.test(q)) {
-    const page = { media: mock === "no-banner" ? [unbanneredMedia(), { ...media(0, false), bannerImage: null }, ...Array.from({ length: 6 }, (_, i) => media(i + 1, false))] : Array.from({ length: 8 }, (_, i) => media(i, false)), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
+    const page = { media: mock === "no-banner" ? [unbanneredMedia(), { ...media(0, false), bannerImage: null }, ...Array.from({ length: 6 }, (_, i) => media(i + 1, false))] : Array.from({ length: 8 }, (_, i) => media(i, false)), recommendations: [], users: PEOPLE, followers: PEOPLE, following: PEOPLE, mutualFollowers: PEOPLE.slice(0, 5), activities: [], threads: [], notifications: [], airingSchedules: [], characters: [], staff: [] };
     return { Page: { pageInfo: { hasNextPage: false, total: 8, currentPage: 1, lastPage: 1 }, ...page } };
   }
   if (/\bViewer\b/.test(q)) return { Viewer: { ...viewer, unreadNotificationCount: 3 } };

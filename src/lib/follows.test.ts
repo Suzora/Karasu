@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  afterRemoval,
   followRelation,
   isFollowing,
   isSelf,
   nextRelation,
   relationBadgeKey,
   relationFlags,
+  withoutUser,
   type FollowRelation,
 } from "./follows";
 
@@ -98,5 +100,29 @@ describe("isSelf", () => {
     // Keep the `!= null` check rather than truthiness; a truthy test breaks the day an id is 0.
     expect(isSelf(0, 0)).toBe(true);
     expect(isSelf(0, 1)).toBe(false);
+  });
+});
+
+describe("removing a follower", () => {
+  it("takes away only their half of the relation", () => {
+    expect(afterRemoval("mutual")).toBe("following");
+    expect(afterRemoval("followsYou")).toBe("none");
+    expect(afterRemoval("following")).toBe("following");
+    expect(afterRemoval("none")).toBe("none");
+  });
+
+  it("drops the user from every loaded page and counts them out of the total", () => {
+    const page = (ids: number[]) => ({
+      pageInfo: { total: 3, currentPage: 1, lastPage: 2, hasNextPage: true, perPage: 2 },
+      users: ids.map((id) => ({ id })),
+    });
+    const after = withoutUser([page([1, 2]), page([3])], 2);
+    expect(after.map((p) => p.users.map((u) => u.id))).toEqual([[1], [3]]);
+    expect(after.map((p) => p.pageInfo.total)).toEqual([2, 2]);
+  });
+
+  it("leaves the pages alone when the user is not on them", () => {
+    const pages = [{ pageInfo: { total: 1 }, users: [{ id: 1 }] }];
+    expect(withoutUser(pages, 9)).toBe(pages);
   });
 });

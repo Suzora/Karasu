@@ -2,12 +2,14 @@ import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Activity, Ban, BookOpen, Building2, GitCompare, Heart, Library, MessagesSquare, Pencil, UserCheck, Users } from "lucide-react";
+import { Activity, ArrowLeftRight, Ban, BookOpen, Building2, GitCompare, Heart, Library, MessagesSquare, Pencil, UserCheck, Users } from "lucide-react";
 import {
   followCounts,
   followers,
   following,
+  mutualFollowers,
   userProfile,
+  type SocialUser,
   type UserProfile as UserProfileData,
 } from "@/api/social";
 import { isTauri } from "@/api/anilist";
@@ -34,6 +36,8 @@ import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
 import { isBlocked } from "@/lib/contentFilter";
 import { isSelf } from "@/lib/follows";
+import ConfirmDialog from "@/components/overlays/ConfirmDialog";
+import { useRemoveFollower } from "@/hooks/useRemoveFollower";
 import { cn } from "@/lib/utils";
 import { CoverCell } from "@/components/media/CoverCell";
 import { TitleLockup } from "@/components/media/TitleLockup";
@@ -152,7 +156,7 @@ export default function UserProfile() {
   );
 }
 
-const TABS = ["overview", "lists", "compare", "activity", "followers", "following", "forum"] as const;
+const TABS = ["overview", "lists", "compare", "activity", "followers", "following", "mutual", "forum"] as const;
 type Tab = (typeof TABS)[number];
 /** One glyph per section, so the column is scannable without reading. */
 const TAB_ICON: Record<Tab, typeof Heart> = {
@@ -162,6 +166,7 @@ const TAB_ICON: Record<Tab, typeof Heart> = {
   activity: Activity,
   followers: Users,
   following: UserCheck,
+  mutual: ArrowLeftRight,
   forum: MessagesSquare,
 };
 
@@ -197,6 +202,7 @@ function Tabbed({ user }: { user: UserProfileData }) {
     activity: undefined,
     followers: counts.data?.followers,
     following: counts.data?.following,
+    mutual: counts.data?.mutual,
     // Threads are capped at 5000 like everything else paginated here.
     forum: undefined,
   };
@@ -214,7 +220,9 @@ function Tabbed({ user }: { user: UserProfileData }) {
               ? t("social.followers")
               : id === "following"
                 ? t("social.tabFollowing")
-                : t("social.tabForum");
+                : id === "mutual"
+                  ? t("social.tabMutual")
+                  : t("social.tabForum");
   const items: SectionItem<Tab>[] = tabs.map((id) => ({ value: id, label: tabLabel(id), icon: TAB_ICON[id], count: tabCount[id] }));
   // `replace` so a tab flick does not fill the back stack with steps to walk out of.
   const choose = (id: Tab) => {
@@ -239,17 +247,20 @@ function Tabbed({ user }: { user: UserProfileData }) {
         />
       )}
       {tab === "followers" && (
-        <UserList
-          queryKey={["social", "followers", user.id]}
-          fetchPage={(page) => followers(user.id, page)}
-          emptyTitle={self ? t("social.noFollowersSelf") : t("social.noFollowers", { name: user.name })}
-        />
+        <Followers user={user} self={self} />
       )}
       {tab === "following" && (
         <UserList
           queryKey={["social", "following", user.id]}
           fetchPage={(page) => following(user.id, page)}
           emptyTitle={self ? t("social.noFollowingSelf") : t("social.noFollowing", { name: user.name })}
+        />
+      )}
+      {tab === "mutual" && (
+        <UserList
+          queryKey={["social", "mutual", user.id]}
+          fetchPage={(page) => mutualFollowers(user.id, page)}
+          emptyTitle={self ? t("social.noMutualSelf") : t("social.noMutual", { name: user.name })}
         />
       )}
       {tab === "forum" && <UserThreads userId={user.id} name={user.name} self={self} />}
@@ -269,6 +280,39 @@ function Tabbed({ user }: { user: UserProfileData }) {
     <ColumnPage scroll="page" columnClassName="pt-4" contentClassName="pt-4" column={<SectionNav label={t("social.profileTabs")} items={items} value={tab} onChange={choose} />}>
       {panel}
     </ColumnPage>
+  );
+}
+
+/** The follower list, which on the viewer's own profile can also remove someone, after asking. */
+function Followers({ user, self }: { user: UserProfileData; self: boolean }) {
+  const { t } = useTranslation();
+  const remove = useRemoveFollower();
+  const [asking, setAsking] = useState<SocialUser | null>(null);
+  return (
+    <>
+      <UserList
+        queryKey={["social", "followers", user.id]}
+        fetchPage={(page) => followers(user.id, page)}
+        emptyTitle={self ? t("social.noFollowersSelf") : t("social.noFollowers", { name: user.name })}
+        onRemove={self ? setAsking : undefined}
+      />
+      <PresenceIf when={asking !== null}>
+        {(leaving) => (
+          <ConfirmDialog
+            leaving={leaving}
+            title={t("social.removeFollowerTitle")}
+            names={asking ? [asking.name] : []}
+            note={t("social.removeFollowerNote")}
+            confirmLabel={t("social.removeFollowerShort")}
+            onConfirm={() => {
+              if (asking) remove.mutate({ userId: asking.id, name: asking.name });
+              setAsking(null);
+            }}
+            onCancel={() => setAsking(null)}
+          />
+        )}
+      </PresenceIf>
+    </>
   );
 }
 
