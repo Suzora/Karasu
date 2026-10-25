@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useInfiniteQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@/api/anilist";
-import type { UserPage } from "@/api/social";
+import type { SocialUser, UserPage } from "@/api/social";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, PerchRule } from "@/components/EmptyState";
 import { Busy, Shimmer } from "@/components/Skeleton";
@@ -22,6 +22,7 @@ export function UserList({
   staleTime = 30 * 60 * 1000,
   enabled = true,
   countRemaining = true,
+  onRemove,
 }: {
   queryKey: QueryKey;
   fetchPage: (page: number) => Promise<UserPage>;
@@ -33,6 +34,8 @@ export function UserList({
   enabled?: boolean;
   /** Whether `pageInfo.total` is a real count; false for user search, where it is a capped sentinel. */
   countRemaining?: boolean;
+  /** Offers each row's removal from the viewer's followers; only the viewer's own follower list passes it. */
+  onRemove?: (user: SocialUser) => void;
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -130,7 +133,7 @@ export function UserList({
           // Cycles so a late row never waits, and is zero under reduced motion rather than a staggered wait.
           style={{ animationDelay: `${staggerDelay(i)}ms` }}
         >
-          <UserRow user={u} />
+          <UserRow user={u} onRemove={onRemove ? () => onRemove(u) : undefined} />
         </div>
       ))}
 

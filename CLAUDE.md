@@ -2045,6 +2045,14 @@ async update the real code makes after an await warns instead.
   three adult sub-options (`includeAdultContentInSearch`, `includeAdultContentInQuickSearch`,
   `displayAdultActivities`) are AniList's own and change nothing Karasu shows, since every search sends
   `isAdult` from the content filter and the feeds filter locally.
+- **`mutualFollowers` means both ways, and answers signed out.** Measured on 2026-10-25 for user
+  6421433: its eight rows were exactly the intersection of that user's followers and following, so a
+  profile's Mutuals tab is about that profile, not about the viewer, and its total is a real count (8
+  against 8). `FOLLOW_COUNTS_QUERY` carries it as a third `Page` alias, which cannot 404. `DeleteFollower`
+  was validated by sending it signed out: it parses and answers `Unauthorized`, while a misspelt field
+  is refused before that; it has not run against a real account. Removing a follower patches the
+  viewer's own lists after AniList answers (`useRemoveFollower`), never optimistically, since a wrong
+  guess there cannot be put back.
 - **User id 153164 in `scripts/anilist-query.mjs`'s examples is a stranger's
   public account, not the maintainer's.** Kyusetzu is **6421433**. A plan
   built on the wrong one reads someone else's list and then "finds" bugs in

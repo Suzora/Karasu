@@ -220,6 +220,14 @@ export const SCREENS = [
   { id: "p79-stat-genres-reich", w: 405, h: 2400, phone: true, route: "/stats?tab=genresTags", mock: "stats-rich" },
   { id: "d109-adult-optionen", w: 1232, h: 1100, route: "/settings?pane=account", act: toCard("Kontoeinstellungen") },
   { id: "p80-adult-optionen", w: 405, h: 1400, phone: true, route: "/settings?pane=account", act: toCard("Kontoeinstellungen") },
+  { id: "d110-follower-selbst", w: 1232, h: 900, route: "/user/Kyusetzu?tab=followers" },
+  { id: "d111-gegenseitig", w: 1232, h: 900, route: "/user/Mikan?tab=mutual" },
+  { id: "d112-follower-entfernen", w: 1232, h: 900, route: "/user/Kyusetzu?tab=followers", act: async (p) => {
+    await p.locator('[aria-label$="aus deinen Followern entfernen"]').first().click();
+    await p.waitForTimeout(400);
+  } },
+  { id: "p81-follower-selbst", w: 405, h: 1100, phone: true, route: "/user/Kyusetzu?tab=followers" },
+  { id: "p82-gegenseitig", w: 405, h: 1100, phone: true, route: "/user/Mikan?tab=mutual" },
   { id: "p36-statistik", w: 405, h: 2400, phone: true, route: "/stats" },
   { id: "p37-wrapped", w: 405, h: 2400, phone: true, route: "/wrapped" },
   { id: "d39-jellyfin", w: 1232, h: 1100, route: "/settings?pane=detection", act: toCard("Jellyfin-Server") },

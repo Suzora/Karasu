@@ -1224,3 +1224,15 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   the tag treemap and the formats card went, since the ranked lists and the
   sunburst's outer ring carry the same numbers. The key figures are one
   compact tile row, four across, eight on a wide window.
+- **2026-10-25:** A profile names its mutuals and the viewer can remove a
+  follower, both from AniList's change of that day. Three mockups each (A, a
+  Mutuals tab in the column with its count beside Followers and Following
+  and a quiet person-with-a-cross button on each of the viewer's own
+  followers; B, an All · Mutual switch over the follower list and the removal
+  behind a "…" menu; C, a strip of mutual faces over the follower list and a
+  text button). A was picked by the agent while the maintainer slept, and
+  stays open to the maintainer's change: the tab keeps the column's one pattern, its
+  count rides on the request that already counts the followers, and C's
+  strip would have cost the follower tab a second request. Removal always
+  asks first, names the person and offers no Undo, since only they can
+  follow again.

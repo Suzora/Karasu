@@ -30,6 +30,26 @@ export function nextRelation(relation: FollowRelation): FollowRelation {
   }
 }
 
+/** The relation after `DeleteFollower`: only their half goes, since removing a follower never unfollows them. */
+export function afterRemoval(relation: FollowRelation): FollowRelation {
+  if (relation === "mutual") return "following";
+  if (relation === "followsYou") return "none";
+  return relation;
+}
+
+/** Loaded pages without one user, each total one lower so "Load more" still counts what is left. */
+export function withoutUser<P extends { pageInfo: { total?: number | null }; users: { id: number }[] }>(
+  pages: P[],
+  userId: number,
+): P[] {
+  if (!pages.some((p) => p.users.some((u) => u.id === userId))) return pages;
+  return pages.map((p) => ({
+    ...p,
+    pageInfo: { ...p.pageInfo, total: p.pageInfo.total == null ? p.pageInfo.total : Math.max(0, p.pageInfo.total - 1) },
+    users: p.users.filter((u) => u.id !== userId),
+  }));
+}
+
 /** The flags implied by a relation, for patching a cached user in place. */
 export function relationFlags(relation: FollowRelation): {
   isFollowing: boolean;

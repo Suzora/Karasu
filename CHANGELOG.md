@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: effa324 -->
+<!-- generated-through: ba6212b -->
 
 ### Added
 
@@ -82,6 +82,7 @@ tag time is then optional rather than load-bearing.
 - After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
 - Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.
 - The AniList account settings offer AniList's three new adult options (search, quick search, others' activities), scores follow AniList's new weighted score, and the forum no longer lists the retired Misc category.
+- Profiles show their mutual follows in a tab of their own, and you can remove someone from your followers on your own profile.
 
 ### Security
 

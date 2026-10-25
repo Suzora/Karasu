@@ -206,21 +206,26 @@ export const FOLLOW_COUNTS_QUERY = `
 query ($userId: Int!) {
   followers: Page(perPage: 1) { pageInfo { total } followers(userId: $userId) { id } }
   following: Page(perPage: 1) { pageInfo { total } following(userId: $userId) { id } }
+  mutual: Page(perPage: 1) { pageInfo { total } mutualFollowers(userId: $userId) { id } }
 }`;
 
 export interface FollowCounts {
   followers: number;
   following: number;
+  /** People who follow this user and whom this user follows back. */
+  mutual: number;
 }
 
 export async function followCounts(userId: number): Promise<FollowCounts> {
   const data = await gql<{
     followers: { pageInfo: { total: number } };
     following: { pageInfo: { total: number } };
+    mutual: { pageInfo: { total: number } } | null;
   }>(FOLLOW_COUNTS_QUERY, { userId });
   return {
     followers: data.followers?.pageInfo?.total ?? 0,
     following: data.following?.pageInfo?.total ?? 0,
+    mutual: data.mutual?.pageInfo?.total ?? 0,
   };
 }
 
@@ -243,6 +248,15 @@ query ($userId: Int!, $page: Int) {
   }
 }`;
 
+/** Who follows this user and is followed back, which AniList answers for any profile, signed in or not. */
+export const MUTUAL_FOLLOWERS_QUERY = `
+query ($userId: Int!, $page: Int) {
+  Page(page: $page, perPage: 50) {
+    ${PAGE_INFO}
+    mutualFollowers(userId: $userId, sort: USERNAME) { ${SOCIAL_USER} }
+  }
+}`;
+
 export interface UserPage {
   pageInfo: PageInfo;
   users: SocialUser[];
@@ -262,6 +276,14 @@ export async function following(userId: number, page = 1): Promise<UserPage> {
     { userId, page },
   );
   return { pageInfo: data.Page.pageInfo, users: data.Page.following ?? [] };
+}
+
+export async function mutualFollowers(userId: number, page = 1): Promise<UserPage> {
+  const data = await gql<{ Page: { pageInfo: PageInfo; mutualFollowers: SocialUser[] } }>(
+    MUTUAL_FOLLOWERS_QUERY,
+    { userId, page },
+  );
+  return { pageInfo: data.Page.pageInfo, users: data.Page.mutualFollowers ?? [] };
 }
 
 // --- User search ----------------------------------------------------------
@@ -536,6 +558,12 @@ mutation ($userId: Int!) {
   ToggleFollow(userId: $userId) { id name isFollowing isFollower }
 }`;
 
+/** Ends someone's following of the viewer; AniList answers with the user whose follow was removed. */
+export const DELETE_FOLLOWER_MUTATION = `
+mutation ($userId: Int!) {
+  DeleteFollower(userId: $userId) { id name isFollowing isFollower }
+}`;
+
 /** Likes for anything likeable; `MessageActivity` gets no fragment, so private mail cannot round-trip. */
 export const TOGGLE_LIKE_MUTATION = `
 mutation ($id: Int!, $type: LikeableType!) {
@@ -623,6 +651,11 @@ export async function toggleFollow(userId: number): Promise<ToggleFollowResult> 
     { userId },
   );
   return data.ToggleFollow;
+}
+
+export async function removeFollower(userId: number): Promise<ToggleFollowResult> {
+  const data = await gql<{ DeleteFollower: ToggleFollowResult }>(DELETE_FOLLOWER_MUTATION, { userId });
+  return data.DeleteFollower;
 }
 
 /** Post a status update, a carve-out CLAUDE.md records; answers in the `ACTIVITY_QUERY` shape for the feed. */
