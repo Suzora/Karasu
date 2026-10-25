@@ -212,6 +212,12 @@ describe("Forum categories", () => {
     expect(screen.getByRole("button", { name: "Anime" })).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("reads a retired category in an old link as all of them", () => {
+    renderWithProviders(<Harness />, { route: "/forum?cat=17" });
+    expect(screen.queryByRole("button", { name: "Misc" })).toBeNull();
+    expect(screen.getByRole("button", { name: "forum.categoryAll" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("keeps the categories to the browse lens", async () => {
     const user = userEvent.setup({ delay: null });
     renderWithProviders(<Harness />, { route: "/forum" });

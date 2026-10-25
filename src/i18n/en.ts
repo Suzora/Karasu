@@ -1330,7 +1330,7 @@ export const en = {
     novelist: "Novelist",
   },
   media: {
-    communityAverage: "AniList average",
+    communityAverage: "AniList weighted score",
     addDefault: "Add to your list",
   },
   social: {
@@ -1608,6 +1608,10 @@ export const en = {
     alMergeTimeHint: "Minutes. Consecutive list updates collapse into one post.",
     alAdult: "Show adult content",
     alAdultHint: "Whether AniList serves you explicit titles at all.",
+    alAdultSearch: "Include adult titles in search on AniList",
+    alAdultQuickSearch: "Include adult titles in AniList’s quick search",
+    alAdultActivities: "Show others’ activities on adult titles",
+    alAdultActivitiesHint: "AniList applies this on its own site; Karasu’s content filter decides what Karasu’s feeds show.",
     alAiring: "Airing notifications",
     alAiringHint: "AniList’s own notification when an episode airs.",
     alRestrictMessages: "Only let people I follow message me",

@@ -228,6 +228,27 @@ export function AniListProfileSection() {
                 label={t("settings.alAdult")}
                 hint={t("settings.alAdultHint")}
               />
+              <div className="ml-1 mt-2 flex flex-col gap-2 border-l-2 border-hair pl-3">
+                <Toggle
+                  checked={options.includeAdultContentInSearch === true}
+                  disabled={save.isPending || options.displayAdultContent !== true}
+                  onChange={(v) => save.mutate({ includeAdultContentInSearch: v })}
+                  label={t("settings.alAdultSearch")}
+                />
+                <Toggle
+                  checked={options.includeAdultContentInQuickSearch === true}
+                  disabled={save.isPending || options.displayAdultContent !== true}
+                  onChange={(v) => save.mutate({ includeAdultContentInQuickSearch: v })}
+                  label={t("settings.alAdultQuickSearch")}
+                />
+                <Toggle
+                  checked={options.displayAdultActivities === true}
+                  disabled={save.isPending || options.displayAdultContent !== true}
+                  onChange={(v) => save.mutate({ displayAdultActivities: v })}
+                  label={t("settings.alAdultActivities")}
+                  hint={t("settings.alAdultActivitiesHint")}
+                />
+              </div>
               <OverrideNote field="displayAdultContent" />
             </div>
 

@@ -34,7 +34,7 @@ const MEDIA_FIELDS = `
   status
   season
   seasonYear
-  averageScore
+  averageScore: weightedScore
   genres
   synonyms
   isAdult
@@ -208,7 +208,7 @@ query ($season: MediaSeason!, $year: Int!, $isAdult: Boolean) {
       status
       episodes
       nextAiringEpisode { episode }
-      averageScore
+      averageScore: weightedScore
       genres
       isAdult
     }
@@ -980,7 +980,7 @@ query ($idMal: [Int], $type: MediaType!, $page: Int) {
       status
       season
       seasonYear
-      averageScore
+      averageScore: weightedScore
       genres
       synonyms
       isAdult

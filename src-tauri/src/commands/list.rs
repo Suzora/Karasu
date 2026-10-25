@@ -51,7 +51,7 @@ query ($userId: Int!, $type: MediaType!, $scoreFormat: ScoreFormat, $withAdvance
           status
           season
           seasonYear
-          averageScore
+          averageScore: weightedScore
           genres
           synonyms
           isAdult

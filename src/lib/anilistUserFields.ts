@@ -115,6 +115,9 @@ export interface UserSettingsForm {
   timezone?: string;
   activityMergeTime?: number;
   displayAdultContent?: boolean;
+  includeAdultContentInSearch?: boolean;
+  includeAdultContentInQuickSearch?: boolean;
+  displayAdultActivities?: boolean;
   airingNotifications?: boolean;
   restrictMessagesToFollowing?: boolean;
   notificationOptions?: { type: NotificationTypeName; enabled: boolean }[];
@@ -141,6 +144,9 @@ export function formToUpdateUserVars(
   put("timezone");
   put("activityMergeTime");
   put("displayAdultContent");
+  put("includeAdultContentInSearch");
+  put("includeAdultContentInQuickSearch");
+  put("displayAdultActivities");
   put("airingNotifications");
   put("restrictMessagesToFollowing");
   put("notificationOptions");

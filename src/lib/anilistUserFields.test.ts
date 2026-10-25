@@ -208,6 +208,23 @@ describe("mergeListActivity", () => {
   });
 });
 
+describe("the adult sub-options", () => {
+  it("carries AniList's three adult sub-options, and only what was touched", () => {
+    expect(
+      formToUpdateUserVars({
+        includeAdultContentInSearch: false,
+        includeAdultContentInQuickSearch: true,
+        displayAdultActivities: false,
+      }),
+    ).toEqual({
+      includeAdultContentInSearch: false,
+      includeAdultContentInQuickSearch: true,
+      displayAdultActivities: false,
+    });
+    expect(formToUpdateUserVars({ displayAdultActivities: true })).toEqual({ displayAdultActivities: true });
+  });
+});
+
 describe("LOCAL_OVERRIDES", () => {
   it("names exactly the three settings whose effect lands elsewhere", () => {
     // scoreFormat is absent on purpose (the app follows the account's format); airingNotifications is read, not ignored.

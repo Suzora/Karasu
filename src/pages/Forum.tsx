@@ -35,7 +35,8 @@ export default function Forum() {
   const phone = usePhoneShell();
 
   const lens: Lens = isLens(params.get("lens")) ? (params.get("lens") as Lens) : "browse";
-  const categoryId = Number(params.get("cat")) || undefined;
+  const asked = Number(params.get("cat"));
+  const categoryId = THREAD_CATEGORIES.some((c) => c.id === asked) ? asked : undefined;
 
   const [input, setInput] = useState(params.get("q") ?? "");
   const [term, setTerm] = useState(params.get("q") ?? "");

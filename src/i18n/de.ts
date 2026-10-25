@@ -1336,7 +1336,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     novelist: "Autor",
   },
   media: {
-    communityAverage: "AniList-Durchschnitt",
+    communityAverage: "AniList-Score (gewichtet)",
     addDefault: "Zur Liste hinzufügen",
   },
   social: {
@@ -1618,6 +1618,10 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     alMergeTimeHint: "Minuten. Aufeinanderfolgende Listen-Updates werden ein Beitrag.",
     alAdult: "Adult-Inhalte zeigen",
     alAdultHint: "Ob AniList dir explizite Titel überhaupt ausliefert.",
+    alAdultSearch: "Adult-Titel in der Suche auf AniList einschließen",
+    alAdultQuickSearch: "Adult-Titel in AniLists Schnellsuche einschließen",
+    alAdultActivities: "Aktivitäten anderer zu Adult-Titeln zeigen",
+    alAdultActivitiesHint: "AniList wendet das auf der eigenen Seite an; was Karasus Feeds zeigen, entscheidet Karasus Inhaltsfilter.",
     alAiring: "Airing-Benachrichtigungen",
     alAiringHint: "AniLists eigene Benachrichtigung, wenn eine Episode läuft.",
     alRestrictMessages: "Nur Gefolgte dürfen mir schreiben",

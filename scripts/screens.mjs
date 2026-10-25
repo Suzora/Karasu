@@ -218,6 +218,8 @@ export const SCREENS = [
   { id: "p77-stat-bewertungen-reich", w: 405, h: 2200, phone: true, route: "/stats?tab=ratings", mock: "stats-rich" },
   { id: "p78-stat-jahre-reich", w: 405, h: 2600, phone: true, route: "/stats?tab=years", mock: "stats-rich" },
   { id: "p79-stat-genres-reich", w: 405, h: 2400, phone: true, route: "/stats?tab=genresTags", mock: "stats-rich" },
+  { id: "d109-adult-optionen", w: 1232, h: 1100, route: "/settings?pane=account", act: toCard("Kontoeinstellungen") },
+  { id: "p80-adult-optionen", w: 405, h: 1400, phone: true, route: "/settings?pane=account", act: toCard("Kontoeinstellungen") },
   { id: "p36-statistik", w: 405, h: 2400, phone: true, route: "/stats" },
   { id: "p37-wrapped", w: 405, h: 2400, phone: true, route: "/wrapped" },
   { id: "d39-jellyfin", w: 1232, h: 1100, route: "/settings?pane=detection", act: toCard("Jellyfin-Server") },
