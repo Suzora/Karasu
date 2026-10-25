@@ -11,123 +11,64 @@ slices the section between `## <version>` and the next `## `, and *throws* if
 there isn't one — a release published with an empty body is not something
 GitHub complains about, so the script does. So before pushing a `v*` tag:
 
-1. rename `## Unreleased` to `## <version>` (a trailing ` — <date>` is fine,
-   the match only needs the version to come first; brackets around it or a
-   fourth dotted segment break the match and the tag build throws),
-2. open a fresh empty `## Unreleased` above it, carrying a
-   `<!-- generated-through: <sha> -->` marker so the generator knows where to
-   resume,
-3. make sure `package.json` already says the same version — the workflow
-   refuses a tag whose version disagrees with the commit it points at,
-4. and, in the same commit, write F-Droid's
-   `fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt`
-   (at most 500 characters each) and check the section against
-   `git log v<previous>..HEAD` for anything left out; the project skill
-   `.claude/skills/karasu-changelog` has both procedures.
+1. rename `## Unreleased
 
-Commit subjects are the real record and are written to be read; this file is the
-short version, grouped by what it means for someone using the app. The app
-shows its lines as written, once after an update and under About, so each line
-has to make sense on its own.
+<!-- generated-through: 3b59871 -->
 
-**How this file is maintained: by `scripts/changelog.mjs`, not by hand.**
-Keeping two records of the same work in step by hand is the kind of chore that
-gets skipped under pressure, and skipping it silently is worse than not doing
-it — a half-updated changelog reads as complete. So the `Unreleased` section is
-generated from the commits.
+## 1.68.0 — 2026-10-25
 
-    node scripts/changelog.mjs           # bring it up to HEAD
-    node scripts/changelog.mjs --check   # is anything undescribed?
+The third Stable release since 1.0.0 brings everything the Nightly gained in
+the two weeks after 1.44.0. Karasu has a new look: it is calmer, with rounder
+corners and no hairlines. Every page now stands on a column of its own, which
+keeps its sections and filters beside the content. The Overview is rebuilt
+around your lists and this week, and title pages, lists, the season page,
+the calendar, statistics and search are rearranged around the same column.
 
-The `<!-- generated-through: <sha> -->` marker in that section records how far
-it has read; the script only ever appends past that point, so anything already
-written by hand survives and a second run is a no-op. What makes the output
-readable is that commit subjects here are prose, written to be read — a
-conventional-commits parser would have had nothing to work with. A commit that
-deserves a better line than its subject says so in a trailer:
-
-    Changelog: Fixed: A declined update no longer re-downloads every day.
-    Changelog: skip
-
-Version-only commits and changes confined to docs, CI or scripts are left out
-without needing the trailer.
-
-It is kept rather than deleted for two concrete reasons:
-
-1. **`scripts/release/release-notes.ps1` throws without it.** No `## <version>`
-   section, or an empty one, and the tag build fails by design — a release
-   published with an empty body is not something GitHub complains about, so the
-   script does. The file is load-bearing at tag time whether or not it is
-   pleasant to maintain.
-2. **It is not the same artefact as the log.** Four hundred commit subjects
-   ordered by when they happened, several of them internal, is not what someone
-   deciding whether to update wants to read. This is grouped by what changed for
-   *them*.
-
-So the policy is: the section is generated, and the writing that matters
-happens in the commit subject — or in a `Changelog:` trailer when the subject
-is about the change and the reader needs to hear about the effect. Curating at
-tag time is then optional rather than load-bearing.
-
-## Unreleased
-
-<!-- generated-through: 799e81a -->
+Beyond the look: there are new statistics cards, and a Catch up row for
+airing anime you are behind on. Search browses AniList's sections before you
+type, voice actors, characters and studios list everything by year, and your
+own profile is one click away in the titlebar. Karasu now shows what changed
+after an update, and its diagnostics report says far more when something
+goes wrong. AniList's October changes are covered too: the weighted score,
+the new adult options, mutual follows and removing a follower.
 
 ### Added
 
-- Statistics are denser and show more: every title you scored against the community's mean as one chart, where you are harsher or kinder per genre, what you finish per genre, how your genres shifted over the years, the weekdays and months you are active, how fast you finish each format, where your watch time went, and your rewatches. The cards pack at their own height in two columns, three on a wide window, and the radar, the tag map and the separate formats card went, since other cards already show those figures. On the phone, the Years tab no longer scrolls sideways.
-- A voice actor's page lists every role AniList knows under a Roles heading, grouped by the year the title started from the newest down, with undated titles first: the cover with the character's face, the character's name, the format and whether it is a main role, 25 at a time with a Load more button ([#81](https://github.com/Suzora/Karasu/issues/81)).
-- A character's page lists its appearances the same way, with the Japanese voice actor's face on each card, and a studio's page its productions, marking the ones it was the main studio of; both replace the short row of popular titles.
 - The Overview has a Catch up section for airing anime you are behind on: each shows how many episodes have aired since your progress and which one is next, with +1, and leaves once you have caught up ([#79](https://github.com/Suzora/Karasu/issues/79)).
-- After an update, Karasu shows once what changed — on a Nightly only the lines you have not seen yet — and the Changelog button under About opens it any time.
-- Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.
-- The AniList account settings offer AniList's three new adult options (search, quick search, others' activities), scores follow AniList's new weighted score, and the forum no longer lists the retired Misc category.
+- Statistics show more: every title you scored against the community's mean as one chart, where you are harsher or kinder per genre and what you finish per genre, how your genres shifted over the years, the weekdays and months you are active, how fast you finish each format, where your watch time went, and your rewatches. The radar, the tag map and the separate formats card went, since other cards already show those figures.
+- A voice actor's page lists every role AniList knows, grouped by the year the title started, newest first and undated titles at the top, 25 at a time with Load more ([#81](https://github.com/Suzora/Karasu/issues/81)). A character's page lists its appearances the same way, and a studio's page its productions, marking the ones it was the main studio of.
+- Search shows AniList's browse sections while nothing is typed, each with Show all: for anime what is trending, popular this season and next, all-time popular and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited. They replace the four quick lenses, three of which had shown nothing.
+- Your avatar and name in the titlebar open your profile from every screen; the phone's More menu starts with your profile, and the command palette offers "My profile".
 - Profiles show their mutual follows in a tab of their own, and you can remove someone from your followers on your own profile.
-- Your avatar and name in the titlebar open your profile from every screen, the phone's More menu starts with your profile, and the command palette offers "My profile".
-
-### Security
-
-- The certificate checks no longer accept the emSign intermediates whose private keys became public (RUSTSEC-2026-0381, -0382, -0383).
-
-### Fixed
-
-- On the phone, a tap anywhere on the season page no longer opens the entry editor of one title: the status pill's enlarged touch target had grown to the whole page.
-- On Android, the first start after installing no longer closes Karasu a moment after it opens, and an internal error in any action now shows as an error instead of closing the app.
-- On the phone, each page of the Overview fills the screen and scrolls on its own, and your activity on the Overview shows five entries at a time with Load more instead of a box to scroll through.
-- A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.
-- The Year filter in Search finds manga by the year they started, where it found none before.
-- The season page lists every title of the season again, including the movies, TV shorts and OVAs that fell below the 50 most popular ([#76](https://github.com/Suzora/Karasu/issues/76)).
-
-### Fixed
-
-- The What's new popup is only as tall as its text, at most 80 % of the screen, instead of filling the phone's screen.
+- The AniList account settings offer AniList's three new adult options (search, quick search, others' activities).
+- After an update, Karasu shows once what changed (on a Nightly only the lines you have not seen yet), and the Changelog button under About opens it any time.
 
 ### Changed
 
-- Karasu has a calmer look: surfaces without hairlines or frames, labels in normal case instead of capitals, the current page marked by a pill, and rounder corners; high contrast outlines every surface instead.
-- The Overview is rebuilt: a greeting with search and the next 48 hours over the season's art, your lists as shelves, one row to continue watching and reading, this week as a timetable, and a column with what is playing, your statistics, your own activity and today's birthdays.
-- On the phone, the Overview's statistics and your activity are one swipe to the right, with dots above the bottom bar to show and switch the page.
-- A title's page is rearranged: on the desktop a column beside the content keeps the cover, your progress and the facts in view; on the phone the cover and title sit in a tall banner, followed by your progress and the sections in a new order, with "View franchise" by the description.
-- The anime and manga lists show their statuses as a column beside the covers, with your custom lists beneath, and on the phone as a field above them.
-- The season page lets you pick the year and season from a column beside the titles, filter by format or hide what is already on your list, and shows each title as a card with its genres and a countdown to the next episode.
-- The calendar keeps the week, what to show and how to show it in a column beside the schedule, and its week, tiles and agenda views show each episode on a card with its cover.
-- Statistics keeps Anime/Manga, its sections and Wrapped in a column beside the charts, and shows its key figures as cards.
-- Search keeps its scopes and every filter in a column beside the results, and on the phone opens them from a field and a filter button.
-- Titles sit under their covers again, in the lists, search, the calendar's tiles and Continue on the Overview.
-- A profile lists its sections in a column under the header instead of a row of tabs.
-- Covers are the same size on every screen, set by Covers per row, and a narrow cover keeps its add button clear of the score.
-- Activity lets you switch between the people you follow, everyone and your own posts, and filter by status updates, anime or manga entries; the forum lists its categories in a column.
-- Notifications can be filtered by kind, the local library keeps its folder and section shortcuts in a column, and character and staff pages show their facts in a card beside the roles.
-- Settings match the other pages, with the pane's name and summary above its options.
-- Wrapped keeps Save, the period and the export choices in a column beside the poster.
-- Every page with a column now has the same width and the same title with its Japanese line under it, and the page's one action beside it; high contrast outlines every card, the AniList average no longer looks like your own score, the season filters are switches, and Wrapped on the phone shows the poster straight away.
-- The calendar's week now starts today, the statistics show the status split once, the episode button reads "+1" so it can't be mistaken for adding a title, progress under every cover looks the same, staff roles and languages appear in your language, spoilers in quotes look as they do in the feed, pages load with placeholders instead of a spinner, and the Wrapped poster keeps its colours in the light theme.
-- The left columns space their groups the same way on every page, with a dividing line only before links that leave the page.
-- The diagnostics report starts with a summary of this run's problems, the AniList budget, the sync queue and what detection is doing, folds the details into sections, and keeps every warning and error even with verbose logging on.
+- Karasu has a calmer look: surfaces without hairlines or frames, labels in normal case instead of capitals, the current page marked by a pill, and rounder corners. High contrast outlines every surface and card instead.
+- Every page with sections or filters keeps them in a column beside the content, with the same width, the same title and the page's one action beside it; on the phone they open from a field above the content. The anime and manga lists show their statuses there with your custom lists beneath, and Search, Statistics, Activity, the forum, notifications, the local library, profiles, Settings and Wrapped keep theirs there too.
+- The season page lets you pick the year and season from its column, filter by format or hide what is already on your list, and shows each title as a card with its genres and a countdown to the next episode.
+- The calendar's week now starts today, and its week, tiles and agenda views show each episode on a card with its cover.
+- The Overview is rebuilt: a greeting with search and the next 48 hours over the season's art, your lists as shelves, one row to continue watching and reading, this week as a timetable, and a column with what is playing, your statistics, your own activity and today's birthdays. On the phone, the statistics and your activity are one swipe to the right, each page scrolls on its own, and your activity shows five entries at a time with Load more.
+- A title's page is rearranged. On the desktop, a column beside the content keeps the cover, your progress and the facts in view. On the phone, the cover and title sit in a tall banner, followed by your progress.
+- Covers are the same size on every screen, set by Covers per row, titles sit under their covers again, and progress under every cover looks the same.
+- Activity lets you switch between the people you follow, everyone and your own posts, and filter by status updates, anime or manga entries.
+- The episode button reads "+1" so it can't be mistaken for adding a title, the AniList average no longer looks like your own score and follows AniList's new weighted score, staff roles and languages appear in your language, and pages load with placeholders instead of a spinner.
+- The forum no longer lists AniList's retired Misc category.
+- The diagnostics report starts with a summary of this run's problems, the AniList budget, the sync queue and what detection is doing. It folds the details into sections, and keeps every warning and error even with verbose logging on.
+
+### Fixed
+
+- On Android, the first start after installing no longer closes Karasu a moment after it opens, and an internal error in any action now shows as an error instead of closing the app.
+- On the phone, a tap anywhere on the season page no longer opens one title's entry editor.
+- The season page lists every title of the season again, including the movies, TV shorts and OVAs below the 50 most popular ([#76](https://github.com/Suzora/Karasu/issues/76)).
+- A title you removed while offline drops out of Karasu's copy of your list once the removal reaches AniList, so the list no longer brings it back and tracking no longer re-adds it.
+- The Year filter in Search finds manga by the year they started, where it found none before.
+- On the phone, the statistics' Years tab no longer scrolls sideways, and the Wrapped poster shows straight away and keeps its colours in the light theme.
 
 ### Security
 
-- Two security advisories in bundled libraries are resolved: the TLS library is updated, and an unused archive library is no longer included.
+- The certificate checks no longer accept the emSign intermediates whose private keys became public (RUSTSEC-2026-0381, -0382, -0383), the TLS library is updated, and an unused archive library is no longer included.
 
 ## 1.44.0 — 2026-10-12
 
