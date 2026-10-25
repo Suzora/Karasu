@@ -3,11 +3,13 @@
 use std::collections::VecDeque;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 /// How many entries the viewer can see; bounded so a long uptime cannot grow the process.
 pub const RING_CAPACITY: usize = 1000;
+/// How many warnings and errors the report keeps apart from the ring, which debug lines can flush.
+pub const PROBLEM_CAPACITY: usize = 100;
 /// Roll over past this size, keeping one previous file, so the worst case on disk is bounded.
 const ROTATE_BYTES: u64 = 1024 * 1024;
 const LOG_FILE: &str = "karasu.log";
@@ -51,6 +53,50 @@ pub struct LogEntry {
     pub level: Level,
     pub target: String,
     pub message: String,
+}
+
+/// Warnings and errors only, so a verbose session cannot push the one line a report needs out of reach.
+fn problem_ring() -> &'static Mutex<VecDeque<LogEntry>> {
+    static RING: OnceLock<Mutex<VecDeque<LogEntry>>> = OnceLock::new();
+    RING.get_or_init(|| Mutex::new(VecDeque::with_capacity(PROBLEM_CAPACITY)))
+}
+
+static ERRORS: AtomicU32 = AtomicU32::new(0);
+static WARNINGS: AtomicU32 = AtomicU32::new(0);
+static PANICS: AtomicU32 = AtomicU32::new(0);
+static RESTARTS: AtomicU32 = AtomicU32::new(0);
+
+/// How this run has gone so far, counted from the start rather than read off a ring that forgets.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct RunCounts {
+    pub errors: u32,
+    pub warnings: u32,
+    pub panics: u32,
+    /// Background loops put back by `supervise` after a panic.
+    pub restarts: u32,
+}
+
+pub fn run_counts() -> RunCounts {
+    RunCounts {
+        errors: ERRORS.load(Ordering::Relaxed),
+        warnings: WARNINGS.load(Ordering::Relaxed),
+        panics: PANICS.load(Ordering::Relaxed),
+        restarts: RESTARTS.load(Ordering::Relaxed),
+    }
+}
+
+/// The kept warnings and errors, oldest first.
+pub fn problem_entries() -> Vec<LogEntry> {
+    guard(problem_ring()).iter().cloned().collect()
+}
+
+/// When the process started, set by the panic hook since that is the first thing `run()` does.
+static STARTED: OnceLock<std::time::Instant> = OnceLock::new();
+
+/// How long this process has run.
+pub fn uptime() -> std::time::Duration {
+    STARTED.get_or_init(std::time::Instant::now).elapsed()
 }
 
 fn ring() -> &'static Mutex<VecDeque<LogEntry>> {
@@ -247,6 +293,15 @@ pub fn log(level: Level, target: &str, message: impl AsRef<str>) {
         }
         ring.push_back(entry.clone());
     }
+    if level <= Level::Warn {
+        let counter = if level == Level::Error { &ERRORS } else { &WARNINGS };
+        counter.fetch_add(1, Ordering::Relaxed);
+        let mut problems = guard(problem_ring());
+        if problems.len() == PROBLEM_CAPACITY {
+            problems.pop_front();
+        }
+        problems.push_back(entry.clone());
+    }
     let path = guard(sink()).clone();
     if let Some(path) = path {
         write_lines(&path, &[render(&entry)]);
@@ -330,6 +385,7 @@ where
                 }
                 Err(e) => {
                     restarts += 1;
+                    RESTARTS.fetch_add(1, Ordering::Relaxed);
                     let Some(wait) = restart_plan(restarts) else {
                         error(
                             name,
@@ -356,6 +412,7 @@ where
 
 /// Installs the panic hook, first thing in `run()`; it chains to the previous hook so a debug run still prints.
 pub fn install_panic_hook() {
+    STARTED.get_or_init(std::time::Instant::now);
     let previous = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
         let location = info
@@ -373,6 +430,7 @@ pub fn install_panic_hook() {
             .name()
             .unwrap_or("unnamed")
             .to_string();
+        PANICS.fetch_add(1, Ordering::Relaxed);
         error("panic", format!("[{thread}] {payload} ({location})"));
         previous(info);
     }));
@@ -388,6 +446,23 @@ mod tests {
     /// An assertion failure in one locked test must not poison the rest.
     fn serialize() -> std::sync::MutexGuard<'static, ()> {
         GLOBAL_LOG_STATE.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// A verbose session floods the viewer's ring; the warning a report needs must survive it and be counted.
+    #[test]
+    fn a_warning_outlives_a_flood_of_debug_lines() {
+        let _g = serialize();
+        set_debug(true);
+        let before = run_counts();
+        warn("probe", "the one line a report needs");
+        for i in 0..(RING_CAPACITY + 10) {
+            debug("flood", format!("line {i}"));
+        }
+        set_debug(false);
+        assert!(!entries(RING_CAPACITY).iter().any(|e| e.target == "probe"));
+        assert!(problem_entries().iter().any(|e| e.target == "probe" && e.level == Level::Warn));
+        assert_eq!(run_counts().warnings, before.warnings + 1);
+        assert_eq!(run_counts().errors, before.errors);
     }
 
     #[test]

@@ -521,7 +521,6 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::get_sequel_notify,
             commands::set_sequel_notify,
             commands::get_notifications,
-            commands::diagnostics,
             commands::diagnostics_report,
             commands::get_logs,
             commands::get_ui_zoom,

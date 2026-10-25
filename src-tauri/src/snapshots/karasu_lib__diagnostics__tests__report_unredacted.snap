@@ -1,26 +1,112 @@
 ---
 source: src/diagnostics.rs
-expression: "render(&sample(), false)"
+expression: "render(&sample(), Some(&client()), false)"
 ---
+**Karasu diagnostics**
+
+`1.67.0.926` · prerelease · linux x86_64 · AppImage · up 2 h 14 min · 2026-08-06 07:06 UTC
+
+| At a glance | |
+|---|---|
+| Problems this run | 1 errors · 3 warnings · 0 panics · 0 loop restarts |
+| AniList | signed in (anilist) · 27/30 left · 1 of the last 41 requests failed · 0 × 429 |
+| Sync | 2 queued edits, oldest 3 h 0 min · anime list fresh for 12 min · manga list due for a refresh |
+| Detection | MPRIS · now watching via mpv, matched |
+| Screen | /user/:name · desktop 1232×800 @2x · dark theme |
+
+<details><summary><b>Problems this run</b> (1 kind)</summary>
+
+| Last | Level | Where | × | Message |
+|---|---|---|---|---|
+| 2026-08-06 07:06 UTC | error | list | 3 | save failed \| HTTP 500 for /home/kyu/x (+2 lines) |
+
+</details>
+
+<details><summary><b>System</b></summary>
+
 | | |
 |---|---|
-| Karasu | 0.67.2.229 |
-| OS | linux |
+| Version | 1.67.0.926 |
+| Update channel | prerelease |
+| OS | linux x86_64 |
 | Distro | Arch Linux |
 | Desktop | GNOME |
 | Session | wayland |
-| AppImage | yes |
-| Flatpak | no |
-| Tray | no |
+| Install | AppImage |
 | Portable | no |
+| WebView | WebKit 605.1.15 |
+| User agent | `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15` |
+| GPU compositing (page transitions) | no |
+| Environment switches | `WEBKIT_DISABLE_DMABUF_RENDERER=1` |
+| Tray | no |
+| Closing hides to tray | no |
+| Summon hotkey | portal, bound |
+| Shell and window | desktop 1232×800 @2x |
+| Theme | dark, contrast standard, reduced motion no |
 | Data folder | `/home/kyu/.local/share/dev.kyu.karasu` |
+| Uptime | 2 h 14 min |
+
+</details>
+
+<details><summary><b>AniList and sync</b></summary>
+
+| | |
+|---|---|
 | Signed in | yes (anilist) |
-| Detection | MPRIS |
-| Library | 1200 files, 980 matched |
-| Schema | v10 |
-| Update channel | stable |
 | Queued edits | 2 |
-| Debug logging | no |
-| AniList requests this run | list 2 |
+| Oldest queued edit | 3 h 0 min |
+| Sending the queue now | no |
+| anime list | cached, fresh for 12 min |
+| manga list | cached, refreshes on next read |
+| Budget | 27/30 left |
 | Rate limited (429) | 0 |
-| AniList budget | 27/30 left |
+| In flight | 0 |
+| Requests this run | list 2, airing 1 |
+| Failed 1 min ago | list · SaveMediaListEntry · error (HTTP 500) |
+
+</details>
+
+<details><summary><b>Detection and library</b></summary>
+
+| | |
+|---|---|
+| Sources | MPRIS |
+| Now | watching via mpv, matched |
+| Updating | on, after 2/3 of the episode, gap block lifts itself: no |
+| Detection corrections | 1 |
+| Library | 1200 files, 980 matched, 4 unplaced, 2 corrections |
+
+</details>
+
+<details><summary><b>Background passes</b></summary>
+
+| | |
+|---|---|
+| airing | next in 40 min |
+
+</details>
+
+<details><summary><b>Settings that change behaviour</b></summary>
+
+| | |
+|---|---|
+| App language | de (de) |
+| Title language | english |
+| Content filter | moderate, blur explicit art: yes |
+| New-episode notifications | yes |
+| Discord presence | no |
+| Verbose logging | no |
+| Daily backups | on, keeping 7 |
+
+</details>
+
+<details><summary><b>Storage</b></summary>
+
+| | |
+|---|---|
+| Schema | v21 |
+| Database | 3.0 MiB |
+| Log file | 200 KiB |
+| Backups | 7, newest 5 h 0 min old |
+
+</details>

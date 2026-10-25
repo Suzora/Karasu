@@ -650,7 +650,7 @@ export const en = {
   },
   about: {
     diagnostics: "Diagnostics",
-    diagnosticsHint: "The facts a bug report needs. Copy them, then open an issue — they go in the first field.",
+    diagnosticsHint: "The facts a bug report needs, with this run’s warnings and errors. Open the screen where the problem happens, copy, then open an issue — it goes in the first field. Save report adds the whole log.",
     copyDiagnostics: "Copy diagnostics",
     copyFailed: "Could not copy — use Save report instead",
     saveReport: "Save report…",

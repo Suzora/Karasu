@@ -545,18 +545,15 @@ pub async fn save_image(
 
 // --- Diagnostics -------------------------------------------------------------
 
-/// Everything a bug report needs in one round trip, so a reporter cannot end up with half a picture.
+/// The facts as a markdown block for an issue; redacted, because the data folder names a person.
 #[tauri::command]
 #[specta::specta]
-pub fn diagnostics(app: tauri::AppHandle) -> crate::diagnostics::Diagnostics {
-    crate::diagnostics::collect(&app)
-}
-
-/// The same facts as a markdown block for an issue; redacted, because the data folder names a person.
-#[tauri::command]
-#[specta::specta]
-pub fn diagnostics_report(app: tauri::AppHandle, redact: bool) -> String {
-    crate::diagnostics::render(&crate::diagnostics::collect(&app), redact)
+pub async fn diagnostics_report(
+    app: tauri::AppHandle,
+    redact: bool,
+    client: Option<crate::diagnostics::ClientFacts>,
+) -> Result<String, String> {
+    Ok(crate::diagnostics::render(&crate::diagnostics::collect(&app).await, client.as_ref(), redact))
 }
 
 /// The newest log entries, newest first.
@@ -596,18 +593,13 @@ pub async fn export_diagnostics(
     app: tauri::AppHandle,
     db: State<'_, Db>,
     redact: bool,
+    client: Option<crate::diagnostics::ClientFacts>,
 ) -> Result<bool, String> {
     use tauri_plugin_dialog::DialogExt;
 
-    let d = crate::diagnostics::collect(&app);
-    let mut out = String::from("# Karasu diagnostics\n\n");
-    out.push_str(&crate::diagnostics::render(&d, redact));
-    out.push_str("\n## Log\n\n```\n");
-    // Oldest first here: a log is read forwards when it is the story of what happened.
-    for entry in crate::logging::entries(crate::logging::RING_CAPACITY)
-        .iter()
-        .rev()
-    {
+    let d = crate::diagnostics::collect(&app).await;
+    let mut out = crate::diagnostics::render(&d, client.as_ref(), redact);
+    let line = |entry: &crate::logging::LogEntry| {
         let line = format!(
             "{} {:<5} {}: {}\n",
             crate::logging::format_utc(entry.ms),
@@ -615,11 +607,19 @@ pub async fn export_diagnostics(
             entry.target,
             entry.message
         );
-        out.push_str(&if redact {
-            crate::diagnostics::redact_home(&line)
-        } else {
-            line
-        });
+        if redact { crate::diagnostics::redact_home(&line) } else { line }
+    };
+    // Kept apart from the log below, which a verbose session can flush of every one of them.
+    let problems = crate::logging::problem_entries();
+    if !problems.is_empty() {
+        out.push_str("\n### Every warning and error kept this run\n\n```\n");
+        problems.iter().for_each(|e| out.push_str(&line(e)));
+        out.push_str("```\n");
+    }
+    out.push_str("\n### Log\n\n```\n");
+    // Oldest first here: a log is read forwards when it is the story of what happened.
+    for entry in crate::logging::entries(crate::logging::RING_CAPACITY).iter().rev() {
+        out.push_str(&line(entry));
     }
     out.push_str("```\n");
 

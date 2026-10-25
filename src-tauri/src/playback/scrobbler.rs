@@ -220,6 +220,19 @@ fn counting_down(s: &Session) -> bool {
     )
 }
 
+/// The session's phase and block reason in the card's own words, for the diagnostics report.
+pub fn phase_words(app: &tauri::AppHandle) -> (String, Option<String>) {
+    use tauri::Manager;
+    let session = app.state::<ScrobbleSession>();
+    let guard = session.0.guard();
+    let event = scrobble_event(guard.as_ref());
+    let reason = event.reason.map(|r| match serde_json::to_value(&r).ok().and_then(|v| v.get("code").and_then(|c| c.as_str()).map(String::from)) {
+        Some(code) => code,
+        None => format!("{r:?}"),
+    });
+    (event.phase, reason)
+}
+
 /// What the card is told about a session, or about none.
 fn scrobble_event(session: Option<&Session>) -> ScrobbleEvent {
     match session {

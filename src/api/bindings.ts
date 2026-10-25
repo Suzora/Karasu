@@ -119,10 +119,20 @@ export const commands = {
 	setSequelNotify: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_sequel_notify", { enabled })),
 	/**  Recent notifications, newest first (for the bell dropdown). */
 	getNotifications: () => __TAURI_INVOKE<NotificationRow[]>("get_notifications"),
-	/**  Everything a bug report needs in one round trip, so a reporter cannot end up with half a picture. */
-	diagnostics: () => __TAURI_INVOKE<Diagnostics>("diagnostics"),
-	/**  The same facts as a markdown block for an issue; redacted, because the data folder names a person. */
-	diagnosticsReport: (redact: boolean) => __TAURI_INVOKE<string>("diagnostics_report", { redact }),
+	/**  The facts as a markdown block for an issue; redacted, because the data folder names a person. */
+	diagnosticsReport: (redact: boolean, client: {
+	userAgent?: string,
+	/**  The route as the hash router has it; `redact_route` drops a profile's name and every query. */
+	route?: string,
+	viewport?: string,
+	/**  `desktop` or `phone`, the width-keyed shell, which can differ from the platform. */
+	shell?: string,
+	theme?: string,
+	contrast?: string,
+	reducedMotion?: boolean,
+	language?: string,
+	online?: boolean,
+} | null) => typedError<string, string>(__TAURI_INVOKE("diagnostics_report", { redact, client })),
 	/**  The newest log entries, newest first. */
 	getLogs: (limit: number | null) => __TAURI_INVOKE<LogEntry[]>("get_logs", { limit }),
 	getUiZoom: () => __TAURI_INVOKE<number>("get_ui_zoom"),
@@ -133,7 +143,19 @@ export const commands = {
 	getLogDebug: () => __TAURI_INVOKE<boolean>("get_log_debug"),
 	setLogDebug: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_log_debug", { enabled })),
 	/**  Writes the report and the log to a file the user picks, through a Rust-driven dialog like `save_image`. */
-	exportDiagnostics: (redact: boolean) => typedError<boolean, string>(__TAURI_INVOKE("export_diagnostics", { redact })),
+	exportDiagnostics: (redact: boolean, client: {
+	userAgent?: string,
+	/**  The route as the hash router has it; `redact_route` drops a profile's name and every query. */
+	route?: string,
+	viewport?: string,
+	/**  `desktop` or `phone`, the width-keyed shell, which can differ from the platform. */
+	shell?: string,
+	theme?: string,
+	contrast?: string,
+	reducedMotion?: boolean,
+	language?: string,
+	online?: boolean,
+} | null) => typedError<boolean, string>(__TAURI_INVOKE("export_diagnostics", { redact, client })),
 	unreadNotificationCount: () => __TAURI_INVOKE<number>("unread_notification_count"),
 	markNotificationRead: (id: number) => typedError<null, string>(__TAURI_INVOKE("mark_notification_read", { id })),
 	markAllNotificationsRead: () => typedError<null, string>(__TAURI_INVOKE("mark_all_notifications_read")),
@@ -341,6 +363,21 @@ export type CacheOpts = {
 	mediaId: number | null,
 };
 
+/**  What only the WebView knows, sent with the request; every field is the app's own state, never the user's content. */
+export type ClientFacts = {
+	userAgent?: string,
+	/**  The route as the hash router has it; `redact_route` drops a profile's name and every query. */
+	route?: string,
+	viewport?: string,
+	/**  `desktop` or `phone`, the width-keyed shell, which can differ from the platform. */
+	shell?: string,
+	theme?: string,
+	contrast?: string,
+	reducedMotion?: boolean,
+	language?: string,
+	online?: boolean,
+};
+
 export type CloseToTray = {
 	/**  What closing the window does right now. */
 	enabled: boolean,
@@ -368,43 +405,6 @@ export type DetectionOverride = {
 	displayTitle: string,
 	/**  Added to the detected episode; signed because a source may number ahead of AniList as easily as behind. */
 	episodeOffset: number,
-};
-
-export type Diagnostics = {
-	/**  The four-part `MAJOR.MINOR.PATCH.COMMIT#`; the commit counter is the only precise build identifier. */
-	version: string,
-	os: string,
-	appImage: boolean,
-	/**  Inside a Flatpak, which changes the bus name, the tray folder, the mpv socket and what Settings offers. */
-	flatpak: boolean,
-	portable: boolean,
-	/**  Where the database lives; redacted by `render`, not here, so the viewer can show the owner the real path. */
-	dataDir: string,
-	tray: boolean,
-	schema: number,
-	/**  Which manifest the updater polls; the same four-part version can run on either channel. */
-	updateChannel: string,
-	queued: number,
-	/**  Whether a token exists. Never the token. */
-	signedIn: boolean,
-	profileMode: string,
-	libraryConfigured: boolean,
-	libraryFiles: number,
-	libraryMatched: number,
-	mediaSessions: boolean,
-	jellyfin: boolean,
-	/**  Which Jellyfin address the last successful request went to, `local` or `external`; it names no host. */
-	jellyfinBase: string | null,
-	/**  The mpv IPC pipe; it outranks every other source, so a report has to say whether it was on. */
-	mpv: boolean,
-	logDebug: boolean,
-	/**  AniList requests per source since the app started; the budget is shared, so a report has to say who spent it. */
-	anilistRequests: ([string, number])[],
-	/**  HTTP 429 answers since the app started. */
-	anilistThrottled: number,
-	/**  The limiter's last measured headroom, `remaining/limit`, or none before the first header. */
-	anilistBudget: [number, number] | null,
-	linux: LinuxInfo | null,
 };
 
 export type DiscordSettings = {
@@ -544,16 +544,6 @@ export type LibraryStatus = {
 	filesSeen: number,
 	/**  Titles it could identify. */
 	matched: number,
-};
-
-/**  The Linux-only half; `None` on Windows, so the shape says which platform produced it. */
-export type LinuxInfo = {
-	/**  `PRETTY_NAME` from `/etc/os-release`. */
-	distro: string | null,
-	/**  `XDG_CURRENT_DESKTOP`; GNOME needs an extension before a tray icon appears at all. */
-	desktop: string | null,
-	/**  `XDG_SESSION_TYPE`; under Wayland one application cannot read another's window titles at all. */
-	session: string | null,
 };
 
 export type ListFreshness = {

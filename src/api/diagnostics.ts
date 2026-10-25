@@ -1,6 +1,26 @@
 import { copyText } from "@/lib/clipboard";
 import { isTauri } from "./anilist";
 import { commands, unwrap } from "@/api/tauri";
+import i18next from "i18next";
+import { clientFacts } from "@/lib/clientFacts";
+
+/** The WebView's half of a report, read at the moment it is made. */
+function currentClient() {
+  const html = document.documentElement;
+  return clientFacts({
+    userAgent: navigator.userAgent,
+    hash: location.hash,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    pixelRatio: window.devicePixelRatio || 1,
+    phone: window.matchMedia("(max-width: 767px)").matches,
+    theme: html.dataset.theme,
+    contrast: html.dataset.contrast,
+    reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    language: i18next.language || "unknown",
+    online: navigator.onLine,
+  });
+}
 
 /** The diagnostics and log surface, kept apart from `anilist.ts` because none of it talks to AniList. */
 
@@ -15,7 +35,7 @@ export interface LogEntry {
 
 /** The markdown block for an issue. Redacted unless asked otherwise. */
 export const diagnosticsReport = (redact = true) =>
-  commands.diagnosticsReport(redact);
+  unwrap(commands.diagnosticsReport(redact, currentClient()));
 
 export const getLogs = (limit = 200) =>
   commands.getLogs(limit);
@@ -26,7 +46,7 @@ export const setLogDebug = (enabled: boolean) =>
 
 /** Writes the report plus the log to a file the user picks. */
 export const exportDiagnostics = (redact: boolean) =>
-  unwrap(commands.exportDiagnostics(redact));
+  unwrap(commands.exportDiagnostics(redact, currentClient()));
 
 /** Sends a frontend crash to the backend log, swallowing its own failure: a throw here is a crash inside the crash handler. */
 export async function reportError(error: unknown, stack?: string) {

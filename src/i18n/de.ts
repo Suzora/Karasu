@@ -650,7 +650,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
   },
   about: {
     diagnostics: "Diagnose",
-    diagnosticsHint: "Die Angaben, die ein Fehlerbericht braucht. Kopieren, dann ein Issue öffnen — sie gehören ins erste Feld.",
+    diagnosticsHint: "Die Angaben, die ein Fehlerbericht braucht, samt den Warnungen und Fehlern dieser Sitzung. Öffne den Bildschirm, auf dem das Problem auftritt, kopiere, dann öffne ein Issue — es gehört ins erste Feld. „Bericht speichern“ fügt das ganze Protokoll hinzu.",
     copyDiagnostics: "Diagnose kopieren",
     copyFailed: "Kopieren nicht möglich — nutze stattdessen Bericht speichern",
     saveReport: "Bericht speichern …",

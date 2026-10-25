@@ -206,7 +206,7 @@ pub struct ListResult {
 }
 
 /// How long a fetched list is served without asking AniList again; own edits patch the cache, so it stays right.
-const LIST_FRESH_SECS: i64 = 15 * 60;
+pub(crate) const LIST_FRESH_SECS: i64 = 15 * 60;
 
 /// What a list read does, decided from the cache's age alone so the rule is testable without a database.
 #[derive(Debug, PartialEq, Eq)]
@@ -658,7 +658,7 @@ pub async fn delete_list_entry(
 
 // --- Local-only profile mode ------------------------------------------------
 
-pub(super) fn now_ms() -> i64 {
+pub(crate) fn now_ms() -> i64 {
     use std::time::{SystemTime, UNIX_EPOCH};
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
