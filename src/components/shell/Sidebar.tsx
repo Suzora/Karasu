@@ -31,10 +31,8 @@ import { useAniListLogin } from "@/hooks/useAniListLogin";
 import { useListSummary } from "@/hooks/useListSummary";
 import { useManualSync } from "@/hooks/useManualSync";
 import { useShortViewport } from "@/hooks/useShortViewport";
-import { Avatar, UserLockup } from "@/components/ui/user-lockup";
 import SyncPanel from "./SyncPanel";
 import { Spinner } from "@/components/ui/spinner";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
 import { syncAlert, type SyncAlert } from "@/lib/syncView";
@@ -211,114 +209,52 @@ function Account({
   collapsed: boolean;
 }) {
   const { t, i18n } = useTranslation();
-  const viewer = useAuth((s) => s.viewer);
   const mode = useAuth((s) => s.mode);
   // The limiter's local reading, no AniList request, so the line can say what the sync panel says; never in local mode.
   const alert = syncAlert(useSyncStatus(mode === "anilist", SYNC_LINE_POLL_MS).data);
 
   if (mode === "none") return null;
 
-  const name = viewer?.name ?? t("sync.localProfile");
-  const avatar = viewer?.avatar?.large ?? null;
   const local = mode === "local";
   const sync = syncLine(t, i18n.language, local, pending, syncedAt, alert);
+  const tone = sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600";
+
+  // The profile lives in the titlebar now, so the foot of the column says only how the list stands.
+  if (collapsed) {
+    if (local) return null;
+    return (
+      <div className="mb-2 flex flex-col items-center border-b border-hair pb-3 pt-2">
+        {/* Collapsed, the line becomes an icon with a count, since "something is unsent" must not vanish with the labels. */}
+        <SyncPanel label={t("syncPanel.open")} className="w-auto">
+          <span title={sync.text} className={cn("grid size-6 place-items-center rounded-inner", tone)}>
+            {pending > 0 ? (
+              <span className="text-2xs font-semibold tabular-nums">{pending > 9 ? "9+" : pending}</span>
+            ) : (
+              <CloudUpload className="size-3.5" />
+            )}
+          </span>
+        </SyncPanel>
+      </div>
+    );
+  }
 
   const line = (
-    <span
-      className={cn(
-        "flex items-center gap-1.25 text-xs leading-snug",
-        sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600",
-      )}
-    >
+    <span className={cn("flex items-center gap-1.25 text-xs leading-snug", tone)}>
       <span className="size-1.25 shrink-0 rounded-full bg-current" />
       <span className="truncate">{sync.text}</span>
     </span>
   );
 
-  /** The line with the panel behind it, except in local mode, where a list that never syncs has nothing to explain. */
-  const syncNode = local ? (
-    <span className="mt-1 block pl-9.5">{line}</span>
-  ) : (
-    // The same `-mx-1` box as the profile link above, and the dot under the name, where it sat as the lockup's line.
-    <SyncPanel label={t("syncPanel.open")} className="-mx-1 mt-1">
-      <span className="block py-0.5 pl-10.5 pr-1">{line}</span>
-    </SyncPanel>
-  );
-
-  // Collapsed, the sync line becomes a dot on the avatar, since "something is unsent" must not vanish with the labels.
-  if (collapsed) {
-    const body = (
-      <span className="relative block">
-        <Avatar name={name} src={avatar} size="sm" />
-        {sync.accent && (
-          <Badge floating className="-right-0.5 -top-0.5 border-surface-900" />
-        )}
-      </span>
-    );
-    return (
-      // No side margin of its own: the column is already inset, and a second inset left the avatar narrower than itself.
-      <div className="mb-2 flex flex-col items-center gap-1.5 border-b border-hair pb-3 pt-2">
-        <Tooltip label={`${name} · ${sync.text}`}>
-          {viewer ? (
-            <NavLink
-              to={`/user/${encodeURIComponent(viewer.name)}`}
-              aria-label={name}
-              className="rounded-control transition-surface hover:bg-surface-850"
-            >
-              {body}
-            </NavLink>
-          ) : (
-            body
-          )}
-        </Tooltip>
-        {/* The panel survives the collapse; it is the only way to read what the dot above is warning about. */}
-        {!local && (
-          <SyncPanel label={t("syncPanel.open")} className="w-auto">
-            <span
-              title={sync.text}
-              className={cn(
-                "grid size-6 place-items-center rounded-inner",
-                sync.danger ? "text-danger" : sync.accent ? "text-accent-400" : "text-ink-600",
-              )}
-            >
-              {pending > 0 ? (
-                <span className="text-2xs font-semibold tabular-nums">
-                  {pending > 9 ? "9+" : pending}
-                </span>
-              ) : (
-                <CloudUpload className="size-3.5" />
-              )}
-            </span>
-          </SyncPanel>
-        )}
-      </div>
-    );
-  }
-
-  const lockup = (
-    <UserLockup
-      name={name}
-      src={avatar}
-      size="sm"
-      nameClassName="text-xs font-medium leading-snug text-ink-300"
-    />
-  );
-
   return (
     <div className="mx-2.5 mb-2 border-b border-hair pb-3 pt-2">
-      {/* Only a link with an AniList account behind it; the local profile has no AniList page and would 404. */}
-      {viewer ? (
-        <NavLink
-          to={`/user/${encodeURIComponent(viewer.name)}`}
-          className="-mx-1 block rounded-control px-1 py-0.5 transition-surface hover:bg-surface-850"
-        >
-          {lockup}
-        </NavLink>
+      {/* A local list never syncs, so its line has no panel behind it to explain anything. */}
+      {local ? (
+        <span className="block px-1 py-0.5">{line}</span>
       ) : (
-        lockup
+        <SyncPanel label={t("syncPanel.open")} className="-mx-1">
+          <span className="block px-2 py-0.5">{line}</span>
+        </SyncPanel>
       )}
-      {/* A sibling of the lockup rather than its `sub`: a button inside the profile link is invalid markup. */}
-      {syncNode}
     </div>
   );
 }

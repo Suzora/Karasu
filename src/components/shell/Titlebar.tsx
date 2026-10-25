@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTranslation } from "react-i18next";
 import { Minus, Square, X } from "lucide-react";
 import { isAndroid, usePlatform } from "@/stores/platform";
+import AccountButton from "@/components/shell/AccountButton";
 import Bell from "@/components/shell/Bell";
 import DetectionPill from "@/components/shell/DetectionPill";
 import KarasuMark from "@/components/KarasuMark";
@@ -50,6 +51,7 @@ export default function Titlebar() {
 
       <div className="flex h-full items-center">
         <Bell />
+        <AccountButton />
         {/* Min/max/close are desktop furniture: Android has no window to minimise and no tray to close to. */}
         {!android && (
           <>

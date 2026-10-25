@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: ba6212b -->
+<!-- generated-through: f730b75 -->
 
 ### Added
 
@@ -83,6 +83,7 @@ tag time is then optional rather than load-bearing.
 - Search shows AniList's browse sections while nothing is typed — for anime what is trending, popular this season and next, popular of all time and the top 100; for manga trending, all-time popular, popular manhwa and the top 100; for characters and staff today's birthdays and the most favourited — each with Show all. They replace the four quick lenses, three of which had shown nothing.
 - The AniList account settings offer AniList's three new adult options (search, quick search, others' activities), scores follow AniList's new weighted score, and the forum no longer lists the retired Misc category.
 - Profiles show their mutual follows in a tab of their own, and you can remove someone from your followers on your own profile.
+- Your avatar and name in the titlebar open your profile from every screen, the phone's More menu starts with your profile, and the command palette offers "My profile".
 
 ### Security
 

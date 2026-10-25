@@ -1236,3 +1236,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   strip would have cost the follower tab a second request. Removal always
   asks first, names the person and offers no Undo, since only they can
   follow again.
+- **2026-10-25:** The own profile moves to the titlebar, at the maintainer's
+  word: the avatar and the account's name sit right of the bell on every
+  desktop screen and open the profile (B of three: the avatar alone, the
+  avatar with the name, and the avatar opening a small account menu). Every
+  other way there went with it: the avatar and name at the foot of the
+  sidebar, where the sync line now stands alone, and the Overview rail's
+  "Profile" link. The phone, which has no titlebar, gets the same row at the
+  head of the More sheet, and the palette a "My profile" entry.

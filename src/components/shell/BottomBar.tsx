@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { MenuGroupLabel, MenuRow, MenuRowBody, menuRowClass } from "@/components/ui/menu-row";
 import { Sheet } from "@/components/ui/sheet";
 import { IconButton } from "@/components/ui/icon-button";
+import { Avatar } from "@/components/ui/user-lockup";
+import { profilePath } from "@/lib/anilistUrl";
 
 /** The phone shell's four bar slots; everything else is behind a More sheet built from the sidebar's `GROUPS`. */
 const SLOTS = ["/", "/list", "/manga", "/search"];
@@ -53,6 +55,7 @@ export default function BottomBar() {
   const { t } = useTranslation();
   const android = isAndroid(usePlatform((s) => s.info));
   const mode = useAuth((s) => s.mode);
+  const viewer = useAuth((s) => s.viewer);
   const [moreOpen, setMoreOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { pathname } = useLocation();
@@ -92,6 +95,22 @@ export default function BottomBar() {
             </IconButton>
           </div>
         </div>
+        {/* The phone has no titlebar, so the own profile heads the sheet, as the avatar heads the desktop's titlebar. */}
+        {mode === "anilist" && viewer && (
+          <NavLink
+            to={profilePath(viewer.name)}
+            end
+            onClick={() => setMoreOpen(false)}
+            className={({ isActive }) => cn(menuRowClass({ current: isActive }), "mb-1")}
+          >
+            {({ isActive }) => (
+              <MenuRowBody lead={<Avatar name={viewer.name} src={viewer.avatar?.large} size="sm" className="size-6" />} current={isActive}>
+                <span className="block">{viewer.name}</span>
+                <span className="block text-xs text-ink-600">{t("nav.myProfile")}</span>
+              </MenuRowBody>
+            )}
+          </NavLink>
+        )}
         <MenuRow
           icon={Command}
           onClick={() => {

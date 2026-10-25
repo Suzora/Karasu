@@ -1,6 +1,7 @@
 /** English, the source of truth for the key shape; `de.ts` is typed `typeof en`, so a missing German key fails tsc. */
 export const en = {
   nav: {
+    myProfile: "My profile",
     needsAniList: "Only with an AniList account",
     needsProfile: "Needs an AniList account or a local profile",
     groupLibrary: "Library",
@@ -49,7 +50,6 @@ export const en = {
     limited: "Held back · {{t}}",
     unreachable: "AniList unreachable",
     local: "Stored on this PC",
-    localProfile: "Local profile",
   },
   pull: {
     hint: "Pull to sync",
@@ -469,7 +469,6 @@ export const en = {
     comingUpEmpty: "Nothing further ahead on your list yet.",
     ownActivity: "My activity",
     ownActivityNeedsAccount: "Your activity needs an AniList account.",
-    profile: "Profile",
     remaining: "{{n}} left",
     nowPlaying: "Playing now",
     shelfEmpty: "empty",

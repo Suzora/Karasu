@@ -36,14 +36,14 @@ describe("Sidebar", () => {
     expect(screen.getByText("nav.calendar")).toBeInTheDocument();
   });
 
-  it("shows the collapsed avatar at its own size rather than squeezed into a doubly inset column", () => {
+  it("leaves the own profile to the titlebar, open or collapsed", () => {
+    const viewer = signIn();
+    const { unmount } = renderWithProviders(<Sidebar />);
+    expect(screen.queryByRole("link", { name: viewer.name })).toBeNull();
+    unmount();
     saveCollapsed(true);
-    const viewer = signIn({ avatar: { large: "https://img.example/me.png" } });
     renderWithProviders(<Sidebar />);
-    const profile = screen.getByRole("link", { name: viewer.name });
-    expect(profile.querySelector("img")).toHaveClass("size-7");
-    // Inside a column that is already inset, a second inset left the disc narrower than itself.
-    expect(profile.closest("div.flex-col")).not.toHaveClass("mx-2.5");
+    expect(screen.queryByRole("link", { name: viewer.name })).toBeNull();
   });
 
   it("keeps the focus on the collapse toggle when it is pressed from the keyboard, both ways", async () => {
