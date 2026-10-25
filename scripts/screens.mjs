@@ -228,6 +228,7 @@ export const SCREENS = [
   } },
   { id: "p81-follower-selbst", w: 405, h: 1100, phone: true, route: "/user/Kyusetzu?tab=followers" },
   { id: "p82-gegenseitig", w: 405, h: 1100, phone: true, route: "/user/Mikan?tab=mutual" },
+  { id: "d113-konto-titelleiste", w: 1232, h: 800, route: "/" },
   { id: "p36-statistik", w: 405, h: 2400, phone: true, route: "/stats" },
   { id: "p37-wrapped", w: 405, h: 2400, phone: true, route: "/wrapped" },
   { id: "d39-jellyfin", w: 1232, h: 1100, route: "/settings?pane=detection", act: toCard("Jellyfin-Server") },

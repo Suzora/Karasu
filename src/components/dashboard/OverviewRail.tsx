@@ -45,7 +45,6 @@ export function OverviewRail({
 }) {
   const { t } = useTranslation();
   const mode = useAuth((s) => s.mode);
-  const viewer = useAuth((s) => s.viewer);
   const current = useNowPlaying((s) => s.current);
   const setShows = useOverviewRail((s) => s.set);
   const shows = beside && current !== null;
@@ -62,12 +61,6 @@ export function OverviewRail({
       <section className={cn(panel, "flex min-h-40 flex-col p-4", beside && "flex-1")}>
         <div className="mb-2 flex items-center">
           <h2 className="text-base text-ink-100">{t("dashboard.ownActivity")}</h2>
-          <span className="flex-1" />
-          {viewer && (
-            <Link to={`/user/${encodeURIComponent(viewer.name)}`} className={buttonClass("text", "text")}>
-              {t("dashboard.profile")}
-            </Link>
-          )}
         </div>
         {anilist ? (
           <ActivityFeed

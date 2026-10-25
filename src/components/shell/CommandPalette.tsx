@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { displayTitle, type ListResult, type MediaType } from "@/api/types";
+import { profilePath } from "@/lib/anilistUrl";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useTitleLanguage } from "@/stores/titleLanguage";
@@ -196,6 +197,8 @@ export default function CommandPalette() {
       label: t(n.key),
       path: n.path,
     }));
+    // The viewer's own profile is a page like the others, keyed by a stable id so a rename keeps it in Recent.
+    if (mode === "anilist" && viewer) navItems.push({ id: "nav:myProfile", label: t("nav.myProfile"), path: profilePath(viewer.name) });
     if (!q) {
       // Resolved against what is available now, so a remembered command that cannot run here is left out.
       const known = new Map([...commands, ...navItems].map((item) => [item.id, item]));
@@ -234,7 +237,7 @@ export default function CommandPalette() {
       { key: "palette.groupActions", items: verbs },
       { key: "palette.groupGoTo", items: nav },
     ].filter((g) => g.items.length > 0);
-  }, [query, entries, t, android, commands, recent]);
+  }, [query, entries, t, android, commands, recent, mode, viewer]);
 
   // A reference for a keyboard, so a phone never shows it; the width decides only whether it sits beside or below.
   const showKeys = query.trim() === "" && !android;

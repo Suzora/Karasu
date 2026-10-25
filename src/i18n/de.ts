@@ -3,6 +3,7 @@ import { en } from "./en";
 /** German, typed against the English object so a missing or misspelled key is a type error at the line that omits it. */
 export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protokoll, Aufteilung, Wrapped; „folgen“ nur als Verb.
   nav: {
+    myProfile: "Mein Profil",
     needsAniList: "Nur mit einem AniList-Konto",
     needsProfile: "Braucht ein AniList-Konto oder ein lokales Profil",
     groupLibrary: "Bibliothek",
@@ -51,7 +52,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     limited: "Gebremst · {{t}}",
     unreachable: "AniList nicht erreichbar",
     local: "Auf diesem PC gespeichert",
-    localProfile: "Lokales Profil",
   },
   pull: {
     hint: "Zum Synchronisieren ziehen",
@@ -471,7 +471,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     comingUpEmpty: "Darüber hinaus steht auf deiner Liste noch nichts an.",
     ownActivity: "Meine Aktivitäten",
     ownActivityNeedsAccount: "Deine Aktivitäten brauchen ein AniList-Konto.",
-    profile: "Profil",
     remaining: "noch {{n}}",
     nowPlaying: "Läuft gerade",
     shelfEmpty: "leer",

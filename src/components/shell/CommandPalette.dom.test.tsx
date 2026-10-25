@@ -75,6 +75,21 @@ describe("CommandPalette", () => {
     expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["nav.calendar"]);
   });
 
+  it("offers the own profile by name, and not without an account", async () => {
+    const user = userEvent.setup({ delay: null });
+    signIn();
+    const { unmount } = renderWithProviders(<CommandPalette />);
+    openPalette();
+    await user.type(screen.getByRole("combobox"), "nav.myProfile");
+    expect(screen.getByRole("option", { name: /nav\.myProfile/ })).toBeInTheDocument();
+    unmount();
+    signOut();
+    renderWithProviders(<CommandPalette />);
+    openPalette();
+    await user.type(screen.getByRole("combobox"), "nav.myProfile");
+    expect(screen.queryByRole("option", { name: /nav\.myProfile/ })).toBeNull();
+  });
+
   it("never remembers a title picked from the list", async () => {
     const user = userEvent.setup({ delay: null });
     const viewer = signIn();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { internalRoute, mediaUrl, profileKey } from "./anilistUrl";
+import { internalRoute, mediaUrl, profileKey, profilePath } from "./anilistUrl";
 
 describe("internalRoute", () => {
   it("maps media URLs, slug or not, either medium", () => {
@@ -76,5 +76,12 @@ describe("mediaUrl", () => {
     expect(mediaUrl("ANIME", 1)).toBe("https://anilist.co/anime/1");
     expect(mediaUrl("MANGA", 30002)).toBe("https://anilist.co/manga/30002");
     expect(internalRoute(mediaUrl("MANGA", 30002))).toBe("/media/30002");
+  });
+});
+
+describe("profilePath", () => {
+  it("is the profile route with the name encoded, so a name with odd characters still lands", () => {
+    expect(profilePath("Kyusetzu")).toBe("/user/Kyusetzu");
+    expect(profilePath("a b/c")).toBe("/user/a%20b%2Fc");
   });
 });

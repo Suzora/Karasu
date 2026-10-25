@@ -57,7 +57,9 @@ src/
                      popover is the anchored dropdown / phone sheet the list
                      toolbar's panels open in
     shell/           the window frame and global machinery — titlebar, sidebar,
-                     bottom bar, back button, bell (the titlebar's glance, the
+                     bottom bar, back button, the account button (the
+                     titlebar's avatar and name, the desktop's one way to the
+                     own profile), bell (the titlebar's glance, the
                      phone's NotifSheet and the NotifFeed rows both share with
                      the notifications page), command palette, keyboard
                      sheet, global keys, toast, first run, session expired, the

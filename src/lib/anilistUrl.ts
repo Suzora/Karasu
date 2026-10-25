@@ -39,3 +39,8 @@ export function internalRoute(href: string): string | null {
 export function profileKey(param: string): { id: number } | { name: string } {
   return /^\d+$/.test(param) ? { id: Number(param) } : { name: param };
 }
+
+/** The app's route to a profile by name, the one spelling every link to a user goes through. */
+export function profilePath(name: string): string {
+  return `/user/${encodeURIComponent(name)}`;
+}

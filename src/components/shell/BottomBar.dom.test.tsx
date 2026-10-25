@@ -80,6 +80,12 @@ describe("BottomBar swipe", () => {
     fireEvent.click(screen.getByRole("button", { name: "ctx.palette" }));
     expect(opened).toHaveBeenCalledTimes(1);
   });
+
+  it("heads the More sheet with the own profile, since the phone has no titlebar", () => {
+    mount();
+    fireEvent.click(screen.getByRole("button", { name: /nav\.more/ }));
+    expect(screen.getByRole("link", { name: /nav\.myProfile/ })).toHaveAttribute("href", "/user/Kyusetzu");
+  });
 });
 
 describe("BottomBar look", () => {
