@@ -2524,9 +2524,12 @@ phone while every Search screen read 0. On Windows `CHROMIUM_PATH` points it at 
 (`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`), and a cold
 dev server spends the better part of a minute on the stylesheet before the
 first page settles. The
-banners and covers of a handful of real titles (`ART`, one of them a new season
-without a banner, and its prequel) are fetched from AniList into
-`scripts/screens/.cache/` on first use and never committed; the stand-in faces
+banners and covers of every fixture title, anime and manga (`ART`, from
+`scripts/screens/art.json`, one of them a new season without a banner, and its
+prequel), and the portraits of every character and staff member the fixtures
+name (`faces` there), are fetched from AniList into `scripts/screens/.cache/`
+on first use and never committed, so no screen shows a gradient stand-in; the
+social fixtures' made-up users keep generated avatars; the stand-in faces
 are Roboto for Android and Open Sans for Segoe UI, which Linux lacks. The
 project skill `.claude/skills/karasu-mockups` holds the procedure the
 maintainer expects: three mockups before an arrangement changes, the boards'

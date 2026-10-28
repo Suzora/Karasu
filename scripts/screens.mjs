@@ -375,30 +375,47 @@ async function longPress(page, target) {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 }
 
-/** The titles the mock draws with real art, cached on first use and never committed; an id added here is fetched next run. */
-const ART = [178789, 135865, 103303, 195516, 176301];
+/** Every title and face the mock draws with real art (`screens/art.json` beside the first five), cached on first use and never committed. */
+const ARTS = JSON.parse(readFileSync(path.join(DIR, "art.json"), "utf8"));
+const ART = [...new Set([178789, 135865, 103303, 195516, 176301, ...ARTS.titles.flatMap((t) => [t.anime, t.manga]), ...Object.values(ARTS.franchise)])];
+const FACES = [...new Set(Object.values(ARTS.faces))];
 const FONTS = ["roboto", "open-sans"];
+
+/** One AniList request; the art queries are read-only and run signed out. */
+async function anilist(query) {
+  const res = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
+  return (await res.json()).data?.Page ?? {};
+}
+
+async function download(entries, key, kind, url) {
+  if (!url || url.includes("/default.")) return;
+  const file = `${key}-${kind}${path.extname(new URL(url).pathname)}`;
+  writeFileSync(path.join(CACHE, file), Buffer.from(await (await fetch(url)).arrayBuffer()));
+  (entries[key] ??= {})[kind] = file;
+}
 
 async function ensureAssets() {
   mkdirSync(path.join(CACHE, "fonts"), { recursive: true });
   const manifest = path.join(CACHE, "assets.json");
   const entries = existsSync(manifest) ? JSON.parse(readFileSync(manifest, "utf8")) : {};
+  const chunks = (list) => Array.from({ length: Math.ceil(list.length / 50) }, (_, i) => list.slice(i * 50, i * 50 + 50));
   const missing = ART.filter((id) => !entries[id]);
-  if (missing.length) {
-    const query = `{ Page(perPage: 10) { media(id_in: [${missing.join(",")}], type: ANIME) { id bannerImage coverImage { extraLarge } } } }`;
-    const res = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
-    const media = (await res.json()).data?.Page?.media ?? [];
-    for (const m of media) {
-      entries[m.id] = {};
-      for (const [kind, url] of [["banner", m.bannerImage], ["cover", m.coverImage?.extraLarge]]) {
-        if (!url) continue;
-        const file = `${m.id}-${kind}${path.extname(new URL(url).pathname)}`;
-        writeFileSync(path.join(CACHE, file), Buffer.from(await (await fetch(url)).arrayBuffer()));
-        entries[m.id][kind] = file;
-      }
+  for (const ids of chunks(missing)) {
+    const page = await anilist(`{ Page(perPage: 50) { media(id_in: [${ids.join(",")}]) { id bannerImage coverImage { extraLarge } } } }`);
+    for (const m of page.media ?? []) {
+      entries[m.id] ??= {};
+      await download(entries, m.id, "banner", m.bannerImage);
+      await download(entries, m.id, "cover", m.coverImage?.extraLarge);
     }
-    writeFileSync(manifest, JSON.stringify(entries, null, 1));
   }
+  for (const [kind, root] of [["c", "characters"], ["s", "staff"]]) {
+    const ids = FACES.filter((key) => key[0] === kind && !entries[key]).map((key) => key.slice(1));
+    for (const chunk of chunks(ids)) {
+      const page = await anilist(`{ Page(perPage: 50) { ${root}(id_in: [${chunk.join(",")}]) { id image { large } } } }`);
+      for (const p of page[root] ?? []) await download(entries, `${kind}${p.id}`, "portrait", p.image?.large);
+    }
+  }
+  writeFileSync(manifest, JSON.stringify(entries, null, 1));
   for (const family of FONTS) {
     for (const weight of [400, 500, 600, 700]) {
       const file = path.join(CACHE, "fonts", `${family}-latin-${weight}-normal.woff2`);

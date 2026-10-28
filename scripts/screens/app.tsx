@@ -1,5 +1,6 @@
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import changelog from "virtual:changelog";
+import art from "./art.json";
 
 // The real App, shell included, over a mocked backend; `scripts/screens.mjs` drives it and names the parameters.
 mockWindows("main");
@@ -21,7 +22,7 @@ const now = Math.floor(Date.now() / 1000);
 /** Real banners and covers when `screens.mjs` has cached them, else generated gradients of the same shape. */
 const cached = (await fetch("/scripts/screens/.cache/assets.json")
   .then((r) => (r.ok ? r.json() : {}))
-  .catch(() => ({}))) as Record<string, { banner?: string; cover?: string }>;
+  .catch(() => ({}))) as Record<string, { banner?: string; cover?: string; portrait?: string }>;
 const asset = (id: number, kind: "banner" | "cover") => {
   const file = cached[id]?.[kind];
   return file ? `/scripts/screens/.cache/${file}` : null;
@@ -53,8 +54,14 @@ const banner = (i: number) => {
   const [a, b] = PAIRS[i % PAIRS.length];
   return svg(1900, 400, `<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="1900" height="400" fill="url(#g)"/>`);
 };
+/** A character's or staff member's real portrait from `art.json`, else the generated gradient. */
+const face = (name: string, i: number) => {
+  const key = (art.faces as Record<string, string>)[name];
+  const file = key ? cached[key]?.portrait : null;
+  return file ? `/scripts/screens/.cache/${file}` : cover(i);
+};
 
-const TITLES = ["Frieren: Beyond Journey's End", "The Apothecary Diaries", "Dungeon Meshi", "Oshi no Ko", "Kaiju No. 8", "Bocchi the Rock!", "Mob Psycho 100 III", "Vinland Saga Season 2", "Spy x Family", "Blue Lock", "Chainsaw Man", "Jujutsu Kaisen"];
+const TITLES = art.titles.map((t) => t.title);
 /** The three titles `screens.mjs` fetches art for, first in every list so the grid opens on real covers. */
 const REAL = [
   { id: 178789, title: "Mushoku Tensei: Jobless Reincarnation Season 3", romaji: "Mushoku Tensei III: Isekai Ittara Honki Dasu", native: "無職転生Ⅲ ～異世界行ったら本気だす～", episodes: 14, next: 9, score: 85, studio: "Studio Bind", genres: ["Adventure", "Drama", "Fantasy"], color: "#28bbe4" },
@@ -65,14 +72,16 @@ const STATUSES = ["CURRENT", "REPEATING", "COMPLETED", "PAUSED", "DROPPED", "PLA
 
 function media(i: number, manga: boolean) {
   const real = !manga && i < REAL.length ? REAL[i] : null;
-  const art = real ? asset(real.id, "cover") : null;
+  const source = art.titles[i % art.titles.length];
+  const artId = real?.id ?? (manga ? source.manga : source.anime);
+  const coverArt = asset(artId, "cover");
   return {
     id: real?.id ?? (manga ? 2000 : 1000) + i,
     idMal: null,
     type: manga ? "MANGA" : "ANIME",
-    title: real ? { romaji: real.romaji, english: real.title, native: real.native } : { romaji: TITLES[i % TITLES.length], english: null, native: null },
-    coverImage: { large: art ?? cover(i), extraLarge: art ?? cover(i), color: real?.color ?? null },
-    bannerImage: real ? (asset(real.id, "banner") ?? banner(i)) : null,
+    title: real ? { romaji: real.romaji, english: real.title, native: real.native } : { romaji: `${TITLES[i % TITLES.length]}${i >= TITLES.length ? ` ${Math.floor(i / TITLES.length) + 1}` : ""}`, english: null, native: null },
+    coverImage: { large: coverArt ?? cover(i), extraLarge: coverArt ?? cover(i), color: real?.color ?? null },
+    bannerImage: real ? (asset(real.id, "banner") ?? banner(i)) : manga ? null : asset(artId, "banner"),
     episodes: manga ? null : (real?.episodes ?? [12, 24, 13, 11, 25, 12][i % 6]),
     chapters: manga ? [120, 57, 300, 98][i % 4] : null,
     volumes: manga ? [12, 6, 30, 10][i % 4] : null,
@@ -103,7 +112,7 @@ function richen(i: number, m: ReturnType<typeof media>, status: string) {
   const episodes = m.type === "MANGA" ? null : format === "MOVIE" ? 1 : [12, 24, 13, 25, 12, 52, 11, 37][i % 8];
   const done = status === "COMPLETED" || status === "REPEATING";
   return {
-    media: { ...m, title: i < REAL.length ? m.title : { ...m.title, romaji: `${TITLES[i % TITLES.length]}${i >= TITLES.length ? ` ${Math.floor(i / TITLES.length) + 1}` : ""}` }, genres, format, episodes, duration: format === "MOVIE" ? 105 : format === "ONA" ? 8 : 24, season: ["WINTER", "SPRING", "SUMMER", "FALL"][i % 4], seasonYear: year, averageScore: 52 + ((i * 17) % 43) },
+    media: { ...m, genres, format, episodes, duration: format === "MOVIE" ? 105 : format === "ONA" ? 8 : 24, season: ["WINTER", "SPRING", "SUMMER", "FALL"][i % 4], seasonYear: year, averageScore: 52 + ((i * 17) % 43) },
     score: i % 4 === 0 ? 0 : 4 + ((i * 3) % 7),
     repeat: i % 7 === 0 ? 1 + (i % 3) : 0,
     progress: done ? (episodes ?? m.chapters ?? 12) : 1 + (i % 9),
@@ -270,7 +279,7 @@ function userStats() {
   const row = (count: number, i: number) => ({ count, meanScore: 84 - i * 2, minutesWatched: count * 290, chaptersRead: count * 38 });
   const names = (list: string[], at: (name: string, i: number) => Record<string, unknown>) =>
     list.map((name, i) => ({ ...at(name, i), ...row(Math.max(1, 14 - i * 2), i) }));
-  const person = (name: string, i: number) => ({ id: 500 + i, name: { full: name }, image: { medium: cover(i) } });
+  const person = (name: string, i: number) => ({ id: 500 + i, name: { full: name }, image: { medium: face(name, i) } });
   const block = (manga: boolean) => ({
     count: 36,
     meanScore: manga ? 80 : 78,
@@ -312,7 +321,7 @@ const UNBANNERED = {
 /** The new season as a list or hero title, with the relation a borrowed banner comes from. */
 function unbanneredMedia() {
   const u = UNBANNERED;
-  const art = asset(u.id, "cover") ?? cover(9);
+  const unbanneredCover = asset(u.id, "cover") ?? cover(9);
   const prequel = {
     id: u.prequel.id,
     type: "ANIME",
@@ -327,7 +336,7 @@ function unbanneredMedia() {
     ...media(0, false),
     id: u.id,
     title: { romaji: u.title, english: u.title, native: u.native },
-    coverImage: { large: art, extraLarge: art, color: u.color },
+    coverImage: { large: unbanneredCover, extraLarge: unbanneredCover, color: u.color },
     bannerImage: null,
     episodes: 12,
     format: "TV",
@@ -396,7 +405,7 @@ function detail(id: number) {
 
 /** The cast fold's first page, with names long enough that a narrow row has to truncate them rather than widen the page. */
 function cast() {
-  const person = (id: number, full: string, i: number) => ({ id, name: { full }, image: { medium: cover(i) } });
+  const person = (id: number, full: string, i: number) => ({ id, name: { full }, image: { medium: face(full, i) } });
   const characters = [
     ["Rudeus Greyrat", "Tomokazu Sugita"],
     ["Eris Boreas Greyrat", "Ai Kakuma"],
@@ -428,16 +437,16 @@ function browseSections(manga: boolean) {
 /** Characters and staff for the browse sections and their "Show all", with names long enough to wrap a portrait card. */
 function browsePeople() {
   const names = ["Kenma Kozume", "Eijirou Kirishima", "Yuuichirou Hyakuya", "Robert E. O. Speedwagon", "Shiho Izumi", "Tetsutetsu Tetsutetsu", "Rito Yuuki", "Satoru Gojou", "Levi", "Monkey D. Luffy", "Killua Zoldyck", "Eren Yeager"];
-  return names.map((full, i) => ({ id: 900 + i, name: { full }, image: { medium: cover(i) }, favourites: 39_511 - i * 2_900 }));
+  return names.map((full, i) => ({ id: 900 + i, name: { full }, image: { medium: face(full, i) }, favourites: 39_511 - i * 2_900 }));
 }
 
 /** A small franchise around the first title: two earlier seasons, a side story and the source, some on the list. */
 function franchise() {
-  const node = (id: number, i: number, title: string, format: string, status: string | null, progress = 0) => ({
+  const node = (id: number, i: number, title: string, format: string, status: string | null, progress = 0, artId = id) => ({
     id,
     type: format === "NOVEL" ? "MANGA" : "ANIME",
     title: { romaji: title, english: title, native: null },
-    coverImage: { large: id === REAL[0].id ? media(0, false).coverImage.large : cover(i) },
+    coverImage: { large: asset(artId, "cover") ?? cover(i) },
     format,
     episodes: format === "NOVEL" ? null : 12,
     chapters: null,
@@ -446,10 +455,10 @@ function franchise() {
     mediaListEntry: status ? { status, progress } : null,
   });
   const root = node(REAL[0].id, 0, REAL[0].title, "TV", "CURRENT", 8);
-  const s2 = node(1101, 5, "Mushoku Tensei: Jobless Reincarnation Season 2", "TV", "COMPLETED", 12);
-  const s1 = node(1102, 6, "Mushoku Tensei: Jobless Reincarnation", "TV", "COMPLETED", 12);
-  const ova = node(1103, 7, "Mushoku Tensei: Eris the Goblin Slayer", "OVA", "PLANNING");
-  const novel = node(1104, 8, "Mushoku Tensei (Light Novel)", "NOVEL", null);
+  const s2 = node(1101, 5, "Mushoku Tensei: Jobless Reincarnation Season 2", "TV", "COMPLETED", 12, art.franchise.s2);
+  const s1 = node(1102, 6, "Mushoku Tensei: Jobless Reincarnation", "TV", "COMPLETED", 12, art.franchise.s1);
+  const ova = node(1103, 7, "Mushoku Tensei: Eris the Goblin Slayer", "OVA", "PLANNING", 0, art.franchise.ova);
+  const novel = node(1104, 8, "Mushoku Tensei (Light Novel)", "NOVEL", null, 0, art.franchise.novel);
   const edge = (relationType: string, n: ReturnType<typeof node>) => ({ relationType, node: n });
   const withRelations = (n: ReturnType<typeof node>, edges: ReturnType<typeof edge>[]) => ({ ...n, relations: { edges } });
   return [
@@ -570,7 +579,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
       Character: {
         id: Number(variables?.id ?? 41),
         name: { full: "Roxy Migurdia", native: "ロキシー・ミグルディア", alternative: ["Roxy"] },
-        image: { large: cover(3) },
+        image: { large: face("Roxy Migurdia", 3) },
         description: "Eine Magierin der Migurd und __Rudeus' erste Lehrerin__. ~!Später Professorin in Ranoa.!~",
         gender: "Female",
         age: "44",
@@ -578,7 +587,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         dateOfBirth: { year: null, month: 5, day: 10 },
         siteUrl: "https://anilist.co/character/41",
         ...fav,
-        media: { edges: [0, 1, 2, 3].map((i) => ({ characterRole: i === 0 ? "MAIN" : "SUPPORTING", voiceActors: [{ id: 500, name: { full: "Konomi Kohara" }, image: { medium: cover(5) } }], node: socialMedia(i) })) },
+        media: { edges: [0, 1, 2, 3].map((i) => ({ characterRole: i === 0 ? "MAIN" : "SUPPORTING", voiceActors: [{ id: 500, name: { full: "Konomi Kohara" }, image: { medium: face("Konomi Kohara", 5) } }], node: socialMedia(i) })) },
       },
     };
   // The person pages' year lists, a page at a time: the first full and a second behind it, so the button draws.
@@ -591,12 +600,12 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
   };
   const weight = (i: number) => (i % 3 === 0 ? "MAIN" : i % 7 === 6 ? "BACKGROUND" : "SUPPORTING");
   if (/characterMedia/.test(q)) {
-    const names = ["Roxy Migurdia", "Kobeni Higashiyama", "Aiko Tanabe", "Mei Hoshino", "Yuna Sakuraba", "Yui Katsura", "Hana Mori", "Nao Kisaragi", "Chiyo Umino", "Sora Amane"];
-    return { Staff: { characterMedia: yearPage((i) => ({ characterRole: weight(i), characterName: null, characters: [{ id: 9000 + i, name: { full: names[i % names.length] }, image: { medium: cover(i + 3) } }] })) } };
+    const names = ["Roxy Migurdia", "Kobeni Higashiyama", "Frieren", "Fern", "Maomao", "Marcille Donato", "Ai Hoshino", "Hitori Gotou", "Anya Forger", "Power"];
+    return { Staff: { characterMedia: yearPage((i) => ({ characterRole: weight(i), characterName: null, characters: [{ id: 9000 + i, name: { full: names[i % names.length] }, image: { medium: face(names[i % names.length], i + 3) } }] })) } };
   }
   if (/\$page: Int!/.test(q) && /\bCharacter\(/.test(q)) {
-    const voices = ["Konomi Kohara", "Yuka Hoshizora", "Ren Takagi"];
-    return { Character: { media: yearPage((i) => ({ characterRole: weight(i), voiceActors: [{ id: 500 + (i % 3), name: { full: voices[i % 3] }, image: { medium: cover(i + 5) } }] })) } };
+    const voices = ["Konomi Kohara", "Atsumi Tanezaki", "Aoi Yuuki"];
+    return { Character: { media: yearPage((i) => ({ characterRole: weight(i), voiceActors: [{ id: 500 + (i % 3), name: { full: voices[i % 3] }, image: { medium: face(voices[i % 3], i + 5) } }] })) } };
   }
   if (/\$page: Int!/.test(q) && /\bStudio\(/.test(q)) return { Studio: { media: yearPage((i) => ({ isMainStudio: i % 4 !== 3 })) } };
   if (/\bStudio\s*\(\s*id/.test(q))
@@ -606,7 +615,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
       Staff: {
         id: Number(variables?.id ?? 500),
         name: { full: "Konomi Kohara", native: "小原好美" },
-        image: { large: cover(5) },
+        image: { large: face("Konomi Kohara", 5) },
         description: "Sprecherin aus Kanagawa, bekannt für __ruhige, trockene__ Rollen.",
         primaryOccupations: ["Voice Actor"],
         gender: "Female",
@@ -619,7 +628,7 @@ function answerQuery(query: string, variables: Record<string, unknown> | null) {
         siteUrl: "https://anilist.co/staff/500",
         ...fav,
         staffMedia: { edges: [0, 1, 2, 3, 4, 5].map((i) => ({ staffRole: ["Theme Song Performance (OP)", "Director", "Original Creator", "Script (ep 3)", "Character Design", "Music"][i], node: socialMedia(i) })) },
-        characters: { nodes: [{ id: 41, name: { full: "Roxy Migurdia" }, image: { medium: cover(3) } }, { id: 42, name: { full: "Kobeni Higashiyama" }, image: { medium: cover(6) } }] },
+        characters: { nodes: [{ id: 41, name: { full: "Roxy Migurdia" }, image: { medium: face("Roxy Migurdia", 3) } }, { id: 42, name: { full: "Kobeni Higashiyama" }, image: { medium: face("Kobeni Higashiyama", 6) } }] },
       },
     };
   if (/\bUser\s*\(/.test(q)) {
