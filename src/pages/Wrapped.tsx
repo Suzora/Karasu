@@ -124,14 +124,12 @@ function drawMark(
   cy: number,
   size: number,
   alpha: number,
-  rotateDeg = 0,
 ) {
   if (!mark) return;
   const h = markHeight(mark, size);
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.translate(cx, cy);
-  if (rotateDeg) ctx.rotate((rotateDeg * Math.PI) / 180);
   ctx.drawImage(mark, -size / 2, -h / 2, size, h);
   ctx.restore();
 }
@@ -442,19 +440,19 @@ function drawCard(
     sections.push({
       height: u(6),
       paint: (y) => {
-        const size = u(1.6);
-        // Centre-placed like the watermark: the row's own middle, half a mark in from the margin.
-        drawMark(ctx, mark, P + size / 2, y + u(1.5), size, 1);
+        // The poster's one crow leads the wordmark, centred on its cap height and nudged up for the tail below the disc.
+        const size = u(2);
+        drawMark(ctx, mark, P + size / 2, y + u(1.65) - size * 0.04, size, 1);
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
         ctx.fillStyle = INK_DIM;
         face(700, u(1.1));
         track(`${u(0.2)}px`);
-        ctx.fillText("KARASU", P + size * 1.25, y + u(2.05));
+        ctx.fillText("KARASU", P + size + u(0.7), y + u(2.05));
         const brandW = ctx.measureText("KARASU").width;
         track("0px");
 
-        const divX = P + size * 1.25 + brandW + u(1);
+        const divX = P + size + u(0.7) + brandW + u(1);
         ctx.fillStyle = "rgba(238,241,246,.18)";
         ctx.fillRect(divX, y + u(1.1), 1, u(1.2));
 
@@ -534,11 +532,6 @@ function drawCard(
   // The top-edge catch-light every panel in the app carries, so the surface reads as lit from above.
   ctx.fillStyle = "rgba(255,255,255,.06)";
   ctx.fillRect(0, 0, W, 1);
-
-  // The mark bleeds off the bottom-right corner under the text; the alpha is high because the art is near-black.
-  const markW = em * 42;
-  const markH = mark ? markHeight(mark, markW) : 0;
-  drawMark(ctx, mark, W - markW * 0.2, H - markH * 0.2, markW, 0.34, -7);
 
   // Centred, so a card that cannot fill its crop is framed by the ground rather than hung from the top.
   card.paint(Math.max(0, (H - card.totalH) / 2));

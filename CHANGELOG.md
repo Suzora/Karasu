@@ -13,7 +13,11 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 3b59871 -->
+<!-- generated-through: 49a59392 -->
+
+### Fixed
+
+- The Wrapped poster no longer draws a dark disc hanging off its corner; the crow leads the wordmark in the footer instead.
 
 ## 1.68.0 — 2026-10-25
 
