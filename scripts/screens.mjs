@@ -7,7 +7,8 @@
 //   node scripts/screens.mjs hash [--out scripts/screens/.out/before.json]   still frames at a fixed clock, one sha256 each
 //   node scripts/screens.mjs hash --compare scripts/screens/.out/before.json exit 1 when any screen's pixels changed
 //   node scripts/screens.mjs overflow [--only p2-detail]   exit 1 when <main> or a scroller in it scrolls sideways
-import { spawn } from "node:child_process";
+//   node scripts/screens.mjs site [--only site-desktop-overview]   the website's set into site/captures
+import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -358,6 +359,41 @@ export const SCREENS = [
   },
 ];
 
+/** The website's screenshots in English at its sizes: a 1440 × 900 window at 2×, the phone at 3× for 1216 px. */
+const RELEASE = () => execFileSync(process.execPath, [path.join(here, "bump-version.mjs"), "--print"], { encoding: "utf8" }).trim();
+const site = (file, route, extra = {}) => ({ id: `site-${extra.phone ? "phone" : "desktop"}-${file.replace(/\.png$/, "")}`, file, w: extra.phone ? 405 : 1440, h: extra.phone ? 860 : 900, dpr: extra.phone ? 3 : 2, lang: "en", get version() { return RELEASE(); }, route, ...extra });
+export const SITE = [
+  site("overview.png", "/"),
+  site("now-playing.png", "/list", { playing: true }),
+  site("anime-grid.png", "/list"),
+  site("anime-rows.png", "/list", { act: (p) => p.getByRole("radio", { name: "List" }).first().click() }),
+  site("manga-grid.png", "/manga"),
+  site("library.png", "/library"),
+  site("stats-overview.png", "/stats", { mock: "stats-rich" }),
+  site("stats-genres.png", "/stats?tab=genresTags", { mock: "stats-rich" }),
+  site("wrapped.png", "/wrapped"),
+  site("seasonal.png", "/seasonal"),
+  site("calendar.png", "/calendar"),
+  site("franchise.png", "/franchise/178789"),
+  site("bell.png", "/", { act: (p) => p.getByRole("button", { name: "Notifications" }).first().click() }),
+  site("palette.png", "/", { act: async (p) => {
+    await p.keyboard.press("Control+k");
+    await p.waitForTimeout(500);
+    await p.keyboard.type("frieren", { delay: 40 });
+  } }),
+  site("settings-detection.png", "/settings?pane=detection"),
+  site("light-anime-grid.png", "/list", { theme: "light" }),
+  site("about.png", "/about"),
+  site("overview.png", "/", { phone: true }),
+  site("list.png", "/list", { phone: true }),
+  site("detail.png", "/media/178789", { phone: true, act: (p) => statusButton(p).click() }),
+  site("search.png", "/search", { phone: true, act: async (p) => {
+    await p.locator("main input").first().fill("season 2");
+    await p.keyboard.press("Enter");
+  } }),
+  site("more.png", "/", { phone: true, act: (p) => p.getByText("More", { exact: true }).last().click() }),
+];
+
 /** Right-clicks a card and picks a row of its menu, for the dialogs an action opens. */
 async function fromMenu(page, row) {
   await page.locator("[data-media-id]").nth(2).click({ button: "right" });
@@ -378,6 +414,86 @@ async function longPress(page, target) {
 /** The titles the mock draws with real art, cached on first use and never committed; an id added here is fetched next run. */
 const ART = [178789, 135865, 103303, 195516, 176301];
 const FONTS = ["roboto", "open-sans"];
+/** Real titles in list order: the fixture's three, airing ones for the rest of Watching, then finished ones, none adult. */
+const CATALOG = {
+  anime: [
+    178789, 135865, 103303, 195604, 159042, 189123, 210482, 205909, 212888, 172192, 207191, 206814,
+    154587, 182255, 5114, 9253, 11061, 136430, 101348, 19, 20954, 161645, 140439, 101338, 130003, 145064, 21698, 153658,
+    125367, 98478, 124194, 131586, 103047, 178788, 171627, 185407, 2904, 4181, 263, 182896, 189046, 17074, 104578, 21,
+    116674, 16498, 101922, 113415, 1535, 21087, 20605, 21519, 127230, 101759, 20755, 21507, 21355, 20665, 21234, 140960,
+    101921, 105333, 21827, 124080, 4224, 20447, 112151, 1575, 20623, 20464, 97940, 101291, 269, 21459, 1735,
+  ],
+  manga: [
+    118586, 30002, 31706, 30656, 30013, 30001, 30642, 74489, 30025, 65243, 30026, 30003, 86635, 98263, 85135, 140475,
+    31133, 119257, 63327, 74347, 105778, 53390, 30021, 105398, 108556, 72451, 106130, 132029, 85143, 100994, 98416,
+    101517, 87423, 125828, 87216, 117195, 97852, 120760, 86123, 30011,
+  ],
+  // The first title's franchise: two earlier seasons, the light novel and a spin-off manga.
+  franchise: [166873, 146065, 85470, 146378],
+};
+/** The people a title's catalog row carries: its leading characters and their Japanese voices, for every portrait. */
+const PEOPLE_FIELDS = "characters(perPage: 3, sort: [ROLE, RELEVANCE, ID]) { edges { role node { id name { full native } image { large } } voiceActors(language: JAPANESE, sort: [RELEVANCE, ID]) { id name { full native } image { large } } } }";
+const MEDIA_FIELDS = `id type format status episodes chapters volumes duration season seasonYear countryOfOrigin source
+  title { romaji english native } coverImage { extraLarge color } bannerImage genres averageScore: weightedScore popularity
+  startDate { year month day } nextAiringEpisode { episode timeUntilAiring } studios(isMain: true) { nodes { id name } }`;
+
+async function anilist(query) {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
+    // The public budget is about thirty a minute; a refusal names its own wait.
+    if (res.status === 429 && attempt < 3) {
+      await new Promise((r) => setTimeout(r, 1000 * Number(res.headers.get("retry-after") ?? 60)));
+      continue;
+    }
+    const body = await res.json();
+    if (!res.ok) throw new Error(`screens: AniList answered ${res.status}: ${JSON.stringify(body.errors ?? body).slice(0, 300)}`);
+    return body.data;
+  }
+}
+
+/** Downloads one image into the cache once and answers its file name, or null for a missing url. */
+async function image(url, name) {
+  if (!url) return null;
+  const file = `${name}${path.extname(new URL(url).pathname) || ".jpg"}`;
+  if (!existsSync(path.join(CACHE, file))) writeFileSync(path.join(CACHE, file), Buffer.from(await (await fetch(url)).arrayBuffer()));
+  return file;
+}
+
+/** Runs the downloads a few at a time, which is fast and stays polite to AniList's image host. */
+async function each(items, work, width = 8) {
+  const queue = [...items];
+  await Promise.all(Array.from({ length: width }, async () => {
+    while (queue.length) await work(queue.shift());
+  }));
+}
+
+async function ensureCatalog() {
+  const file = path.join(CACHE, "catalog.json");
+  const catalog = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : { media: {}, cast: null };
+  const missing = Object.values(CATALOG).flat().filter((id) => !catalog.media[id]);
+  const people = (m) => (m.characters?.edges ?? []).flatMap((e) => [e.node, ...e.voiceActors.slice(0, 1)]);
+  for (let at = 0; at < missing.length; at += 10) {
+    const ids = missing.slice(at, at + 10);
+    const data = await anilist(`{ Page(perPage: 10) { media(id_in: [${ids.join(",")}]) { ${MEDIA_FIELDS} ${PEOPLE_FIELDS} } } }`);
+    await each(data.Page.media, async (m) => {
+      m.cover = await image(m.coverImage?.extraLarge, `${m.id}-cover`);
+      m.banner = m.type === "ANIME" ? await image(m.bannerImage, `${m.id}-banner`) : null;
+      for (const p of people(m)) p.file = await image(p.image?.large, `person-${p.id}`);
+      catalog.media[m.id] = m;
+    });
+    console.log(`screens: catalog ${Math.min(at + 10, missing.length)} of ${missing.length}`);
+  }
+  // The first title's whole first page of cast and staff, for the cast fold and the character and staff pages.
+  if (!catalog.cast) {
+    const data = await anilist(`{ Media(id: ${CATALOG.anime[0]}) { characters(perPage: 8, sort: [ROLE, RELEVANCE, ID]) { edges { role node { id name { full native } image { large } } voiceActors(language: JAPANESE, sort: [RELEVANCE, ID]) { id name { full native } image { large } } } } staff(perPage: 6, sort: [RELEVANCE, ID]) { edges { role node { id name { full native } image { large } } } } } }`);
+    const cast = data.Media;
+    const all = [...cast.characters.edges.flatMap((e) => [e.node, ...e.voiceActors.slice(0, 1)]), ...cast.staff.edges.map((e) => e.node)];
+    await each(all, async (p) => (p.file = await image(p.image?.large, `person-${p.id}`)));
+    catalog.cast = cast;
+  }
+  catalog.order = CATALOG;
+  writeFileSync(file, JSON.stringify(catalog));
+}
 
 async function ensureAssets() {
   mkdirSync(path.join(CACHE, "fonts"), { recursive: true });
@@ -386,19 +502,17 @@ async function ensureAssets() {
   const missing = ART.filter((id) => !entries[id]);
   if (missing.length) {
     const query = `{ Page(perPage: 10) { media(id_in: [${missing.join(",")}], type: ANIME) { id bannerImage coverImage { extraLarge } } } }`;
-    const res = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
-    const media = (await res.json()).data?.Page?.media ?? [];
+    const media = (await anilist(query)).Page?.media ?? [];
     for (const m of media) {
       entries[m.id] = {};
       for (const [kind, url] of [["banner", m.bannerImage], ["cover", m.coverImage?.extraLarge]]) {
-        if (!url) continue;
-        const file = `${m.id}-${kind}${path.extname(new URL(url).pathname)}`;
-        writeFileSync(path.join(CACHE, file), Buffer.from(await (await fetch(url)).arrayBuffer()));
-        entries[m.id][kind] = file;
+        const file = await image(url, `${m.id}-${kind}`);
+        if (file) entries[m.id][kind] = file;
       }
     }
     writeFileSync(manifest, JSON.stringify(entries, null, 1));
   }
+  await ensureCatalog();
   for (const family of FONTS) {
     for (const weight of [400, 500, 600, 700]) {
       const file = path.join(CACHE, "fonts", `${family}-latin-${weight}-normal.woff2`);
@@ -437,13 +551,13 @@ async function launch() {
 
 const urlFor = (s, style, theme, still) => {
   const [mode, contrast] = theme.startsWith("hc-") ? [theme.slice(3), "more"] : [theme, ""];
-  const q = new URLSearchParams({ style, theme: mode, contrast, android: s.phone ? "1" : "", out: s.out ? "1" : "", playing: s.playing ? "1" : "", mock: s.mock ?? "", route: s.route, lang: flag("--lang", "de"), still: still ? "1" : "" });
+  const q = new URLSearchParams({ style, theme: mode, contrast, android: s.phone ? "1" : "", out: s.out ? "1" : "", playing: s.playing ? "1" : "", mock: s.mock ?? "", route: s.route, version: s.version ?? "", lang: s.lang ?? flag("--lang", "de"), still: still ? "1" : "" });
   return `${BASE}?${q}`;
 };
 
 /** Opens one screen, waits for its images and fonts, performs its action, and returns the page and what went wrong. */
 async function open(browser, s, style, theme, { still = false, video } = {}) {
-  const context = await browser.newContext({ viewport: { width: s.w, height: s.h }, deviceScaleFactor: video ? 1 : 2, hasTouch: !!s.phone, isMobile: !!s.phone, ...(video ? { recordVideo: { dir: video, size: { width: s.w, height: s.h } } } : {}) });
+  const context = await browser.newContext({ viewport: { width: s.w, height: s.h }, deviceScaleFactor: video ? 1 : (s.dpr ?? 2), hasTouch: !!s.phone, isMobile: !!s.phone, ...(video ? { recordVideo: { dir: video, size: { width: s.w, height: s.h } } } : {}) });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
@@ -464,7 +578,7 @@ async function open(browser, s, style, theme, { still = false, video } = {}) {
 
 function selected() {
   const only = flag("--only", "").split(",").filter(Boolean);
-  return SCREENS.filter((s) => only.length === 0 || only.includes(s.id));
+  return [...SCREENS, ...SITE].filter((s) => only.length > 0 || !s.id.startsWith("site-")).filter((s) => only.length === 0 || only.includes(s.id));
 }
 
 async function shoot() {
@@ -634,7 +748,28 @@ async function board() {
   console.log(path.relative(ROOT, path.join(out, `${spec.name}.png`)));
 }
 
-const COMMANDS = { shoot, hash, overflow, clip, board };
+/** Shoots the website's set straight into `site/captures/`, where `process-screenshots.mjs` reads it. */
+async function siteShots() {
+  const browser = await launch();
+  const only = flag("--only", "").split(",").filter(Boolean);
+  let problems = 0;
+  for (const s of SITE.filter((r) => only.length === 0 || only.includes(r.id))) {
+    const { context, page, errors, unknown } = await open(browser, s, "", s.theme ?? "dark");
+    const dir = path.join(ROOT, "site", "captures", s.phone ? "phone" : "desktop");
+    mkdirSync(dir, { recursive: true });
+    await page.screenshot({ path: path.join(dir, s.file) });
+    const found = [...errors, ...unknown.map((u) => `unmocked ${u}`)];
+    if (found.length) {
+      problems++;
+      console.log(`${s.id}: ${found.join("; ")}`);
+    }
+    await context.close();
+  }
+  await browser.close();
+  console.log(`screens: the website's shots in site/captures, ${problems} with problems`);
+}
+
+const COMMANDS = { shoot, hash, overflow, clip, board, site: siteShots };
 if (!COMMANDS[command]) {
   console.error(`screens: unknown command "${command ?? ""}"; one of ${Object.keys(COMMANDS).join(", ")}`);
   process.exit(2);

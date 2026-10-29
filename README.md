@@ -60,33 +60,36 @@ Because a local app can do things anilist.co simply can't:
 
 ## Screenshots
 
-Captures of 1.32 at 1440×900 on the desktop and straight off the phone — the
-same set the [website](https://suzora.github.io/Karasu/) shows at full size.
+Karasu 1.68 at 1440×900 on the desktop and in the phone's shell — the same set
+the [website](https://suzora.github.io/Karasu/) shows at full size. They are
+rendered by the screens harness (`node scripts/screens.mjs site`): the real app
+over a mocked backend, with AniList's own titles, covers and people and an
+invented account's list.
 
 <p align="center">
   <img src="assets/screenshots/now-playing.jpg" alt="Now Playing — an episode detected in mpv, the update counting down" width="80%" /><br />
-  <sub>Now Playing — an episode detected in mpv, the update counting down; update now, skip it, or fix the match</sub>
+  <sub>Now Playing — an episode detected in mpv, with the progress it will write; update now, skip it, or fix the match</sub>
 </p>
 
 <table>
 <tr>
-<td width="50%"><img src="assets/screenshots/overview.jpg" alt="Dashboard overview" /><br /><sub>Overview — the season's headline title, your numbers, what to watch next and what airs soon</sub></td>
+<td width="50%"><img src="assets/screenshots/overview.jpg" alt="Dashboard overview" /><br /><sub>Overview — the next 48 hours, your lists as shelves, what to catch up on, your numbers and your activity</sub></td>
 <td width="50%"><img src="assets/screenshots/local-library.jpg" alt="Local library" /><br /><sub>Local library — your files, matched to your list, next unwatched episode first</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="assets/screenshots/anime-list.jpg" alt="Anime list, grid view" /><br /><sub>Anime list — covers, status tabs, filters and presets</sub></td>
-<td width="50%"><img src="assets/screenshots/anime-list-columns.jpg" alt="Anime list, row view" /><br /><sub>…or as rows, with status, score and progress edited in place</sub></td>
+<td width="50%"><img src="assets/screenshots/anime-list.jpg" alt="Anime list, grid view" /><br /><sub>Anime list — covers, the statuses and custom lists beside them, filters and presets</sub></td>
+<td width="50%"><img src="assets/screenshots/anime-list-columns.jpg" alt="Anime list, row view" /><br /><sub>…or as rows, with score and progress edited in place</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="assets/screenshots/manga-list.jpg" alt="Manga list, grid view" /><br /><sub>Manga list — the same list, counting chapters and volumes</sub></td>
-<td width="50%"><img src="assets/screenshots/season-overview.jpg" alt="Seasonal chart" /><br /><sub>Seasonal — one season's grid, any season of the last four years two clicks away</sub></td>
+<td width="50%"><img src="assets/screenshots/season-overview.jpg" alt="Seasonal chart" /><br /><sub>Seasonal — one season's titles by format, with their genres and a countdown</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="assets/screenshots/statistics.jpg" alt="Statistics overview" /><br /><sub>Statistics — how your list splits by status, format and length</sub></td>
-<td width="50%"><img src="assets/screenshots/statistics-genres.jpg" alt="Statistics, genres and tags" /><br /><sub>…and the shape of your taste: genres against your average, tags by weight</sub></td>
+<td width="50%"><img src="assets/screenshots/statistics.jpg" alt="Statistics overview" /><br /><sub>Statistics — your list by status and format, where your time went, series lengths</sub></td>
+<td width="50%"><img src="assets/screenshots/statistics-genres.jpg" alt="Statistics, genres and tags" /><br /><sub>…and the shape of your taste: where you score harsher or kinder, what you finish, per genre</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="assets/screenshots/calendar.jpg" alt="Airing calendar" /><br /><sub>Calendar — the week as a grid, tiles or an agenda, your shows or everything, with iCal export</sub></td>
+<td width="50%"><img src="assets/screenshots/calendar.jpg" alt="Airing calendar" /><br /><sub>Calendar — the week from today as a timetable, tiles or an agenda, your shows or everything, with iCal export</sub></td>
 <td width="50%"><img src="assets/screenshots/franchise.jpg" alt="Franchise graph" /><br /><sub>Franchise — the whole relation map, each node coloured by your status</sub></td>
 </tr>
 </table>

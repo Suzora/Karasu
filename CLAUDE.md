@@ -2525,8 +2525,14 @@ phone while every Search screen read 0. On Windows `CHROMIUM_PATH` points it at 
 dev server spends the better part of a minute on the stylesheet before the
 first page settles. The
 banners and covers of a handful of real titles (`ART`, one of them a new season
-without a banner, and its prequel) are fetched from AniList into
-`scripts/screens/.cache/` on first use and never committed; the stand-in faces
+without a banner, and its prequel) and a catalog of about 120 more (`CATALOG`:
+the list, search, season, calendar and franchise titles, each with its leading
+characters and their Japanese voices, plus the first title's cast and staff)
+are fetched from AniList into `scripts/screens/.cache/` on first use and never
+committed; a fixture falls back to a generated gradient where the cache has no
+entry. `site` shoots the website's set (the `SITE` table, in English, at the
+site's sizes) straight into `site/captures/`, which
+`site/scripts/process-screenshots.mjs` turns into what the page ships; the stand-in faces
 are Roboto for Android and Open Sans for Segoe UI, which Linux lacks. The
 project skill `.claude/skills/karasu-mockups` holds the procedure the
 maintainer expects: three mockups before an arrangement changes, the boards'
