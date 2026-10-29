@@ -27,19 +27,19 @@
   <url type="vcs-browser">https://github.com/Suzora/Karasu</url>
   <screenshots>
     <screenshot type="default">
-      <caption>The overview: what is airing, what you are watching, what is next</caption>
+      <caption>The overview: the next two days, your lists, what to catch up on</caption>
       <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/overview.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>The anime list as a cover grid, with filters and presets</caption>
+      <caption>The anime list as a cover grid, with its statuses, filters and presets</caption>
       <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/anime-list.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>An episode detected in mpv, counting down to the update</caption>
+      <caption>An episode detected in mpv, with the progress it will write</caption>
       <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/now-playing.jpg</image>
     </screenshot>
     <screenshot>
-      <caption>Statistics: the list by status, format and episode length</caption>
+      <caption>Statistics: the list by status and format, and where the time went</caption>
       <image>https://raw.githubusercontent.com/Suzora/Karasu/main/assets/screenshots/statistics.jpg</image>
     </screenshot>
   </screenshots>

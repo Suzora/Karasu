@@ -15,7 +15,7 @@ such in the code and showing no invented data).
 ## The page of 2026-10-12
 
 The page was rebuilt as one short page (pitch and downloads, the app beside
-its changelog, a gallery of real captures, the call to join, the FAQ; DESIGN.md, 2026-10-12). The
+its changelog, a gallery of screenshots, the call to join, the FAQ; DESIGN.md, 2026-10-12). The
 sections it dropped took their rows with them; the rows below that keep an
 old heading are the ones the FAQ, the footer or the head still state.
 
@@ -26,11 +26,11 @@ old heading are the ones the FAQ, the footer or the head still state.
 | 95 | "detection that brings your list up to date when an episode ends" | rows 13, 17 and 23 (two thirds of the runtime by default, which is the end for the purpose of the sentence; the FAQ gives the exact rule) | partial (the FAQ states the threshold) |
 | 96 | The three downloads (Windows installer, Linux AppImage, Android arm64 APK), the version, the checksums and "every download" | `site/src/generated/release.json` (row 63), `site.config.ts` `LINKS.releases` | confirmed |
 | 97 | "not code-signed, so SmartScreen may warn on first run · Linux is an experimental AppImage · Android is a sideloaded APK · no macOS" | rows 57, 61, 62, 59 and 72 | confirmed |
-| 98 | The screenshot beside the changelog: the anime list in grid view | `site/scripts/shots.config.mjs` `anime-grid`, captured as the Screenshots section says | confirmed (real capture) |
+| 98 | The screenshot beside the changelog: the anime list in grid view | `site/scripts/shots.config.mjs` `anime-grid`, rendered as the Screenshots section says | confirmed (the real app over a mocked backend) |
 | 99 | "What changed": the newest Added, Changed and Fixed line, "In the Nightly", "Since 1.32.0, not yet in a Stable release" | read at build time from `CHANGELOG.md` by `site/scripts/changes.mjs` (tested by `changes.test.mjs`): the `Unreleased` section's last line of each kind, or the newest release's when it is empty; `since` is the newest `## x.y.z` heading; `pages.yml` deploys on a `CHANGELOG.md` push so the card follows `main` | confirmed |
 | 100 | "Karasu is built by one maintainer with whoever joins in" | `CLAUDE.md` preamble (one maintainer reviews every change), `CONTRIBUTING.md` | confirmed |
 | 101 | The three calls to join: the Discord, the bug report form, the source on GitHub | row 79 | confirmed |
-| 102 | "The app, as it is": six desktop and four Android captures with their captions, opened full size in the lightbox | `site/src/sections/Gallery.tsx` picks them from `site/src/content/screenshots.ts`; captions and alt texts are row 81's, the captures the Screenshots section's | confirmed (real captures) |
+| 102 | "The app, as it is": six desktop and four Android captures with their captions, opened full size in the lightbox | `site/src/sections/Gallery.tsx` picks them from `site/src/content/screenshots.ts`; captions and alt texts are row 81's, the shots the Screenshots section's | confirmed (the real app over a mocked backend) |
 
 ## Footer, the head and the social card
 
@@ -105,7 +105,7 @@ description in row 80); the rest below were true but had no row.
 | 78 | FAQ "Signing in happens on anilist.co in your browser, which hands Karasu a token" | `src/hooks/useAniListLogin.ts` `openUrl`; the paste fallback in `commands/auth.rs` `anilist_connect` for a browser that cannot call back | confirmed |
 | 79 | The external links: Discord invite, the two issue templates, "Nightly builds" at `releases/tag/latest`, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE | `site/src/site.config.ts` against `README.md` (invite), `.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.yml`, `commands/update.rs` and `release.yml` (the `latest` tag), the four files at the repository root; every link answered 200 on 2026-09-06 | confirmed |
 | 80 | The head: title, meta description ("notices what you play — and, on Windows, what you read"), Open Graph, JSON-LD `SoftwareApplication` (`UtilitiesApplication`, price 0, author Kyu, AGPL-3.0, `softwareVersion` from `release.json`) | `site/src/head.ts`, `site/src/site.config.ts`; rows 1–4, 8, 63; manga detection is window-title based and so Windows-only (`profiles.rs`), which is why the description names Windows | confirmed |
-| 81 | Screenshot captions and alt texts: "Command palette (Ctrl+K)", "Monday-first" calendar, the Seasonal switcher, "Everything" on the calendar, the year in review's shape, format and size choices, the phone's status sheet over the community's scores | `src/components/shell/CommandPalette.tsx` (Ctrl+K), `src/lib/calendar.ts` (Monday first), `src/components/ui/season-picker.tsx`, the calendar's scope filter, `src/pages/Wrapped.tsx`, `StatusMenu` and `CommunityScore` (`lib/scoreDistribution`); `site/scripts/shots.config.mjs` is the source, `site/src/content/screenshots.ts` the generated copy | confirmed |
+| 81 | Screenshot captions and alt texts: "Command palette (Ctrl+K)", the calendar's week from today, the season page's year, season and format column, the year in review's period, template, format and size choices, the phone's status sheet over the community's scores | `src/components/shell/CommandPalette.tsx` (Ctrl+K), `src/pages/Calendar.tsx`, `src/components/season/`, `src/pages/Wrapped.tsx`, `StatusMenu` and `CommunityScore` (`lib/scoreDistribution`); `site/scripts/shots.config.mjs` is the source, `site/src/content/screenshots.ts` the generated copy | confirmed |
 | 83 | FAQ "Windows has every feature. Android has the list, statistics, notifications, widgets, the social pages and its own updater, but no local library and no tray" | `src/pages/Settings.tsx` hides the Library and Desktop panes on Android; `src-tauri/src/apk_update.rs`; `lib.rs` tray is desktop-only; rows 48, 60 | confirmed |
 | 88 | How it works: "From play to updated, without you"; "Six steps, all of them Karasu's. The only one you take is the first — and for a chapter from a site Karasu does not name, one confirmation." | `scrobbler.rs` `drive_session` writes once the threshold passes (rows 13, 17); a chapter from a site Karasu does not name always asks (`cautious`, `a_generic_detection_always_asks_and_never_lifts_a_gap_block`); MANGA Plus does not | confirmed |
 | 89 | FAQ "What is Karasu?": "updates your progress on AniList by itself, asking once first for a chapter from a site it does not name" | row 88; the About text says the same (`src/i18n/en.ts` `about.description`) | confirmed |
@@ -114,10 +114,18 @@ description in row 80); the rest below were true but had no row.
 
 ## Screenshots
 
-All twenty-two are captures on the maintainer's account: desktop from the
-isolated rig at 1440×900, rendered at 2×, of build 1.32.8.771; phone from the
-release APK of 1.32.6.769 over adb; both on 2026-10-03. The local library
-shows a folder of empty files named like clean releases. The Now Playing
-capture is a real mpv window under `--force-media-title`. Nothing is
-composited or edited beyond resizing and encoding. Approved by the maintainer
-on 2026-09-06; the 1.10.6 set on 2026-09-19; the 1.32 set on 2026-10-03.
+All twenty-two are rendered by the screens harness (`node scripts/screens.mjs
+site`, the `SITE` table there): the real app, shell included, built from
+`main` at 1.68.0.926 and drawn in Chromium over a mocked backend
+(`scripts/screens/app.tsx`), desktop as a 1440×900 window at 2× and the phone
+as a 405×860 Android shell at 3×, in English, on 2026-10-29. Every title, cover,
+banner, character, voice actor and studio is AniList's own, fetched by the
+harness at the time; the account, its scores and progress, the activity, the
+forum posts and the local library's files are the harness's invented
+fixtures, and the Now Playing window is a mocked mpv detection. Nothing is
+composited or edited beyond resizing and encoding. The README's copies
+(`assets/screenshots/`, which the Flatpak metainfo also names) and F-Droid's
+three phone images (`fastlane/metadata/android/en-US/images/phoneScreenshots/`)
+are JPEGs of the same shots. Earlier sets were captures
+on the maintainer's account, approved on 2026-09-06, 2026-09-19 and
+2026-10-03.
