@@ -20,7 +20,11 @@ const MUSIC_PLAYERS: &[&str] = &[
     "spotify", "spotifyd", "spotifymusic", "ncspot", "rhythmbox", "clementine",
     "strawberry", "audacious", "elisa", "lollypop", "amberol", "mpd", "cmus",
     "moc", "quodlibet", "deadbeef", "tauon", "gnome-music", "sayonara",
+    "sone", "tidal-hifi", "high-tide",
 ];
+
+/// The first parts of a reverse-DNS app id, whose last part is then the app's own name.
+const REVERSE_DNS_ROOTS: &[&str] = &["io", "com", "org", "net", "dev", "app", "de", "me", "page"];
 
 /// One media session as the desktop sees it, serialized straight into the Settings diagnostic.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, specta::Type)]
@@ -103,7 +107,14 @@ pub fn short_app_name(app_id: &str) -> String {
     }
     // An MPRIS bus name, checked first because it has no underscore and would otherwise reduce to its instance suffix.
     if let Some(rest) = id.strip_prefix("org.mpris.MediaPlayer2.") {
-        return rest.split('.').next().unwrap_or(rest).to_lowercase();
+        let parts: Vec<&str> = rest.split('.').take_while(|p| !p.starts_with("instance")).collect();
+        // A reverse-DNS app id ("io.github.x.app") names the app last; a plain one ("mpv") first.
+        let name = match parts.as_slice() {
+            [first, .., last] if parts.len() >= 3 && REVERSE_DNS_ROOTS.contains(first) => *last,
+            [first, ..] => *first,
+            [] => rest,
+        };
+        return name.to_lowercase();
     }
     if id.contains('\\') || id.contains('/') {
         // A path: the file name is already the right shape.
@@ -545,6 +556,32 @@ mod tests {
             short_app_name("org.mpris.MediaPlayer2.plasma-browser-integration"),
             "plasma-browser-integration"
         );
+    }
+
+    /// A reverse-DNS app id names the player in its last part, not its first, instance suffix or not.
+    #[test]
+    fn a_reverse_dns_bus_name_shortens_to_the_app() {
+        assert_eq!(short_app_name("org.mpris.MediaPlayer2.io.github.lullabyX.sone"), "sone");
+        assert_eq!(short_app_name("org.mpris.MediaPlayer2.io.bassi.Amberol"), "amberol");
+        assert_eq!(short_app_name("org.mpris.MediaPlayer2.com.github.Foo.instance42"), "foo");
+    }
+
+    /// Tidal clients are music players, so a track there is never taken for an episode.
+    #[test]
+    fn tidal_clients_count_as_music_players() {
+        let mut s = MediaSession {
+            app_id: "org.mpris.MediaPlayer2.io.github.lullabyX.sone".into(),
+            title: "You".into(),
+            artist: "Lane 8, Kasablanca".into(),
+            album: String::new(),
+            playback_type: "unknown".into(),
+            status: "playing".into(),
+            url: String::new(),
+        };
+        assert!(s.is_music_player());
+        assert_eq!(infer_playback_type("", &s.app_id), "music");
+        s.app_id = "org.mpris.MediaPlayer2.tidal-hifi".into();
+        assert!(s.is_music_player());
     }
 
     #[test]

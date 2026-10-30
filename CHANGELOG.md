@@ -13,13 +13,14 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: fa3684e -->
+<!-- generated-through: e41042f -->
 
 ### Fixed
 
 - The Wrapped poster no longer draws a dark disc hanging off its corner; the crow leads the wordmark in the footer instead.
 - An open genre or tag filter on the search page now stays inside the filter column instead of pushing it sideways, and the "Appears in" covers on a character or staff page are the same size as the covers above them.
 - On KDE Plasma under Wayland, the global shortcut now brings an open Karasu window to the front instead of doing nothing.
+- On Linux, music players whose system name starts with a domain (such as Amberol, or the Tidal clients SONE, TIDAL Hi-Fi and High Tide) are no longer mistaken for something to track.
 
 ## 1.68.0 — 2026-10-25
 
