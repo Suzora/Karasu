@@ -59,9 +59,9 @@ const landOn = (setting, card) => async (p) => {
 };
 /** Opens the detail page's cast fold and scrolls it to the top, where its rows can be judged. */
 const openCast = async (p) => {
-  await p.getByRole("button", { name: "Besetzung & Staff" }).click();
+  await p.getByRole("button", { name: /^(Besetzung & Staff|Cast & staff)$/ }).click();
   await p.waitForTimeout(600);
-  await toCard("Besetzung & Staff")(p);
+  for (const title of ["Besetzung & Staff", "Cast & staff"]) await toCard(title)(p);
 };
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
 export const SCREENS = [
@@ -240,7 +240,10 @@ export const SCREENS = [
     await p.waitForTimeout(400);
     await p.getByRole("button", { name: "Bearbeiten" }).nth(1).click();
   } },
-  { id: "p62-editor-liste", w: 405, h: 860, phone: true, route: "/list", act: (p) => p.getByRole("button", { name: "Bearbeiten" }).first().click() },
+  { id: "p62-editor-liste", w: 405, h: 860, phone: true, route: "/list", act: async (p) => {
+    await p.locator("main [data-media-id]").first().dispatchEvent("contextmenu", { bubbles: true, cancelable: true, button: 2 });
+    await p.getByRole("menuitem", { name: "Bearbeiten", exact: true }).click({ timeout: 5000 });
+  } },
   { id: "d92-erkennung-listenende", w: 1232, h: 800, route: "/list", playing: true, act: (p) => p.evaluate(() => document.querySelectorAll(".overflow-y-auto").forEach((el) => (el.scrollTop = el.scrollHeight))) },
   { id: "p63-erkennung-listenende", w: 405, h: 860, phone: true, route: "/list", playing: true, act: (p) => p.evaluate(() => document.querySelectorAll(".overflow-y-auto").forEach((el) => (el.scrollTop = el.scrollHeight))) },
   { id: "d7-bearbeiten", w: 1232, h: 800, route: "/list", act: (p) => fromMenu(p, "Bearbeiten") },
@@ -251,7 +254,7 @@ export const SCREENS = [
   { id: "d91-suche-filter-auf", w: 1232, h: 800, route: "/search", act: async (p) => {
     await p.getByRole("link", { name: /Gerade im Trend/ }).first().click();
     await p.waitForTimeout(500);
-    await p.getByRole("button", { name: /^(Filter|Weitere Filter)/ }).first().click();
+    await p.getByRole("button", { name: /^Genre/ }).first().click();
   } },
   { id: "d31-suchseite-start", w: 1232, h: 800, route: "/search" },
   { id: "p18-suchseite", w: 405, h: 860, phone: true, route: "/search" },
@@ -299,7 +302,7 @@ export const SCREENS = [
   { id: "d27-kalender", w: 1232, h: 800, route: "/calendar" },
   { id: "p15-kalender", w: 405, h: 860, phone: true, route: "/calendar" },
   { id: "d29-kalender-woche", w: 1440, h: 900, route: "/calendar" },
-  { id: "d30-kalender-kacheln", w: 1232, h: 800, route: "/calendar", act: (p) => p.getByRole("radio", { name: "Kacheln" }).click() },
+  { id: "d30-kalender-kacheln", w: 1232, h: 800, route: "/calendar", act: (p) => p.getByRole("button", { name: "Kacheln", exact: true }).click() },
   { id: "p17-kalender-kacheln", w: 405, h: 860, phone: true, route: "/calendar", act: (p) => p.getByRole("radio", { name: "Kacheln" }).click() },
   { id: "d28-saison", w: 1232, h: 800, route: "/seasonal" },
   { id: "p16-saison", w: 405, h: 860, phone: true, route: "/seasonal" },
@@ -375,7 +378,7 @@ async function longPress(page, target) {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 }
 
-/** Every title and face the mock draws with real art (`screens/art.json` beside the first five), cached on first use and never committed. */
+/** Every title and face the mock draws with real art (`screens/art.json`), cached on first use, never committed. */
 const ARTS = JSON.parse(readFileSync(path.join(DIR, "art.json"), "utf8"));
 const ART = [...new Set([178789, 135865, 103303, 195516, 176301, ...ARTS.titles.flatMap((t) => [t.anime, t.manga]), ...Object.values(ARTS.franchise)])];
 const FACES = [...new Set(Object.values(ARTS.faces))];

@@ -437,6 +437,17 @@ Two more, decided by the maintainer in August 2026:
   nowhere. Do not propose the submission again unless the maintainer reopens
   it. F-Droid has no such rule (its interim policy, fdroid/admin#699, is
   Debian's "neither endorses nor prohibits"), so its submission stands.
+- **Promoting Karasu on AniList itself.** Decided by the maintainer on
+  2026-10-30, after AniList's changelog of that day widened its community
+  guidelines to nearly all AI-generated content, naming "Apps or Websites
+  whose development or functionality heavily relies on generative AI".
+  Karasu is developed that way and says so above, so no forum thread,
+  bio link, status update or video about Karasu goes onto anilist.co, and
+  no agent drafts one. The rule governs what is shared on the site, not the
+  API: the app keeps talking to AniList as before, and whether AniList
+  ever acts on API clients is unknown — the built-in client id is the
+  residual risk. Do not propose posting there unless the maintainer
+  reopens it.
 
 **The log is a deliberate exception to the first of those, decided by the
 maintainer.** With verbose logging on, `karasu.log` records what detection saw —
