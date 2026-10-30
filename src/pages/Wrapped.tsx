@@ -243,10 +243,8 @@ function drawCard(
     const subhead = (text: string, y: number) => {
       ctx.textAlign = "left";
       ctx.fillStyle = INK_FAINT;
-      face(600, u(1.05));
-      track(`${u(0.16)}px`);
-      ctx.fillText(text.toUpperCase(), P, y + u(2.4));
-      track("0px");
+      face(600, u(1.3));
+      ctx.fillText(text, P, y + u(2.4));
     };
 
     // --- Header --- no coloured band: at poster scale a filled header reads as a UI chrome bar.
@@ -257,10 +255,8 @@ function drawCard(
         ctx.textBaseline = "alphabetic";
 
         ctx.fillStyle = INK_DIM;
-        face(600, u(1.5));
-        track(`${u(0.34)}px`);
-        ctx.fillText(name.toUpperCase(), P, y + u(2.6));
-        track("0px");
+        face(600, u(1.7));
+        ctx.fillText(name, P, y + u(2.6));
 
         ctx.fillStyle = INK;
         face(800, u(8.4));
@@ -326,19 +322,8 @@ function drawCard(
             ctx.fillText(value.text, x, y + u(4.4));
 
             ctx.fillStyle = INK_FAINT;
-            face(600, u(1.05));
-            track(`${u(0.16)}px`);
-            const label = fitText(
-              ctx,
-              tile.label.toUpperCase(),
-              tw,
-              600,
-              u(1.05),
-              u(0.8),
-              true,
-            );
+            const label = fitText(ctx, tile.label, tw, 600, u(1.3), u(0.95), true);
             ctx.fillText(label.text, x, y + u(6.4));
-            track("0px");
           });
         },
       });
