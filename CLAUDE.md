@@ -1454,7 +1454,12 @@ async update the real code makes after an await warns instead.
   unwind, and the process aborted, once per install. An F-Droid reviewer
   found it on 2026-10-18 (Samsung SM-G998B, Android 15, 1.44.0.873: SIGABRT
   through `Rust_ipc` / `Ipc.postMessage` about 1.7 s in); the cause is read
-  from that tombstone and the crates' source, not reproduced on a device. So
+  from that tombstone and the crates' source, not reproduced on a device. On
+  2026-10-31 five force-stopped cold starts of 1.68.2.928 on the NX809J ran
+  without an abort (77–118 ms to first frame), the widgets drew and the
+  system bars opened in the last theme; a first start that creates the
+  database was not repeated, since that needs the release app's data wiped
+  or a debug build beside it, and this Linux machine has no NDK. So
   the window entry says `create: false`, `open_main_window` builds it as the
   hook's last step, and `no_window_opens_before_setup` fails the gate on any
   window Tauri would open by itself. The desktop could not race, since setup
@@ -1483,7 +1488,12 @@ async update the real code makes after an await warns instead.
   `battery_exempt` field, which a JS-only plugin cannot serve, and the JNI
   pair in `TrackingService.kt` was measured on the phone; do not re-propose
   it. Both plugins compiled into a debug APK on 2026-09-20 (`tauri.settings.
-  gradle` lists both projects) and have not run on a device yet.
+  gradle` lists both projects), and on 2026-10-31 the release APK 1.68.2.928
+  on the maintainer's NX809J opened the system share sheet with the AniList
+  link from the action sheet and the detail page, and ticked on the long
+  press and the armed pull. The tick follows the system's touch-feedback
+  switch, which was off on that phone, so "no vibration" is first a question
+  about that switch (`settings get system haptic_feedback_enabled`).
 - **The media-detection kv key is still spelled `smtc_enabled`.** The setting
   is no longer Windows-only, but renaming the key would reset every existing
   user's opt-out. It is behind `MEDIA_DETECTION_KEY` in `commands/playback.rs`.
@@ -2602,8 +2612,8 @@ shape, and the question that follows them.
   Appearance toggle is disabled with a hint where the answer is `None`. On
   the rig on 2026-09-20 the switch painted Windows' `#0078d4` and came back
   to the saved colour, and on 2026-10-31 on KDE Plasma Wayland it took KDE's
-  accent, followed a change on focus and came back the same way; Android is
-  compile-checked only.
+  accent, followed a change on focus and came back the same way, and on the
+  NX809J (Android 16) it took the wallpaper's Material You accent.
   Contrast is its own setting beside the theme (`karasu-contrast`: system,
   standard, high; `lib/contrast` `resolveContrast`): high sets
   `data-contrast="more"`, which swaps the palette in `index.css`, and passes
