@@ -13,12 +13,13 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: b751a73 -->
+<!-- generated-through: fa3684e -->
 
 ### Fixed
 
 - The Wrapped poster no longer draws a dark disc hanging off its corner; the crow leads the wordmark in the footer instead.
 - An open genre or tag filter on the search page now stays inside the filter column instead of pushing it sideways, and the "Appears in" covers on a character or staff page are the same size as the covers above them.
+- On KDE Plasma under Wayland, the global shortcut now brings an open Karasu window to the front instead of doing nothing.
 
 ## 1.68.0 — 2026-10-25
 

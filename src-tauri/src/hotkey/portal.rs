@@ -170,9 +170,18 @@ async fn run(app: AppHandle, accel: String) {
 /// Hands the window the desktop's activation token, then toggles it the way the grab does.
 fn raise(app: &AppHandle, token: Option<String>) {
     use gtk::prelude::GtkWindowExt;
-    if let (Some(token), Some(window)) = (token, app.get_webview_window("main")) {
-        if let Ok(gtk_window) = window.gtk_window() {
-            gtk_window.set_startup_id(&token);
+    let Some(window) = app.get_webview_window("main") else { return };
+    match token {
+        Some(token) => {
+            if let Ok(gtk_window) = window.gtk_window() {
+                gtk_window.set_startup_id(&token);
+            }
+        }
+        // Without a token the compositor will not raise a mapped window, but it focuses a freshly mapped one.
+        None => {
+            if window.is_visible().unwrap_or(false) && !window.is_focused().unwrap_or(false) {
+                let _ = window.hide();
+            }
         }
     }
     crate::toggle_main_window(app);
