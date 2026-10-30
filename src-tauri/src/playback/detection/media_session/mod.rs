@@ -72,7 +72,7 @@ impl MediaSession {
     fn site(&self) -> Option<super::profiles::SiteTitle> {
         let site = super::profiles::match_site(&compose_title(&self.artist, &self.title, &self.album))?;
         // A page that sets its own metadata (a YouTube upload of a trailer) names a channel, which the tab never does.
-        let bare_tab = self.artist.trim().is_empty() && self.album.trim().is_empty();
+        let bare_tab = named_artist(&self.artist).is_empty() && named_artist(&self.album).is_empty();
         (site.carries == super::profiles::Carries::Episode || bare_tab).then_some(site)
     }
 }
@@ -80,8 +80,8 @@ impl MediaSession {
 /// Joins show and title for the parser only when they are distinct, since several players repeat the show in both fields.
 pub fn compose_title(artist: &str, title: &str, album: &str) -> String {
     let title = title.trim();
-    let artist = artist.trim();
-    let album = album.trim();
+    let artist = named_artist(artist);
+    let album = named_artist(album);
 
     // Some players leave `artist` empty and put the show in `album` instead.
     let show = if artist.is_empty() { album } else { artist };
@@ -97,6 +97,13 @@ pub fn compose_title(artist: &str, title: &str, album: &str) -> String {
         return title.to_string();
     }
     format!("{show} - {title}")
+}
+
+/// An artist or album as a name, or nothing where a browser integration put the page's web address there instead.
+fn named_artist(artist: &str) -> &str {
+    let artist = artist.trim();
+    let is_address = (artist.starts_with("https://") || artist.starts_with("http://")) && !artist.contains(' ');
+    if is_address { "" } else { artist }
 }
 
 /// Trims an app id (executable path, package family name or MPRIS bus name) down to a process-like name.
@@ -384,6 +391,24 @@ mod tests {
         assert_eq!(compose_title("", "Episode 5", ""), "Episode 5");
         assert_eq!(compose_title("Frieren", "", ""), "Frieren");
         assert_eq!(compose_title("  ", "  ", "  "), "");
+    }
+
+    /// KDE's browser integration fills the album with the page's address when the site names none.
+    #[test]
+    fn a_web_address_as_artist_names_no_show() {
+        assert_eq!(compose_title("", "LINK CLICK E1 - BiliBili", "https://www.bilibili.tv"), "LINK CLICK E1 - BiliBili");
+        assert_eq!(compose_title("https://www.bilibili.tv", "LINK CLICK E1 - BiliBili", ""), "LINK CLICK E1 - BiliBili");
+        assert_eq!(compose_title("http://localhost:8096", "Episode 5", "Frieren"), "Frieren - Episode 5");
+        let s = MediaSession {
+            app_id: "org.mpris.MediaPlayer2.plasma-browser-integration".into(),
+            title: "Frieren | Disney+".into(),
+            artist: String::new(),
+            album: "https://www.disneyplus.com".into(),
+            playback_type: "unknown".into(),
+            status: "playing".into(),
+            url: String::new(),
+        };
+        assert!(s.site().is_some(), "a page address is still a bare tab");
     }
 
     /// A browser's music-typed session with no episode spelled out is the case the verbose log has to explain.
