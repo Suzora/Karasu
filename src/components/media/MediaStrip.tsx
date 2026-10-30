@@ -34,7 +34,7 @@ export function MediaStrip({ edges }: { edges: PersonMediaEdge[] }) {
             key={`${e.node.id}-${i}`}
             to={`/media/${e.node.id}`}
             title={displayTitle(e.node.title)}
-            className="group w-24 shrink-0 animate-rise-in"
+            className="group w-(--cover-w,7.5rem) shrink-0 animate-rise-in"
             style={{ animationDelay: `${staggerDelay(i)}ms` }}
           >
             <div className="aspect-2/3 overflow-hidden rounded-control bg-surface-850">
