@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 044a3a03 -->
+<!-- generated-through: e8d559d -->
 
 ### Fixed
 
@@ -22,6 +22,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - On KDE Plasma under Wayland, the global shortcut now brings an open Karasu window to the front instead of doing nothing.
 - On Linux, music players whose system name starts with a domain (such as Amberol, or the Tidal clients SONE, TIDAL Hi-Fi and High Tide) are no longer mistaken for something to track.
 - On KDE Plasma, an episode playing in the browser is no longer read with the page's web address in front of the series name, so it can be matched to your list.
+- Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
 
 ## 1.68.0 — 2026-10-25
 

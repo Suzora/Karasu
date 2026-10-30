@@ -217,10 +217,13 @@ enum ListPlan {
     ServeAndRefresh,
     /// Forced, or nothing cached: fetch inline.
     Fetch,
+    /// Browsing without an account: an empty list, since AniList has none for user 0 and answers 404.
+    NoAccount,
 }
 
-fn list_plan(age_secs: Option<i64>, force: bool) -> ListPlan {
+fn list_plan(user_id: i64, age_secs: Option<i64>, force: bool) -> ListPlan {
     match age_secs {
+        _ if user_id <= 0 => ListPlan::NoAccount,
         _ if force => ListPlan::Fetch,
         None => ListPlan::Fetch,
         Some(age) if age < LIST_FRESH_SECS => ListPlan::Serve,
@@ -356,7 +359,8 @@ pub async fn fetch_media_list(
             lists: serde_json::from_str(payload).map_err(|e| format!("Cache corrupted: {e}"))?,
         })
     };
-    match list_plan(age, force.unwrap_or(false)) {
+    match list_plan(user_id, age, force.unwrap_or(false)) {
+        ListPlan::NoAccount => Ok(ListResult { from_cache: false, pending: 0, fetched_at: 0, lists: json!([]) }),
         ListPlan::Serve => {
             let (payload, at) = cached.expect("Serve implies a cache");
             serve(&payload, at, false)
@@ -1118,7 +1122,7 @@ mod tests {
         assert_eq!(got, [ListFreshness { media_type: "ANIME", fresh_for_ms: (LIST_FRESH_SECS - 60) as u64 * 1000 }]);
         let at_edge = list_freshness(&[("ANIME", Some(now - LIST_FRESH_SECS))], now);
         assert_eq!(at_edge[0].fresh_for_ms, 0);
-        assert_eq!(list_plan(Some(LIST_FRESH_SECS), false), ListPlan::ServeAndRefresh);
+        assert_eq!(list_plan(1, Some(LIST_FRESH_SECS), false), ListPlan::ServeAndRefresh);
         assert_eq!(list_freshness(&[("ANIME", Some(0))], now)[0].fresh_for_ms, 0, "a stale-marked list is due");
     }
 
@@ -1203,12 +1207,20 @@ mod tests {
     /// The window in one place: fresh serves for nothing, stale serves and refreshes behind, forced or empty fetches.
     #[test]
     fn a_fresh_cache_answers_without_a_request_and_a_forced_read_ignores_the_window() {
-        assert_eq!(list_plan(Some(0), false), ListPlan::Serve);
-        assert_eq!(list_plan(Some(LIST_FRESH_SECS - 1), false), ListPlan::Serve);
-        assert_eq!(list_plan(Some(LIST_FRESH_SECS), false), ListPlan::ServeAndRefresh);
-        assert_eq!(list_plan(Some(-5), false), ListPlan::Serve, "a clock that went back still serves");
-        assert_eq!(list_plan(None, false), ListPlan::Fetch);
-        assert_eq!(list_plan(Some(10), true), ListPlan::Fetch);
+        assert_eq!(list_plan(1, Some(0), false), ListPlan::Serve);
+        assert_eq!(list_plan(1, Some(LIST_FRESH_SECS - 1), false), ListPlan::Serve);
+        assert_eq!(list_plan(1, Some(LIST_FRESH_SECS), false), ListPlan::ServeAndRefresh);
+        assert_eq!(list_plan(1, Some(-5), false), ListPlan::Serve, "a clock that went back still serves");
+        assert_eq!(list_plan(1, None, false), ListPlan::Fetch);
+        assert_eq!(list_plan(1, Some(10), true), ListPlan::Fetch);
+    }
+
+    /// Browsing without an account has no list to fetch, so AniList is never asked for user 0's.
+    #[test]
+    fn a_list_without_an_account_asks_anilist_nothing() {
+        assert_eq!(list_plan(0, None, false), ListPlan::NoAccount);
+        assert_eq!(list_plan(0, None, true), ListPlan::NoAccount);
+        assert_eq!(list_plan(6421433, None, false), ListPlan::Fetch);
     }
 
     /// The parts and the key describe the same edit, so the panel and the dedupe cannot disagree.
