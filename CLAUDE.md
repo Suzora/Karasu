@@ -1049,11 +1049,17 @@ launch does not put the dialog up again; setting a key clears it, and Enter
 on the same key asks again. Once bound the desktop keeps the key, so a
 change goes through its own dialog (`configure_global_hotkey`, portal v2). The `Activated` signal's activation token is handed to GTK
 (`set_startup_id`) before the window is toggled, or GNOME refuses the focus.
-None of this has run on a real Wayland desktop yet: it is derived from the
-portal's specification and the GNOME and KDE backends' sources, and the
-Linux module compiles only on Linux (CI, or the local Flatpak build). No real GPU has run
-native Wayland yet, so a Wayland graphics report starts with `GDK_BACKEND=x11`
-as the comparison. The script throws if the hook forces a
+Measured on KDE Plasma 6.8 Wayland (CachyOS, xdg-desktop-portal 1.22) on
+2026-10-31: the registry, the dialog, the binding and the `Activated` signal
+all work, but KDE sends no activation token, and without one KWin will not
+raise an already mapped window while it does focus a freshly mapped one, so
+`raise` in `hotkey/portal.rs` hides an unfocused visible window first. The
+registry also refuses an id whose `.desktop` file's `Exec=` is not on `PATH`
+(GLib drops such an entry), which the packages satisfy with `/usr/bin/karasu`
+and a hand-run binary does not; GNOME is still unmeasured. On the same machine
+(RTX 5090 beside an AMD iGPU) native Wayland ran with sharp text, the tray and
+every page, so a Wayland graphics report still starts with `GDK_BACKEND=x11`
+as the comparison, but no longer for want of a real GPU. The script throws if the hook forces a
 backend again, because that would be a decision to take again, not a line to
 patch.
 
@@ -1415,7 +1421,11 @@ async update the real code makes after an await warns instead.
   unless that answer is in and true; on Linux a page change is plain, as under
   Reduce motion. Dropping the DMA-BUF default would bring the transitions and
   GPU compositing back, at the price the default exists to avoid (a blank
-  window on some drivers); that wants a measurement on real GPUs, not a guess.
+  window on some drivers). The first real-GPU measurement, 2026-10-31 on KDE
+  Plasma Wayland with an RTX 5090 beside an AMD iGPU and
+  `WEBKIT_DISABLE_DMABUF_RENDERER=0`: the diagnostics read GPU compositing
+  yes, the window drew, and a dozen fast sidebar transitions ran without a
+  crash. One machine is not #54's, so the default stays until more do.
 - **A command never waits on a dialog, because on Linux that dialog is never
   drawn.** A plain `#[tauri::command] fn` runs on the main thread, and
   tauri-plugin-dialog's `blocking_*` calls park the calling thread on a
@@ -1432,7 +1442,8 @@ async update the real code makes after an await warns instead.
   and WebKitWebDriver under Xvfb: on the old release build, "Choose folder"
   and About's "Save report" opened no window and the WebView stopped
   answering; on the new one a "Select Folder" and a "Save File" window opened
-  and it kept answering.
+  and it kept answering. On 2026-10-31 on KDE Plasma Wayland all five opened
+  and the window kept answering, and size and maximised state came back.
 - **The main window opens at the end of setup, never before it.** Tauri
   builds the windows of `tauri.conf.json` *before* it calls the setup hook,
   and on Android tao runs the Rust `main`, and with it the hook, on a thread
@@ -1981,7 +1992,12 @@ async update the real code makes after an await warns instead.
   browser windows and names only those whose title holds the session's own,
   compared word for word in the matcher's form (`browser::relation`), never
   the rest of what is open. `scripts/browser-measure.mjs` takes the same
-  measurement from outside the app, session files included.
+  measurement from outside the app, session files included. On KDE the
+  playing tab can also reach MPRIS through Plasma's browser integration,
+  which puts the page's origin in `xesam:album` when the site names no
+  album (seen with Zen on 2026-10-31); `named_artist` drops an address there
+  or in the artist, or it led the composed title. A reverse-DNS bus name
+  (`io.github.x.app`) is shortened to its last part by `short_app_name`.
 - **A chapter on a site Karasu does not name is taken only for a manga being
   read, and always asks.** Since 2026-10-07, when the unofficial readers
   left, MANGA Plus is the one reader named, and only by the suffix its tab
@@ -2585,7 +2601,9 @@ shape, and the question that follows them.
   re-reads on window focus only while following the system, and the
   Appearance toggle is disabled with a hint where the answer is `None`. On
   the rig on 2026-09-20 the switch painted Windows' `#0078d4` and came back
-  to the saved colour; Linux and Android are compile-checked only.
+  to the saved colour, and on 2026-10-31 on KDE Plasma Wayland it took KDE's
+  accent, followed a change on focus and came back the same way; Android is
+  compile-checked only.
   Contrast is its own setting beside the theme (`karasu-contrast`: system,
   standard, high; `lib/contrast` `resolveContrast`): high sets
   `data-contrast="more"`, which swaps the palette in `index.css`, and passes
