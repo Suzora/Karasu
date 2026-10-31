@@ -41,10 +41,14 @@ export function OverviewBanner({ name, anime, strip }: { name: string | null; an
     <section aria-label={t("dashboard.heroLabel")} className={cn("relative overflow-hidden rounded-hero bg-on-cover", strip ? "h-72" : "h-60")}>
       {art && <MediaBanner source={bannerSource(art, level)} veiled={shouldBlur(art, level, blurAdult)} />}
       <div aria-hidden className="pointer-events-none absolute inset-0 banner-scrim" />
-      <div className={cn("relative flex h-full flex-col px-8", strip ? "pt-9" : "justify-center")}>
+      {art && (
+        // The pointer's way to the title; the credit link below is the keyboard's, so this one stays out of the tab order.
+        <Link to={`/media/${art.id}`} tabIndex={-1} aria-hidden className="absolute inset-0" />
+      )}
+      <div className={cn("pointer-events-none relative flex h-full flex-col px-8", strip ? "pt-9" : "justify-center")}>
         <h1 className="text-title leading-tight text-on-cover-edge">{t(greetingKey(new Date().getHours(), name != null), { name })}</h1>
         <p className="mt-1.5 text-sm text-on-cover-edge/80">{line}</p>
-        <form role="search" onSubmit={submit} className="mt-5 max-w-xl">
+        <form role="search" onSubmit={submit} className="pointer-events-auto mt-5 max-w-xl">
           <SearchField value={term} onChange={setTerm} label={t("dashboard.search")} placeholder={t("dashboard.search")} clearLabel={t("common.clear")} size="lg" className="rounded-full" />
         </form>
       </div>
@@ -68,7 +72,7 @@ function Strip({ anime, now }: { anime: MediaListEntry[]; now: number }) {
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
   return (
-    <div className="absolute inset-x-8 bottom-12">
+    <div className="pointer-events-none absolute inset-x-8 bottom-12">
       <div className="relative h-px bg-on-cover-edge/20">
         <span aria-hidden className="absolute -top-1 left-0 size-2 rounded-full bg-on-cover-edge" />
         {STRIP_MARKS.map((h) => (
@@ -78,7 +82,7 @@ function Strip({ anime, now }: { anime: MediaListEntry[]; now: number }) {
         ))}
         <ul aria-label={t("dashboard.strip")}>
           {stripItems(anime, now).map(({ entry, offset }) => (
-            <li key={entry.id} className="absolute -translate-x-1/2 -translate-y-full pb-1.5" style={{ left: `${offset * 100}%` }}>
+            <li key={entry.id} className="pointer-events-auto absolute -translate-x-1/2 -translate-y-full pb-1.5" style={{ left: `${offset * 100}%` }}>
               <Link to={`/media/${entry.mediaId}`} title={displayTitle(entry.media.title)} aria-label={displayTitle(entry.media.title)}>
                 {entry.media.coverImage.large && <img src={entry.media.coverImage.large} alt="" className={cn("h-9 w-7 rounded-inner object-cover ring-2 ring-on-cover-edge/80", shouldBlur(entry.media, level, blurAdult) && "veil-thumb")} />}
               </Link>

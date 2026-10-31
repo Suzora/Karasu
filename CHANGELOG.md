@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 54ab032 -->
+<!-- generated-through: 71805d9 -->
 
 ### Fixed
 
@@ -31,6 +31,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - The Wrapped poster's name, figure labels and section headings are written in normal case instead of spaced capitals, like the rest of the app.
 - The Overview no longer draws its own week timetable beside the calendar's; "Coming up" now lists the next episodes from today on and links to the full calendar.
 - A trailer shows its preview image before it plays.
+- A click anywhere on the Overview's banner opens the title it shows; the search and the timeline keep their own.
 
 ### Added
 
