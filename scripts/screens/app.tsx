@@ -501,6 +501,12 @@ function bellActivities() {
 function answerQuery(query: string, variables: Record<string, unknown> | null) {
   const q = query.replace(/\s+/g, " ");
   if (/characters\s*\(\s*page/.test(q)) return { Media: cast() };
+  // The search filters' vocabulary, so an opened Genre or Tag field has rows to show.
+  if (/GenreCollection/.test(q)) {
+    const genres = ["Action", "Adventure", "Comedy", "Drama", "Fantasy", "Mystery", "Romance", "Sci-Fi", "Slice of Life", "Sports"];
+    const tags = ["Isekai", "Time Skip", "Female Protagonist", "Military", "Music", "Iyashikei"].map((name) => ({ name, isAdult: false }));
+    return { GenreCollection: genres, MediaTagCollection: tags };
+  }
   if (/\bMedia\s*\(\s*id/.test(q)) {
     const answer = { Media: detail(Number(variables?.id ?? REAL[0].id)) };
     return mock === "detail-pending" ? held.then(() => answer) : answer;
@@ -831,7 +837,7 @@ mockIPC((cmd, args) => {
     case "get_discord_settings":
       return { enabled: true, appId: "", hasBuiltinAppId: true };
     case "get_backup_settings":
-      return { enabled: true, keep: 7, dir: "C:\\Users\\kyu\\AppData\\Roaming\\dev.kyu.karasu\\backups" };
+      return { enabled: true, keep: 7, dir: android ? "/data/user/0/dev.kyu.karasu/backups" : "C:\\Users\\kyu\\AppData\\Roaming\\dev.kyu.karasu\\backups" };
     // A scanned folder: a dozen matched titles, one close match, one manual, one with a next season inside, two unplaced.
     case "get_library_index":
       return LISTS.ANIME.lists.flatMap((l) => l.entries).slice(0, 12).map((e, i) => {

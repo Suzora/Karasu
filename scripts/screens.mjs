@@ -122,6 +122,7 @@ export const SCREENS = [
   { id: "d64-detail-schmal", w: 768, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
   { id: "d65-detail-mittel", w: 1000, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
   { id: "d66-detail-breit", w: 1232, h: 700, route: "/media/178789", act: toCard("So bewertet die Community") },
+  { id: "d114-detail-infos", w: 1920, h: 1000, route: "/media/178789", act: toCard("Informationen") },
   { id: "d67-titelsprache", w: 1232, h: 800, route: "/settings?pane=appearance&setting=titleLanguage", act: landOn("titleLanguage", "Sprache & Bewegung") },
   { id: "d68-liste-romaji", w: 1232, h: 800, route: "/list", mock: "titles-romaji" },
   { id: "d69-detail-original", w: 1232, h: 800, route: "/media/178789", mock: "titles-native" },
