@@ -1803,8 +1803,9 @@ async update the real code makes after an await warns instead.
   page on `http://127.0.0.1` played. So `trailer.rs` binds a random loopback port on the first click, serves
   one page per `/<token>/<site>/<id>` (a 128-bit token, an id of URL-safe characters only, a CSP of its own
   whose `frame-ancestors` names the app's origins) and closes after five idle minutes; the app's `frame-src`
-  names `http://127.0.0.1:*` and the two hosts. Nothing loads from the video host before the click, and the
-  card carries an "Open on YouTube" link beside it. Played in a release build on KDE Plasma Wayland the same
+  names `http://127.0.0.1:*` and the two hosts. Before the click only the video's still loads, through the bio-image proxy
+  (`fetchBioImage`), so the host sees the IP on every detail page with a trailer, which the maintainer chose
+  on 2026-11-01 for the preview; the card carries an "Open on YouTube" link beside it. Played in a release build on KDE Plasma Wayland the same
   day; Dailymotion and Android were not tried.
 - **Bio images are proxied through Rust, and `img-src` is still not widened.**
   Across 89 real bios holding 350 images, **6 (2%) were on `*.anilist.co`**; the

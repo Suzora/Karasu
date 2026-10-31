@@ -1,4 +1,4 @@
-import { lazy, Suspense, useId, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useId, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import {
   useInfiniteQuery,
@@ -51,7 +51,8 @@ import {
   mediaStatusLabel,
   sourceLabel,
 } from "@/lib/format";
-import { isTauri, trailerPage } from "@/api/anilist";
+import { fetchBioImage, isTauri, trailerPage } from "@/api/anilist";
+import { createPromiseCache } from "@/lib/promiseCache";
 import { displayTitle } from "@/api/types";
 import { useAuth } from "@/stores/auth";
 import { useCachedEntry } from "@/hooks/useCachedEntry";
@@ -452,7 +453,7 @@ function EpisodesSection({ mediaId }: { mediaId: number }) {
                 className="group block text-left"
                 title={ep.site ?? undefined}
               >
-                {/* Same policy as the trailer: these thumbnails live on CDNs the CSP does not allow, so no img. */}
+                {/* These thumbnails live on CDNs the CSP does not allow, so no img. */}
                 <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface group-hover:bg-surface-700">
                   <Play className="size-5 text-ink-600" />
                 </div>
@@ -919,10 +920,25 @@ function CommunitySection({ data, only }: { data: MediaDetail; only?: "scores" |
 /** A cross-origin player needs its scripts and its own storage, and opens no window of its own. */
 const PLAYER_SANDBOX = "allow-scripts allow-same-origin allow-presentation";
 
+/** Trailer stills fetched once per session through the same Rust proxy as bio images, never by the page itself. */
+const trailerStills = createPromiseCache((url: string) => fetchBioImage(url));
+
 /** Plays the trailer in place once asked; nothing loads from the video host before that click. */
 function TrailerCard({ trailer }: { trailer: { id: string; site: string } }) {
   const { t } = useTranslation();
   const [src, setSrc] = useState<string | null>(null);
+  const [still, setStill] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isTauri) return;
+    let live = true;
+    trailerStills
+      .get(trailerStillUrl(trailer))
+      .then((uri) => live && setStill(uri))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [trailer]);
   // Inside the app the frame loads a loopback page, whose http referrer is what the video hosts ask for.
   const play = () => {
     if (!isTauri) return setSrc(trailerEmbedUrl(trailer));
@@ -950,13 +966,13 @@ function TrailerCard({ trailer }: { trailer: { id: string; site: string } }) {
           className="mt-3 aspect-video w-full max-w-2xl rounded-control bg-surface-950"
         />
       ) : (
-        // No img: the thumbnail is on a third-party host img-src refuses, and widening it would leak the user's IP.
         <button
           onClick={play}
           aria-label={t("detail.trailerPlay")}
-          className="group mt-3 grid aspect-video w-full max-w-2xl place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
+          className="group relative mt-3 grid aspect-video w-full max-w-2xl place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
         >
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
+          {still && <img src={still} alt="" className="absolute inset-0 size-full object-cover" />}
+          <span className="relative grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
             <Play fill="currentColor" className="size-5 text-ink-100" />
           </span>
         </button>
@@ -970,6 +986,13 @@ function trailerEmbedUrl(trailer: { id: string; site: string }): string {
   return trailer.site === "dailymotion"
     ? `https://www.dailymotion.com/embed/video/${encodeURIComponent(trailer.id)}?autoplay=1`
     : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailer.id)}?autoplay=1&rel=0`;
+}
+
+/** The host's own still for the video, which the proxy turns into a `data:` URI. */
+function trailerStillUrl(trailer: { id: string; site: string }): string {
+  return trailer.site === "dailymotion"
+    ? `https://www.dailymotion.com/thumbnail/video/${encodeURIComponent(trailer.id)}`
+    : `https://i.ytimg.com/vi/${encodeURIComponent(trailer.id)}/hqdefault.jpg`;
 }
 
 /** AniList only ever reports youtube/dailymotion here. */
