@@ -2311,7 +2311,13 @@ exited within a second, the tray icon file lay in
 `~/.var/app/io.github.Suzora.Karasu/cache/dev.kyu.karasu/`, and the data
 folder sat under `~/.var/app/io.github.Suzora.Karasu/data/dev.kyu.karasu/`.
 WSLg has no tray host, no Secret Service and no real GPU, so the tray menu,
-the token and the GPU path were not exercised there. `SUBMISSION.md` there has
+the token and the GPU path were not exercised there. They were on 2026-10-31,
+built from source on KDE Plasma Wayland (CachyOS, Flathub's `org.flatpak.Builder`,
+GNOME 51, the user installation): the tray menu, the token kept across a
+restart through the secret portal, a second start handing over, the hidden
+Settings rows and mpv's sandbox socket path all held. `flatpak-manifest.ps1`
+needs PowerShell, which that machine lacks, so its `-Local` steps were run
+by hand there (the pinned generators through `uv`). `SUBMISSION.md` there has
 the request's steps and what the sandbox changes. **F-Droid**: `packaging/fdroid/dev.kyu.karasu.yml`
 is the fdroiddata recipe, `scripts/release/fdroid-recipe.ps1 -Tag` fills its
 version, code and commit, `fastlane/metadata/android/{en-US,de-DE}` is the
