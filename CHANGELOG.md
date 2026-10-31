@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 99f2ba50 -->
+<!-- generated-through: 37c3b8b -->
 
 ### Fixed
 
@@ -24,6 +24,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - On KDE Plasma, an episode playing in the browser is no longer read with the page's web address in front of the series name, so it can be matched to your list.
 - Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
 - On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
+- The cover grid no longer overlaps its rows after the window changes size.
 
 ### Changed
 

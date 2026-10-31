@@ -29,6 +29,8 @@ export function useColumnCount(
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
+    // A track count changed by `--cover-w` leaves the grid's width alone, but never its first cell's.
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
     return () => observer.disconnect();
   }, [ref, watch]);
 

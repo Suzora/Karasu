@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTheme } from "@/stores/theme";
 import { type MediaListEntry } from "@/api/types";
@@ -58,9 +58,10 @@ export function VirtualGrid({
   );
   useScrollMemory(scrollRef, "list", place);
 
-  // Titles wrap differently at a different column count, so the cached row measurements are worthless once it changes.
-  useEffect(() => {
+  // Titles wrap differently at a different column count, so the cache is dropped and the mounted rows are read again.
+  useLayoutEffect(() => {
     virtualizer.measure();
+    virtualizer.elementsCache.forEach((el) => virtualizer.measureElement(el));
   }, [columns, virtualizer]);
 
   // Arrow keys need the measured count to know what down means, so it is reported up rather than recomputed.
@@ -76,7 +77,9 @@ export function VirtualGrid({
 
   return (
     <>
-      <div ref={probeRef} className={cn(gridClassName, "h-0")} aria-hidden />
+      <div ref={probeRef} className={cn(gridClassName, "h-0")} aria-hidden>
+        <div />
+      </div>
       <div
         className="relative w-full"
         style={{ height: virtualizer.getTotalSize() }}
