@@ -1559,7 +1559,9 @@ async update the real code makes after an await warns instead.
   `apk_open_install_permission` leads to it, About explains it. The start
   prompt (`apk_prompt_if_ready`) opens the installer once per version, kv
   `apk_prompted_version`, so a cancel holds. Verification is two nightlies:
-  install the first by hand, watch it fetch and install the second.
+  install the first by hand, watch it fetch and install the second. Done on
+  2026-10-31 on the NX809J: 1.68.2.928 offered, fetched and installed
+  1.68.9.935 through the system installer.
 - **Android keeps `usesCleartextTraffic` in release** deliberately — a LAN
   Jellyfin over plain HTTP is a supported setup, and (see `net.rs`) on Android
   a *self-signed* Jellyfin needs plain HTTP anyway.
@@ -2221,8 +2223,9 @@ process default at its first check. Since 2026-10-06 the updater runs with
 `default-features = false` (plus `zip`), shares our reqwest and its aws-lc-rs,
 and `ring` is out of the build: re-measured that day, `aws_lc_sys` 200 KiB and
 no `ring` in a 24.2 MiB file with 17.1 MiB of `.text` (the app grew since the
-first run). The live update check over the new path was not exercised then;
-the next Nightly's update is that check. The shipped desktop builds set
+first run). The live update over the new path ran on 2026-10-31: the
+maintainer's Linux install took the Nightly 1.68.9.935 from 1.63.1.921,
+download, signature and restart included. The shipped desktop builds set
 `CARGO_PROFILE_RELEASE_LTO=fat` and `CODEGEN_UNITS=1` in `release.yml` (the
 maintainer's call, 2026-10-06): measured that day on Windows the exe fell from
 25.4 to 22.6 MiB, and a cold local build took 4 min 31 s; the release jobs'
