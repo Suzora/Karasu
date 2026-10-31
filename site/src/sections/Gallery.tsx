@@ -21,7 +21,7 @@ function Thumb({ shot, onOpen, className }: { shot: Shot; onOpen: () => void; cl
   );
 }
 
-/** A chosen handful of real captures, desktop or Android by a toggle; a click opens the lightbox with the rest of that kind. */
+/** A chosen handful of screenshots, desktop or Android by a toggle; a click opens the lightbox with the rest of that kind. */
 export function Gallery() {
   const [kind, setKind] = useState<"desktop" | "phone">("desktop");
   const [open, setOpen] = useState<number | null>(null);

@@ -39,7 +39,7 @@ jobs:
 
       # Shared with the Nightly's key and saved only there: a PR reads main's cache and never crowds it out of the 10 GB.
       - name: Cache Rust build
-        uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           workspaces: src-tauri
           shared-key: windows
@@ -103,7 +103,7 @@ jobs:
             rpm
 
       - name: Cache Rust build
-        uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           workspaces: src-tauri
           shared-key: linux
