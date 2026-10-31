@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 775d31b7 -->
+<!-- generated-through: 11a8f97 -->
 
 ### Fixed
 
@@ -23,6 +23,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - On Linux, music players whose system name starts with a domain (such as Amberol, or the Tidal clients SONE, TIDAL Hi-Fi and High Tide) are no longer mistaken for something to track.
 - On KDE Plasma, an episode playing in the browser is no longer read with the page's web address in front of the series name, so it can be matched to your list.
 - Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
+- On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
 
 ### Changed
 

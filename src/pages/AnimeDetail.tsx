@@ -981,48 +981,51 @@ function InformationCard({
   return (
     <Card>
       <CardTitle>{t("detail.information")}</CardTitle>
-      <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 3xl:grid-cols-4">
-        <Row
-          label={t("common.status")}
-          value={mediaStatusLabel(data.status, t)}
-        />
-        <Row label={t("detail.format")} value={formatLabel(data.format, t)} />
-        <Row
-          label={t("common.episodes")}
-          value={data.episodes ? num(data.episodes) : ""}
-        />
-        <Row
-          label={t("detail.episodeDuration")}
-          value={data.duration ? t("detail.minutes", { n: data.duration }) : ""}
-        />
-        <Row
-          label={t("detail.startDate")}
-          value={fuzzyDate(data.startDate, i18n.language)}
-        />
-        <Row
-          label={t("detail.endDate")}
-          value={fuzzyDate(data.endDate, i18n.language)}
-        />
-        <Row
-          label={t("detail.season")}
-          value={
-            data.seasonYear
-              ? `${data.season ? `${t(`season.${data.season}`)} ` : ""}${data.seasonYear}`
-              : ""
-          }
-        />
-        <Row
-          label={t("detail.meanScore")}
-          value={data.meanScore ? `${data.meanScore}%` : ""}
-        />
-        <Row label={t("detail.popularity")} value={num(data.popularity)} />
-        <Row label={t("detail.favorites")} value={num(data.favourites)} />
-        <Row label={t("detail.source")} value={sourceLabel(data.source, t)} />
-        <Row label={t("detail.country")} value={data.countryOfOrigin} />
-        <Row label={t("detail.studios")} value={mainStudios.length > 0 ? <StudioLinks studios={mainStudios} /> : null} />
-        <Row label={t("detail.producers")} value={producers.length > 0 ? <StudioLinks studios={producers} /> : null} />
-        <Row label={t("detail.hashtag")} value={data.hashtag} />
-      </dl>
+      {/* Columns by the card's own width, since it stands in a narrow side column on a wide window. */}
+      <div className="@container mt-3">
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 @xs:grid-cols-3 @lg:grid-cols-4">
+          <Row
+            label={t("common.status")}
+            value={mediaStatusLabel(data.status, t)}
+          />
+          <Row label={t("detail.format")} value={formatLabel(data.format, t)} />
+          <Row
+            label={t("common.episodes")}
+            value={data.episodes ? num(data.episodes) : ""}
+          />
+          <Row
+            label={t("detail.episodeDuration")}
+            value={data.duration ? t("detail.minutes", { n: data.duration }) : ""}
+          />
+          <Row
+            label={t("detail.startDate")}
+            value={fuzzyDate(data.startDate, i18n.language)}
+          />
+          <Row
+            label={t("detail.endDate")}
+            value={fuzzyDate(data.endDate, i18n.language)}
+          />
+          <Row
+            label={t("detail.season")}
+            value={
+              data.seasonYear
+                ? `${data.season ? `${t(`season.${data.season}`)} ` : ""}${data.seasonYear}`
+                : ""
+            }
+          />
+          <Row
+            label={t("detail.meanScore")}
+            value={data.meanScore ? `${data.meanScore}%` : ""}
+          />
+          <Row label={t("detail.popularity")} value={num(data.popularity)} />
+          <Row label={t("detail.favorites")} value={num(data.favourites)} />
+          <Row label={t("detail.source")} value={sourceLabel(data.source, t)} />
+          <Row label={t("detail.country")} value={data.countryOfOrigin} />
+          <Row label={t("detail.studios")} value={mainStudios.length > 0 ? <StudioLinks studios={mainStudios} /> : null} />
+          <Row label={t("detail.producers")} value={producers.length > 0 ? <StudioLinks studios={producers} /> : null} />
+          <Row label={t("detail.hashtag")} value={data.hashtag} />
+        </dl>
+      </div>
     </Card>
   );
 }
