@@ -20,6 +20,7 @@ mod portable;
 mod schedule;
 mod sync;
 mod titles;
+mod trailer;
 
 use tauri::{AppHandle, Manager, Wry};
 // Used only from the desktop half of this file, so they gate with it, or Android warns of an unused import.
@@ -571,6 +572,7 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::discover_jellyfin_servers,
             commands::probe_jellyfin_server,
             commands::platform_info,
+            commands::trailer_page,
             commands::system_accent,
             commands::set_system_bars,
             commands::get_close_to_tray,

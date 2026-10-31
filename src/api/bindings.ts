@@ -224,6 +224,8 @@ export const commands = {
 	/**  What the server at `url` says it is — name, version, id — anonymously. */
 	probeJellyfinServer: (url: string) => typedError<ServerInfo, string>(__TAURI_INVOKE("probe_jellyfin_server", { url })),
 	platformInfo: () => __TAURI_INVOKE<PlatformInfo>("platform_info"),
+	/**  The loopback URL a trailer's frame loads, since the video hosts refuse a `tauri://` referrer. */
+	trailerPage: (site: string, id: string) => typedError<string, string>(__TAURI_INVOKE("trailer_page", { site, id })),
 	/**  The desktop's or the phone's accent colour as `#rrggbb`, or nothing where the platform does not publish one. */
 	systemAccent: () => __TAURI_INVOKE<string | null>("system_accent"),
 	/**  Paints Android's status and navigation strips in the theme's colours; the desktop's frame is its own, so nothing there. */

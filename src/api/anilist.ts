@@ -28,6 +28,8 @@ export const authInfo = () => commands.anilistAuthInfo();
 export const setClientId = (clientId: string) =>
   unwrap(commands.setClientId(clientId));
 export const loginUrl = () => unwrap(commands.anilistLoginUrl());
+/** The loopback page a trailer plays in. */
+export const trailerPage = (site: string, id: string) => unwrap(commands.trailerPage(site, id));
 /** Starts the localhost callback server and returns the authorize URL. */
 export const startLogin = () => unwrap(commands.anilistStartLogin());
 export const connect = (token: string): Promise<Viewer> =>

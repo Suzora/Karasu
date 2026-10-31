@@ -51,7 +51,7 @@ import {
   mediaStatusLabel,
   sourceLabel,
 } from "@/lib/format";
-import { isTauri } from "@/api/anilist";
+import { isTauri, trailerPage } from "@/api/anilist";
 import { displayTitle } from "@/api/types";
 import { useAuth } from "@/stores/auth";
 import { useCachedEntry } from "@/hooks/useCachedEntry";
@@ -327,21 +327,7 @@ export default function AnimeDetail() {
     info: <InformationCard data={data} mainStudios={mainStudios} producers={producers} />,
     tags: <TagList tags={data.tags ?? []} />,
     episodes: data.type === "ANIME" && data.status !== "NOT_YET_RELEASED" ? <EpisodesSection mediaId={data.id} /> : null,
-    trailer: data.trailer?.id ? (
-      <Card>
-        <CardTitle>{t("detail.trailer")}</CardTitle>
-        {/* No img: the thumbnail is on a third-party host img-src refuses, and widening it would leak the user's IP. */}
-        <button
-          onClick={() => openUrl(trailerUrl(data.trailer!))}
-          aria-label={t("detail.trailerPlay")}
-          className="group mt-3 grid aspect-video w-full max-w-md place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
-        >
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
-            <Play fill="currentColor" className="size-5 text-ink-100" />
-          </span>
-        </button>
-      </Card>
-    ) : null,
+    trailer: data.trailer?.id ? <TrailerCard trailer={data.trailer} /> : null,
     statuses: <CommunitySection data={data} only="statuses" />,
     scores: <CommunitySection data={data} only="scores" />,
     cast: <CastSection mediaId={data.id} />,
@@ -928,6 +914,62 @@ function CommunitySection({ data, only }: { data: MediaDetail; only?: "scores" |
       )}
     </div>
   );
+}
+
+/** A cross-origin player needs its scripts and its own storage, and opens no window of its own. */
+const PLAYER_SANDBOX = "allow-scripts allow-same-origin allow-presentation";
+
+/** Plays the trailer in place once asked; nothing loads from the video host before that click. */
+function TrailerCard({ trailer }: { trailer: { id: string; site: string } }) {
+  const { t } = useTranslation();
+  const [src, setSrc] = useState<string | null>(null);
+  // Inside the app the frame loads a loopback page, whose http referrer is what the video hosts ask for.
+  const play = () => {
+    if (!isTauri) return setSrc(trailerEmbedUrl(trailer));
+    trailerPage(trailer.site, trailer.id).then(setSrc, () => openUrl(trailerUrl(trailer)));
+  };
+  const site = trailer.site === "dailymotion" ? "Dailymotion" : "YouTube";
+  return (
+    <Card>
+      <div className="flex items-center">
+        <CardTitle>{t("detail.trailer")}</CardTitle>
+        <span className="flex-1" />
+        <button onClick={() => openUrl(trailerUrl(trailer))} className={buttonClass("text", "text")}>
+          {t("detail.trailerOpen", { site })}
+          <ExternalLink className="size-3.5" />
+        </button>
+      </div>
+      {src ? (
+        <iframe
+          src={src}
+          title={t("detail.trailer")}
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+          sandbox={PLAYER_SANDBOX}
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="mt-3 aspect-video w-full max-w-2xl rounded-control bg-surface-950"
+        />
+      ) : (
+        // No img: the thumbnail is on a third-party host img-src refuses, and widening it would leak the user's IP.
+        <button
+          onClick={play}
+          aria-label={t("detail.trailerPlay")}
+          className="group mt-3 grid aspect-video w-full max-w-2xl place-items-center overflow-hidden rounded-control bg-surface-800 transition-surface hover:bg-surface-700"
+        >
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-surface-950/70 transition-surface group-hover:bg-surface-950">
+            <Play fill="currentColor" className="size-5 text-ink-100" />
+          </span>
+        </button>
+      )}
+    </Card>
+  );
+}
+
+/** The privacy-enhanced embed, loaded directly outside the app where the page itself is http. */
+function trailerEmbedUrl(trailer: { id: string; site: string }): string {
+  return trailer.site === "dailymotion"
+    ? `https://www.dailymotion.com/embed/video/${encodeURIComponent(trailer.id)}?autoplay=1`
+    : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailer.id)}?autoplay=1&rel=0`;
 }
 
 /** AniList only ever reports youtube/dailymotion here. */

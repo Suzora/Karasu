@@ -229,6 +229,13 @@ pub(crate) fn webkit_composites(dmabuf_off: Option<&OsStr>, compositing_off: Opt
     !set(dmabuf_off) && !set(compositing_off)
 }
 
+/// The loopback URL a trailer's frame loads, since the video hosts refuse a `tauri://` referrer.
+#[tauri::command]
+#[specta::specta]
+pub fn trailer_page(site: String, id: String) -> Result<String, String> {
+    crate::trailer::page_url(&site, &id)
+}
+
 #[tauri::command]
 #[specta::specta]
 pub fn platform_info() -> PlatformInfo {

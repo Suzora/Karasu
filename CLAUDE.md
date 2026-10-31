@@ -135,7 +135,7 @@ src/
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          111 of the 135 frontend-facing commands, by subject:
+  commands/          112 of the 136 frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
                      update. The other 24 are the library scanner's 15 in
                      `library.rs` and the Android updater's 9 in
@@ -1797,6 +1797,15 @@ async update the real code makes after an await warns instead.
 - **A CSP cannot be checked from the Vite dev server** — it applies to the Tauri
   webview, so the browser-pane tooling is blind to it. Only a real
   `tauri dev`/`tauri build` run proves it.
+- **A trailer plays in a loopback page, because YouTube refuses a `tauri://` referrer.** Measured on
+  2026-11-01: a youtube-nocookie embed framed straight from the app's page answered error 153 ("player
+  configuration"), and so did the embed URL opened top-level with no referrer, while the same embed inside a
+  page on `http://127.0.0.1` played. So `trailer.rs` binds a random loopback port on the first click, serves
+  one page per `/<token>/<site>/<id>` (a 128-bit token, an id of URL-safe characters only, a CSP of its own
+  whose `frame-ancestors` names the app's origins) and closes after five idle minutes; the app's `frame-src`
+  names `http://127.0.0.1:*` and the two hosts. Nothing loads from the video host before the click, and the
+  card carries an "Open on YouTube" link beside it. Played in a release build on KDE Plasma Wayland the same
+  day; Dailymotion and Android were not tried.
 - **Bio images are proxied through Rust, and `img-src` is still not widened.**
   Across 89 real bios holding 350 images, **6 (2%) were on `*.anilist.co`**; the
   rest were imgur (147), tumblr (57), pinimg, postimg, catbox and discord — so no
