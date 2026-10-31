@@ -14,7 +14,6 @@ import { ListShelves } from "@/components/dashboard/ListShelves";
 import { ContinueRow } from "@/components/dashboard/ContinueRow";
 import { CatchUpRow } from "@/components/dashboard/CatchUp";
 import { catchUp } from "@/lib/overview";
-import { WeekPlan } from "@/components/dashboard/WeekPlan";
 import { ComingUp } from "@/components/dashboard/ComingUp";
 import { OverviewRail } from "@/components/dashboard/OverviewRail";
 import { useElementWidth } from "@/hooks/useElementWidth";
@@ -87,7 +86,6 @@ function DashboardContent({ userId }: { userId: number }) {
           <ListShelves anime={allAnime} manga={allManga} cols={shelfCols} />
           <CatchUpRow userId={userId} items={behind} />
           <ContinueRow userId={userId} anime={allAnime} manga={allManga} skip={inCatchUp} />
-          <WeekPlan anime={allAnime} />
           <ComingUp anime={allAnime} />
           <RecommendedSection type="ANIME" entries={allAnime} />
         </>

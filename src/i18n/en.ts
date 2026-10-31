@@ -481,7 +481,6 @@ export const en = {
     runningManga: "Manga running",
     statManga: "Manga",
     statChapters: "Chapters",
-    today: "Today",
     statsMore: "More",
     nothingWatching: "Nothing in flight.",
     currentSeason: "Browse the current season",
@@ -499,7 +498,6 @@ export const en = {
     welcomeTextAndroid:
       "Your anime tracker for AniList. Connect your account to manage your list — and if you watch through Jellyfin, Karasu tracks that automatically.",
     connect: "Connect with AniList",
-    thisWeek: "This week",
     fullCalendar: "Full calendar →",
     voteUp: "Good recommendation",
     voteDown: "Bad recommendation",

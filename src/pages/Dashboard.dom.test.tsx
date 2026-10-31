@@ -49,7 +49,7 @@ afterEach(() => {
 
 const h2s = () => screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
 
-/** The Overview in the maintainer's order: banner, lists, continue, this week, coming up, recommendations; the rail beside. */
+/** The Overview in the maintainer's order: banner, lists, continue, coming up, recommendations; the rail beside. */
 describe("Dashboard", () => {
   it("lays the middle out in the dictated order and the rail after it", async () => {
     renderWithProviders(<Dashboard />);
@@ -57,7 +57,6 @@ describe("Dashboard", () => {
     expect(h2s()).toEqual([
       "dashboard.myLists",
       "dashboard.continueBoth",
-      "dashboard.thisWeek",
       "dashboard.comingUp",
       "rec-ANIME",
       "rec-MANGA",

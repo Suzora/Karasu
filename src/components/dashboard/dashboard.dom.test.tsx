@@ -17,7 +17,6 @@ vi.mock("@/hooks/useElementWidth", () => ({
 import { ListShelves } from "./ListShelves";
 import { ContinueRow } from "./ContinueRow";
 import { CatchUpRow } from "./CatchUp";
-import { WeekPlan } from "./WeekPlan";
 import { ComingUp } from "./ComingUp";
 import { WEEK_SECS, catchUp } from "@/lib/overview";
 
@@ -106,32 +105,14 @@ describe("CatchUpRow", () => {
   });
 });
 
-describe("WeekPlan", () => {
-  const airing = entry({ id: 5, media: media({ id: 5, nextAiringEpisode: { episode: 9, airingAt: NOW + 2 * 86400 } }) });
-
-  it("draws seven day columns with the episode in its column when there is room", () => {
-    width = 1000;
-    renderWithProviders(<WeekPlan anime={[airing]} />);
-    const columns = screen.getAllByRole("listitem", { name: /./ }).filter((li) => li.dataset.day != null);
-    expect(columns).toHaveLength(7);
-    expect(within(columns[2]).getByRole("link")).toHaveAttribute("href", "/media/5");
-  });
-
-  it("falls back to a list of days when narrow", () => {
-    width = 500;
-    renderWithProviders(<WeekPlan anime={[airing]} />);
-    expect(document.querySelector("[data-day]")).toBeNull();
-    expect(screen.getByRole("link", { name: /Cowboy Bebop/ })).toHaveAttribute("href", "/media/5");
-  });
-});
-
 describe("ComingUp", () => {
-  it("lists what lies past this week and planned titles, not this week's episodes", () => {
+  it("lists this week's episodes before later ones and links the whole week in the calendar", () => {
     const later = entry({ id: 1, media: media({ id: 1, title: { romaji: "Later", english: "Later", native: null }, nextAiringEpisode: { episode: 2, airingAt: NOW + WEEK_SECS + 600 } }) });
     const thisWeek = entry({ id: 2, media: media({ id: 2, title: { romaji: "Soon", english: "Soon", native: null }, nextAiringEpisode: { episode: 2, airingAt: NOW + 600 } }) });
     renderWithProviders(<ComingUp anime={[later, thisWeek]} />);
-    expect(screen.getByText("Later")).toBeInTheDocument();
-    expect(screen.queryByText("Soon")).toBeNull();
+    const titles = screen.getAllByRole("link").map((l) => l.textContent ?? "");
+    expect(titles.findIndex((t) => t.includes("Soon"))).toBeLessThan(titles.findIndex((t) => t.includes("Later")));
+    expect(screen.getByRole("link", { name: "dashboard.fullCalendar" })).toHaveAttribute("href", "/calendar");
   });
 });
 
@@ -139,23 +120,6 @@ describe("empty and adult", () => {
   it("says so when nothing is being watched or read", () => {
     renderWithProviders(<ContinueRow userId={1} anime={[]} manga={[]} />);
     expect(screen.getByText("dashboard.nothingWatching")).toBeInTheDocument();
-  });
-
-  it("says so when nothing airs this week, in the list form", () => {
-    width = 500;
-    renderWithProviders(<WeekPlan anime={[]} />);
-    expect(screen.getByText("dashboard.weekLineNone")).toBeInTheDocument();
-  });
-
-  it("stacks two episodes at the same hour instead of drawing one over the other", () => {
-    width = 1000;
-    const at = NOW + 2 * 86400;
-    const a = entry({ id: 5, media: media({ id: 5, nextAiringEpisode: { episode: 9, airingAt: at } }) });
-    const b = entry({ id: 6, media: media({ id: 6, nextAiringEpisode: { episode: 3, airingAt: at } }) });
-    renderWithProviders(<WeekPlan anime={[a, b]} />);
-    const tops = [...document.querySelectorAll<HTMLElement>("[data-day] a")].map((l) => parseFloat(l.style.top));
-    expect(tops).toHaveLength(2);
-    expect(Math.abs(tops[1] - tops[0])).toBeGreaterThanOrEqual(40);
   });
 
   it("veils an explicit title's spine while the blur setting is on", () => {

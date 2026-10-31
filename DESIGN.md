@@ -422,9 +422,8 @@ notices, and the frames around the virtual lists.
 the list shelf (a status's titles as cover spines on a rule in the status
 colour), the continue card (one tick per episode up to 40, a bar past it,
 a progress ring round +1, and on the catch-up row an outlined tick per aired
-episode not yet watched), the week plan (days as columns, the hour
-downwards, a now line; a list of days below 40 rem) and the banner's
-48-hour strip, and on the phone the pager (two pages, each the phone's width and its own scroller,
+episode not yet watched) and the banner's 48-hour strip (the week plan
+went on 2026-10-31; the week as a grid is the calendar's), and on the phone the pager (two pages, each the phone's width and its own scroller,
 floating dots above the bottom bar). Text on the banner and the cards is `on-cover-edge` on the
 `on-cover` scrim (`banner-scrim`) in every look.
 
@@ -1244,3 +1243,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   sidebar, where the sync line now stands alone, and the Overview rail's
   "Profile" link. The phone, which has no titlebar, gets the same row at the
   head of the More sheet, and the palette a "My profile" entry.
+- **2026-10-31:** One week, in the calendar. The Overview drew this week as a
+  timetable (the hour downwards, a now line) while the calendar drew the same
+  seven days as columns of stacked cards, two shapes for one thing (C of
+  three: the timetable in both, the calendar's columns in both, and the week
+  in the calendar alone). The Overview's week plan went; "Coming up" now
+  lists the next episodes of what is watched or planned from now on, this
+  week's included, and carries the "Full calendar" link the plan had. The
+  banner's 48-hour strip stays as the glance.

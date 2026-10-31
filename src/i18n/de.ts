@@ -483,7 +483,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     runningManga: "Manga laufend",
     statManga: "Manga",
     statChapters: "Kapitel",
-    today: "Heute",
     statsMore: "Mehr",
     nothingWatching: "Nichts unterwegs.",
     currentSeason: "Aktuelle Saison ansehen",
@@ -501,7 +500,6 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     welcomeTextAndroid:
       "Dein Anime-Tracker für AniList. Verbinde dein Konto, um deine Liste zu verwalten — und wenn du über Jellyfin schaust, trackt Karasu das automatisch.",
     connect: "Mit AniList verbinden",
-    thisWeek: "Diese Woche",
     fullCalendar: "Ganzer Kalender →",
     voteUp: "Gute Empfehlung",
     voteDown: "Schlechte Empfehlung",

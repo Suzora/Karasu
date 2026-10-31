@@ -90,8 +90,8 @@ src/
                      Heatmap
     dashboard/       the parts the Overview draws — banner with search and
                      48-hour strip, list shelves, catch-up row (aired episodes
-                     not yet watched), continue row, week plan,
-                     coming up, the right rail (detection, figures, own
+                     not yet watched), continue row, coming up
+                     (the week as a grid is the calendar's), the right rail (detection, figures, own
                      activity, birthdays) and the phone's two-page pager;
                      every decision is `lib/overview`
     social/          the parts UserProfile, Social and Thread draw — the

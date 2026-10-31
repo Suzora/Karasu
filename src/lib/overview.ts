@@ -88,33 +88,13 @@ export function weekBounds(now: Date): { dayStarts: number[]; weekEnd: number } 
   return { dayStarts, weekEnd: dayStarts[7] };
 }
 
-/** Which of the seven days an airing falls on, and how far into that day; `dayStarts` comes from `weekBounds`. */
-export function timetableSlot(airingAt: number, dayStarts: number[]): { day: number; fraction: number } | null {
-  for (let day = 0; day < dayStarts.length - 1; day++) {
-    const start = dayStarts[day];
-    const end = dayStarts[day + 1];
-    if (airingAt >= start && airingAt < end) return { day, fraction: (airingAt - start) / (end - start) };
-  }
-  return null;
-}
-
-/** Tops for a day's cards in time order: each at its hour, pushed below its neighbour where they would overlap. */
-export function stackTops(fractions: number[], height: number, cardH: number): number[] {
-  const tops: number[] = [];
-  for (const f of fractions) {
-    const at = Math.round(f * height);
-    tops.push(tops.length ? Math.max(at, tops[tops.length - 1] + cardH) : at);
-  }
-  return tops;
-}
-
-/** What this week's timetable does not show: later episodes of what is being watched, and planned titles. */
-export function comingUp(anime: MediaListEntry[], now: number, weekEnd = now + WEEK_SECS, limit = 6): MediaListEntry[] {
+/** The next episodes of what is being watched or planned, soonest first; the week as a grid is the calendar's. */
+export function comingUp(anime: MediaListEntry[], now: number, limit = 6): MediaListEntry[] {
   return anime
     .filter((e) => {
       const at = e.media.nextAiringEpisode?.airingAt;
       if (at == null) return false;
-      if (watching(e)) return at >= weekEnd;
+      if (watching(e)) return at > now;
       return e.status === "PLANNING" && at > now;
     })
     .sort((a, b) => a.media.nextAiringEpisode!.airingAt - b.media.nextAiringEpisode!.airingAt)

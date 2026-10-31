@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { entry, media } from "@/test/fixtures";
 import {
   pagerIndex,
-  stackTops,
   weekBounds,
   STRIP_SECS,
   TICK_LIMIT,
@@ -17,7 +16,6 @@ import {
   shelfStatuses,
   spineHeight,
   stripItems,
-  timetableSlot,
   weekLine,
 } from "./overview";
 
@@ -79,18 +77,6 @@ describe("spineHeight and shelfStatuses", () => {
   });
 });
 
-describe("timetableSlot", () => {
-  const starts = Array.from({ length: 8 }, (_, i) => NOW - 3600 + i * 86400);
-  it("places an airing by its day and the share of that day gone", () => {
-    expect(timetableSlot(starts[2] + 43200, starts)).toEqual({ day: 2, fraction: 0.5 });
-  });
-
-  it("returns null outside the seven days", () => {
-    expect(timetableSlot(starts[7], starts)).toBeNull();
-    expect(timetableSlot(starts[0] - 1, starts)).toBeNull();
-  });
-});
-
 describe("catchUp", () => {
   const behind = (id: number, progress: number, episode: number, at = NOW + 3600, over: Partial<Parameters<typeof entry>[0]> = {}) =>
     entry({ id, progress, updatedAt: id, media: media({ id, episodes: 12, nextAiringEpisode: { episode, airingAt: at } }), ...over });
@@ -124,17 +110,17 @@ describe("catchUp", () => {
 });
 
 describe("comingUp", () => {
-  it("keeps what airs from the week's end on and planned titles, never what this week already shows", () => {
+  it("keeps every coming episode of what is watched or planned, this week's included, and nothing paused or past", () => {
     const later = airing(1, NOW + WEEK_SECS + 1);
-    const edge = airing(2, NOW + WEEK_SECS);
-    const planned = airing(3, NOW + 3600, "PLANNING");
-    const paused = airing(4, NOW + WEEK_SECS + 5, "PAUSED");
-    expect(comingUp([later, edge, planned, paused], NOW).map((e) => e.id)).toEqual([3, 2, 1]);
-    expect(weekLine([edge], NOW).count).toBe(0);
+    const thisWeek = airing(2, NOW + 3600);
+    const planned = airing(3, NOW + 1800, "PLANNING");
+    const paused = airing(4, NOW + 600, "PAUSED");
+    const past = airing(5, NOW - 60);
+    expect(comingUp([later, thisWeek, planned, paused, past], NOW).map((e) => e.id)).toEqual([3, 2, 1]);
   });
 
   it("caps at the limit, soonest first", () => {
-    const many = Array.from({ length: 9 }, (_, i) => airing(i + 10, NOW + WEEK_SECS + 100 * (9 - i)));
+    const many = Array.from({ length: 9 }, (_, i) => airing(i + 10, NOW + 100 * (9 - i)));
     const got = comingUp(many, NOW);
     expect(got).toHaveLength(6);
     expect(got[0].id).toBe(18);
@@ -197,29 +183,6 @@ describe("weekBounds", () => {
     expect(new Date(b.dayStarts[1] * 1000).getDate()).toBe(25);
     expect(new Date(b.dayStarts[2] * 1000).getDate()).toBe(26);
     expect(b.weekEnd).toBe(b.dayStarts[7]);
-  });
-});
-
-describe("timetable and coming up share one week", () => {
-  it("sends an episode past the last column to coming up, never to neither", () => {
-    const b = weekBounds(new Date(2026, 9, 19, 20, 0));
-    const now = Math.floor(new Date(2026, 9, 19, 20, 0).getTime() / 1000);
-    const nextMonday = b.weekEnd + 10 * 3600;
-    const e = airing(1, nextMonday);
-    expect(timetableSlot(nextMonday, b.dayStarts)).toBeNull();
-    expect(comingUp([e], now, b.weekEnd).map((x) => x.id)).toEqual([1]);
-  });
-});
-
-describe("stackTops", () => {
-  it("keeps cards in time order and pushes one that would overlap below its neighbour", () => {
-    expect(stackTops([0.1, 0.1, 0.9], 220, 40)).toEqual([22, 62, 198]);
-  });
-
-  it("never overlaps late cards, even when that runs past the column", () => {
-    const tops = stackTops([0.95, 0.96, 0.97], 220, 40);
-    expect(tops[1] - tops[0]).toBeGreaterThanOrEqual(40);
-    expect(tops[2] - tops[1]).toBeGreaterThanOrEqual(40);
   });
 });
 

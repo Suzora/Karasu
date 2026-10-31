@@ -2,24 +2,28 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { displayTitle, type MediaListEntry } from "@/api/types";
+import { buttonClass } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { countdown } from "@/lib/format";
 import { comingUp } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 import { shouldBlur } from "@/lib/contentFilter";
 import { useContentFilter } from "@/stores/contentFilter";
-import { weekBounds } from "@/lib/overview";
 
-/** Coming up: what this week's timetable does not show, later episodes and planned titles, soonest first. */
+/** Coming up: the next episodes of what is watched or planned, soonest first; the whole week is the calendar's. */
 export function ComingUp({ anime }: { anime: MediaListEntry[] }) {
   const { t, i18n } = useTranslation();
   const now = Math.floor(Date.now() / 1000);
-  const rows = comingUp(anime, now, weekBounds(new Date()).weekEnd);
+  const rows = comingUp(anime, now);
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
   return (
     <section>
-      <SectionHeader icon={Clock} title={t("dashboard.comingUp")} />
+      <SectionHeader
+        icon={Clock}
+        title={t("dashboard.comingUp")}
+        action={<Link to="/calendar" className={buttonClass("text", "text")}>{t("dashboard.fullCalendar")}</Link>}
+      />
       <div className="mt-3 rounded-panel bg-surface-900 px-2 py-1.5 surface-outline">
         {rows.length === 0 ? (
           <p className="px-3 py-3 text-sm text-ink-500">{t("dashboard.comingUpEmpty")}</p>
