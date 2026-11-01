@@ -562,6 +562,11 @@ const urlFor = (s, style, theme, still) => {
 /** Opens one screen, waits for its images and fonts, performs its action, and returns the page and what went wrong. */
 async function open(browser, s, style, theme, { still = false, video } = {}) {
   const context = await browser.newContext({ viewport: { width: s.w, height: s.h }, deviceScaleFactor: video ? 1 : (s.dpr ?? 2), hasTouch: !!s.phone, isMobile: !!s.phone, ...(video ? { recordVideo: { dir: video, size: { width: s.w, height: s.h } } } : {}) });
+  // A seeded random, so the Overview's drawn greeting is the same line on every run and a pixel hash holds.
+  await context.addInitScript(() => {
+    let seed = 1;
+    Math.random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));

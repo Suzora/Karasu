@@ -76,7 +76,7 @@ function DashboardContent({ userId }: { userId: number }) {
 
   const middleColumn = (
     <div className={cn("min-w-0 space-y-8", beside && "pb-12 pt-6")}>
-      <OverviewBanner name={name} anime={allAnime} strip={!phone} />
+      <OverviewBanner name={name} anime={allAnime} manga={allManga} strip={!phone} />
       {isLoading ? (
         <OverviewSkeleton />
       ) : error ? (

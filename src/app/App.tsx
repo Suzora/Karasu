@@ -46,6 +46,8 @@ import MediaList from "@/pages/MediaList";
 import { DetailSkeleton } from "@/components/Skeleton";
 import { commands } from "@/api/tauri";
 import { lazyRoute } from "./lazyRoute";
+import i18n from "@/i18n";
+import { greetingLang, loadGreetings } from "@/lib/greetings/load";
 import { useCoverWidth } from "@/hooks/useCoverWidth";
 import { whenIdle } from "@/lib/idle";
 import { buttonClass } from "@/components/ui/button";
@@ -113,6 +115,7 @@ export default function App() {
   useEffect(() => {
     whenIdle(() => {
       for (const route of [AnimeDetail, Search, Seasonal]) void route.preload().catch(() => {});
+      void loadGreetings(greetingLang(i18n.language)).catch(() => {});
     });
   }, []);
 

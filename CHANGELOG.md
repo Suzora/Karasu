@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 71805d9 -->
+<!-- generated-through: ecb6249 -->
 
 ### Fixed
 
@@ -36,6 +36,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 ### Added
 
 - A title's trailer plays right in its detail page, with a link to open it on YouTube beside it.
+- The Overview greets you with a different line on every visit, from a catalogue of six hundred that knows the time, the day and your lists.
 
 ## 1.68.0 — 2026-10-25
 

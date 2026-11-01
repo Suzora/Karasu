@@ -8,20 +8,22 @@ import { useSeasonArt } from "@/hooks/useSeasonArt";
 import { bannerSource } from "@/lib/bannerSource";
 import { shouldBlur } from "@/lib/contentFilter";
 import { countdown } from "@/lib/format";
-import { greetingKey, stripItems, weekBounds, weekLine } from "@/lib/overview";
+import { stripItems, weekBounds, weekLine } from "@/lib/overview";
+import { useGreeting } from "@/hooks/useGreeting";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
 
 const STRIP_MARKS = [12, 24, 36];
 
 /** The Overview's first block: a greeting over the season's art, a line of real data, the search and its picture's source. */
-export function OverviewBanner({ name, anime, strip }: { name: string | null; anime: MediaListEntry[]; strip: boolean }) {
+export function OverviewBanner({ name, anime, manga, strip }: { name: string | null; anime: MediaListEntry[]; manga: MediaListEntry[]; strip: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const art = useSeasonArt();
   const level = useContentFilter((s) => s.level);
   const blurAdult = useContentFilter((s) => s.blurAdult);
   const [term, setTerm] = useState("");
+  const greeting = useGreeting(name, anime, manga);
   const now = Math.floor(Date.now() / 1000);
   const week = weekLine(anime, now, weekBounds(new Date()).weekEnd);
   const line =
@@ -46,7 +48,7 @@ export function OverviewBanner({ name, anime, strip }: { name: string | null; an
         <Link to={`/media/${art.id}`} tabIndex={-1} aria-hidden className="absolute inset-0" />
       )}
       <div className={cn("pointer-events-none relative flex h-full flex-col px-8", strip ? "pt-9" : "justify-center")}>
-        <h1 className="text-title leading-tight text-on-cover-edge">{t(greetingKey(new Date().getHours(), name != null), { name })}</h1>
+        <h1 className="text-title leading-tight text-on-cover-edge">{greeting}</h1>
         <p className="mt-1.5 text-sm text-on-cover-edge/80">{line}</p>
         <form role="search" onSubmit={submit} className="pointer-events-auto mt-5 max-w-xl">
           <SearchField value={term} onChange={setTerm} label={t("dashboard.search")} placeholder={t("dashboard.search")} clearLabel={t("common.clear")} size="lg" className="rounded-full" />

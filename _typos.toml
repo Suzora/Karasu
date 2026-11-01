@@ -15,6 +15,7 @@ extend-exclude = [
   "src-tauri/gen/android/**/build/",
   "src-tauri/gen/android/app/src/main/res/values-de/",
   "src/i18n/de.ts",
+  "src/lib/greetings/de.ts",
   "fastlane/metadata/android/de-DE/",
   "site/src/content/*.de.ts",
   "CHANGELOG.md",
@@ -36,9 +37,11 @@ nd = "nd"
 PNGs = "PNGs"
 
 [default.extend-words]
-# Anime seasons come in cours; ADN is a streaming service; Suche is German; unparseable and mis-click are spellings.
+# Anime seasons come in cours; ADN is a streaming service; Suche is German; Mata and Yoru are greetings; unparseable and mis-click are spellings.
 cours = "cours"
 ADN = "ADN"
+Mata = "Mata"
+Yoru = "Yoru"
 Suche = "Suche"
 unparseable = "unparseable"
 mis = "mis"
