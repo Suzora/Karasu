@@ -27,16 +27,16 @@ body:
     attributes:
       label: Diagnostics
       description: >-
-        About → Copy diagnostics, pasted as it comes. It is already Markdown, so
-        the folded sections stay folded in the issue.
+        About → Copy diagnostics, pasted as it comes. It is already Markdown,
+        headings over plain lists.
       placeholder: |
-        **Karasu diagnostics**
+        # Karasu diagnostics
 
-        `1.67.0.926` · prerelease · windows x86_64 · installer · up 2 h 14 min · …
+        1.67.0.926 · prerelease · windows x86_64 · installer
 
-        | At a glance | |
-        |---|---|
-        | Problems this run | 1 errors · 3 warnings · 0 panics · 0 loop restarts |
+        ## At a glance
+
+        - Problems this run: 1 error, 3 warnings, 0 panics, 0 loop restarts
         …
     validations:
       required: false

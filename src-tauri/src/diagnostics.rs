@@ -178,7 +178,7 @@ pub fn redact_home(path: &str) -> String {
             .map(|i| after + i)
             .unwrap_or(path.len());
         if end > after {
-            return format!("{}<user>{}", &path[..after], &path[end..]);
+            return format!("{}USER{}", &path[..after], &path[end..]);
         }
     }
     path.to_string()
@@ -265,9 +265,20 @@ pub fn age(secs: u64) -> String {
     }
 }
 
-/// A table cell: no pipe may end the cell early and no newline may end the row.
-fn cell(s: &str) -> String {
-    s.replace('|', "\\|").replace(['\n', '\r'], " ")
+/// One line of a list item: a newline would start a paragraph of its own.
+fn one_line(s: &str) -> String {
+    s.replace(['\n', '\r'], " ")
+}
+
+/// A label with its first letter upper-cased, since some arrive as the code's own lower-case names.
+fn capitalised(s: &str) -> String {
+    let mut c = s.chars();
+    c.next().map_or_else(String::new, |f| f.to_uppercase().chain(c).collect())
+}
+
+/// A count with its noun, so the report never says "1 errors".
+fn plural(n: usize, one: &str, many: &str) -> String {
+    format!("{n} {}", if n == 1 { one } else { many })
 }
 
 /// A UTC time to the minute, as a person reads it; the seconds are in the saved log.
@@ -522,13 +533,13 @@ pub async fn collect(app: &tauri::AppHandle) -> Diagnostics {
 
 // --- Rendering -----------------------------------------------------------------
 
-/// A collapsed section; GitHub draws the table inside only with a blank line on each side.
+/// A heading over one `label: value` line per fact, which reads the same as plain text and as Markdown.
 fn section(out: &mut String, title: &str, rows: &[(String, String)]) {
-    out.push_str(&format!("<details><summary><b>{title}</b></summary>\n\n| | |\n|---|---|\n"));
+    out.push_str(&format!("## {title}\n\n"));
     for (k, v) in rows {
-        out.push_str(&format!("| {} | {} |\n", cell(k), cell(v)));
+        out.push_str(&format!("- {k}: {}\n", one_line(v)));
     }
-    out.push_str("\n</details>\n\n");
+    out.push('\n');
 }
 
 fn yn(b: bool) -> String {
@@ -591,16 +602,16 @@ fn now_words(n: &Option<NowState>) -> String {
 pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> String {
     let dir = if redact { redact_home(&d.data_dir) } else { d.data_dir.clone() };
     let when = utc_minute(d.generated_ms);
-    let mut out = String::from("**Karasu diagnostics**\n\n");
+    let mut out = String::from("# Karasu diagnostics\n\n");
     out.push_str(&format!(
-        "`{}` · {} · {} {} · {} · up {} · {}\n\n",
+        "{} · {} · {} {} · {}\n\nGenerated {} · up {}\n\n",
         d.version,
         d.update_channel,
         d.os,
         d.arch,
         install(d),
-        age(d.uptime_secs),
-        when
+        when,
+        age(d.uptime_secs)
     ));
 
     let r = d.run;
@@ -609,14 +620,17 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
         (
             "Problems this run".into(),
             format!(
-                "{} errors · {} warnings · {} panics · {} loop restarts",
-                r.errors, r.warnings, r.panics, r.restarts
+                "{}, {}, {}, {}",
+                plural(r.errors as usize, "error", "errors"),
+                plural(r.warnings as usize, "warning", "warnings"),
+                plural(r.panics as usize, "panic", "panics"),
+                plural(r.restarts as usize, "loop restart", "loop restarts")
             ),
         ),
         (
             "AniList".into(),
             format!(
-                "{} · {} · {} of the last {} requests failed · {} × 429{}",
+                "{} · {} · {} of the last {} requests failed · {} rate limited{}",
                 if d.signed_in { format!("signed in ({})", d.profile_mode) } else { format!("not signed in ({})", d.profile_mode) },
                 d.anilist_budget.map_or("budget not measured yet".into(), |(a, b)| format!("{a}/{b} left")),
                 failed,
@@ -660,32 +674,25 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
             ),
         ));
     }
-    out.push_str("| At a glance | |\n|---|---|\n");
-    for (k, v) in &glance {
-        out.push_str(&format!("| {} | {} |\n", cell(k), cell(v)));
-    }
-    out.push('\n');
+    section(&mut out, "At a glance", &glance);
 
     if !d.problems.is_empty() {
-        out.push_str(&format!(
-            "<details><summary><b>Problems this run</b> ({} {})</summary>\n\n| Last | Level | Where | × | Message |\n|---|---|---|---|---|\n",
-            d.problems.len(),
-            if d.problems.len() == 1 { "kind" } else { "kinds" }
-        ));
+        out.push_str(&format!("## Problems this run ({})\n\n", plural(d.problems.len(), "kind", "kinds")));
         for p in &d.problems {
             let msg = if redact { redact_home(&p.message) } else { p.message.clone() };
             let more = if p.extra_lines > 0 { format!(" (+{} lines)", p.extra_lines) } else { String::new() };
+            // The message sits on its own indented line, still inside the item, so it is never read as the label.
             out.push_str(&format!(
-                "| {} | {} | {} | {} | {}{} |\n",
-                utc_minute(p.last_ms),
+                "- {} in {}, {}×, last {}\n  {}{}\n",
                 p.level,
-                cell(&p.target),
+                one_line(&p.target),
                 p.count,
-                cell(&msg),
+                utc_minute(p.last_ms),
+                one_line(&msg),
                 more
             ));
         }
-        out.push_str("\n</details>\n\n");
+        out.push('\n');
     }
 
     let mut system: Vec<(String, String)> = vec![
@@ -702,7 +709,7 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
     system.push(("Portable".into(), yn(d.portable)));
     if let Some(c) = client {
         system.push(("WebView".into(), webview_from_ua(&c.user_agent)));
-        system.push(("User agent".into(), format!("`{}`", c.user_agent)));
+        system.push(("User agent".into(), c.user_agent.clone()));
     }
     if d.os == "linux" {
         system.push(("GPU compositing (page transitions)".into(), yn(d.view_transitions)));
@@ -712,7 +719,7 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
         if d.env.is_empty() {
             "none".into()
         } else {
-            d.env.iter().map(|(k, v)| format!("`{k}={v}`")).collect::<Vec<_>>().join(", ")
+            d.env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join(", ")
         },
     ));
     system.push(("Tray".into(), yn(d.tray)));
@@ -727,7 +734,7 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
             format!("{}, contrast {}, reduced motion {}", c.theme, c.contrast, yn(c.reduced_motion)),
         ));
     }
-    system.push(("Data folder".into(), format!("`{dir}`")));
+    system.push(("Data folder".into(), dir));
     system.push(("Uptime".into(), age(d.uptime_secs)));
     section(&mut out, "System", &system);
 
@@ -739,7 +746,7 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
     ];
     for (t, fresh) in &d.lists {
         anilist.push((
-            format!("{} list", t.to_lowercase()),
+            format!("{} list", capitalised(&t.to_lowercase())),
             if *fresh > 0 { format!("cached, fresh for {}", age(*fresh)) } else { "cached, refreshes on next read".into() },
         ));
     }
@@ -810,7 +817,7 @@ pub fn render(d: &Diagnostics, client: Option<&ClientFacts>, redact: bool) -> St
         .iter()
         .map(|p| {
             (
-                p.pass.clone(),
+                capitalised(&p.pass),
                 if p.off {
                     "off".into()
                 } else if p.running {
@@ -878,11 +885,11 @@ mod tests {
     fn a_home_directory_loses_the_user_name() {
         assert_eq!(
             redact_home(r"C:\Users\Kyu\AppData\Roaming\dev.kyu.karasu"),
-            r"C:\Users\<user>\AppData\Roaming\dev.kyu.karasu"
+            r"C:\Users\USER\AppData\Roaming\dev.kyu.karasu"
         );
         assert_eq!(
             redact_home("/home/kyu/.local/share/dev.kyu.karasu"),
-            "/home/<user>/.local/share/dev.kyu.karasu"
+            "/home/USER/.local/share/dev.kyu.karasu"
         );
         // Portable beside an AppImage: no home segment, nothing to redact.
         assert_eq!(redact_home("/opt/karasu/data"), "/opt/karasu/data");
@@ -1008,7 +1015,7 @@ mod tests {
         assert!(out.contains("wayland"), "{out}");
         assert!(out.contains("GNOME"), "{out}");
         // Wayland plus no tray is the pair that explains most Linux reports.
-        assert!(out.contains("| Tray | no |"), "{out}");
+        assert!(out.contains("\n- Tray: no\n"), "{out}");
         assert!(out.contains("WEBKIT_DISABLE_DMABUF_RENDERER=1"), "{out}");
         // MPRIS, not "window titles" — those are Windows-only.
         assert!(out.contains("MPRIS"), "{out}");
@@ -1018,7 +1025,7 @@ mod tests {
     #[test]
     fn the_report_redacts_the_home_directory_by_default() {
         let d = sample();
-        assert!(render(&d, None, true).contains("/home/<user>/"));
+        assert!(render(&d, None, true).contains("/home/USER/"));
         assert!(!render(&d, None, true).contains("/home/kyu/"));
         // And hands over the real path when explicitly asked.
         assert!(render(&d, None, false).contains("/home/kyu/"));
@@ -1028,7 +1035,7 @@ mod tests {
     #[test]
     fn the_report_says_whether_signed_in_and_never_more() {
         let out = render(&sample(), Some(&client()), true);
-        assert!(out.contains("| Signed in | yes (anilist) |"), "{out}");
+        assert!(out.contains("\n- Signed in: yes (anilist)\n"), "{out}");
         let json = serde_json::to_string(&client()).unwrap();
         assert!(!json.to_lowercase().contains("token"), "{json}");
         // The struct has no field that could hold one in the first place.
@@ -1106,35 +1113,36 @@ mod tests {
         assert_eq!(age(3 * 86_400 + 5 * 3600), "3 d 5 h");
     }
 
-    /// A message with a pipe or a path must not break the table or name the user.
+    /// A problem is one list item, its message on an indented line beneath, with the user's name gone.
     #[test]
-    fn a_problem_row_stays_one_cell_and_redacted() {
+    fn a_problem_stays_one_item_and_redacted() {
         let out = render(&sample(), None, true);
-        assert!(out.contains("save failed \\| HTTP 500 for /home/<user>/x (+2 lines)"), "{out}");
-        assert!(out.contains("| error | list | 3 |"), "{out}");
+        assert!(out.contains("- error in list, 3×, last "), "{out}");
+        assert!(out.contains("\n  save failed | HTTP 500 for /home/USER/x (+2 lines)\n"), "{out}");
     }
 
     /// The summary is what a reader sees first, so each of its rows must say what went wrong at a glance.
     #[test]
     fn the_summary_names_problems_budget_sync_detection_and_screen() {
         let out = render(&sample(), Some(&client()), true);
-        assert!(out.contains("| Problems this run | 1 errors · 3 warnings · 0 panics · 0 loop restarts |"), "{out}");
+        assert!(out.contains("- Problems this run: 1 error, 3 warnings, 0 panics, 0 loop restarts\n"), "{out}");
         assert!(out.contains("27/30 left · 1 of the last 41 requests failed"), "{out}");
         assert!(out.contains("2 queued edits, oldest 3 h 0 min · anime list fresh for 12 min · manga list due for a refresh"), "{out}");
         assert!(out.contains("now watching via mpv, matched"), "{out}");
-        assert!(out.contains("| Screen | /user/:name · desktop"), "{out}");
+        assert!(out.contains("- Screen: /user/:name · desktop"), "{out}");
         assert!(!out.contains("Kyusetzu"), "{out}");
     }
 
-    /// Every section folds, so a paste stays short in the issue and opens where the reader wants it.
+    /// The report is read raw in the app as often as rendered on GitHub, so it holds no table, no HTML and no code span.
     #[test]
-    fn the_sections_fold_with_a_blank_line_around_each_table() {
+    fn the_sections_are_headings_over_plain_lists() {
         let out = render(&sample(), Some(&client()), true);
-        for title in ["Problems this run", "System", "AniList and sync", "Detection and library", "Background passes", "Settings that change behaviour", "Storage"] {
-            assert!(out.contains(&format!("<summary><b>{title}</b>")), "{title} missing:\n{out}");
+        for title in ["At a glance", "Problems this run", "System", "AniList and sync", "Detection and library", "Background passes", "Settings that change behaviour", "Storage"] {
+            assert!(out.contains(&format!("\n## {title}")), "{title} missing:\n{out}");
         }
-        assert_eq!(out.matches("<details>").count(), out.matches("</details>").count());
-        assert!(!out.contains("</summary>\n|"), "a table must not touch its summary:\n{out}");
+        for forbidden in ["|---", "<details>", "<summary>", "`"] {
+            assert!(!out.contains(forbidden), "{forbidden} left in:\n{out}");
+        }
     }
 
     /// The whole table, pinned: a moved row or a renamed label shows up as a diff in review instead of a feeling.

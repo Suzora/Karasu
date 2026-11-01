@@ -177,9 +177,10 @@ src-tauri/src/
                      that already know them (never re-derived), plus the
                      Linux-only distro/desktop/session probe and the
                      WebView's own half (`ClientFacts`: route, window, theme,
-                     user agent); rendered as a summary that stays open and
-                     folded sections under it, with this run's warnings and
-                     errors grouped by kind from `logging`'s problem ring
+                     user agent); rendered as headings over plain `label: value`
+                     lists (no table, no HTML, no code span, since About shows it
+                     raw), with this run's warnings and errors grouped by kind
+                     from `logging`'s problem ring
   net.rs             where every outbound HTTP client is born — one seam so a
                      TLS fix cannot miss a builder. Android gets webpki roots
                      with a *named* aws-lc-rs provider (the default-provider
