@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { entry, media } from "@/test/fixtures";
 import {
   pagerIndex,
+  pickHero,
   weekBounds,
   STRIP_SECS,
   TICK_LIMIT,
@@ -193,5 +194,22 @@ describe("pagerIndex", () => {
     expect(pagerIndex(190, 360, 2)).toBe(1);
     expect(pagerIndex(900, 360, 2)).toBe(1);
     expect(pagerIndex(50, 0, 2)).toBe(0);
+  });
+});
+
+describe("pickHero", () => {
+  const pool = [{ id: 1 }, { id: 2 }, { id: 3 }];
+
+  it("draws any of the season's titles", () => {
+    expect([0, 0.5, 0.99].map((r) => pickHero(pool, null, r)?.id)).toEqual([1, 2, 3]);
+  });
+
+  it("never shows the last visit's title twice in a row while others are left", () => {
+    expect([0, 0.5, 0.99].map((r) => pickHero(pool, 2, r)?.id)).toEqual([1, 3, 3]);
+  });
+
+  it("keeps a lone title and answers null for none", () => {
+    expect(pickHero([{ id: 9 }], 9, 0.5)?.id).toBe(9);
+    expect(pickHero([], null, 0.5)).toBeNull();
   });
 });

@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: ecb6249 -->
+<!-- generated-through: a27b72f -->
 
 ### Fixed
 
@@ -32,6 +32,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - The Overview no longer draws its own week timetable beside the calendar's; "Coming up" now lists the next episodes from today on and links to the full calendar.
 - A trailer shows its preview image before it plays.
 - A click anywhere on the Overview's banner opens the title it shows; the search and the timeline keep their own.
+- The Overview's banner shows a different one of the season's ten most popular titles on every visit.
 
 ### Added
 

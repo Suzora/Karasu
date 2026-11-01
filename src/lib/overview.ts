@@ -153,3 +153,9 @@ export function overviewFigures(animeList: MediaListEntry[], mangaList: MediaLis
     running: { anime: running(anime), manga: running(manga) },
   };
 }
+
+/** The banner's title for this visit: any of the season's allowed titles but the one shown last time. */
+export function pickHero<T extends { id: number }>(pool: T[], lastId: number | null, rand: number): T | null {
+  const from = pool.length > 1 ? pool.filter((m) => m.id !== lastId) : pool;
+  return from[Math.min(from.length - 1, Math.floor(rand * from.length))] ?? null;
+}
