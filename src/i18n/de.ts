@@ -2040,6 +2040,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     discord: "Discord Rich Presence",
     discordEnable: "In Discord anzeigen, was du schaust",
     discordEnableHint: "Nutzt die eingebaute Discord-Anwendung von Karasu.",
+    discordWatchingOnly: "Nur während etwas läuft",
+    discordWatchingOnlyHint: "Discord zeigt nichts, solange Karasu nur offen ist, statt der Seite, auf der du bist.",
     app: "System",
     updates: "Updates",
     mediaSessionsTitle: "Mediensitzungen",

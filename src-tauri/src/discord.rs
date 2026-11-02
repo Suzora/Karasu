@@ -1,10 +1,10 @@
-//! Discord Rich Presence, showing the viewed page while idle and the playing title once detection fires.
+//! Discord Rich Presence: the playing title once detection fires, and the viewed page while idle unless switched off.
 
 use crate::db::Db;
 use crate::sync::LockExt;
 use crate::playback::scrobbler::{NowPlaying, PlaybackState, ScrobbleSession};
 use discord_rich_presence::{
-    activity::{Activity, ActivityType, Assets, Button, Timestamps},
+    activity::{Activity, ActivityType, Assets, Button, StatusDisplayType, Timestamps},
     DiscordIpc, DiscordIpcClient,
 };
 use std::sync::Mutex;
@@ -14,6 +14,9 @@ use tauri::{AppHandle, Manager};
 pub const BUILTIN_DISCORD_APP_ID: &str = "1527934275356332133";
 
 const REPO_URL: &str = "https://github.com/Suzora/Karasu";
+
+/// The kv switch that leaves Discord empty while nothing plays; off by default.
+pub const WATCHING_ONLY_KEY: &str = "discord_watching_only";
 
 pub struct Discord(pub Mutex<Option<DiscordIpcClient>>);
 
@@ -74,6 +77,43 @@ fn session_start(app: &AppHandle, np: &NowPlaying) -> i64 {
     }
 }
 
+/// What the presence shows: the playing title, the page the app is on, or nothing at all.
+#[derive(Debug, PartialEq, Eq)]
+enum Presence {
+    Playing,
+    Idle,
+    Clear,
+}
+
+/// Idle is shown unless the user asked for a presence only while something plays.
+fn presence_kind(playing: bool, watching_only: bool) -> Presence {
+    match (playing, watching_only) {
+        (true, _) => Presence::Playing,
+        (false, false) => Presence::Idle,
+        (false, true) => Presence::Clear,
+    }
+}
+
+/// The title's AniList page, where the cover, the title line and the button all lead.
+fn media_url(media_type: &str, id: i64) -> String {
+    let kind = if media_type == "MANGA" { "manga" } else { "anime" };
+    format!("https://anilist.co/{kind}/{id}")
+}
+
+/// The crow's tooltip and link: the signed-in AniList account, or just the app's name without one.
+fn crow_badge(name: Option<&str>) -> (String, Option<String>) {
+    match name.map(str::trim).filter(|n| !n.is_empty()) {
+        Some(n) => (format!("{n} on AniList"), Some(format!("https://anilist.co/user/{n}"))),
+        None => ("Karasu".to_string(), None),
+    }
+}
+
+/// The signed-in account's name from the cached viewer.
+fn viewer_name(db: &Db) -> Option<String> {
+    let viewer: serde_json::Value = serde_json::from_str(&db.kv_get("anilist_viewer")?).ok()?;
+    viewer.get("name")?.as_str().map(str::to_string)
+}
+
 /// Re-syncs the presence from the current playback state, for callers with no NowPlaying at hand.
 pub fn sync_current(app: &AppHandle) {
     let now = app.state::<PlaybackState>().0.guard().clone();
@@ -84,6 +124,7 @@ pub fn sync_current(app: &AppHandle) {
 pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
     let db = app.state::<Db>();
     let enabled = db.kv_get("discord_enabled").as_deref() == Some("1");
+    let watching_only = db.kv_get(WATCHING_ONLY_KEY).as_deref() == Some("1");
     let app_id = effective_app_id(&db.kv_get("discord_app_id").unwrap_or_default());
 
     let state = app.state::<Discord>();
@@ -114,6 +155,21 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
             None => level == "off",
         }
     });
+
+    if presence_kind(now.is_some(), watching_only) == Presence::Clear {
+        let last = app.state::<LastPresence>();
+        let mut last = last.0.guard();
+        // Cleared once per change, so an idle app does not talk to Discord on every page turn.
+        if last.0 != "clear" {
+            *last = ("clear".into(), std::time::Instant::now());
+            if let Some(client) = guard.as_mut() {
+                if client.clear_activity().is_err() {
+                    disconnect(app, &mut guard);
+                }
+            }
+        }
+        return;
+    }
 
     // The start second rides along for the fingerprint: it pins the elapsed timer, so it is part of the identity.
     let (details, state_text, timestamps, kind, fingerprint_start) = match now {
@@ -161,12 +217,7 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
     };
 
     // Up to two buttons; the AniList one only appears when detection matched a real entry.
-    let anilist_url = now.and_then(|np| {
-        np.media_id.map(|id| {
-            let kind = if np.media_type == "MANGA" { "manga" } else { "anime" };
-            format!("https://anilist.co/{kind}/{id}")
-        })
-    });
+    let anilist_url = now.and_then(|np| np.media_id.map(|id| media_url(&np.media_type, id)));
     let mut buttons = vec![Button::new("Get Karasu here", REPO_URL)];
     if let Some(url) = anilist_url.as_deref() {
         buttons.push(Button::new("View on AniList", url));
@@ -174,18 +225,24 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
 
     // The cover goes in `large_image` as a plain URL; unmatched states keep "logo", which must stay uploaded in the portal.
     let cover = now.and_then(|np| np.cover_url.as_deref());
+    let (crow_text, profile_url) = crow_badge(viewer_name(&db).as_deref());
     let assets = match cover {
-        Some(url) => Assets::new()
-            .large_image(url)
-            .large_text(&details)
-            .small_image("logo")
-            .small_text("Karasu"),
+        Some(url) => {
+            let mut assets = Assets::new().large_image(url).large_text(&details).small_image("logo").small_text(&crow_text);
+            if let Some(page) = anilist_url.as_deref() {
+                assets = assets.large_url(page);
+            }
+            if let Some(profile) = profile_url.as_deref() {
+                assets = assets.small_url(profile);
+            }
+            assets
+        }
         None => Assets::new().large_image("logo").large_text("Karasu"),
     };
 
     // Skip a payload identical to the one showing; `duration` is included because the end timestamp derives from it.
     let fingerprint = format!(
-        "{details}|{state_text}|{cover}|{buttons}|{start}|{duration:?}",
+        "{details}|{state_text}|{cover}|{buttons}|{start}|{duration:?}|{crow_text}",
         cover = cover.unwrap_or(""),
         buttons = anilist_url.as_deref().unwrap_or(""),
         start = fingerprint_start,
@@ -200,13 +257,20 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
         *last = (fingerprint, std::time::Instant::now());
     }
 
-    let activity = Activity::new()
+    let mut activity = Activity::new()
         .activity_type(kind)
         .details(&details)
         .state(&state_text)
         .assets(assets)
         .timestamps(timestamps)
         .buttons(buttons);
+    // While something plays the member list names the title, not "Karasu", and the title line opens its page.
+    if now.is_some() {
+        activity = activity.status_display_type(StatusDisplayType::Details);
+    }
+    if let Some(page) = anilist_url.as_deref() {
+        activity = activity.details_url(page);
+    }
 
     if let Some(client) = guard.as_mut() {
         if client.set_activity(activity).is_err() {
@@ -218,6 +282,27 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_idle_app_shows_its_page_unless_the_user_wants_watching_only() {
+        assert_eq!(presence_kind(true, false), Presence::Playing);
+        assert_eq!(presence_kind(true, true), Presence::Playing);
+        assert_eq!(presence_kind(false, false), Presence::Idle);
+        assert_eq!(presence_kind(false, true), Presence::Clear);
+    }
+
+    #[test]
+    fn the_cover_and_title_link_to_the_anilist_page() {
+        assert_eq!(media_url("ANIME", 21), "https://anilist.co/anime/21");
+        assert_eq!(media_url("MANGA", 30013), "https://anilist.co/manga/30013");
+    }
+
+    #[test]
+    fn the_crow_names_the_account_and_links_its_profile() {
+        assert_eq!(crow_badge(Some("Kyusetzu")), ("Kyusetzu on AniList".to_string(), Some("https://anilist.co/user/Kyusetzu".to_string())));
+        assert_eq!(crow_badge(None), ("Karasu".to_string(), None));
+        assert_eq!(crow_badge(Some("  ")), ("Karasu".to_string(), None));
+    }
 
     #[test]
     fn a_blank_override_means_the_built_in_app_id() {

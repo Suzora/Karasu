@@ -9,6 +9,7 @@ interface DiscordSettings {
   enabled: boolean;
   appId: string;
   hasBuiltinAppId: boolean;
+  watchingOnly: boolean;
 }
 
 export function DiscordSection() {
@@ -28,7 +29,7 @@ export function DiscordSection() {
 
   const save = async (next: DiscordSettings) => {
     setSettings(next);
-    await unwrap(commands.setDiscordSettings(next.enabled, next.appId));
+    await unwrap(commands.setDiscordSettings(next.enabled, next.appId, next.watchingOnly));
   };
 
   return (
@@ -40,6 +41,13 @@ export function DiscordSection() {
           onChange={(v) => save({ ...settings, enabled: v })}
           label={t("settings.discordEnable")}
           hint={t("settings.discordEnableHint")}
+        />
+        <Toggle
+          checked={settings.watchingOnly}
+          onChange={(v) => save({ ...settings, watchingOnly: v })}
+          disabled={!settings.enabled}
+          label={t("settings.discordWatchingOnly")}
+          hint={t("settings.discordWatchingOnlyHint")}
         />
 
         {/* Empty means the built-in id (`effective_app_id` falls back to it), so the placeholder says so. */}

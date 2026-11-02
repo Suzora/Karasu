@@ -92,7 +92,7 @@ export const commands = {
 	/**  Discards the pending auto-update for this episode. */
 	scrobbleCancel: () => typedError<null, string>(__TAURI_INVOKE("scrobble_cancel")),
 	getDiscordSettings: () => __TAURI_INVOKE<DiscordSettings>("get_discord_settings"),
-	setDiscordSettings: (enabled: boolean, appId: string) => typedError<null, string>(__TAURI_INVOKE("set_discord_settings", { enabled, appId })),
+	setDiscordSettings: (enabled: boolean, appId: string, watchingOnly: boolean) => typedError<null, string>(__TAURI_INVOKE("set_discord_settings", { enabled, appId, watchingOnly })),
 	/**  Reports the page the user is on, so the idle Discord presence can show "Looking at <page>". */
 	setUiPage: (page: string) => __TAURI_INVOKE<void>("set_ui_page", { page }),
 	getAutostart: () => __TAURI_INVOKE<boolean>("get_autostart"),
@@ -414,6 +414,8 @@ export type DiscordSettings = {
 	appId: string,
 	/**  true if an application ID is compiled in */
 	hasBuiltinAppId: boolean,
+	/**  Discord stays empty while nothing plays, instead of showing the open page. */
+	watchingOnly: boolean,
 };
 
 /**  A server that answered the broadcast, confirmed by its own info endpoint. */

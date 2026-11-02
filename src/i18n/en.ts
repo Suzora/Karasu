@@ -2030,6 +2030,8 @@ export const en = {
     discord: "Discord Rich Presence",
     discordEnable: "Show what you are watching on Discord",
     discordEnableHint: "Uses the built-in Karasu Discord application.",
+    discordWatchingOnly: "Only while something plays",
+    discordWatchingOnlyHint: "Discord shows nothing while Karasu is just open, instead of the page you are on.",
     app: "System",
     updates: "Updates",
     mediaSessionsTitle: "Media sessions",

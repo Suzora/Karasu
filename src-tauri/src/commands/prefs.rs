@@ -14,6 +14,9 @@ pub struct DiscordSettings {
     /// true if an application ID is compiled in
     #[serde(rename = "hasBuiltinAppId")]
     pub has_builtin_app_id: bool,
+    /// Discord stays empty while nothing plays, instead of showing the open page.
+    #[serde(rename = "watchingOnly")]
+    pub watching_only: bool,
 }
 
 #[tauri::command]
@@ -23,6 +26,7 @@ pub fn get_discord_settings(db: State<'_, Db>) -> DiscordSettings {
         enabled: db.kv_get("discord_enabled").as_deref() == Some("1"),
         app_id: db.kv_get("discord_app_id").unwrap_or_default(),
         has_builtin_app_id: !crate::discord::BUILTIN_DISCORD_APP_ID.is_empty(),
+        watching_only: db.kv_get(crate::discord::WATCHING_ONLY_KEY).as_deref() == Some("1"),
     }
 }
 
@@ -33,8 +37,10 @@ pub fn set_discord_settings(
     db: State<'_, Db>,
     enabled: bool,
     app_id: String,
+    watching_only: bool,
 ) -> Result<(), String> {
     db.kv_set("discord_enabled", if enabled { "1" } else { "0" })?;
+    db.kv_set(crate::discord::WATCHING_ONLY_KEY, if watching_only { "1" } else { "0" })?;
     db.kv_set("discord_app_id", app_id.trim())?;
     // Apply the new state to the presence immediately
     let now = app
