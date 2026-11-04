@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MdInline } from "./anilistMarkdown";
 import {
   renderPlain,
+  spoilerLabel,
 } from "./anilistMarkdown";
 import {
   parse,
@@ -86,7 +87,7 @@ describe("inline forms", () => {
   });
 
   it("parses a spoiler with parsed children, and degrades an unclosed one", () => {
-    const n = first(`~!**hidden**!~`)[0];
+    const n = first(`a ~!**hidden**!~`)[1];
     expect(n.type).toBe("spoiler");
     expect(types([n])).toContain("strong");
     expect(types(parse(`~!never closed`))).not.toContain("spoiler");
@@ -188,5 +189,59 @@ describe("inline ~~~centre~~~", () => {
     ).join(" ");
     const capped = JSON.stringify(parse(`# ${many}`)).match(/"capped":true/g) ?? [];
     expect(capped).toHaveLength(6);
+  });
+});
+
+/** Spoiler labels and nesting, from AniList's implementation notes of 2026-11-04 rather than a measured page. */
+describe("spoiler labels and nesting", () => {
+  const first = (src: string) => (parse(src)[0] as { children: MdInline[] }).children;
+  type Sp = Extract<MdInline, { type: "spoiler" }>;
+
+  it("takes a leading label off the hidden text", () => {
+    const n = first(`a ~!{Ending Spoiler} he stays!~ b`)[1] as Sp;
+    expect(n).toMatchObject({ type: "spoiler", label: "Ending Spoiler" });
+    expect(textOf([{ type: "p", children: n.children }])).toBe("he stays");
+  });
+
+  it("reads an empty or malformed label as none", () => {
+    expect(spoilerLabel("{} x")).toEqual({ rest: "x" });
+    expect(spoilerLabel("{  } x")).toEqual({ rest: "x" });
+    expect(spoilerLabel("{a<b} x")).toEqual({ rest: "{a<b} x" });
+    expect(spoilerLabel("{a{b}} x")).toEqual({ rest: "{a{b}} x" });
+    expect(spoilerLabel("no label")).toEqual({ rest: "no label" });
+    expect(spoilerLabel("{ Trimmed }x")).toEqual({ label: "Trimmed", rest: "x" });
+  });
+
+  it("pairs each closer with the nearest opener", () => {
+    const outer = first(`a ~!x ~!y!~ z!~ b`)[1] as Sp;
+    expect(outer.type).toBe("spoiler");
+    expect(types(outer.children)).toContain("spoiler");
+    expect(textOf([{ type: "p", children: outer.children }])).toBe("x y z");
+    // An opener with no closer of its own stays text, and the pair after it still hides.
+    const kids = first(`a ~!x ~!y!~ b`);
+    expect(kids.filter((k) => k.type === "spoiler")).toHaveLength(1);
+    expect(textOf(parse(`a ~!x ~!y!~ b`))).toContain("~!x");
+  });
+
+  it("nests three deep and leaves a fourth level as text", () => {
+    const depth = (kids: MdInline[]): number => {
+      const sp = kids.find((k): k is Sp => k.type === "spoiler");
+      return sp ? 1 + depth(sp.children) : 0;
+    };
+    expect(depth(first(`a ~!1 ~!2 ~!3!~!~!~ b`))).toBe(3);
+    const four = first(`a ~!1 ~!2 ~!3 ~!4!~!~!~!~ b`);
+    expect(depth(four)).toBe(3);
+    expect(textOf(parse(`a ~!1 ~!2 ~!3 ~!4!~!~!~!~ b`))).toContain("~!4");
+  });
+
+  it("never opens an inline spoiler across a line break", () => {
+    const nodes = parse(`a ~!x\ny!~ b`);
+    expect(nodes.map((n) => n.type)).toEqual(["p", "spoiler", "p"]);
+    expect(types([nodes[0]])).not.toContain("spoiler");
+  });
+
+  it("puts a label in a preview but never the hidden text", () => {
+    expect(renderPlain(`~!{Ending} he stays!~ did it`)).toBe("[Ending] did it");
+    expect(renderPlain(`a ~!{Ending} he stays!~`)).not.toContain("stays");
   });
 });

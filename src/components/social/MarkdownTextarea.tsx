@@ -23,6 +23,7 @@ import {
   ListOrdered,
   MoreHorizontal,
   Strikethrough,
+  Tag,
   TextQuote,
   type LucideIcon,
 } from "lucide-react";
@@ -42,6 +43,7 @@ import {
   insertImage,
   insertLink,
   insertVideo,
+  labelledSpoiler,
   prefixLines,
   wrapCenter,
   wrapSelection,
@@ -160,6 +162,7 @@ export function MarkdownTextarea({
     { key: "italic", label: t("composer.italic"), shortcut: combo("italic"), icon: Italic, edit: mark("italic"), compact: true },
     { key: "strike", label: t("composer.strike"), shortcut: combo("strike"), icon: Strikethrough, edit: mark("strike"), compact: true },
     { key: "spoiler", label: t("composer.spoiler"), shortcut: combo("spoiler"), icon: EyeClosed, edit: mark("spoiler"), compact: true },
+    { key: "spoilerLabelled", label: t("composer.spoilerLabelled"), icon: Tag, edit: labelledSpoiler, compact: false },
     { key: "heading", label: t("composer.heading"), icon: Heading, edit: cycleHeading, compact: false },
     { key: "quote", label: t("composer.quote"), icon: TextQuote, edit: (x, s, e) => prefixLines(x, s, e, "quote"), compact: false },
     { key: "bullets", label: t("composer.bullets"), icon: List, edit: (x, s, e) => prefixLines(x, s, e, "bullet"), compact: false },

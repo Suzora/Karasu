@@ -149,7 +149,16 @@ function Chip({ kind, host, href }: { kind: "image" | "video"; host: string; hre
 }
 
 /** Hidden until clicked, by absence rather than CSS, since invisible text is still selectable and still read aloud. */
-export function Spoiler({ children, block = false }: { children: ReactNode; block?: boolean }) {
+export function Spoiler({
+  children,
+  block = false,
+  label,
+}: {
+  children: ReactNode;
+  block?: boolean;
+  /** The author's own label, shown in place of the word "Spoiler" and never translated. */
+  label?: string;
+}) {
   const { t } = useTranslation();
   const [shown, setShown] = useState(false);
   if (shown) {
@@ -172,8 +181,9 @@ export function Spoiler({ children, block = false }: { children: ReactNode; bloc
           ? "flex w-full items-center gap-1.5 rounded-control border border-surface-700 bg-surface-800 px-2.5 py-1.5 text-left text-xs text-ink-500 transition-surface hover:text-ink-300"
           : "rounded-inner bg-surface-700 px-1.5 text-xs text-ink-500 transition-surface hover:text-ink-300"
       }
+      aria-label={label ? t("social.mdSpoilerLabelled", { label }) : undefined}
     >
-      {t("social.mdSpoiler")}
+      {label ?? t("social.mdSpoiler")}
     </button>
   );
 }
@@ -244,7 +254,7 @@ export function RichText({ nodes }: { nodes: MdInline[] }) {
             );
           case "spoiler":
             return (
-              <Spoiler key={i}>
+              <Spoiler key={i} label={n.label}>
                 <RichText nodes={n.children} />
               </Spoiler>
             );

@@ -20,15 +20,29 @@ pub const WATCHING_ONLY_KEY: &str = "discord_watching_only";
 
 pub struct Discord(pub Mutex<Option<DiscordIpcClient>>);
 
-/// Last sent fingerprint and time: identical payloads are skipped, then re-sent so a dead pipe is still noticed.
-pub struct LastPresence(pub Mutex<(String, std::time::Instant)>);
+/// What the presence last sent: identical payloads are skipped, then re-sent so a dead pipe is still noticed.
+pub struct Shown {
+    fingerprint: String,
+    at: std::time::Instant,
+    /// The timer's start second under the key of the playback it was computed for.
+    anchor: Option<(String, i64)>,
+}
+
+pub struct LastPresence(pub Mutex<Shown>);
 
 /// How long an identical presence may coast before it is re-sent anyway.
 const RESEND_SECS: u64 = 60;
 
+/// How far a position-derived start may wander before the timer is moved; a poll's own jitter stays under it.
+const DRIFT_SECS: i64 = 3;
+
 impl Default for LastPresence {
     fn default() -> Self {
-        LastPresence(Mutex::new((String::new(), std::time::Instant::now())))
+        LastPresence(Mutex::new(Shown {
+            fingerprint: String::new(),
+            at: std::time::Instant::now(),
+            anchor: None,
+        }))
     }
 }
 
@@ -57,7 +71,10 @@ fn disconnect(app: &AppHandle, guard: &mut Option<DiscordIpcClient>) {
         let _ = client.close();
     }
     // Whatever was showing is gone with the connection.
-    app.state::<LastPresence>().0.guard().0.clear();
+    let state = app.state::<LastPresence>();
+    let mut shown = state.0.guard();
+    shown.fingerprint.clear();
+    shown.anchor = None;
 }
 
 fn now_secs() -> i64 {
@@ -74,6 +91,57 @@ fn session_start(app: &AppHandle, np: &NowPlaying) -> i64 {
     match guard.as_ref() {
         Some(s) if Some(s.media_id) == np.media_id => s.started_ms / 1000,
         _ => now_secs(),
+    }
+}
+
+/// The presence's timer: running from a start second, or stopped where playback stands.
+#[derive(Debug, PartialEq, Eq)]
+enum Clock {
+    Running { start: i64, end: Option<i64> },
+    Paused { at_sec: Option<u32> },
+}
+
+/// A reported position puts the timer where playback stands; without one the session's start stays the anchor.
+fn clock(
+    now: i64,
+    session_start: i64,
+    position_sec: Option<u32>,
+    duration_sec: Option<u32>,
+    duration_min: Option<u32>,
+    paused: bool,
+    manga: bool,
+) -> Clock {
+    if manga {
+        return Clock::Running { start: session_start, end: None };
+    }
+    if paused {
+        return Clock::Paused { at_sec: position_sec };
+    }
+    let length = duration_sec
+        .or(duration_min.map(|m| m.saturating_mul(60)))
+        .map(i64::from);
+    let start = match position_sec {
+        Some(p) => now - i64::from(p),
+        None => session_start,
+    };
+    Clock::Running { start, end: length.map(|l| start + l) }
+}
+
+/// Keeps the start already showing while a fresh one stays within the drift, so an unchanged playback is not re-sent.
+fn anchored(showing: Option<i64>, fresh: i64) -> i64 {
+    match showing {
+        Some(s) if (fresh - s).abs() <= DRIFT_SECS => s,
+        _ => fresh,
+    }
+}
+
+/// A position as a player shows it: minutes and seconds, with hours only when there are any.
+fn clock_text(sec: u32) -> String {
+    let (h, m, s) = (sec / 3600, sec / 60 % 60, sec % 60);
+    if h > 0 {
+        format!("{h}:{m:02}:{s:02}")
+    } else {
+        format!("{m}:{s:02}")
     }
 }
 
@@ -160,8 +228,8 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
         let last = app.state::<LastPresence>();
         let mut last = last.0.guard();
         // Cleared once per change, so an idle app does not talk to Discord on every page turn.
-        if last.0 != "clear" {
-            *last = ("clear".into(), std::time::Instant::now());
+        if last.fingerprint != "clear" {
+            *last = Shown { fingerprint: "clear".into(), at: std::time::Instant::now(), anchor: None };
             if let Some(client) = guard.as_mut() {
                 if client.clear_activity().is_err() {
                     disconnect(app, &mut guard);
@@ -171,15 +239,16 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
         return;
     }
 
-    // The start second rides along for the fingerprint: it pins the elapsed timer, so it is part of the identity.
-    let (details, state_text, timestamps, kind, fingerprint_start) = match now {
+    // The clock rides along for the fingerprint: it pins the timer, so it is part of the identity.
+    let mut anchor = None;
+    let (details, state_text, timestamps, kind, fingerprint_clock) = match now {
         Some(np) => {
             let title = np
                 .matched_title
                 .clone()
                 .unwrap_or_else(|| np.parsed_title.clone());
             let is_manga = np.media_type == "MANGA";
-            let state_text = match np.episode {
+            let base = match np.episode {
                 Some(e) if is_manga => format!("Chapter {e}"),
                 Some(e) => match np.total_episodes {
                     Some(total) => format!("Episode {e} / {total}"),
@@ -188,13 +257,39 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
                 None if is_manga => "Reading".to_string(),
                 None => "Watching".to_string(),
             };
-            // Elapsed timer, plus a progress bar when the episode length is known.
-            let start = session_start(app, np);
-            let timestamps = match (is_manga, np.duration_min) {
-                (false, Some(min)) => Timestamps::new()
-                    .start(start)
-                    .end(start + i64::from(min) * 60),
-                _ => Timestamps::new().start(start),
+            // Elapsed timer, plus a progress bar when the episode length is known; a pause stops it and names the spot.
+            let fresh = clock(
+                now_secs(),
+                session_start(app, np),
+                np.position_sec,
+                np.duration_sec,
+                np.duration_min,
+                np.paused,
+                is_manga,
+            );
+            let key = format!("{:?}|{}|{:?}", np.media_id, np.raw_title, np.episode);
+            let showing = app
+                .state::<LastPresence>()
+                .0
+                .guard()
+                .anchor
+                .as_ref()
+                .filter(|(k, _)| *k == key)
+                .map(|(_, start)| *start);
+            let shown = match fresh {
+                Clock::Running { start, end } => {
+                    let kept = anchored(showing, start);
+                    anchor = Some((key, kept));
+                    Clock::Running { start: kept, end: end.map(|e| e + kept - start) }
+                }
+                paused => paused,
+            };
+            crate::logging::debug_changed("discord", "clock", format!("{shown:?}"));
+            let (state_text, timestamps) = match shown {
+                Clock::Running { start, end: Some(end) } => (base, Timestamps::new().start(start).end(end)),
+                Clock::Running { start, end: None } => (base, Timestamps::new().start(start)),
+                Clock::Paused { at_sec: Some(at) } => (format!("{base} · Paused at {}", clock_text(at)), Timestamps::new()),
+                Clock::Paused { at_sec: None } => (format!("{base} · Paused"), Timestamps::new()),
             };
             // "Watching X" reads better than "Playing Karasu" for video; Discord has no Reading type, so manga keeps Playing.
             let kind = if is_manga {
@@ -202,7 +297,7 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
             } else {
                 ActivityType::Watching
             };
-            (title, state_text, timestamps, kind, start)
+            (title, state_text, timestamps, kind, format!("{shown:?}"))
         }
         None => {
             let page = app.state::<UiPage>().0.guard().clone();
@@ -211,7 +306,7 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
                 "Idle".to_string(),
                 Timestamps::new(),
                 ActivityType::Playing,
-                0,
+                String::new(),
             )
         }
     };
@@ -240,21 +335,21 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
         None => Assets::new().large_image("logo").large_text("Karasu"),
     };
 
-    // Skip a payload identical to the one showing; `duration` is included because the end timestamp derives from it.
+    // Skip a payload identical to the one showing; the clock carries the end timestamp, so the length is in it.
     let fingerprint = format!(
-        "{details}|{state_text}|{cover}|{buttons}|{start}|{duration:?}|{crow_text}",
+        "{details}|{state_text}|{cover}|{buttons}|{fingerprint_clock}|{crow_text}",
         cover = cover.unwrap_or(""),
         buttons = anilist_url.as_deref().unwrap_or(""),
-        start = fingerprint_start,
-        duration = now.and_then(|np| np.duration_min),
     );
     {
         let last = app.state::<LastPresence>();
         let mut last = last.0.guard();
-        if last.0 == fingerprint && last.1.elapsed().as_secs() < RESEND_SECS {
+        last.anchor = anchor;
+        if last.fingerprint == fingerprint && last.at.elapsed().as_secs() < RESEND_SECS {
             return;
         }
-        *last = (fingerprint, std::time::Instant::now());
+        last.fingerprint = fingerprint;
+        last.at = std::time::Instant::now();
     }
 
     let mut activity = Activity::new()
@@ -302,6 +397,54 @@ mod tests {
         assert_eq!(crow_badge(Some("Kyusetzu")), ("Kyusetzu on AniList".to_string(), Some("https://anilist.co/user/Kyusetzu".to_string())));
         assert_eq!(crow_badge(None), ("Karasu".to_string(), None));
         assert_eq!(crow_badge(Some("  ")), ("Karasu".to_string(), None));
+    }
+
+    #[test]
+    fn a_known_position_starts_the_timer_where_playback_stands() {
+        // 12:34 into a 24-minute file: the bar starts 754 s ago and ends with the file, not with the session.
+        assert_eq!(
+            clock(10_000, 5_000, Some(754), Some(1440), Some(23), false, false),
+            Clock::Running { start: 9_246, end: Some(10_686) }
+        );
+        // The entry's rounded minutes stand in when the source has no length of its own.
+        assert_eq!(
+            clock(10_000, 5_000, Some(754), None, Some(24), false, false),
+            Clock::Running { start: 9_246, end: Some(10_686) }
+        );
+    }
+
+    #[test]
+    fn a_pause_stops_the_timer_at_the_position() {
+        assert_eq!(clock(10_000, 5_000, Some(754), Some(1440), Some(24), true, false), Clock::Paused { at_sec: Some(754) });
+        assert_eq!(clock(10_000, 5_000, None, None, Some(24), true, false), Clock::Paused { at_sec: None });
+    }
+
+    #[test]
+    fn without_a_position_the_session_start_stays_the_anchor() {
+        // A window title reports no position, so the timer keeps running from the session as before.
+        assert_eq!(clock(10_000, 5_000, None, None, Some(24), false, false), Clock::Running { start: 5_000, end: Some(6_440) });
+        assert_eq!(clock(10_000, 5_000, None, None, None, false, false), Clock::Running { start: 5_000, end: None });
+    }
+
+    #[test]
+    fn a_manga_keeps_the_session_timer() {
+        assert_eq!(clock(10_000, 5_000, Some(30), Some(60), None, true, true), Clock::Running { start: 5_000, end: None });
+    }
+
+    #[test]
+    fn poll_jitter_keeps_the_start_and_a_seek_moves_it() {
+        assert_eq!(anchored(Some(9_246), 9_248), 9_246);
+        assert_eq!(anchored(Some(9_246), 9_243), 9_246);
+        assert_eq!(anchored(Some(9_246), 9_200), 9_200);
+        assert_eq!(anchored(Some(9_246), 9_400), 9_400);
+        assert_eq!(anchored(None, 9_246), 9_246);
+    }
+
+    #[test]
+    fn a_position_reads_like_a_player_clock() {
+        assert_eq!(clock_text(0), "0:00");
+        assert_eq!(clock_text(754), "12:34");
+        assert_eq!(clock_text(3_723), "1:02:03");
     }
 
     #[test]

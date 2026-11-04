@@ -11,7 +11,8 @@ export type MdInline =
   | { type: "code"; text: string }
   | { type: "link"; href: string; children: MdInline[] }
   | { type: "mention"; name: string }
-  | { type: "spoiler"; children: MdInline[] }
+  /** `label` is the author's own `~!{Label} …!~` text, shown on the closed chip in place of the word "Spoiler". */
+  | { type: "spoiler"; label?: string; children: MdInline[] }
   /** A bare `<a>` or a link `safeHref` refused: accent-coloured as on the site, never a target or href. */
   | { type: "accent"; children: MdInline[] }
   /** `~~~x~~~` inside a line, centred as on anilist.co rather than read as `~~`+`~` by the strike rule. */
@@ -58,7 +59,7 @@ export type MdNode =
   | { type: "hr" }
   | { type: "center"; children: MdNode[] }
   /** A `~!…!~` whose opener and closer sit on different lines, the forum's usual shape. */
-  | { type: "spoiler"; children: MdNode[] };
+  | { type: "spoiler"; label?: string; children: MdNode[] };
 
 export interface ParsedMarkdown {
   nodes: MdNode[];
@@ -123,9 +124,55 @@ function hostOf(href: string): string {
 
 // --- Inline: sticky patterns matched at an index; slicing the remainder each time is quadratic.
 
+/** How deep anilist.co nests spoilers; an opener past it is text. */
+const MAX_SPOILER_DEPTH = 3;
+
+/** Spoilers open around the text being parsed; the parser is synchronous, so a counter carries it through recursion. */
+let spoilerDepth = 0;
+
+function insideSpoiler<T>(parse: () => T): T {
+  spoilerDepth += 1;
+  try {
+    return parse();
+  } finally {
+    spoilerDepth -= 1;
+  }
+}
+
+/** A label is `{…}` with no braces, angle brackets, line break or spoiler placeholder inside. */
+const SPOILER_LABEL = /^\{([^{}<>\n\uE000\uE001]*)\}[ \t]*/;
+
+/** Splits a spoiler's leading `{Label}` off its body; an empty or malformed label is none. */
+export function spoilerLabel(body: string): { label?: string; rest: string } {
+  const m = SPOILER_LABEL.exec(body);
+  if (!m) return { rest: body };
+  const label = m[1].trim();
+  const rest = body.slice(m[0].length);
+  return label ? { label, rest } : { rest };
+}
+
+/** The `!~` closing the `~!` at `i` on the same line, paired nearest-first as a stack pairs them, or -1. */
+function inlineSpoilerEnd(src: string, i: number): number {
+  let depth = 0;
+  let j = i + 2;
+  while (j < src.length - 1) {
+    const c = src[j];
+    if (c === "\n") return -1;
+    if (c === "~" && src[j + 1] === "!") {
+      depth += 1;
+      j += 2;
+    } else if (c === "!" && src[j + 1] === "~") {
+      if (depth === 0) return j;
+      depth -= 1;
+      j += 2;
+    } else {
+      j += 1;
+    }
+  }
+  return -1;
+}
+
 const RE = {
-  // `*?`, not `+?`: `~!!~` is an empty spoiler on anilist.co, not four characters of text.
-  spoiler: /~!([\s\S]*?)!~/y,
   // Before `strike`, which would read two of the three tildes and leave the third to break what follows.
   centerInline: /~~~([\s\S]*?)~~~/y,
   strongStar: /\*\*(?!\s)([\s\S]+?)\*\*/y,
@@ -269,11 +316,14 @@ function parseInline(src: string): MdInline[] {
     }
 
     if (c === "~") {
-      const sp = at(RE.spoiler, src, i);
-      if (sp) {
+      // `~!!~` is an empty spoiler on anilist.co, not four characters of text.
+      const end = src[i + 1] === "!" && spoilerDepth < MAX_SPOILER_DEPTH ? inlineSpoilerEnd(src, i) : -1;
+      if (end >= 0) {
         flush();
-        i += sp[0].length;
-        out.push({ type: "spoiler", children: parseInline(sp[1]) });
+        const { label, rest } = spoilerLabel(src.slice(i + 2, end));
+        i = end + 2;
+        const children = insideSpoiler(() => parseInline(rest));
+        out.push(label ? { type: "spoiler", label, children } : { type: "spoiler", children });
         continue;
       }
       const centre = at(RE.centerInline, src, i);
@@ -513,8 +563,8 @@ const OL = /^\s*\d+[.)]\s+(.*)$/;
 const TABLE_ROW = /^\s*\|(.*)\|?\s*$/;
 const TABLE_RULE = /^[\s|:-]+$/;
 
-/** Where the line's first unclosed `~!` begins, or null; `~!~` is an opener, as the inline rule reads it. */
-function spoilerOpenAt(line: string): number | null {
+/** The line's first unclosed `~!` and how many stay unclosed, or null; `~!~` is an opener, as the inline rule reads it. */
+function spoilerOpenAt(line: string): { col: number; unclosed: number } | null {
   const open: number[] = [];
   let i = 0;
   while (i < line.length - 1) {
@@ -528,40 +578,52 @@ function spoilerOpenAt(line: string): number | null {
       i += 1;
     }
   }
-  return open.length ? open[0] : null;
+  return open.length ? { col: open[0], unclosed: open.length } : null;
 }
 
-/** Where the first `!~` that no earlier `~!` on the same line opened sits, or null. */
-function spoilerCloseAt(line: string): number | null {
-  let depth = 0;
-  let i = 0;
-  while (i < line.length - 1) {
-    if (line[i] === "~" && line[i + 1] === "!") {
-      depth += 1;
-      i += 2;
-    } else if (line[i] === "!" && line[i + 1] === "~") {
-      if (depth === 0) return i;
-      depth -= 1;
-      i += 2;
-    } else {
-      i += 1;
+/** The block spoiler opening on line `i`: its opener's column and the closer that pairs with it below, or null. */
+function blockSpoilerAt(
+  lines: string[],
+  i: number,
+): { open: number; j: number; close: number } | null {
+  if (spoilerDepth >= MAX_SPOILER_DEPTH) return null;
+  const open = spoilerOpenAt(lines[i]);
+  if (open === null) return null;
+  // Openers still unclosed after the first on its line wait for their closers before the first's own.
+  let depth = open.unclosed - 1;
+  for (let j = i + 1; j < lines.length; j += 1) {
+    const line = lines[j];
+    let k = 0;
+    while (k < line.length - 1) {
+      if (line[k] === "~" && line[k + 1] === "!") {
+        depth += 1;
+        k += 2;
+      } else if (line[k] === "!" && line[k + 1] === "~") {
+        if (depth === 0) return { open: open.col, j, close: k };
+        depth -= 1;
+        k += 2;
+      } else {
+        k += 1;
+      }
     }
   }
   return null;
 }
 
-/** The block spoiler opening on line `i`: its opener's column and the first closer below, or null. */
-function blockSpoilerAt(
-  lines: string[],
-  i: number,
-): { open: number; j: number; close: number } | null {
-  const open = spoilerOpenAt(lines[i]);
-  if (open === null) return null;
-  for (let j = i + 1; j < lines.length; j += 1) {
-    const close = spoilerCloseAt(lines[j]);
-    if (close !== null) return { open, j, close };
-  }
-  return null;
+/** A line that is one whole `~!…!~` and nothing else: a block, since an inline spoiler shares its line with text. */
+function loneSpoiler(line: string): string | null {
+  if (spoilerDepth >= MAX_SPOILER_DEPTH) return null;
+  const start = line.length - line.trimStart().length;
+  if (!line.startsWith("~!", start)) return null;
+  const end = inlineSpoilerEnd(line, start);
+  return end >= 0 && !line.slice(end + 2).trim() ? line.slice(start + 2, end) : null;
+}
+
+/** A block spoiler node over `body`'s lines, its label taken off the first. */
+function blockSpoiler(body: string[]): MdNode {
+  const { label, rest } = spoilerLabel(body[0]);
+  const children = insideSpoiler(() => parseBlocks([rest, ...body.slice(1)]));
+  return label ? { type: "spoiler", label, children } : { type: "spoiler", children };
 }
 
 /** Groups lines into blocks; every branch consumes at least one line, so the loop always terminates. */
@@ -585,11 +647,17 @@ function parseBlocks(input: string[]): MdNode[] {
       const { open, j, close } = spoiler;
       const before = line.slice(0, open);
       if (before.trim()) out.push(...parseBlocks([before]));
-      const body = [line.slice(open + 2), ...lines.slice(i + 1, j), lines[j].slice(0, close)];
-      out.push({ type: "spoiler", children: parseBlocks(body) });
+      out.push(blockSpoiler([line.slice(open + 2), ...lines.slice(i + 1, j), lines[j].slice(0, close)]));
       const after = lines[j].slice(close + 2);
       lines[j] = after;
       i = after.trim() ? j : j + 1;
+      continue;
+    }
+
+    const lone = loneSpoiler(line);
+    if (lone !== null) {
+      out.push(blockSpoiler([lone]));
+      i += 1;
       continue;
     }
 
@@ -719,7 +787,7 @@ function parseBlocks(input: string[]): MdNode[] {
       i < lines.length &&
       lines[i].trim() &&
       !startsBlock(lines[i]) &&
-      (body.length === 0 || blockSpoilerAt(lines, i) === null)
+      (body.length === 0 || (blockSpoilerAt(lines, i) === null && loneSpoiler(lines[i]) === null))
     ) {
       body.push(lines[i].replace(/\s+$/, ""));
       i += 1;
@@ -813,10 +881,16 @@ export function parseAniListMarkdown(
 /** Stands in for a spoiler in plain text so a component can draw the spoiler chip there; a private-use character. */
 export const SPOILER_MARK = "\uE000";
 
+/** Ends the label, empty when there is none, that follows every `SPOILER_MARK`; a label cannot contain it. */
+export const SPOILER_LABEL_END = "\uE001";
+
 /** One line of plain text through the same parser; a spoiler becomes the placeholder, never its text. */
 export function renderPlain(src: string, max = 200, spoiler = "[…]"): string {
   const { nodes } = parseAniListMarkdown(src);
   const parts: string[] = [];
+  // The label is the author's own cover for the secret, so it is shown where the chip is.
+  const hidden = (label: string | undefined) =>
+    spoiler === SPOILER_MARK ? `${SPOILER_MARK}${label ?? ""}${SPOILER_LABEL_END}` : label === undefined ? spoiler : `[${label}]`;
 
   const inline = (kids: MdInline[]) => {
     for (const n of kids) {
@@ -836,7 +910,7 @@ export function renderPlain(src: string, max = 200, spoiler = "[…]"): string {
         case "chip":
           break;
         case "spoiler":
-          parts.push(spoiler);
+          parts.push(hidden(n.label));
           break;
         case "strong":
         case "em":
@@ -873,7 +947,7 @@ export function renderPlain(src: string, max = 200, spoiler = "[…]"): string {
           block(n.children);
           break;
         case "spoiler":
-          parts.push(spoiler, " ");
+          parts.push(hidden(n.label), " ");
           break;
         case "hr":
           break;

@@ -47,9 +47,15 @@ export interface SocialUser {
   avatar: { medium: string | null } | null;
   isFollowing: boolean | null;
   isFollower: boolean | null;
+  /** Asked for only where an activity's author is drawn; `donatorLabel` decides whether a badge shows. */
+  donatorTier?: number | null;
+  donatorBadge?: string | null;
 }
 
 const SOCIAL_USER = `id name avatar { medium } isFollowing isFollower`;
+
+/** An activity's author, with the donator fields the feed's badge reads, as the website shows them since 2026-11-04. */
+const ACTIVITY_USER = `${SOCIAL_USER} donatorTier donatorBadge`;
 
 // --- Profile --------------------------------------------------------------
 
@@ -484,12 +490,12 @@ query ($userId: Int, $isFollowing: Boolean, $types: [ActivityType], $page: Int, 
       __typename
       ... on ListActivity {
         id status progress createdAt likeCount isLiked isPinned replyCount siteUrl
-        user { ${SOCIAL_USER} }
+        user { ${ACTIVITY_USER} }
         media { ${SOCIAL_MEDIA} }
       }
       ... on TextActivity {
         id text createdAt likeCount isLiked isPinned replyCount siteUrl
-        user { ${SOCIAL_USER} }
+        user { ${ACTIVITY_USER} }
       }
     }
   }
@@ -502,12 +508,12 @@ query ($id: Int!) {
     __typename
     ... on ListActivity {
       id status progress createdAt likeCount isLiked isPinned replyCount siteUrl
-      user { ${SOCIAL_USER} }
+      user { ${ACTIVITY_USER} }
       media { ${SOCIAL_MEDIA} }
     }
     ... on TextActivity {
       id text createdAt likeCount isLiked isPinned replyCount siteUrl
-      user { ${SOCIAL_USER} }
+      user { ${ACTIVITY_USER} }
     }
   }
 }`;

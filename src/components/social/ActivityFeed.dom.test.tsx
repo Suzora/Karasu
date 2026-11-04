@@ -76,4 +76,18 @@ describe("ActivityFeed options", () => {
     expect(await screen.findByRole("button", { name: "social.loadMorePlain" })).toBeInTheDocument();
     expect(fetchPage).toHaveBeenCalledTimes(1);
   });
+
+  it("marks an author who supports AniList, and only by tier, never by the default badge", async () => {
+    fetchPage.mockReset();
+    const backer = { ...USER, id: 2, name: "Mikan", donatorTier: 2, donatorBadge: "Donator" };
+    const plain = { ...USER, id: 3, name: "Hoshi", donatorTier: 0, donatorBadge: "Donator" };
+    fetchPage.mockResolvedValue({
+      ...page([], false),
+      activities: [{ ...text(1), user: backer }, { ...text(2), user: plain }],
+    });
+    renderWithProviders(<ActivityFeed queryKey={["own", 10]} source={{ userId: 1 }} emptyTitle="none" />);
+    await screen.findByText("post 2");
+    expect(screen.getAllByText("Donator")).toHaveLength(1);
+    expect(screen.getByText("Donator").closest("article")).toHaveTextContent("Mikan");
+  });
 });

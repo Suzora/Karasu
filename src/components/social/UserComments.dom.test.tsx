@@ -75,6 +75,17 @@ describe("UserComments paging states", () => {
     expect(screen.queryByText(/butler/)).toBeNull();
   });
 
+  it("shows a spoiler's label on its chip and still hides the text", async () => {
+    fetchPage.mockReset();
+    fetchPage.mockResolvedValue(page([comment(1, "Who did it?", "~!{Culprit} the butler!~ did it")], false));
+
+    renderWithProviders(<UserComments userId={3} emptyTitle="empty" />);
+
+    expect(await screen.findByText("Who did it?")).toBeInTheDocument();
+    expect(screen.getByText("Culprit")).toHaveClass("rounded-inner");
+    expect(screen.queryByText(/butler/)).toBeNull();
+  });
+
   it("still offers the next page when the first one came back empty", async () => {
     fetchPage.mockReset();
     fetchPage.mockResolvedValue(page([], true));

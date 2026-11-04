@@ -49,6 +49,9 @@ pub struct Playback {
     pub position_sec: Option<u32>,
     /// The file's duration in seconds from the same source, more exact than the entry's rounded minutes.
     pub duration_sec: Option<u32>,
+    /// The source says playback is paused; only mpv's IPC and Jellyfin know, everything else reads as playing.
+    #[serde(skip)]
+    pub paused: bool,
 }
 
 /// Lists all visible top-level windows with title and process name.
@@ -150,6 +153,7 @@ fn scan_windows(windows: &[WindowInfo], mut paused: impl FnMut(&str) -> bool) ->
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
+                paused: false,
             });
         }
     }
@@ -167,6 +171,7 @@ fn scan_windows(windows: &[WindowInfo], mut paused: impl FnMut(&str) -> bool) ->
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
+                paused: false,
             });
         }
     }
@@ -182,6 +187,7 @@ fn scan_windows(windows: &[WindowInfo], mut paused: impl FnMut(&str) -> bool) ->
                 parsed: None,
                 position_sec: None,
                 duration_sec: None,
+                paused: false,
             });
         }
     }
@@ -203,6 +209,7 @@ pub fn chapter_tabs(windows: &[WindowInfo]) -> Vec<Playback> {
                 parsed: Some(parsed),
                 position_sec: None,
                 duration_sec: None,
+                paused: false,
             })
         })
         .collect()

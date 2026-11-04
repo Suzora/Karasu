@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: d7ae2636 -->
+<!-- generated-through: 9d1a2b2 -->
 
 ### Fixed
 
@@ -25,6 +25,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
 - On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
 - The cover grid no longer overlaps its rows after the window changes size.
+- Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
 
 ### Changed
 
@@ -40,6 +41,9 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - A title's trailer plays right in its detail page, with a link to open it on YouTube beside it.
 - The Overview greets you with a different line on every visit, from a catalogue of six hundred that knows the time, the day and your lists.
 - Discord names the title you watch, links its cover and title to AniList and the crow to your profile, and can stay empty while nothing plays ([#100](https://github.com/Suzora/Karasu/issues/100)).
+- Spoilers show their label, such as "Ending Spoiler", and spoilers inside spoilers open as on AniList.
+- The composer can add a spoiler with a label.
+- Activity feeds show who supports AniList, as the website does.
 
 ## 1.68.0 — 2026-10-25
 

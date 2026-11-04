@@ -71,6 +71,9 @@ pub struct NowPlaying {
     /// The file's own duration in seconds, which beats the entry's rounded minutes when both exist.
     #[serde(skip)]
     pub duration_sec: Option<u32>,
+    /// The source says playback is paused, refreshed every poll like the position; the presence stops its timer.
+    #[serde(skip)]
+    pub paused: bool,
     /// List status of the matched entry when detection started.
     #[serde(skip)]
     pub list_status: String,
@@ -634,6 +637,7 @@ fn build_now_playing(
         cover_url: resolved.cover_url,
         position_sec: playback.position_sec,
         duration_sec: playback.duration_sec,
+        paused: playback.paused,
         list_status: resolved.status,
         generic: playback.generic,
     })
@@ -1314,6 +1318,7 @@ pub fn spawn(app: AppHandle) {
                     if let Some(np) = guard.as_mut() {
                         np.position_sec = p.position_sec;
                         np.duration_sec = p.duration_sec;
+                        np.paused = p.paused;
                     }
                 }
             }
@@ -1584,6 +1589,7 @@ mod tests {
             cover_url: None,
             position_sec: None,
             duration_sec: None,
+            paused: false,
             list_status: "CURRENT".into(),
             generic: false,
         }

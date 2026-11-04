@@ -8,6 +8,7 @@ import {
   insertImage,
   insertLink,
   insertVideo,
+  labelledSpoiler,
   prefixLines,
   wrapCenter,
   wrapSelection,
@@ -167,5 +168,23 @@ describe("editSpan", () => {
   it("does not let the prefix and suffix overlap", () => {
     // `aa` → `aaa`: the prefix takes both, the suffix must not take them again.
     expect(editSpan("aa", "aaa")).toEqual({ start: 2, end: 2, insert: "a" });
+  });
+});
+
+describe("labelledSpoiler", () => {
+  it("wraps the selection and leaves the caret in the empty label", () => {
+    const out = labelledSpoiler("a he dies b", 2, 9);
+    expect(out).toEqual({ text: "a ~!{} he dies!~ b", start: 5, end: 5 });
+  });
+
+  it("inserts an empty one at the caret", () => {
+    expect(labelledSpoiler("ab", 1, 1)).toEqual({ text: "a~!{} !~b", start: 4, end: 4 });
+  });
+
+  it("parses as a labelled spoiler once a label is typed", () => {
+    const { text, start } = labelledSpoiler("he dies", 0, 7);
+    const typed = `${text.slice(0, start)}Ending${text.slice(start)}`;
+    const [node] = parseAniListMarkdown(typed).nodes;
+    expect(node).toMatchObject({ type: "spoiler", label: "Ending" });
   });
 });
