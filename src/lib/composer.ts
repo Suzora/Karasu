@@ -174,6 +174,16 @@ export function wrapSelection(
   };
 }
 
+/** Wraps the selection in a spoiler with an empty `{}` label and leaves the caret inside the braces to name it. */
+export function labelledSpoiler(text: string, start: number, end: number): TextEdit {
+  const [s0, e0] = order(start, end);
+  const [s, e] = trimmed(text, s0, e0);
+  const sel = text.slice(s, e);
+  const [from, to] = sel ? [s, e] : [s0, s0];
+  const caret = from + "~!{".length;
+  return { text: `${text.slice(0, from)}~!{} ${sel}!~${text.slice(to)}`, start: caret, end: caret };
+}
+
 export type LinePrefix = "quote" | "bullet" | "numbered" | { heading: 1 | 2 | 3 | 4 | 5 | 6 };
 
 /** The lines the selection touches, whole: [lineStart, lineEnd). */

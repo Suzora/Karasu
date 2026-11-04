@@ -42,7 +42,7 @@ describe("MarkdownTextarea", () => {
     fireEvent.focus(field());
     const toolbar = screen.getByRole("toolbar", { name: "composer.toolbar" });
     const buttons = toolbar.querySelectorAll("button");
-    expect(buttons.length).toBe(13);
+    expect(buttons.length).toBe(14);
     for (const b of buttons) expect(b).toHaveAttribute("aria-label");
     expect(screen.getByRole("button", { name: "composer.bold" })).toHaveAttribute("title", expect.stringContaining("Ctrl+B"));
   });
@@ -115,7 +115,7 @@ describe("MarkdownTextarea", () => {
     const { unmount } = render(<Harness />);
     expect(screen.queryByRole("toolbar")).toBeNull();
     fireEvent.focus(field());
-    expect(screen.getByRole("toolbar").querySelectorAll("button").length).toBe(13);
+    expect(screen.getByRole("toolbar").querySelectorAll("button").length).toBe(14);
     fireEvent.blur(field());
     expect(screen.queryByRole("toolbar")).toBeNull();
     unmount();
