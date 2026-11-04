@@ -282,6 +282,26 @@ describe("dayHeatmapFromHistory", () => {
     expect(new Set(grid.months.map((m) => m.column)).size).toBe(grid.months.length);
   });
 
+  /** AniList's time-zone fix of 2026-10-26 moved the stamp from London's midnight to UTC's, mid-history. */
+  it("keeps one cell per day across the change from 23:00 to 00:00 UTC", () => {
+    const hour = 3600;
+    const grid = dayHeatmapFromHistory([
+      { date: day("2026-10-22") - hour, amount: 1, level: 1 },
+      { date: day("2026-10-23") - hour, amount: 2, level: 3 },
+      { date: day("2026-10-24") - hour, amount: 3, level: 5 },
+      { date: day("2026-10-25") - hour, amount: 4, level: 7 },
+      { date: day("2026-10-26"), amount: 5, level: 9 },
+      { date: day("2026-10-27"), amount: 6, level: 9 },
+    ])!;
+    // 2026-10-19 is a Monday: Thursday to Sunday in the first column, Monday and Tuesday in the second.
+    expect(grid.weeks).toHaveLength(2);
+    expect(grid.weeks[0].slice(3).map((c) => c?.amount)).toEqual([1, 2, 3, 4]);
+    expect(grid.weeks[1].slice(0, 2).map((c) => c?.amount)).toEqual([5, 6]);
+    expect(grid.from).toBe(day("2026-10-22"));
+    expect(grid.to).toBe(day("2026-10-27"));
+    expect(grid.total).toBe(21);
+  });
+
   /** Two rows for one day is not a shape AniList has shown, so it is folded rather than trusted to be absent. */
   it("folds a repeated day instead of dropping one", () => {
     const grid = dayHeatmapFromHistory([
