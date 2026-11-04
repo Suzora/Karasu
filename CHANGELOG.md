@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: d7ae2636 -->
+<!-- generated-through: e610ae5 -->
 
 ### Fixed
 
@@ -25,6 +25,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
 - On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
 - The cover grid no longer overlaps its rows after the window changes size.
+- Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
 
 ### Changed
 

@@ -208,6 +208,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
             parsed: None,
             position_sec: None,
             duration_sec: None,
+            paused: false,
         });
     }
 
@@ -267,6 +268,7 @@ pub fn playback_from(session: &MediaSession) -> Option<Playback> {
         parsed,
         position_sec: None,
         duration_sec: None,
+        paused: false,
     })
 }
 

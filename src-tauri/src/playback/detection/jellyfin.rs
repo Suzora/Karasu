@@ -1013,6 +1013,7 @@ pub fn playback_from_session(session: &serde_json::Value) -> Option<Playback> {
         }),
         position_sec,
         duration_sec,
+        paused: is_paused(session),
     })
 }
 
@@ -1249,6 +1250,11 @@ mod tests {
         let p = playback_from_session(&s).unwrap();
         assert_eq!(p.position_sec, Some(774));
         assert_eq!(p.duration_sec, Some(1420));
+        assert!(!p.paused);
+
+        let mut held = s.clone();
+        held["PlayState"]["IsPaused"] = json!(true);
+        assert!(playback_from_session(&held).unwrap().paused);
 
         let bare = json!({
             "NowPlayingItem": { "Type": "Episode", "Name": "Ep", "SeriesName": "Frieren" }

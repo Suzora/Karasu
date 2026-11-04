@@ -107,6 +107,7 @@ pub(crate) fn playback_from_state(state: &MpvState) -> Option<Playback> {
         parsed: None,
         position_sec: state.position_sec,
         duration_sec: state.duration_sec,
+        paused: state.paused,
     })
 }
 
@@ -260,6 +261,10 @@ mod tests {
         // Still a candidate; pausedness is spent in the ranking, where `detect_playback` demotes it.
         assert!(playback_from_state(&paused).is_some());
         assert!(paused.paused);
+        // The candidate carries the pause too, so the presence can stop its timer.
+        assert!(playback_from_state(&paused).unwrap().paused);
+        let playing = MpvState { paused: false, ..paused };
+        assert!(!playback_from_state(&playing).unwrap().paused);
 
         let idle = MpvState::default();
         assert!(playback_from_state(&idle).is_none());
