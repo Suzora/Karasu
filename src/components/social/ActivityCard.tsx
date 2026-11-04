@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink, MessageSquare, Pin } from "lucide-react";
+import { ExternalLink, Heart, MessageSquare, Pin } from "lucide-react";
 import { formatProgress, PROGRESS_VERBS, splitSentence, type FeedItem } from "@/lib/activity";
 import { displayTitle } from "@/api/types";
 import { isTauri } from "@/api/anilist";
@@ -18,7 +18,8 @@ import { MarkdownTextarea } from "./MarkdownTextarea";
 import { sentenceFor } from "./activitySentence";
 import { relTimeFromSeconds } from "@/lib/relTime";
 import { validatePost } from "@/lib/composer";
-import { canTogglePin } from "@/lib/donator";
+import { canTogglePin, donatorLabel } from "@/lib/donator";
+import { Chip } from "@/components/ui/chip";
 import { useSocialActions } from "@/hooks/useSocialActions";
 import { useActivityPost } from "@/hooks/useActivityPost";
 import { useAuth } from "@/stores/auth";
@@ -184,6 +185,8 @@ export function ActivityCard({
   const self = viewer !== null && viewer.id === item.user.id;
   // Pinning is a donator feature, so the toggle is offered only where it can succeed; see `lib/donator`.
   const showPin = canTogglePin(viewer, item, self);
+  // `donatorLabel`, never `donatorBadge`: AniList returns the default badge for every account.
+  const donator = donatorLabel(item.user);
   const { pin } = useActivityPost(viewer?.id);
   const when = relTimeFromSeconds(item.createdAt, i18n.language, t("notif.now"));
   const level = useContentFilter((s) => s.level);
@@ -222,6 +225,7 @@ export function ActivityCard({
                 src={item.user.avatar?.medium}
                 size="sm"
                 nameClassName="text-xs font-medium text-ink-300"
+                badge={donator && <Chip tone="gold" size="xs" icon={Heart}>{donator}</Chip>}
                 sub={<span className="block text-xs text-ink-600">{when}</span>}
               />
             </Link>

@@ -86,6 +86,8 @@ interface UserLockupProps extends AvatarProps {
   nameClassName?: string;
   /** Wraps the name so a truncated one is still readable on hover. */
   titleAttr?: boolean;
+  /** Sits after the name on its line, which truncates before the badge does. */
+  badge?: ReactNode;
   className?: string;
 }
 
@@ -95,6 +97,7 @@ export function UserLockup({
   size = "md",
   nameClassName,
   titleAttr,
+  badge,
   className,
   ...avatar
 }: UserLockupProps) {
@@ -102,12 +105,21 @@ export function UserLockup({
     <div className={cn("flex items-center", GAP[size], className)}>
       <Avatar {...avatar} name={name} size={size} />
       <div className="min-w-0 flex-1">
-        <span
-          className={cn("block truncate font-semibold text-ink-100", nameClassName)}
-          title={titleAttr ? name : undefined}
-        >
-          {name}
-        </span>
+        {badge ? (
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className={cn("truncate font-semibold text-ink-100", nameClassName)} title={titleAttr ? name : undefined}>
+              {name}
+            </span>
+            {badge}
+          </span>
+        ) : (
+          <span
+            className={cn("block truncate font-semibold text-ink-100", nameClassName)}
+            title={titleAttr ? name : undefined}
+          >
+            {name}
+          </span>
+        )}
         {sub}
       </div>
     </div>

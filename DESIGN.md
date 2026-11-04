@@ -1251,3 +1251,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   lists the next episodes of what is watched or planned from now on, this
   week's included, and carries the "Full calendar" link the plan had. The
   banner's 48-hour strip stays as the glance.
+- **2026-11-04:** An activity's author who supports AniList carries the
+  profile's gold donator chip beside the name in every feed, as the website
+  shows it again since that day's changelog (A of three: the chip with its
+  heart and label, the label alone in gold, and a gold heart with the label
+  as a tooltip). The chip is the one the profile already draws, so the mark
+  reads the same everywhere, and it needs no tooltip, which the phone does
+  not have. `donatorLabel` decides, by tier and never by the badge text,
+  and the two fields ride on the feed request that was already made.

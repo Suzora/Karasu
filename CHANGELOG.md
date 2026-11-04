@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: c810319 -->
+<!-- generated-through: 2845dbf -->
 
 ### Fixed
 
@@ -43,6 +43,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - Discord names the title you watch, links its cover and title to AniList and the crow to your profile, and can stay empty while nothing plays ([#100](https://github.com/Suzora/Karasu/issues/100)).
 - Spoilers show their label, such as "Ending Spoiler", and spoilers inside spoilers open as on AniList.
 - The composer can add a spoiler with a label.
+- Activity feeds show who supports AniList, as the website does.
 
 ## 1.68.0 — 2026-10-25
 

@@ -271,7 +271,7 @@ const viewer = {
 
 // The social surface: three people the viewer follows, a feed of both activity kinds, a thread with nested replies.
 const person = (id: number, name: string, i: number) => ({ id, name, avatar: { medium: face(CHARACTERS, i * 7) }, isFollowing: id !== 1, isFollower: id === 11 });
-const PEOPLE = [person(11, "Mikan", 5), person(12, "Hoshi", 6), person(13, "TsubameNoYume", 7), { ...person(1, "Kyusetzu", 4), isFollowing: false }];
+const PEOPLE = [{ ...person(11, "Mikan", 5), donatorTier: 2, donatorBadge: "Donator" }, person(12, "Hoshi", 6), person(13, "TsubameNoYume", 7), { ...person(1, "Kyusetzu", 4), isFollowing: false }];
 const socialMedia = (i: number) => {
   const m = media(i, false);
   return { id: m.id, type: "ANIME", title: m.title, coverImage: { large: m.coverImage.large }, format: "TV", isAdult: false, genres: [] };
