@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: e610ae5 -->
+<!-- generated-through: 93e90ee -->
 
 ### Fixed
 
@@ -41,6 +41,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - A title's trailer plays right in its detail page, with a link to open it on YouTube beside it.
 - The Overview greets you with a different line on every visit, from a catalogue of six hundred that knows the time, the day and your lists.
 - Discord names the title you watch, links its cover and title to AniList and the crow to your profile, and can stay empty while nothing plays ([#100](https://github.com/Suzora/Karasu/issues/100)).
+- Spoilers show their label, such as "Ending Spoiler", and spoilers inside spoilers open as on AniList.
 
 ## 1.68.0 — 2026-10-25
 

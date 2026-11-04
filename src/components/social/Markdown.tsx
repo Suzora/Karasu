@@ -81,7 +81,7 @@ function Blocks({ nodes }: { nodes: MdNode[] }) {
           case "spoiler":
             // One button for the whole run and nothing of it in the DOM until pressed, as the inline `Spoiler` does.
             return (
-              <Spoiler key={i} block>
+              <Spoiler key={i} block label={n.label}>
                 <Blocks nodes={n.children} />
               </Spoiler>
             );

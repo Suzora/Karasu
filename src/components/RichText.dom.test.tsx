@@ -86,4 +86,14 @@ describe("a description keeps its formatting", () => {
     expect(screen.getByRole("button").textContent).toContain("social.mdSpoiler");
     expect(document.body.textContent).toContain("eventually");
   });
+
+  it("names a labelled spoiler by its label and keeps the text out until pressed", async () => {
+    description("Kaneki ~!{Ending} becomes a ghoul!~ eventually.");
+    const chip = screen.getByRole("button");
+    expect(chip).toHaveTextContent("Ending");
+    expect(chip).toHaveAttribute("aria-label", `social.mdSpoilerLabelled:${JSON.stringify({ label: "Ending" })}`);
+    expect(screen.queryByText(/ghoul/)).toBeNull();
+    chip.click();
+    expect(await screen.findByText(/ghoul/)).toBeInTheDocument();
+  });
 });

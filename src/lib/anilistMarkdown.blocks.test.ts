@@ -65,6 +65,33 @@ describe("block spoilers", () => {
     expect(types([nodes[0]])).toContain("spoiler");
   });
 
+  it("takes the label from the opening line", () => {
+    const [s] = spoilers(`~!{Episode 12}\nshe leaves\n\nhe stays\n!~`);
+    expect(s.label).toBe("Episode 12");
+    expect(s.children.map((n) => n.type)).toEqual(["p", "p"]);
+    expect(textOf(s.children)).not.toContain("{");
+  });
+
+  it("keeps full markdown inside a block", () => {
+    const [s] = spoilers(`~!\n# Heading\n> quote\n- item\n!~`);
+    expect(s.children.map((n) => n.type)).toEqual(["h", "quote", "list"]);
+  });
+
+  it("closes a nested block at its own closer, not the first one below", () => {
+    const [s] = spoilers(`~!{Outer}\nbefore\n~!{Inner}\nhidden\n!~\nafter\n!~\ntail`);
+    expect(s.label).toBe("Outer");
+    const inner = s.children.find((n) => n.type === "spoiler") as Extract<MdNode, { type: "spoiler" }>;
+    expect(inner.label).toBe("Inner");
+    expect(textOf(s.children)).toContain("after");
+    expect(textOf(parse(`~!{Outer}\nbefore\n~!{Inner}\nhidden\n!~\nafter\n!~\ntail`))).toContain("tail");
+  });
+
+  it("makes a spoiler alone on its line a block, since an inline one shares its line", () => {
+    const nodes = parse(`text above\n~!{Ending} he stays!~\ntext below`);
+    expect(nodes.map((n) => n.type)).toEqual(["p", "spoiler", "p"]);
+    expect((nodes[1] as Extract<MdNode, { type: "spoiler" }>).label).toBe("Ending");
+  });
+
   it("nests with centring in either order", () => {
     const [s] = spoilers(`~!\n~~~centred~~~\n!~`);
     expect(s.children.map((n) => n.type)).toEqual(["center"]);

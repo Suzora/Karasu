@@ -1,4 +1,4 @@
-import type { MdInline } from "./anilistMarkdown";
+import { spoilerLabel, type MdInline } from "./anilistMarkdown";
 import { ENTITY_RE, decodeEntity } from "./htmlEntities";
 
 /** AniList descriptions are HTML, not markdown; parsed to `MdInline` nodes so no `__html` string ever exists. */
@@ -101,7 +101,9 @@ export function parseAniListHtml(html: string, limit = 8000): MdInline[] {
       if (sp) {
         flush();
         // Click-to-reveal rather than deletion: the renderer keeps spoiler text out of the DOM until asked.
-        out().push({ type: "spoiler", children: parseAniListHtml(sp[1], limit) });
+        const { label, rest } = spoilerLabel(sp[1]);
+        const children = parseAniListHtml(rest, limit);
+        out().push(label ? { type: "spoiler", label, children } : { type: "spoiler", children });
         i += sp[0].length;
         continue;
       }

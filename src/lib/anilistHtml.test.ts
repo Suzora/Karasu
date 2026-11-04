@@ -190,6 +190,12 @@ describe("spoilers", () => {
     expect(types(parseAniListHtml("~!<b>bold reveal</b>!~"))).toContain("strong");
   });
 
+  it("takes a label off the hidden text, as the forum does", () => {
+    const [, sp] = parseAniListHtml("safe ~!{Ending} he dies!~");
+    expect(sp).toMatchObject({ type: "spoiler", label: "Ending" });
+    expect(textOf([sp])).toBe("he dies");
+  });
+
   it("leaves an unclosed spoiler marker as text", () => {
     expect(types(parseAniListHtml("~!never closed"))).not.toContain("spoiler");
   });
