@@ -17,7 +17,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.61.0",
+    "lucide-react": "^1.66.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwind-merge": "^3.7.0"
@@ -27,8 +27,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "lighthouse": "^13.5.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "lighthouse": "^13.6.0",
     "opentype.js": "^2.0.0",
     "playwright-core": "^1.64.1",
     "sharp": "^0.35.5",
