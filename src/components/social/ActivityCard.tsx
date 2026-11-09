@@ -285,9 +285,7 @@ export function ActivityCard({
             aria-expanded={repliesOpen}
             aria-controls={repliesId}
             aria-label={
-              item.replyCount === 1
-                ? t("social.repliesCountOne")
-                : t("social.repliesCountMany", { count: item.replyCount })
+t("social.repliesCount", { count: item.replyCount })
             }
             className={reactionClass(repliesOpen)}
           >

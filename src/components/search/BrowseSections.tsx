@@ -252,10 +252,10 @@ function RankedRow({ media: m, rank }: { media: BrowseMedia; rank: number }) {
   const count =
     m.type === "MANGA"
       ? m.chapters
-        ? t(m.chapters === 1 ? "search.rankChaptersOne" : "search.rankChapters", { count: m.chapters })
+        ? t("search.rankChapters", { count: m.chapters })
         : null
       : m.episodes
-        ? t(m.episodes === 1 ? "search.rankEpisodesOne" : "search.rankEpisodes", { count: m.episodes })
+        ? t("search.rankEpisodes", { count: m.episodes })
         : null;
   // A manga has no season, so its line falls back to the year it started.
   const year = m.seasonYear ?? m.startDate?.year ?? null;

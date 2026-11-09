@@ -52,7 +52,7 @@ interface PortableStatus {
 
 /** A count of entries with its noun, one or many, for the export and import receipts. */
 function entriesText(n: number, t: (key: string, vars?: Record<string, unknown>) => string): string {
-  return n === 1 ? t("settings.entriesOne") : t("settings.entriesMany", { n });
+  return t("settings.entryCount", { count: n });
 }
 
 /** The one-shot score rescale, planned purely in `lib/rescale` and previewed with its request count first. */
@@ -104,7 +104,7 @@ export function RescaleSection() {
       }
       showToast({
         kind: "success",
-        text: t(plan.affected === 1 ? "settings.rescaleDoneOne" : "settings.rescaleDone", { n: plan.affected }),
+        text: t("settings.rescaleDone", { count: plan.affected }),
       });
       await qc.invalidateQueries({ queryKey: ["mediaList", type] });
     } catch (e) {

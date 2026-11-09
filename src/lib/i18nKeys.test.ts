@@ -76,6 +76,15 @@ beforeAll(async () => {
   ({ en } = await import("@/i18n"));
 });
 
+/** i18next's plural suffixes; a key called with `count` lives in en as its `_one` and `_other` forms. */
+const PLURAL = /_(zero|one|two|few|many|other)$/;
+
+/** A plural base counts as a string when both of English's forms are there. */
+function resolvesToText(key: string): boolean {
+  if (typeof resolve(key) === "string") return true;
+  return typeof resolve(`${key}_one`) === "string" && typeof resolve(`${key}_other`) === "string";
+}
+
 function resolve(key: string): unknown {
   return key
     .split(".")
@@ -112,7 +121,7 @@ describe("i18n keys", () => {
 
   it("resolves every literal key to a string", () => {
     const missing = [...found]
-      .filter(([key]) => typeof resolve(key) !== "string")
+      .filter(([key]) => !resolvesToText(key))
       .map(([key, path]) => `${key} (${path})`);
     expect(missing).toEqual([]);
   });
@@ -132,6 +141,7 @@ describe("i18n keys", () => {
     const dead = leaves.filter(
       (key) =>
         !mentioned.has(key) &&
+        !mentioned.has(key.replace(PLURAL, "")) &&
         !DYNAMIC_KEYS.includes(key) &&
         !DYNAMIC_PREFIXES.some((p) => key.startsWith(p)),
     );

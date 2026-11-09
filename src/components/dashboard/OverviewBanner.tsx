@@ -29,9 +29,7 @@ export function OverviewBanner({ name, anime, manga, strip }: { name: string | n
   const line =
     week.nextAt == null
       ? t("dashboard.weekLineNone")
-      : week.count === 1
-        ? t("dashboard.weekLineOne", { when: countdown(week.nextAt - now, t) })
-        : t("dashboard.weekLine", { count: week.count, when: countdown(week.nextAt - now, t) });
+      : t("dashboard.weekLine", { count: week.count, when: countdown(week.nextAt - now, t) });
 
   const submit = (e: FormEvent) => {
     e.preventDefault();

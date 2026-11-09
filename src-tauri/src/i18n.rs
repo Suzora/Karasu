@@ -1,24 +1,73 @@
-//! The strings Rust composes, in the language the frontend mirrors into kv; each match arm holds both languages.
+//! The strings Rust composes, in the language the frontend mirrors into kv, read from the catalogs in `src/i18n/native`.
 
 use crate::db::Db;
 
 /// The kv key the frontend mirrors its language into.
 pub const LANGUAGE_KEY: &str = "ui_language";
 
+/// A language Karasu composes in: the code of one of the catalogs under `src/i18n/native/`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Lang {
-    En,
-    De,
-}
+pub struct Lang(&'static str);
 
+/// Each catalog by code; English is complete and is what every missing message falls back to.
+const CATALOGS: &[(&str, &str)] = &[
+    ("en", include_str!("../../src/i18n/native/en.json")),
+    ("de", include_str!("../../src/i18n/native/de.json")),
+];
+
+#[allow(non_upper_case_globals)]
 impl Lang {
+    pub const En: Lang = Lang("en");
+    /// Named for the tests; the app reaches German through `parse`, like every other language.
+    #[cfg(test)]
+    pub const De: Lang = Lang("de");
+
     /// Anything unrecognised is English, which is also i18next's `fallbackLng`.
     pub fn parse(code: Option<&str>) -> Self {
-        match code {
-            Some(c) if c.starts_with("de") => Lang::De,
-            _ => Lang::En,
-        }
+        let code = code.unwrap_or("").to_ascii_lowercase();
+        CATALOGS
+            .iter()
+            .find(|(c, _)| code == *c || code.starts_with(&format!("{c}-")))
+            .map(|(c, _)| Lang(c))
+            .unwrap_or(Lang::En)
     }
+}
+
+type Catalog = std::collections::HashMap<String, String>;
+
+/// The catalogs parsed once; a malformed one is a build mistake that the catalog test catches before it ships.
+fn catalogs() -> &'static std::collections::HashMap<&'static str, Catalog> {
+    static PARSED: std::sync::OnceLock<std::collections::HashMap<&'static str, Catalog>> = std::sync::OnceLock::new();
+    PARSED.get_or_init(|| {
+        CATALOGS
+            .iter()
+            .map(|(code, raw)| (*code, serde_json::from_str::<Catalog>(raw).unwrap_or_default()))
+            .collect()
+    })
+}
+
+/// A message's template in `lang`, else in English, else the key itself so a gap shows rather than an empty toast.
+pub fn template(lang: Lang, key: &str) -> String {
+    let all = catalogs();
+    [lang.0, "en"]
+        .iter()
+        .find_map(|code| all.get(code).and_then(|c| c.get(key)))
+        .cloned()
+        .unwrap_or_else(|| key.to_string())
+}
+
+/// The plural category that picks a key's `_one` or `_other` form; English and German share this rule.
+fn plural(_lang: Lang, n: i64) -> &'static str {
+    if n == 1 {
+        "one"
+    } else {
+        "other"
+    }
+}
+
+/// Fills `{{name}}` placeholders, the i18next spelling, so a translator writes the same syntax in both catalogs.
+fn fill(template: String, args: &[(&str, String)]) -> String {
+    args.iter().fold(template, |out, (name, value)| out.replace(&format!("{{{{{name}}}}}"), value))
 }
 
 /// The language to compose in, from the mirror.
@@ -77,7 +126,7 @@ pub enum CaptionVerb {
     Paused,
 }
 
-/// Every string Rust composes for a user to read; an enum so the match is exhaustive in both languages.
+/// Every string Rust composes for a user to read; an enum so each one is named exactly once.
 // The tray and toast variants are constructed only by desktop code, so the Android check reads them as unused.
 #[cfg_attr(mobile, allow(dead_code))]
 pub enum Msg<'a> {
@@ -130,175 +179,98 @@ pub enum Msg<'a> {
 }
 
 pub fn text(lang: Lang, msg: Msg<'_>) -> String {
-    use Lang::{De, En};
     use Msg::*;
-    match (lang, msg) {
-        (En, AiringTitle) => "New episode aired".into(),
-        (De, AiringTitle) => "Neue Episode erschienen".into(),
-        (En, AiringBody { title, episode }) => format!("{title} — episode {episode} is out"),
-        (De, AiringBody { title, episode }) => format!("{title} — Episode {episode} ist da"),
-
-        (En, StaleTitle) => "On-hold reminder".into(),
-        (De, StaleTitle) => "Erinnerung: pausiert".into(),
-        // The plural is spelled out rather than papered over with "month(s)", a form nobody writes.
-        (En, StaleBody { title, months }) => {
-            let unit = if months == 1 { "month" } else { "months" };
-            format!("{title} has been paused for over {months} {unit}.")
+    let s = |v: &str| v.to_string();
+    let (key, count, args): (&str, Option<i64>, Vec<(&str, String)>) = match msg {
+        AiringTitle => ("airingTitle", None, vec![]),
+        AiringBody { title, episode } => ("airingBody", None, vec![("title", s(title)), ("episode", episode.to_string())]),
+        StaleTitle => ("staleTitle", None, vec![]),
+        StaleBody { title, months } => ("staleBody", Some(months), vec![("title", s(title))]),
+        SequelTitle { side_story } => (if side_story { "sideStoryTitle" } else { "sequelTitle" }, None, vec![]),
+        SequelBody { title } => ("sequelBody", None, vec![("title", s(title))]),
+        UpdateTitle => ("updateTitle", None, vec![]),
+        UpdateBody { version } => ("updateBody", None, vec![("version", s(version))]),
+        UpdateBodyAndroid { version } => ("updateBodyAndroid", None, vec![("version", s(version))]),
+        SiteNotifTitle => ("siteNotifTitle", None, vec![]),
+        SiteNotifBody { count } => ("siteNotifBody", Some(count), vec![]),
+        SiteNotifNews { sentence, more } => ("siteNotifNews", None, vec![("sentence", s(sentence)), ("more", more.to_string())]),
+        SiteNotifSubject { sentence, subject } => ("siteNotifSubject", None, vec![("sentence", s(sentence)), ("subject", s(subject))]),
+        SiteAiring { title, episode } => ("siteAiring", None, vec![("title", s(title)), ("episode", episode.to_string())]),
+        SiteFollowing { actor } => ("siteFollowing", None, vec![("actor", s(actor))]),
+        SiteActivity { event, actor } => {
+            let key = match event {
+                ActivityEvent::Mention => "siteActivityMention",
+                ActivityEvent::Reply => "siteActivityReply",
+                ActivityEvent::ReplySubscribed => "siteActivityReplySubscribed",
+                ActivityEvent::Like => "siteActivityLike",
+                ActivityEvent::ReplyLike => "siteActivityReplyLike",
+            };
+            (key, None, vec![("actor", s(actor))])
         }
-        (De, StaleBody { title, months }) => {
-            let unit = if months == 1 { "Monat" } else { "Monaten" };
-            format!("{title} ist seit über {months} {unit} pausiert.")
+        SiteThread { event, actor, thread } => {
+            let key = match event {
+                ThreadEvent::Mention => "siteThreadMention",
+                ThreadEvent::Reply => "siteThreadReply",
+                ThreadEvent::Subscribed => "siteThreadSubscribed",
+                ThreadEvent::CommentLike => "siteThreadCommentLike",
+                ThreadEvent::ThreadLike => "siteThreadThreadLike",
+            };
+            (key, None, vec![("actor", s(actor)), ("thread", s(thread))])
         }
-
-        (En, SequelTitle { side_story }) => {
-            if side_story { "Side story announced" } else { "Sequel announced" }.into()
+        SiteMedia { event, title } => {
+            let key = match event {
+                MediaEvent::RelatedAdded => "siteMediaRelatedAdded",
+                MediaEvent::DataChange => "siteMediaDataChange",
+                MediaEvent::Merge => "siteMediaMerge",
+                MediaEvent::Deletion => "siteMediaDeletion",
+            };
+            (key, None, vec![("title", s(title))])
         }
-        (De, SequelTitle { side_story }) => {
-            if side_story { "Nebengeschichte angekündigt" } else { "Fortsetzung angekündigt" }
-                .into()
+        SiteSubmission { kind, name } => {
+            let key = match kind {
+                SubmissionKind::Media => "siteSubmissionMedia",
+                SubmissionKind::Staff => "siteSubmissionStaff",
+                SubmissionKind::Character => "siteSubmissionCharacter",
+            };
+            (key, None, vec![("name", s(name))])
         }
-        (En, SequelBody { title }) => format!("{title} — related to something on your list."),
-        (De, SequelBody { title }) => {
-            format!("{title} — verwandt mit etwas auf deiner Liste.")
+        ActivityCaption { verb, progress, title } => {
+            let key = match verb {
+                CaptionVerb::WatchedEpisode => "captionWatchedEpisode",
+                CaptionVerb::RewatchedEpisode => "captionRewatchedEpisode",
+                CaptionVerb::ReadChapter => "captionReadChapter",
+                CaptionVerb::RereadChapter => "captionRereadChapter",
+                CaptionVerb::Completed => "captionCompleted",
+                CaptionVerb::PlansToWatch => "captionPlansToWatch",
+                CaptionVerb::PlansToRead => "captionPlansToRead",
+                CaptionVerb::Dropped => "captionDropped",
+                CaptionVerb::Paused => "captionPaused",
+            };
+            (key, None, vec![("progress", s(progress)), ("title", s(title))])
         }
-
-        (En, UpdateTitle) => "Update ready".into(),
-        (De, UpdateTitle) => "Update bereit".into(),
-        // Deliberately not "restart to install": the download lives in process memory, so restarting throws it away.
-        (En, UpdateBody { version }) => {
-            format!("Karasu {version} is ready. Open About to install it.")
+        QueueTitle => ("queueTitle", None, vec![]),
+        QueueBodyOne { reason } => ("queueBody", Some(1), vec![("reason", s(reason))]),
+        QueueBodyMany { count, reason } => ("queueBody", Some(count as i64), vec![("reason", s(reason))]),
+        ConfirmAction => ("confirmAction", None, vec![]),
+        ConfirmEpisode { episode } => ("confirmEpisode", None, vec![("episode", episode.to_string())]),
+        ConfirmChapter { chapter } => ("confirmChapter", None, vec![("chapter", chapter.to_string())]),
+        TrayNothingPlaying => ("trayNothingPlaying", None, vec![]),
+        TrayScrobbleNow => ("trayScrobbleNow", None, vec![]),
+        TraySyncNow => ("traySyncNow", None, vec![]),
+        TrayDetection => ("trayDetection", None, vec![]),
+        TrayOpen => ("trayOpen", None, vec![]),
+        TrayQuit => ("trayQuit", None, vec![]),
+        HotkeyDescription => ("hotkeyDescription", None, vec![]),
+        TrackingServiceTitle => ("trackingServiceTitle", None, vec![]),
+        TrackingServiceBody => ("trackingServiceBody", None, vec![]),
+    };
+    match count {
+        Some(n) => {
+            let mut args = args;
+            args.push(("count", n.to_string()));
+            fill(template(lang, &format!("{key}_{}", plural(lang, n))), &args)
         }
-        (De, UpdateBody { version }) => {
-            format!("Karasu {version} ist bereit. Zum Installieren „Über“ öffnen.")
-        }
-        (En, UpdateBodyAndroid { version }) => {
-            format!("Karasu {version} is out. Open About to install it.")
-        }
-        (De, UpdateBodyAndroid { version }) => {
-            format!("Karasu {version} ist draußen. Zum Installieren „Über“ öffnen.")
-        }
-
-        (En, SiteNotifTitle) => "AniList notifications".into(),
-        (De, SiteNotifTitle) => "AniList-Benachrichtigungen".into(),
-        (En, SiteNotifBody { count }) => {
-            if count == 1 {
-                "1 unread notification is waiting.".into()
-            } else {
-                format!("{count} unread notifications are waiting.")
-            }
-        }
-        (De, SiteNotifBody { count }) => {
-            if count == 1 {
-                "1 ungelesene Benachrichtigung wartet.".into()
-            } else {
-                format!("{count} ungelesene Benachrichtigungen warten.")
-            }
-        }
-
-        (En, SiteNotifNews { sentence, more }) => format!("{sentence} (+{more} more)"),
-        (De, SiteNotifNews { sentence, more }) => format!("{sentence} (+{more} weitere)"),
-        (En, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
-        (De, SiteNotifSubject { sentence, subject }) => format!("{sentence}: {subject}"),
-        (En, SiteAiring { title, episode }) => format!("Episode {episode} of {title} aired"),
-        (De, SiteAiring { title, episode }) => format!("Episode {episode} von {title} ist erschienen"),
-        (En, SiteFollowing { actor }) => format!("{actor} started following you"),
-        (De, SiteFollowing { actor }) => format!("{actor} folgt dir jetzt"),
-        (En, SiteActivity { event: ActivityEvent::Mention, actor }) => format!("{actor} mentioned you in an activity"),
-        (De, SiteActivity { event: ActivityEvent::Mention, actor }) => format!("{actor} hat dich in einer Aktivität erwähnt"),
-        (En, SiteActivity { event: ActivityEvent::Reply, actor }) => format!("{actor} replied to your activity"),
-        (De, SiteActivity { event: ActivityEvent::Reply, actor }) => format!("{actor} hat auf deine Aktivität geantwortet"),
-        (En, SiteActivity { event: ActivityEvent::ReplySubscribed, actor }) => format!("{actor} replied to an activity you follow"),
-        (De, SiteActivity { event: ActivityEvent::ReplySubscribed, actor }) => format!("{actor} hat in einer Aktivität geantwortet, der du folgst"),
-        (En, SiteActivity { event: ActivityEvent::Like, actor }) => format!("{actor} liked your activity"),
-        (De, SiteActivity { event: ActivityEvent::Like, actor }) => format!("{actor} gefällt deine Aktivität"),
-        (En, SiteActivity { event: ActivityEvent::ReplyLike, actor }) => format!("{actor} liked your reply"),
-        (De, SiteActivity { event: ActivityEvent::ReplyLike, actor }) => format!("{actor} gefällt deine Antwort"),
-        (En, SiteThread { event: ThreadEvent::Mention, actor, thread }) => format!("{actor} mentioned you in “{thread}”"),
-        (De, SiteThread { event: ThreadEvent::Mention, actor, thread }) => format!("{actor} hat dich in „{thread}“ erwähnt"),
-        (En, SiteThread { event: ThreadEvent::Reply, actor, thread }) => format!("{actor} replied to your comment in “{thread}”"),
-        (De, SiteThread { event: ThreadEvent::Reply, actor, thread }) => format!("{actor} hat auf deinen Kommentar in „{thread}“ geantwortet"),
-        (En, SiteThread { event: ThreadEvent::Subscribed, actor, thread }) => format!("{actor} commented in “{thread}”"),
-        (De, SiteThread { event: ThreadEvent::Subscribed, actor, thread }) => format!("{actor} hat in „{thread}“ kommentiert"),
-        (En, SiteThread { event: ThreadEvent::CommentLike, actor, thread }) => format!("{actor} liked your comment in “{thread}”"),
-        (De, SiteThread { event: ThreadEvent::CommentLike, actor, thread }) => format!("{actor} gefällt dein Kommentar in „{thread}“"),
-        (En, SiteThread { event: ThreadEvent::ThreadLike, actor, thread }) => format!("{actor} liked your thread “{thread}”"),
-        (De, SiteThread { event: ThreadEvent::ThreadLike, actor, thread }) => format!("{actor} gefällt dein Thread „{thread}“"),
-        (En, SiteMedia { event: MediaEvent::RelatedAdded, title }) => format!("{title} was added to AniList"),
-        (De, SiteMedia { event: MediaEvent::RelatedAdded, title }) => format!("{title} wurde zu AniList hinzugefügt"),
-        (En, SiteMedia { event: MediaEvent::DataChange, title }) => format!("{title} received a data change"),
-        (De, SiteMedia { event: MediaEvent::DataChange, title }) => format!("{title} hat eine Datenänderung erhalten"),
-        (En, SiteMedia { event: MediaEvent::Merge, title }) => format!("{title} absorbed another entry"),
-        (De, SiteMedia { event: MediaEvent::Merge, title }) => format!("{title} hat einen anderen Eintrag übernommen"),
-        (En, SiteMedia { event: MediaEvent::Deletion, title }) => format!("{title} was removed from AniList"),
-        (De, SiteMedia { event: MediaEvent::Deletion, title }) => format!("{title} wurde von AniList entfernt"),
-        (En, SiteSubmission { kind: SubmissionKind::Media, name }) => format!("Your submission “{name}” was updated"),
-        (De, SiteSubmission { kind: SubmissionKind::Media, name }) => format!("Deine Einreichung „{name}“ wurde aktualisiert"),
-        (En, SiteSubmission { kind: SubmissionKind::Staff, name }) => format!("Your staff submission “{name}” was updated"),
-        (De, SiteSubmission { kind: SubmissionKind::Staff, name }) => format!("Deine Staff-Einreichung „{name}“ wurde aktualisiert"),
-        (En, SiteSubmission { kind: SubmissionKind::Character, name }) => format!("Your character submission “{name}” was updated"),
-        (De, SiteSubmission { kind: SubmissionKind::Character, name }) => format!("Deine Charakter-Einreichung „{name}“ wurde aktualisiert"),
-        (En, ActivityCaption { verb: CaptionVerb::WatchedEpisode, progress, title }) => format!("Watched episode {progress} of {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::WatchedEpisode, progress, title }) => format!("Episode {progress} von {title} geschaut"),
-        (En, ActivityCaption { verb: CaptionVerb::RewatchedEpisode, progress, title }) => format!("Rewatched episode {progress} of {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::RewatchedEpisode, progress, title }) => format!("Episode {progress} von {title} erneut geschaut"),
-        (En, ActivityCaption { verb: CaptionVerb::ReadChapter, progress, title }) => format!("Read chapter {progress} of {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::ReadChapter, progress, title }) => format!("Kapitel {progress} von {title} gelesen"),
-        (En, ActivityCaption { verb: CaptionVerb::RereadChapter, progress, title }) => format!("Reread chapter {progress} of {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::RereadChapter, progress, title }) => format!("Kapitel {progress} von {title} erneut gelesen"),
-        (En, ActivityCaption { verb: CaptionVerb::Completed, title, .. }) => format!("Completed {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::Completed, title, .. }) => format!("{title} abgeschlossen"),
-        (En, ActivityCaption { verb: CaptionVerb::PlansToWatch, title, .. }) => format!("Planning to watch {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::PlansToWatch, title, .. }) => format!("{title} zum Schauen geplant"),
-        (En, ActivityCaption { verb: CaptionVerb::PlansToRead, title, .. }) => format!("Planning to read {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::PlansToRead, title, .. }) => format!("{title} zum Lesen geplant"),
-        (En, ActivityCaption { verb: CaptionVerb::Dropped, title, .. }) => format!("Dropped {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::Dropped, title, .. }) => format!("{title} abgebrochen"),
-        (En, ActivityCaption { verb: CaptionVerb::Paused, title, .. }) => format!("Paused {title}"),
-        (De, ActivityCaption { verb: CaptionVerb::Paused, title, .. }) => format!("{title} pausiert"),
-
-        (En, QueueTitle) => "Offline changes were not saved".into(),
-        (De, QueueTitle) => "Offline-Änderungen wurden nicht gespeichert".into(),
-        (En, QueueBodyOne { reason }) => format!("AniList refused an offline change: {reason}"),
-        (De, QueueBodyOne { reason }) => {
-            format!("AniList hat eine Offline-Änderung abgelehnt: {reason}")
-        }
-        (En, QueueBodyMany { count, reason }) => {
-            format!("AniList refused {count} offline changes. The first: {reason}")
-        }
-        (De, QueueBodyMany { count, reason }) => {
-            format!("AniList hat {count} Offline-Änderungen abgelehnt. Die erste: {reason}")
-        }
-
-        (En, ConfirmAction) => "Update now".into(),
-        (De, ConfirmAction) => "Jetzt aktualisieren".into(),
-        (En, ConfirmEpisode { episode }) => format!("Mark episode {episode} as watched?"),
-        (De, ConfirmEpisode { episode }) => format!("Episode {episode} als gesehen markieren?"),
-        (En, ConfirmChapter { chapter }) => format!("Mark chapter {chapter} as read?"),
-        (De, ConfirmChapter { chapter }) => format!("Kapitel {chapter} als gelesen markieren?"),
-
-        (En, TrayNothingPlaying) => "Nothing playing".into(),
-        (De, TrayNothingPlaying) => "Nichts läuft".into(),
-        (En, TrayScrobbleNow) => "Scrobble now".into(),
-        (De, TrayScrobbleNow) => "Jetzt scrobbeln".into(),
-        (En, TraySyncNow) => "Sync now".into(),
-        (De, TraySyncNow) => "Jetzt synchronisieren".into(),
-        (En, TrayDetection) => "Media detection".into(),
-        (De, TrayDetection) => "Medienerkennung".into(),
-        (En, TrayOpen) => "Open Karasu".into(),
-        (De, TrayOpen) => "Karasu öffnen".into(),
-        (En, TrayQuit) => "Quit".into(),
-        (De, TrayQuit) => "Beenden".into(),
-        (En, HotkeyDescription) => "Show or hide Karasu".into(),
-        (De, HotkeyDescription) => "Karasu zeigen oder verbergen".into(),
-        (En, TrackingServiceTitle) => "Watching Jellyfin".into(),
-        (De, TrackingServiceTitle) => "Jellyfin wird beobachtet".into(),
-        (En, TrackingServiceBody) => {
-            "Karasu keeps checking what is playing so your AniList progress updates.".into()
-        }
-        (De, TrackingServiceBody) => {
-            "Karasu prüft weiter, was läuft, damit dein AniList-Fortschritt aktualisiert wird."
-                .into()
-        }
+        None => fill(template(lang, key), &args),
     }
 }
 
@@ -393,6 +365,34 @@ mod tests {
     #[test]
     fn site_toasts_de() {
         insta::assert_snapshot!("site_toasts_de", site_samples(Lang::De));
+    }
+
+    /// Every catalog parses, names only English keys and keeps English's placeholders, so a translation cannot break a toast.
+    #[test]
+    fn every_catalog_matches_english() {
+        let all = catalogs();
+        let en = &all["en"];
+        let holes = |t: &str| {
+            let mut v: Vec<String> = t.split("{{").skip(1).filter_map(|p| p.split_once("}}").map(|(n, _)| n.to_string())).collect();
+            v.sort();
+            v
+        };
+        for (code, raw) in CATALOGS {
+            let catalog: Catalog = serde_json::from_str(raw).unwrap_or_else(|e| panic!("{code}: {e}"));
+            for (key, value) in &catalog {
+                let base = ["_one", "_two", "_few", "_many", "_zero", "_other"].iter().find_map(|s| key.strip_suffix(s)).unwrap_or(key);
+                let english = en.get(key).or_else(|| en.get(&format!("{base}_other")));
+                let english = english.unwrap_or_else(|| panic!("{code}: {key} is not an English key"));
+                assert!(!value.trim().is_empty(), "{code}: {key} is empty");
+                if !key.starts_with("android.") {
+                    let mut want = holes(english);
+                    want.retain(|h| h != "count");
+                    let mut got = holes(value);
+                    got.retain(|h| h != "count");
+                    assert_eq!(got, want, "{code}: {key} has other placeholders than English");
+                }
+            }
+        }
     }
 
     /// A sequel and a side story are different news, in both languages.

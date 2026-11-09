@@ -141,7 +141,7 @@ export function BulkBar({
         {(leaving) => (
         <ConfirmDialog
           leaving={leaving}
-          title={t(count === 1 ? "confirm.removeOne" : "confirm.removeMany", {
+          title={t("confirm.removeEntries", {
             count,
           })}
           names={names.slice(0, 3)}

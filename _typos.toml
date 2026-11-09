@@ -16,15 +16,15 @@ extend-exclude = [
   "src-tauri/gen/android/app/src/main/res/values-de/",
   "src/i18n/de.ts",
   "src/lib/greetings/de.ts",
+  "src/i18n/native/de.json",
   "fastlane/metadata/android/de-DE/",
   "site/src/content/*.de.ts",
   "CHANGELOG.md",
 ]
 
 [default]
-# German strings in i18n.rs, the generated CSS header's hash, a JS regex's flag list, and an entity-split `javascript:`.
+# German fixture strings, the generated CSS header's hash, a JS regex's flag list, and an entity-split `javascript:`.
 extend-ignore-re = [
-  '\(De, .*',
   '"[^"]*\b(?:ist|und|für|über|nicht|Monat|Monaten)\b[^"]*"',
   'sha256 [0-9a-f]+',
   '/[gimsuyd]{2,}[,)\s]',

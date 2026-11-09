@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hand-written (restore from git after a wiped re-init): widget launcher
-     labels live in their own file so a re-init of the generated strings.xml
-     cannot take them along. English is the fallback; values-de mirrors. -->
+<!-- Generated from src/i18n/native/en.json by scripts/i18n-native.mjs; edit that file, not this one. -->
 <resources>
     <string name="widget_airing_label">Karasu · Airing today</string>
     <string name="widget_airing_desc">Today\'s episodes from your list</string>

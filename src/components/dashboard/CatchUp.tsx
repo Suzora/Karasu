@@ -22,7 +22,7 @@ export function CatchUpRow({ userId, items }: { userId: number; items: CatchUp[]
   const owed = items.reduce((n, c) => n + c.behind, 0);
   return (
     <section>
-      <SectionHeader icon={FastForward} title={t("dashboard.catchUp")} meta={owed === 1 ? t("dashboard.catchUpOne") : t("dashboard.catchUpCount", { n: owed })} />
+      <SectionHeader icon={FastForward} title={t("dashboard.catchUp")} meta={t("dashboard.catchUpCount", { count: owed })} />
       <div ref={grid} className="mt-3 grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {items.map((c) => (
           <ContinueCard

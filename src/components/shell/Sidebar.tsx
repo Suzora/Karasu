@@ -187,7 +187,7 @@ function syncLine(
   if (alert?.kind === "unreachable") return { text: t("sync.unreachable"), accent: false, danger: true };
   if (pending > 0)
     return {
-      text: pending === 1 ? t("sync.queuedOne") : t("sync.queuedMany", { n: pending }),
+      text: t("sync.queuedChanges", { count: pending }),
       accent: true,
     };
   if (syncedAt == null) return { text: t("sync.never"), accent: false };

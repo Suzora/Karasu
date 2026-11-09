@@ -70,7 +70,7 @@ export function TagColoursCard() {
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <TagChip tag={tag} size="sm" />
-                  <span className="text-xs text-ink-600">{count === 1 ? t("settings.tagCountOne") : t("settings.tagCount", { count })}</span>
+                  <span className="text-xs text-ink-600">{t("settings.tagCount", { count })}</span>
                 </span>
                 <span role="radiogroup" aria-label={t("settings.tagColourFor", { tag })} className="flex items-center gap-1.5">
                   {TAG_COLOURS.map((colour) => (

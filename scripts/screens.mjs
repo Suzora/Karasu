@@ -65,7 +65,7 @@ const openCast = async (p) => {
   for (const title of ["Besetzung & Staff", "Cast & staff"]) await toCard(title)(p);
 };
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
-export /** Selects the list's first three covers and lays them on one stack through the bulk bar, as a person would. */
+/** Selects the list's first three covers and lays them on one stack through the bulk bar, as a person would. */
 async function stackFirstThree(p) {
   await p.getByRole("button", { name: "Auswählen" }).first().click();
   for (let i = 0; i < 3; i++) await p.locator("[data-media-id] [data-fills-frame]").nth(i).click();
@@ -73,7 +73,7 @@ async function stackFirstThree(p) {
   await p.waitForTimeout(400);
 }
 
-const SCREENS = [
+export const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
   { id: "d1-uebersicht-fenster", w: 1536, h: 960, route: "/" },
   { id: "d1-uebersicht-erkannt", w: 1536, h: 960, route: "/", playing: true },
@@ -626,7 +626,21 @@ async function shoot() {
         });
         // A hit-area is an ::after sized by its positioned ancestor, so on a static element it is the whole page's.
         const unanchored = await page.evaluate(() => [...document.querySelectorAll('[class*="hit-area"]')].filter((el) => getComputedStyle(el).position === "static").length);
-        report.push({ name, errors, unknown, sideways, unanchored });
+        // Under the pseudo-locale every translated text is bracketed, so a bare one on screen skipped `t()`.
+        const bare =
+          (s.lang ?? flag("--lang", "de")) === "qps"
+            ? await page.evaluate(() => {
+                const found = new Set();
+                const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+                  const text = n.textContent.trim();
+                  const inside = n.parentElement?.closest("[data-media-title], [data-media-id], svg, script, style");
+                  if (/[A-Za-z]{3}/.test(text) && !/[⟦⟧]/.test(text) && !inside) found.add(text.slice(0, 80));
+                }
+                return [...found];
+              })
+            : [];
+        report.push({ name, errors, unknown, sideways, unanchored, bare });
         const problems = [...errors, ...unknown.map((u) => `unmocked ${u}`), ...(sideways > 0 ? [`<main> or a scroller in it scrolls ${sideways}px sideways`] : []), ...(unanchored > 0 ? [`${unanchored} hit-area element(s) with no position of their own`] : [])];
         if (problems.length) console.log(`${name}: ${problems.join("; ")}`);
         await context.close();

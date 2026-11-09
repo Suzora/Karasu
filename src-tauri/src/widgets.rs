@@ -10,36 +10,23 @@ const MAX_ROWS: usize = 8;
 /// The airing window, and the calendar's whole span.
 const WEEK_MS: i64 = 7 * 24 * 60 * 60 * 1000;
 
-/// The widget captions, local rather than `Msg` variants, because no toast ever renders them.
+/// The widget captions, read from the same catalogs as `Msg` but kept apart from it, because no toast ever renders them.
 fn labels(lang: Lang) -> Value {
-    match lang {
-        Lang::En => json!({
-            "airingToday": "Airing today",
-            "continueWatching": "Continue watching",
-            "continueReading": "Continue reading",
-            "week": "This week",
-            "episode": "Ep",
-            "empty": "Nothing here right now",
-            "stale": "Open Karasu to refresh",
-        }),
-        Lang::De => json!({
-            "airingToday": "Läuft heute",
-            "continueWatching": "Weiterschauen",
-            "continueReading": "Weiterlesen",
-            "week": "Diese Woche",
-            "episode": "Ep",
-            "empty": "Gerade nichts hier",
-            "stale": "Karasu öffnen zum Aktualisieren",
-        }),
-    }
+    let t = |key| crate::i18n::template(lang, key);
+    json!({
+        "airingToday": t("widgetAiringToday"),
+        "continueWatching": t("widgetContinueWatching"),
+        "continueReading": t("widgetContinueReading"),
+        "week": t("widgetWeek"),
+        "episode": t("widgetEpisode"),
+        "empty": t("widgetEmpty"),
+        "stale": t("widgetStale"),
+    })
 }
 
-/// Monday-first short day names, indexable by Kotlin from the epoch ms.
+/// Monday-first short day names, indexable by Kotlin from the epoch ms; one space-separated line in the catalog.
 fn day_names(lang: Lang) -> Value {
-    match lang {
-        Lang::En => json!(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
-        Lang::De => json!(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]),
-    }
+    json!(crate::i18n::template(lang, "widgetDays").split_whitespace().collect::<Vec<_>>())
 }
 
 /// The entry's title in the user's title language, as every other composed text spells it.

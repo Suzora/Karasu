@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hand-written (restore from git after a wiped re-init). -->
+<!-- Generated from src/i18n/native/de.json by scripts/i18n-native.mjs; edit that file, not this one. -->
 <resources>
     <string name="widget_airing_label">Karasu · Läuft heute</string>
     <string name="widget_airing_desc">Heutige Episoden aus deiner Liste</string>

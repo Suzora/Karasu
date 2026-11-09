@@ -216,7 +216,10 @@ src-tauri/src/
                      rewritten on every build),
                      and Widgets.kt plus its res/ family (karasu_widget
                      layout, widget_bg drawable, styles_widgets,
-                     strings_widgets en+de, four xml/widget_* metadata) —
+                     strings_widgets — written per language from
+                     `src/i18n/native/<code>.json` by
+                     `scripts/i18n-native.mjs`, never by hand —, four
+                     xml/widget_* metadata) —
                      the four home-screen widgets, fed by widgets.rs's
                      projection file, with WidgetRefresher's proguard keep
                      load-bearing the same way NotifScheduler's is;
@@ -266,7 +269,13 @@ src-tauri/src/
                      per UTC day, newest N kept) — what db.rs falls back to
                      when the file will not open
   i18n.rs            the strings Rust composes (notifications, the bell rows,
-                     the tray menu) in the language the user chose
+                     the tray menu, the widget captions) in the language the
+                     user chose, read from the flat catalogs in
+                     `src/i18n/native/<code>.json` (`include_str!`, English
+                     the fallback per message, `{{name}}` placeholders and
+                     `_one`/`_other` plural keys as i18next writes them); the
+                     Android widget strings come from the same files, and the
+                     gate's `native strings` phase fails a stale copy
   titles.rs          which spelling of a title Rust composes with: the title
                      language the frontend mirrors into kv `title_language`,
                      and the one picker every composed text goes through
@@ -865,7 +874,8 @@ derived-state patterns this code uses knowingly, `prefer-tag-over-role` and
 `no-autofocus` argue with decisions the overlays document, and the rest is
 style — so a new warning is a finding, not a formatting opinion. Before oxlint sit two
 more cheap phases: **typos** (`_typos.toml`; the German copy is excluded by
-file and by a regex over the `(De, …)` arms of `i18n.rs`, because typos knows
+file (the German locale, greetings and native catalog) and by a regex over
+German fixture strings, because typos knows
 English, and the anime vocabulary — cours, ADN — is in `extend-words`; the
 binary comes from `cargo install typos-cli`, and a machine without it gets a
 visible `skip` line, never silence, while CI runs the `crate-ci/typos` action
@@ -2570,7 +2580,10 @@ screen may name a `mock` the fixtures branch on, `board` lays them
 out for the maintainer, `clip` records motion side by side, and `hash` takes
 still frames at a fixed clock with motion off. Two `hash` runs agree, so an
 unchanged hash is the proof that a mechanical refactor moved no pixel.
-`overflow` opens each screen and exits 1 when `<main>`, or any
+`--lang qps` runs any mode in a pseudo-locale built from English on the spot
+(`scripts/screens/pseudo.ts`: accented, 40% longer in short words, bracketed),
+and `shoot` then lists every bare text on screen as `bare` in `report.json`: a
+bracket missing is a text that skipped `t()`. `overflow` opens each screen and exits 1 when `<main>`, or any
 `overflow-y-auto` box inside it (a page's own scroller, a dialog's body),
 scrolls sideways, naming the elements
 whose removal frees the width (removal, because a reach past the edge alone can
@@ -2823,8 +2836,7 @@ shape, and the question that follows them.
   cursor through `should_announce` and never moves it. A failed or empty
   answer drops the caption, keeps the sentence and is never retried, nor
   answered with the plain query. `describe` words it in the user's
-  language (`i18n.rs`, one `(De, …)` line per arm, so typos never reads the
-  German) and title language. A caption rides only on a like or a reply,
+  language (`i18n.rs`, from the native catalogs) and title language. A caption rides only on a like or a reply,
   the two kinds AniList sends about the viewer's own activity, and only for
   a status Karasu can word. A title the filter hides is never named, nor an
   explicit one while the blur is on, since a notification cannot blur; a row

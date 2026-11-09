@@ -5,7 +5,9 @@ import App from "@/app/App";
 import { useTheme } from "@/stores/theme";
 import { useTitleLanguage } from "@/stores/titleLanguage";
 import { useToast } from "@/stores/toast";
-import { initLanguage, setLanguageSetting } from "@/i18n";
+import i18n from "i18next";
+import { en, initLanguage, setLanguageSetting } from "@/i18n";
+import { pseudoTree } from "./pseudo";
 
 const lang = new URLSearchParams(location.search).get("lang") ?? "de";
 // The toast store, so a screen can show a receipt without performing the write behind it.
@@ -15,7 +17,12 @@ useTheme.getState().init();
 useTitleLanguage.getState().init();
 
 await initLanguage();
-await setLanguageSetting(lang === "en" ? "en" : "de");
+await setLanguageSetting(lang === "en" || lang === "qps" ? "en" : "de");
+// The pseudo-locale is built from English on the spot, so it can never ship and never goes stale.
+if (lang === "qps") {
+  i18n.addResourceBundle("qps", "translation", pseudoTree(en));
+  await i18n.changeLanguage("qps");
+}
 
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, gcTime: Infinity, retry: false, refetchOnWindowFocus: false } } });
 

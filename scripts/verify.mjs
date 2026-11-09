@@ -198,6 +198,8 @@ if (wantFrontend) {
   if (!(await run("style audit", node, ["scripts/style-audit.mjs", "--check"], summarizeStyle)).ok) report();
   // In the commit gate, not only before a push: an index.css change without its site sync is this commit's mistake.
   if (!(await run("site tokens", node, ["scripts/sync-tokens.mjs", "--check"], summarizeSite, { cwd: path.join(ROOT, "site") })).ok) report();
+  // The Android widget strings are written from the native catalogs, so a catalog edit without its rewrite is caught here.
+  if (!(await run("native strings", node, ["scripts/i18n-native.mjs", "--check"], summarizeSite)).ok) report();
   if (!(await run("typos", "typos", ["--format", "brief"], summarizeTypos, { optional: "cargo install typos-cli" })).ok) report();
   if (!(await run("toml", node, ["scripts/toml-check.mjs"], summarizeToml)).ok) report();
   if (!(await run("oxlint", node, [OXLINT, "--deny-warnings"], summarizeLint)).ok) report();
