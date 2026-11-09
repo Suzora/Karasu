@@ -1291,3 +1291,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   dissolved (B of three: a band unfolding under the row, and a chain of full
   covers marked 1/3, 2/3). Stacks are kept per device, as the tag colours
   are, since AniList has no field for them (#110, step 3).
+- **2026-11-09:** Karasu speaks 40 languages: English and German written and
+  kept whole by hand, and 38 machine translations (the European ones, the
+  major Asian ones, and pt-BR, es-419 and fr-CA for the Americas) in which a
+  missing text shows in English. The language picker lists each by its own
+  name and says, under it, which ones are machine-translated. Right-to-left
+  languages (Arabic, Hebrew, Persian, Urdu) wait for a step of their own,
+  since every screen would have to mirror.

@@ -1,4 +1,4 @@
-import { en } from "./en";
+import type { en } from "./en";
 
 /** German, typed against the English object so a missing or misspelled key is a type error at the line that omits it. */
 export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protokoll, Aufteilung, Wrapped; „folgen“ nur als Verb.
@@ -2187,7 +2187,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     apkMetered: "Updates über mobile Daten laden",
     apkMeteredHint: "Aus wartet Karasu auf WLAN. Ein Nightly-Build hat etwa 23 MB.",
     language: "Sprache",
-    languageHint: "„System“ folgt der Anzeigesprache deines Systems.",
+    languageHint: "„System“ folgt der Anzeigesprache deines Systems. Alle Sprachen außer Englisch und Deutsch sind maschinell übersetzt, und ein noch nicht übersetzter Text erscheint auf Englisch; Korrekturen sind als Issue auf GitHub willkommen.",
     titleLanguage: "Titelsprache",
     titleLanguageHint:
       "Wie Karasu Titel schreibt: in Listen, auf Detailseiten, in Benachrichtigungen, Widgets und im Discord-Status. Fehlt einem Titel diese Fassung, nimmt Karasu die nächste.",

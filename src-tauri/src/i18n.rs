@@ -22,14 +22,12 @@ impl Lang {
     #[cfg(test)]
     pub const De: Lang = Lang("de");
 
-    /// Anything unrecognised is English, which is also i18next's `fallbackLng`.
+    /// The mirror's code exactly, else its language alone (`de-AT` reads German); anything unknown is English.
     pub fn parse(code: Option<&str>) -> Self {
-        let code = code.unwrap_or("").to_ascii_lowercase();
-        CATALOGS
-            .iter()
-            .find(|(c, _)| code == *c || code.starts_with(&format!("{c}-")))
-            .map(|(c, _)| Lang(c))
-            .unwrap_or(Lang::En)
+        let code = code.unwrap_or("");
+        let base = code.split('-').next().unwrap_or("");
+        let find = |want: &str| CATALOGS.iter().find(|(c, _)| c.eq_ignore_ascii_case(want)).map(|(c, _)| Lang(c));
+        find(code).or_else(|| find(base)).unwrap_or(Lang::En)
     }
 }
 
@@ -46,23 +44,53 @@ fn catalogs() -> &'static std::collections::HashMap<&'static str, Catalog> {
     })
 }
 
-/// A message's template in `lang`, else in English, else the key itself so a gap shows rather than an empty toast.
+/// The languages a message is looked up in: the language, its parent for a regional variant, then English.
+fn chain(lang: Lang) -> Vec<&'static str> {
+    let parent = lang.0.split_once('-').map(|(p, _)| p).filter(|p| catalogs().contains_key(p));
+    [Some(lang.0), parent, Some("en")].into_iter().flatten().collect()
+}
+
+/// A message's template in `lang` or the first language it falls back to, else the key so a gap shows.
 pub fn template(lang: Lang, key: &str) -> String {
     let all = catalogs();
-    [lang.0, "en"]
+    chain(lang)
         .iter()
         .find_map(|code| all.get(code).and_then(|c| c.get(key)))
         .cloned()
         .unwrap_or_else(|| key.to_string())
 }
 
-/// The plural category that picks a key's `_one` or `_other` form; English and German share this rule.
-fn plural(_lang: Lang, n: i64) -> &'static str {
-    if n == 1 {
-        "one"
-    } else {
-        "other"
+/// CLDR's cardinal category for `n` in `code`, as i18next spells it in a key's suffix.
+fn plural(code: &str, n: i64) -> &'static str {
+    use intl_pluralrules::{PluralCategory, PluralRuleType, PluralRules};
+    let category = code
+        .parse::<unic_langid::LanguageIdentifier>()
+        .ok()
+        .and_then(|id| PluralRules::create(id, PluralRuleType::CARDINAL).ok())
+        .and_then(|rules| rules.select(n).ok());
+    match category {
+        Some(PluralCategory::ZERO) => "zero",
+        Some(PluralCategory::ONE) => "one",
+        Some(PluralCategory::TWO) => "two",
+        Some(PluralCategory::FEW) => "few",
+        Some(PluralCategory::MANY) => "many",
+        Some(PluralCategory::OTHER) => "other",
+        None if n == 1 => "one",
+        None => "other",
     }
+}
+
+/// A counted message: each language's own form for `n`, else its `_other`, before falling back to the next language.
+fn counted(lang: Lang, key: &str, n: i64) -> String {
+    let all = catalogs();
+    chain(lang)
+        .iter()
+        .find_map(|code| {
+            let catalog = all.get(code)?;
+            catalog.get(&format!("{key}_{}", plural(code, n))).or_else(|| catalog.get(&format!("{key}_other")))
+        })
+        .cloned()
+        .unwrap_or_else(|| key.to_string())
 }
 
 /// Fills `{{name}}` placeholders, the i18next spelling, so a translator writes the same syntax in both catalogs.
@@ -268,7 +296,7 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
         Some(n) => {
             let mut args = args;
             args.push(("count", n.to_string()));
-            fill(template(lang, &format!("{key}_{}", plural(lang, n))), &args)
+            fill(counted(lang, key, n), &args)
         }
         None => fill(template(lang, key), &args),
     }
@@ -393,6 +421,15 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// Polish has a third form for two to four, Japanese has one form for everything, and a gap falls back to `_other`.
+    #[test]
+    fn the_plural_category_follows_each_language() {
+        assert_eq!((plural("en", 1), plural("en", 3)), ("one", "other"));
+        assert_eq!((plural("pl", 1), plural("pl", 3), plural("pl", 5)), ("one", "few", "many"));
+        assert_eq!(plural("ja", 1), "other");
+        assert_eq!(plural("not a tag", 1), "one");
     }
 
     /// A sequel and a side story are different news, in both languages.

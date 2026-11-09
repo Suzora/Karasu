@@ -2176,7 +2176,7 @@ export const en = {
     apkMetered: "Download updates over mobile data",
     apkMeteredHint: "Off, Karasu waits for Wi-Fi. A nightly build is about 23 MB.",
     language: "Language",
-    languageHint: "“System” follows your system display language.",
+    languageHint: "“System” follows your system display language. Every language but English and German is machine-translated, and a text not yet translated shows in English; corrections are welcome as an issue on GitHub.",
     titleLanguage: "Title language",
     titleLanguageHint:
       "How Karasu writes titles: in lists, on detail pages, in notifications, widgets and the Discord status. Where a title lacks that version, Karasu uses the next one.",

@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.77.1"
+version = "1.77.2"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -123,6 +123,10 @@ tauri-plugin-clipboard-manager = "2"
 specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 specta-typescript = "0.0.12"
+# CLDR's plural categories for the notification texts, which many languages split past one and other.
+intl_pluralrules = "7.0.2"
+# The language tag `intl_pluralrules` takes.
+unic-langid = "0.9"
 
 # Tests only: property tests over the parser and the matcher, and snapshots of the text blocks nobody pins by hand.
 [dev-dependencies]

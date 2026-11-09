@@ -98,5 +98,10 @@
     "file": "scripts/browser-measure.mjs",
     "startsWith": "Captures what a Firefox-family browser",
     "reason": "usage block: one invocation per line"
+  },
+  {
+    "file": "scripts/i18n-missing.mjs",
+    "startsWith": "What each language still lacks against English",
+    "reason": "usage block: one invocation per line"
   }
 ]

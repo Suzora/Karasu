@@ -2,39 +2,62 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { en } from "./en";
 import { commands, unwrap } from "@/api/tauri";
+import { LANGUAGES, isLanguageCode, matchSystemLanguage } from "@/lib/languages";
+import type { PartialLocale } from "./types";
 
 // Not dead: `i18nKeys.test.ts` reaches it as a property of the module object, which a grep for the import misses.
 export { en };
 
 /** English is primary; the app follows the system language until the Settings dropdown overrides it in localStorage. */
 
-export type LanguageSetting = "system" | "en" | "de";
+export type LanguageSetting = "system" | string;
 const STORAGE_KEY = "karasu-lang";
 
+/** Each machine-translated language is its own chunk, fetched the first time it is shown. */
+const LOCALES = import.meta.glob<{ default: PartialLocale }>("./locales/*.ts");
+const hasLocale = (code: string) => code === "en" || code === "de" || `./locales/${code}.ts` in LOCALES;
+
+/** Only the languages with a file of their own; one listed before its translation lands would read as English. */
 export const SUPPORTED_LANGUAGES: { value: LanguageSetting; label: string }[] = [
   { value: "system", label: "System" },
-  { value: "en", label: "English" },
-  { value: "de", label: "Deutsch" },
+  ...LANGUAGES.filter((l) => hasLocale(l.code)).map((l) => ({ value: l.code, label: l.endonym })),
 ];
 
 export function getLanguageSetting(): LanguageSetting {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === "en" || stored === "de" ? stored : "system";
+  return stored && isLanguageCode(stored) && hasLocale(stored) ? stored : "system";
 }
 
-function systemLanguage(): "en" | "de" {
-  return navigator.language?.toLowerCase().startsWith("de") ? "de" : "en";
+/** The system's language when Karasu has it written, else the first language it falls back to that is. */
+function systemLanguage(): string {
+  const wanted = matchSystemLanguage(navigator.languages?.length ? navigator.languages : [navigator.language ?? "en"]);
+  return [wanted, ...(FALLBACK[wanted] ?? [])].find(hasLocale) ?? "en";
 }
 
-export function resolveLanguage(setting: LanguageSetting): "en" | "de" {
+export function resolveLanguage(setting: LanguageSetting): string {
   return setting === "system" ? systemLanguage() : setting;
 }
 
-/** Loads German on demand; English stays in the entry chunk, and `de.ts`'s type-only import keeps key parity intact. */
-async function ensureBundle(lng: "en" | "de"): Promise<void> {
-  if (lng === "en" || i18n.hasResourceBundle(lng, "translation")) return;
-  const { de } = await import("./de");
-  i18n.addResourceBundle(lng, "translation", de);
+/** A regional variant falls back to its parent before English, so a gap in pt-BR reads Portuguese, not English. */
+export const FALLBACK: Record<string, string[]> = {
+  "pt-BR": ["pt", "en"],
+  "es-419": ["es", "en"],
+  "fr-CA": ["fr", "en"],
+  default: ["en"],
+};
+
+/** Loads a language and the ones it falls back to; English stays in the entry chunk, German is its own typed file. */
+async function ensureBundle(lng: string): Promise<void> {
+  for (const code of [lng, ...(FALLBACK[lng] ?? [])]) {
+    if (code === "en" || i18n.hasResourceBundle(code, "translation")) continue;
+    if (code === "de") {
+      const { de } = await import("./de");
+      i18n.addResourceBundle(code, "translation", de);
+      continue;
+    }
+    const load = LOCALES[`./locales/${code}.ts`];
+    if (load) i18n.addResourceBundle(code, "translation", (await load()).default);
+  }
 }
 
 export async function setLanguageSetting(setting: LanguageSetting) {
@@ -59,7 +82,7 @@ i18n.use(initReactI18next).init({
     en: { translation: en },
   },
   lng: resolveLanguage(getLanguageSetting()),
-  fallbackLng: "en",
+  fallbackLng: FALLBACK,
   interpolation: { escapeValue: false },
 });
 

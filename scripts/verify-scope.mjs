@@ -16,6 +16,7 @@ export const RAW_READ_GLOBS = [
   "/rust-toolchain.toml",
   "/.github/workflows/*.yml",
   "/packaging/fdroid/dev.kyu.karasu.yml",
+  "/fastlane/metadata/android/*/*.txt",
   "/src-tauri/src/commands/prefs.rs",
   "/src-tauri/src/identify.rs",
   "/src-tauri/src/{alerts,anilist,commands}/*.rs",

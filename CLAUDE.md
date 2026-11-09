@@ -387,7 +387,17 @@ its subject, not its age.
   `TokenCipher.kt`, `KRSA1 || iv || ct`, key hardware-backed; a plaintext
   token from an older build migrates in place on first read).
 - **i18n key parity.** `de` is typed `de: typeof en`, so every English key needs
-  a German counterpart. Add both, or `tsc` fails.
+  a German counterpart. Add both, or `tsc` fails. The other 38 languages (the
+  registry is `lib/languages`) are machine translations typed `PartialLocale`
+  in `src/i18n/locales/<code>.ts`: a key may be missing and English (for a
+  regional variant first its parent: pt-BR → pt) shows in its place, but
+  `i18nCoverage.test.ts` fails an invented key, an empty text or a placeholder
+  English does not have. `node scripts/i18n-missing.mjs --all` prints each
+  language's coverage and `… <code>` its gaps as JSON, the input of a
+  translation batch. Counted texts are i18next plural keys (`x_one`,
+  `x_other`, and `_few`/`_many` where a language has them), never a pair of
+  hand-picked keys. The texts Rust composes and the widget strings live in
+  `src/i18n/native/<code>.json` the same way.
 - **AniList rate limit (~30 req/min).** Batch requests (`Page.media(id_in:)`,
   ≤50 ids) and bound BFS/traversal work; never fan out unboundedly. The
   budget is one shared pool, so every request names its spender and the
