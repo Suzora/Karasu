@@ -1,0 +1,9 @@
+Karasu pitää AniList-listasi ajan tasalla sen mukaan, mitä katsot ja luet, puhelimella, joka keskustelee suoraan AniListin kanssa — välissä ei ole palvelinta.
+
+Androidilla mukana ovat listasi suodattimineen, esiasetuksineen ja massamuokkauksineen, kausikalenteri, tilastot ja vuosikatsaus, ilmoitukset, sosiaalinen syöte, foorumi ja profiilisi. Vedä lista alas synkronoidaksesi, pidä nimikettä painettuna nähdäksesi kaiken, mitä sille voi tehdä, ja pyyhkäise alapalkista ylös komentopalettiin.
+
+Neljä kotinäytön widgetiä näyttää, mitä esitetään tänään, mitä katsot ja luet sekä tulevan viikon — piirrettynä välimuistista ilman omaa verkkoyhteyttä. Taustatarkistus voi kertoa uusista jaksoista, vaikka sovellus olisi suljettu.
+
+Androidilla tunnistus tapahtuu Jellyfinin kautta: osoita Karasu palvelimeesi, niin siellä toistettava jakso lasketaan alas kohti päivitystä, vaikka näyttö olisi pois, jos sallit seurantapalvelun toimia.
+
+F-Droidista asennettuna Karasu saa päivityksensä F-Droidilta; GitHub-julkaisujen APK hakee omansa ja avaa järjestelmän asennusohjelman. Karasu keskustelee AniListin, itse määrittämäsi Jellyfin-palvelimen ja kerran viikossa GitHubin kanssa (yhteisön tiedot siitä, miten jaksot jatkuvat kaudelta toiselle) sekä, kun avaat profiilin, sen esittelyn kuvien isäntien kanssa rajatulla, omalla haullaan. Sillä ei ole omaa palvelinta eikä analytiikkaa.

@@ -1,0 +1,9 @@
+Karasu drži tvoj AniList popis usklađenim s onim što gledaš i čitaš, na telefonu koji razgovara izravno s AniListom — između nema poslužitelja.
+
+Na Androidu nosi tvoje popise s filtrima, predlošcima i skupnim izmjenama, sezonski kalendar, statistiku i pregled godine, obavijesti, društveni feed, forum i tvoj profil. Povuci popis prema dolje za sinkronizaciju, drži naslov za sve što s njim možeš učiniti i povuci prema gore s donje trake za paletu naredbi.
+
+Četiri widgeta na početnom zaslonu pokazuju što danas izlazi, što gledaš i čitaš te tjedan pred tobom — crtaju se iz predmemorije, bez vlastite mreže. Pozadinska provjera može te obavijestiti o novim epizodama i sa zatvorenom aplikacijom.
+
+Otkrivanje na Androidu je Jellyfin: usmjeri Karasu na svoj poslužitelj i epizoda koja se tamo reproducira odbrojava do ažuriranja, i s ugašenim zaslonom ako dopustiš radu usluge praćenja.
+
+Instaliran iz F-Droida, Karasu ažuriranja dobiva iz F-Droida; APK s GitHub izdanja sam dohvaća svoja i otvara sistemski instalater. Karasu razgovara s AniListom, s Jellyfin poslužiteljem koji postaviš, jednom tjedno s GitHubom radi podataka zajednice o tome kako se epizode prenose preko sezona i, kad otvoriš profil, s domaćinima slika u njegovu biju, kroz vlastito ograničeno dohvaćanje. Nema vlastiti poslužitelj ni analitiku.

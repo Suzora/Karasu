@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/et.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Täna eetris</string>
+    <string name="widget_airing_desc">Tänased episoodid sinu nimekirjast</string>
+    <string name="widget_watching_label">Karasu · Jätka vaatamist</string>
+    <string name="widget_watching_desc">Sinu praegune anime edenemisega</string>
+    <string name="widget_reading_label">Karasu · Jätka lugemist</string>
+    <string name="widget_reading_desc">Sinu praegune manga edenemisega</string>
+    <string name="widget_week_label">Karasu · See nädal</string>
+    <string name="widget_week_desc">Järgmised episoodid tulevaks nädalaks</string>
+    <string name="widget_airing_title">Täna eetris</string>
+    <string name="widget_watching_title">Jätka vaatamist</string>
+    <string name="widget_reading_title">Jätka lugemist</string>
+    <string name="widget_week_title">See nädal</string>
+    <string name="widget_open">Ava Karasu</string>
+</resources>

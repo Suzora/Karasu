@@ -1,0 +1,13 @@
+{
+ "siteFollowing": "{{actor}} empezó a seguirte",
+ "siteActivityMention": "{{actor}} te mencionó en una actividad",
+ "siteActivityReply": "{{actor}} respondió a tu actividad",
+ "siteActivityReplySubscribed": "{{actor}} respondió a una actividad que sigues",
+ "siteActivityLike": "A {{actor}} le gustó tu actividad",
+ "siteActivityReplyLike": "A {{actor}} le gustó tu respuesta",
+ "siteThreadMention": "{{actor}} te mencionó en «{{thread}}»",
+ "siteThreadReply": "{{actor}} respondió a tu comentario en «{{thread}}»",
+ "siteThreadSubscribed": "{{actor}} comentó en «{{thread}}»",
+ "siteThreadCommentLike": "A {{actor}} le gustó tu comentario en «{{thread}}»",
+ "siteThreadThreadLike": "A {{actor}} le gustó tu hilo «{{thread}}»"
+}

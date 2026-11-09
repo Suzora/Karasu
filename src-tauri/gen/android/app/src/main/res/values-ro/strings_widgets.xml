@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/ro.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Difuzate azi</string>
+    <string name="widget_airing_desc">Episoadele de azi din lista ta</string>
+    <string name="widget_watching_label">Karasu · Continuă vizionarea</string>
+    <string name="widget_watching_desc">Anime-urile tale curente, cu progres</string>
+    <string name="widget_reading_label">Karasu · Continuă lectura</string>
+    <string name="widget_reading_desc">Manga-urile tale curente, cu progres</string>
+    <string name="widget_week_label">Karasu · Săptămâna asta</string>
+    <string name="widget_week_desc">Următoarele episoade din săptămâna care vine</string>
+    <string name="widget_airing_title">Difuzate azi</string>
+    <string name="widget_watching_title">Continuă vizionarea</string>
+    <string name="widget_reading_title">Continuă lectura</string>
+    <string name="widget_week_title">Săptămâna asta</string>
+    <string name="widget_open">Deschide Karasu</string>
+</resources>

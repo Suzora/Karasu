@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/ja.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · 今日の放送</string>
+    <string name="widget_airing_desc">リストにある今日のエピソード</string>
+    <string name="widget_watching_label">Karasu · 続きを視聴</string>
+    <string name="widget_watching_desc">視聴中のアニメと進捗</string>
+    <string name="widget_reading_label">Karasu · 続きを読む</string>
+    <string name="widget_reading_desc">読書中のマンガと進捗</string>
+    <string name="widget_week_label">Karasu · 今週</string>
+    <string name="widget_week_desc">今後1週間の次のエピソード</string>
+    <string name="widget_airing_title">今日の放送</string>
+    <string name="widget_watching_title">続きを視聴</string>
+    <string name="widget_reading_title">続きを読む</string>
+    <string name="widget_week_title">今週</string>
+    <string name="widget_open">Karasuを開く</string>
+</resources>

@@ -1,0 +1,9 @@
+Karasu hoiab sinu AniListi nimekirja kooskõlas sellega, mida vaatad ja loed, telefonis, mis suhtleb AniListiga otse – vahepealset serverit pole.
+
+Androidis on sul nimekirjad filtrite, eelseadete ja hulgimuudatustega, hooaja kalender, statistika ja aasta kokkuvõte, teavitused, sotsiaalne voog, foorum ja sinu profiil. Tõmba nimekirja alla, et sünkroonida, hoia pealkirja all kõige jaoks, mida sellega teha saab, ja libista alumisest ribast üles käsupaletti.
+
+Neli avaekraani vidinat näitavad, mis on täna eetris, mida vaatad ja loed ning mis on nädala ees – joonistatud vahemälust, ilma oma võrguühenduseta. Taustakontroll võib sind uutest episoodidest teavitada ka suletud rakendusega.
+
+Tuvastus Androidis on Jellyfin: suuna Karasu oma serverile ja seal mängiv episood loendab uuenduseni, ekraan väljas, kui lubad jälgimisteenusel töötada.
+
+F-Droidist paigaldatuna saab Karasu uuendused F-Droidilt; GitHubi väljalasete APK toob oma ise ja avab süsteemi paigaldaja. Karasu suhtleb AniListiga, sinu seadistatud Jellyfini serveriga, kord nädalas GitHubiga kogukonna andmete saamiseks selle kohta, kuidas episoodid hooaegade vahel kanduvad, ning profiili avamisel selle eluloo piltide hostidega oma piiratud päringu kaudu. Tal pole oma serverit ega analüütikat.

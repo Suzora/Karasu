@@ -1,0 +1,1 @@
+Gestor de anime e manga para o AniList

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/th.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · ออนแอร์วันนี้</string>
+    <string name="widget_airing_desc">ตอนของวันนี้จากรายการของคุณ</string>
+    <string name="widget_watching_label">Karasu · ดูต่อ</string>
+    <string name="widget_watching_desc">อนิเมะที่คุณกำลังดูพร้อมความคืบหน้า</string>
+    <string name="widget_reading_label">Karasu · อ่านต่อ</string>
+    <string name="widget_reading_desc">มังงะที่คุณกำลังอ่านพร้อมความคืบหน้า</string>
+    <string name="widget_week_label">Karasu · สัปดาห์นี้</string>
+    <string name="widget_week_desc">ตอนถัดไปตลอดสัปดาห์ข้างหน้า</string>
+    <string name="widget_airing_title">ออนแอร์วันนี้</string>
+    <string name="widget_watching_title">ดูต่อ</string>
+    <string name="widget_reading_title">อ่านต่อ</string>
+    <string name="widget_week_title">สัปดาห์นี้</string>
+    <string name="widget_open">เปิด Karasu</string>
+</resources>

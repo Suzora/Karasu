@@ -1,0 +1,9 @@
+Karasu giữ danh sách AniList của bạn khớp với những gì bạn xem và đọc, ngay trên điện thoại và nói chuyện thẳng với AniList — không có máy chủ trung gian.
+
+Trên Android, ứng dụng có danh sách với bộ lọc, preset và chỉnh sửa hàng loạt, lịch mùa, thống kê và tổng kết năm, thông báo, bảng tin xã hội, diễn đàn và hồ sơ của bạn. Kéo danh sách xuống để đồng bộ, nhấn giữ một tựa để xem mọi thao tác có thể làm, và vuốt lên từ thanh dưới cùng để mở bảng lệnh.
+
+Bốn widget trên màn hình chính cho thấy tập nào phát sóng hôm nay, bạn đang xem và đọc gì, cùng tuần sắp tới — lấy từ bộ nhớ đệm, không tự dùng mạng. Một lần kiểm tra nền có thể báo cho bạn biết tập mới khi ứng dụng đã đóng.
+
+Nhận diện trên Android dựa vào Jellyfin: trỏ Karasu tới máy chủ của bạn và tập đang phát ở đó sẽ đếm ngược đến lúc cập nhật, kể cả khi tắt màn hình nếu bạn cho phép dịch vụ theo dõi chạy.
+
+Khi cài từ F-Droid, Karasu nhận bản cập nhật từ F-Droid; APK từ các bản phát hành trên GitHub tự tải bản mới và mở trình cài đặt của hệ thống. Karasu kết nối với AniList, với máy chủ Jellyfin bạn thiết lập, với GitHub mỗi tuần một lần để lấy dữ liệu cộng đồng về cách các tập nối qua các mùa, và khi bạn mở một hồ sơ, với các máy chủ chứa ảnh trong phần giới thiệu, thông qua một lần tải có giới hạn của riêng nó. Karasu không có máy chủ riêng và không có phân tích dữ liệu.

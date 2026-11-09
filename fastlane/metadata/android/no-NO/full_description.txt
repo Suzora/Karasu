@@ -1,0 +1,9 @@
+Karasu holder AniList-listen din i takt med det du ser og leser, på en telefon som snakker direkte med AniList — det finnes ingen tjener imellom.
+
+På Android har den listene dine med filtre, forhåndsvalg og masseredigering, sesongkalenderen, statistikk og en årsoppsummering, varsler, den sosiale strømmen, forumet og profilen din. Dra en liste ned for å synkronisere, hold på en tittel for alt du kan gjøre med den, og sveip opp fra bunnlinjen for kommandopaletten.
+
+Fire widgeter på startskjermen viser hva som sendes i dag, hva du ser og leser, og uken som kommer — tegnet fra hurtigbufferen, uten eget nettverk. En bakgrunnssjekk kan fortelle deg om nye episoder mens appen er lukket.
+
+Gjenkjenning på Android er Jellyfin: pek Karasu på tjeneren din, så teller episoden som spilles der ned mot en oppdatering, også med skjermen av hvis du lar sporingstjenesten kjøre.
+
+Installert fra F-Droid får Karasu oppdateringene sine fra F-Droid; APK-en fra GitHub-utgivelsene henter sine egne og åpner systeminstallasjonen. Karasu snakker med AniList, med Jellyfin-tjeneren du setter opp, med GitHub én gang i uken for fellesskapets data om hvordan episoder overføres mellom sesonger, og, når du åpner en profil, med vertene for bildene i biografien, gjennom en avgrenset henting av sin egen. Den har ingen egen tjener og ingen analyse.

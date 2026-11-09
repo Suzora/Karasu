@@ -1,0 +1,9 @@
+Karasu uztur tavu AniList sarakstu atbilstoši tam, ko skaties un lasi, tālrunī, kas runā ar AniList tieši — starp tiem nav servera.
+
+Android ierīcē tas nes tavus sarakstus ar filtriem, sagatavēm un masveida labojumiem, sezonu kalendāru, statistiku un gada pārskatu, paziņojumus, sociālo plūsmu, forumu un tavu profilu. Pavelc sarakstu uz leju, lai sinhronizētu, turi nospiestu nosaukumu, lai redzētu visu, ko ar to var darīt, un velc uz augšu no apakšējās joslas, lai atvērtu komandu paleti.
+
+Četri sākuma ekrāna logrīki rāda, kas iznāk šodien, ko skaties un lasi un kas gaida nākamnedēļ — tie zīmēti no kešatmiņas un paši neizmanto tīklu. Fona pārbaude var paziņot par jaunām epizodēm, kamēr lietotne ir aizvērta.
+
+Android atpazīšana ir Jellyfin: norādi Karasu savu serveri, un tur atskaņotā epizode atskaita laiku līdz atjaunināšanai, arī ar izslēgtu ekrānu, ja atļauj darboties izsekošanas pakalpojumam.
+
+Ja Karasu instalēts no F-Droid, atjauninājumus tas saņem no F-Droid; APK no GitHub izlaidumiem lejupielādē savus un atver sistēmas instalētāju. Karasu runā ar AniList, ar tavu iestatīto Jellyfin serveri, reizi nedēļā ar GitHub pēc kopienas datiem par to, kā epizodes pāriet starp sezonām, un, kad atver profilu, ar tā apraksta attēlu serveriem, izmantojot savu ierobežoto ielādi. Tam nav sava servera un nav analītikas.

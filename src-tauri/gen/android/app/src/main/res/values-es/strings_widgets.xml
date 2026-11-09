@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/es.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Se emite hoy</string>
+    <string name="widget_airing_desc">Los episodios de hoy de tu lista</string>
+    <string name="widget_watching_label">Karasu · Seguir viendo</string>
+    <string name="widget_watching_desc">Tu anime actual con progreso</string>
+    <string name="widget_reading_label">Karasu · Seguir leyendo</string>
+    <string name="widget_reading_desc">Tu manga actual con progreso</string>
+    <string name="widget_week_label">Karasu · Esta semana</string>
+    <string name="widget_week_desc">Próximos episodios de la semana que viene</string>
+    <string name="widget_airing_title">Se emite hoy</string>
+    <string name="widget_watching_title">Seguir viendo</string>
+    <string name="widget_reading_title">Seguir leyendo</string>
+    <string name="widget_week_title">Esta semana</string>
+    <string name="widget_open">Abrir Karasu</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/nl.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Vandaag uitgezonden</string>
+    <string name="widget_airing_desc">De afleveringen van vandaag van je lijst</string>
+    <string name="widget_watching_label">Karasu · Verder kijken</string>
+    <string name="widget_watching_desc">Je huidige anime met voortgang</string>
+    <string name="widget_reading_label">Karasu · Verder lezen</string>
+    <string name="widget_reading_desc">Je huidige manga met voortgang</string>
+    <string name="widget_week_label">Karasu · Deze week</string>
+    <string name="widget_week_desc">Volgende afleveringen van de komende week</string>
+    <string name="widget_airing_title">Vandaag uitgezonden</string>
+    <string name="widget_watching_title">Verder kijken</string>
+    <string name="widget_reading_title">Verder lezen</string>
+    <string name="widget_week_title">Deze week</string>
+    <string name="widget_open">Karasu openen</string>
+</resources>

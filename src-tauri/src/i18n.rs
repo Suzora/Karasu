@@ -13,6 +13,44 @@ pub struct Lang(&'static str);
 const CATALOGS: &[(&str, &str)] = &[
     ("en", include_str!("../../src/i18n/native/en.json")),
     ("de", include_str!("../../src/i18n/native/de.json")),
+    ("bg", include_str!("../../src/i18n/native/bg.json")),
+    ("cs", include_str!("../../src/i18n/native/cs.json")),
+    ("da", include_str!("../../src/i18n/native/da.json")),
+    ("el", include_str!("../../src/i18n/native/el.json")),
+    ("es", include_str!("../../src/i18n/native/es.json")),
+    ("es-419", include_str!("../../src/i18n/native/es-419.json")),
+    ("et", include_str!("../../src/i18n/native/et.json")),
+    ("fi", include_str!("../../src/i18n/native/fi.json")),
+    ("fil", include_str!("../../src/i18n/native/fil.json")),
+    ("fr", include_str!("../../src/i18n/native/fr.json")),
+    ("fr-CA", include_str!("../../src/i18n/native/fr-CA.json")),
+    ("hi", include_str!("../../src/i18n/native/hi.json")),
+    ("hr", include_str!("../../src/i18n/native/hr.json")),
+    ("hu", include_str!("../../src/i18n/native/hu.json")),
+    ("id", include_str!("../../src/i18n/native/id.json")),
+    ("it", include_str!("../../src/i18n/native/it.json")),
+    ("ja", include_str!("../../src/i18n/native/ja.json")),
+    ("ko", include_str!("../../src/i18n/native/ko.json")),
+    ("lt", include_str!("../../src/i18n/native/lt.json")),
+    ("lv", include_str!("../../src/i18n/native/lv.json")),
+    ("ms", include_str!("../../src/i18n/native/ms.json")),
+    ("nb", include_str!("../../src/i18n/native/nb.json")),
+    ("nl", include_str!("../../src/i18n/native/nl.json")),
+    ("pl", include_str!("../../src/i18n/native/pl.json")),
+    ("pt", include_str!("../../src/i18n/native/pt.json")),
+    ("pt-BR", include_str!("../../src/i18n/native/pt-BR.json")),
+    ("ro", include_str!("../../src/i18n/native/ro.json")),
+    ("ru", include_str!("../../src/i18n/native/ru.json")),
+    ("sk", include_str!("../../src/i18n/native/sk.json")),
+    ("sl", include_str!("../../src/i18n/native/sl.json")),
+    ("sr", include_str!("../../src/i18n/native/sr.json")),
+    ("sv", include_str!("../../src/i18n/native/sv.json")),
+    ("th", include_str!("../../src/i18n/native/th.json")),
+    ("tr", include_str!("../../src/i18n/native/tr.json")),
+    ("uk", include_str!("../../src/i18n/native/uk.json")),
+    ("vi", include_str!("../../src/i18n/native/vi.json")),
+    ("zh-Hans", include_str!("../../src/i18n/native/zh-Hans.json")),
+    ("zh-Hant", include_str!("../../src/i18n/native/zh-Hant.json")),
 ];
 
 #[allow(non_upper_case_globals)]
@@ -311,7 +349,10 @@ mod tests {
     fn an_unknown_or_absent_language_is_english() {
         assert_eq!(Lang::parse(None), Lang::En);
         assert_eq!(Lang::parse(Some("")), Lang::En);
-        assert_eq!(Lang::parse(Some("fr")), Lang::En);
+        assert_eq!(Lang::parse(Some("xx")), Lang::En);
+        assert_eq!(Lang::parse(Some("fr")), Lang("fr"));
+        assert_eq!(Lang::parse(Some("pt-BR")), Lang("pt-BR"));
+        assert_eq!(Lang::parse(Some("zh-Hant")), Lang("zh-Hant"));
         assert_eq!(Lang::parse(Some("de")), Lang::De);
         // i18next resolves regional codes; the mirror may carry one.
         assert_eq!(Lang::parse(Some("de-AT")), Lang::De);

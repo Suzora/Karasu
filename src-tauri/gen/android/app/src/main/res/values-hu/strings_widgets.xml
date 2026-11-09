@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/hu.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Ma jelenik meg</string>
+    <string name="widget_airing_desc">A mai epizódok a listádról</string>
+    <string name="widget_watching_label">Karasu · Nézés folytatása</string>
+    <string name="widget_watching_desc">Jelenlegi animéid haladással</string>
+    <string name="widget_reading_label">Karasu · Olvasás folytatása</string>
+    <string name="widget_reading_desc">Jelenlegi mangáid haladással</string>
+    <string name="widget_week_label">Karasu · Ezen a héten</string>
+    <string name="widget_week_desc">A következő epizódok a közelgő héten</string>
+    <string name="widget_airing_title">Ma jelenik meg</string>
+    <string name="widget_watching_title">Nézés folytatása</string>
+    <string name="widget_reading_title">Olvasás folytatása</string>
+    <string name="widget_week_title">Ezen a héten</string>
+    <string name="widget_open">Karasu megnyitása</string>
+</resources>

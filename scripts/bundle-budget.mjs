@@ -19,9 +19,20 @@ const VITE = join(ROOT, "node_modules", "vite", "bin", "vite.js");
 export const FIGURES = {
   initialJs: "the entry script and every chunk it preloads: what the window waits for",
   initialCss: "the one stylesheet",
-  largestLazy: "the largest chunk loaded on demand",
-  totalJs: "every script in the bundle",
+  largestLazy: "the largest chunk loaded on demand, languages apart",
+  totalJs: "every script in the bundle, languages apart",
+  largestLocale: "the largest one language's texts or greetings, of which a user ever loads their own",
 };
+
+// The registry is TypeScript; Node strips the types, so the chunk names can be read against the real list of codes.
+const { LANGUAGES } = await import(new URL("../src/lib/languages.ts", import.meta.url).href);
+const CODES = new Set(LANGUAGES.map((l) => l.code));
+
+/** A chunk's module name without the hash Vite appends. */
+const chunkName = (file) => file.replace(/^assets\/|-[\w-]{8}\.js$/g, "");
+
+/** A language's texts or greetings: one of them loads for a user, so they are measured apart from the app. */
+export const isLocale = (file) => CODES.has(chunkName(file));
 
 const gz = (bytes) => gzipSync(bytes, { level: 9 }).length;
 const kb = (n) => `${(n / 1024).toFixed(1)} KiB`;
@@ -40,16 +51,20 @@ export function measure(dist = DIST) {
     .filter((f) => f.endsWith(".js") || f.endsWith(".css"))
     .map((f) => ({ file: `assets/${f}`, gz: gz(readFileSync(join(dist, "assets", f))) }));
   const js = chunks.filter((c) => c.file.endsWith(".js"));
-  const lazy = js.filter((c) => !initial.js.has(c.file)).sort((a, b) => b.gz - a.gz);
+  const app = js.filter((c) => !isLocale(c.file));
+  const locales = js.filter((c) => isLocale(c.file) && !initial.js.has(c.file)).sort((a, b) => b.gz - a.gz);
+  const lazy = app.filter((c) => !initial.js.has(c.file)).sort((a, b) => b.gz - a.gz);
   const sum = (list) => list.reduce((n, c) => n + c.gz, 0);
   return {
     figures: {
       initialJs: sum(js.filter((c) => initial.js.has(c.file))),
       initialCss: sum(chunks.filter((c) => initial.css.has(c.file))),
       largestLazy: lazy[0]?.gz ?? 0,
-      totalJs: sum(js),
+      totalJs: sum(app),
+      largestLocale: locales[0]?.gz ?? 0,
     },
     largestLazyFile: lazy[0]?.file ?? null,
+    largestLocaleFile: locales[0]?.file ?? null,
     chunks: chunks.sort((a, b) => b.gz - a.gz),
   };
 }
@@ -70,7 +85,7 @@ function main() {
   if (!args.has("--no-build")) {
     execFileSync(process.execPath, [VITE, "build", "--logLevel", "error"], { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
   }
-  const { figures, largestLazyFile, chunks } = measure();
+  const { figures, largestLazyFile, largestLocaleFile, chunks } = measure();
   const budget = JSON.parse(readFileSync(BUDGET, "utf8")).budget;
   if (args.has("--report")) {
     for (const c of chunks) console.log(`${kb(c.gz).padStart(9)}  ${c.file}`);
@@ -80,8 +95,9 @@ function main() {
   for (const o of over) {
     console.log(o.limit === null ? `${o.name}: ${kb(o.value)}, with no budget in bundle-budget.json` : `${o.name}: ${kb(o.value)} over its ${kb(o.limit)} budget (${FIGURES[o.name]})`);
   }
-  const lazyName = largestLazyFile?.replace(/^assets\/|-[\w-]{8}\.js$/g, "") ?? "none";
-  const line = `initial js ${kb(figures.initialJs)} / ${kb(budget.initialJs)}, css ${kb(figures.initialCss)} / ${kb(budget.initialCss)}, largest lazy ${kb(figures.largestLazy)} (${lazyName}) / ${kb(budget.largestLazy)}, total js ${kb(figures.totalJs)} / ${kb(budget.totalJs)}`;
+  const lazyName = largestLazyFile ? chunkName(largestLazyFile) : "none";
+  const localeName = largestLocaleFile ? chunkName(largestLocaleFile) : "none";
+  const line = `initial js ${kb(figures.initialJs)} / ${kb(budget.initialJs)}, css ${kb(figures.initialCss)} / ${kb(budget.initialCss)}, largest lazy ${kb(figures.largestLazy)} (${lazyName}) / ${kb(budget.largestLazy)}, total js ${kb(figures.totalJs)} / ${kb(budget.totalJs)}, largest language ${kb(figures.largestLocale)} (${localeName}) / ${kb(budget.largestLocale)}`;
   console.log(`bundle-budget: ${over.length ? "over — " : ""}${line}`);
   process.exit(over.length ? 1 : 0);
 }

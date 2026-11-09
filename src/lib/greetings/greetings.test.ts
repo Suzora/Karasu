@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import de from "./de";
 import en from "./en";
 import { allLines, candidates, fillGreeting, withoutName, type GreetingFacts } from "./pick";
-import { CATEGORIES, NEED_FIELDS, type DayWindow, type GreetingLine } from "./types";
+import { CATEGORIES, NEED_FIELDS, type Catalogue, type DayWindow, type GreetingLine } from "./types";
 
 const options = (l: GreetingLine) => ({ ...l, text: undefined });
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
@@ -19,9 +19,15 @@ const facts: GreetingFacts = {
   awayDays: 14,
 };
 
+/** The machine-translated catalogues, held to every rule the two written ones are. */
+const LOCALES = Object.entries(
+  import.meta.glob<{ default: Catalogue }>("./locales/*.ts", { eager: true }),
+).map(([file, mod]) => [file.slice("./locales/".length, -3), mod.default] as [string, Catalogue]);
+
 describe.each([
   ["de", de],
   ["en", en],
+  ...LOCALES,
 ])("the %s catalogue", (_, catalogue) => {
   it("has twenty lines in each of the thirty categories", () => {
     expect(Object.keys(catalogue).sort()).toEqual([...CATEGORIES].sort());
@@ -74,6 +80,16 @@ describe("the two catalogues", () => {
     const e = allLines(en);
     expect(e.map((l) => l.id)).toEqual(d.map((l) => l.id));
     d.forEach((l, i) => expect(options(e[i]), l.id).toEqual(options(l)));
+  });
+
+  it.each(LOCALES)("%s matches English line for line, placeholders included", (_, catalogue) => {
+    const e = allLines(en);
+    const t = allLines(catalogue);
+    expect(t.map((l) => l.id)).toEqual(e.map((l) => l.id));
+    e.forEach((l, i) => {
+      expect(options(t[i]), l.id).toEqual(options(l));
+      expect(placeholders(t[i].text).sort(), l.id).toEqual(placeholders(l.text).sort());
+    });
   });
 
   it("use the same placeholders in each pair", () => {

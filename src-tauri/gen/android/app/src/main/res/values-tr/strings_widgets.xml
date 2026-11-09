@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/tr.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Bugün yayınlananlar</string>
+    <string name="widget_airing_desc">Listendeki bugünün bölümleri</string>
+    <string name="widget_watching_label">Karasu · İzlemeye devam et</string>
+    <string name="widget_watching_desc">İzlediğin animeler ve ilerleme</string>
+    <string name="widget_reading_label">Karasu · Okumaya devam et</string>
+    <string name="widget_reading_desc">Okuduğun mangalar ve ilerleme</string>
+    <string name="widget_week_label">Karasu · Bu hafta</string>
+    <string name="widget_week_desc">Önümüzdeki haftanın sıradaki bölümleri</string>
+    <string name="widget_airing_title">Bugün yayınlananlar</string>
+    <string name="widget_watching_title">İzlemeye devam et</string>
+    <string name="widget_reading_title">Okumaya devam et</string>
+    <string name="widget_week_title">Bu hafta</string>
+    <string name="widget_open">Karasu\'yu aç</string>
+</resources>

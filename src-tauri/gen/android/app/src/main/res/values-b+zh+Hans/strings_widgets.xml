@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/zh-Hans.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · 今日播出</string>
+    <string name="widget_airing_desc">你列表中今天的剧集</string>
+    <string name="widget_watching_label">Karasu · 继续观看</string>
+    <string name="widget_watching_desc">你正在看的动画及进度</string>
+    <string name="widget_reading_label">Karasu · 继续阅读</string>
+    <string name="widget_reading_desc">你正在读的漫画及进度</string>
+    <string name="widget_week_label">Karasu · 本周</string>
+    <string name="widget_week_desc">未来一周各部作品的下一集</string>
+    <string name="widget_airing_title">今日播出</string>
+    <string name="widget_watching_title">继续观看</string>
+    <string name="widget_reading_title">继续阅读</string>
+    <string name="widget_week_title">本周</string>
+    <string name="widget_open">打开 Karasu</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/sr.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Emituje se danas</string>
+    <string name="widget_airing_desc">Današnje epizode sa tvoje liste</string>
+    <string name="widget_watching_label">Karasu · Nastavi gledanje</string>
+    <string name="widget_watching_desc">Tvoj trenutni anime sa napretkom</string>
+    <string name="widget_reading_label">Karasu · Nastavi čitanje</string>
+    <string name="widget_reading_desc">Tvoja trenutna manga sa napretkom</string>
+    <string name="widget_week_label">Karasu · Ove nedelje</string>
+    <string name="widget_week_desc">Sledeće epizode u narednoj nedelji</string>
+    <string name="widget_airing_title">Emituje se danas</string>
+    <string name="widget_watching_title">Nastavi gledanje</string>
+    <string name="widget_reading_title">Nastavi čitanje</string>
+    <string name="widget_week_title">Ove nedelje</string>
+    <string name="widget_open">Otvori Karasu</string>
+</resources>

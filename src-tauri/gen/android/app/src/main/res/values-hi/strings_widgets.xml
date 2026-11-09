@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/hi.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · आज प्रसारित</string>
+    <string name="widget_airing_desc">आपकी लिस्ट के आज के एपिसोड</string>
+    <string name="widget_watching_label">Karasu · देखना जारी रखें</string>
+    <string name="widget_watching_desc">आपके मौजूदा एनिमे प्रगति के साथ</string>
+    <string name="widget_reading_label">Karasu · पढ़ना जारी रखें</string>
+    <string name="widget_reading_desc">आपके मौजूदा मंगा प्रगति के साथ</string>
+    <string name="widget_week_label">Karasu · इस हफ़्ते</string>
+    <string name="widget_week_desc">आने वाले हफ़्ते के अगले एपिसोड</string>
+    <string name="widget_airing_title">आज प्रसारित</string>
+    <string name="widget_watching_title">देखना जारी रखें</string>
+    <string name="widget_reading_title">पढ़ना जारी रखें</string>
+    <string name="widget_week_title">इस हफ़्ते</string>
+    <string name="widget_open">Karasu खोलें</string>
+</resources>

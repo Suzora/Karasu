@@ -1,0 +1,9 @@
+Karasu memastikan senarai AniList anda selari dengan apa yang anda tonton dan baca, pada telefon yang berhubung terus dengan AniList — tiada pelayan di antaranya.
+
+Pada Android ia membawa senarai anda dengan penapis, pratetap dan suntingan pukal, kalendar musim, statistik dan ringkasan tahun, pemberitahuan, suapan sosial, forum dan profil anda. Tarik senarai ke bawah untuk menyegerak, tekan lama sesuatu tajuk untuk semua yang boleh dilakukan padanya, dan leret ke atas dari bar bawah untuk palet arahan.
+
+Empat widget skrin utama menunjukkan apa yang ditayangkan hari ini, apa yang anda tonton dan baca, serta minggu hadapan — dilukis daripada cache, tanpa rangkaian sendiri. Semakan latar belakang boleh memberitahu anda tentang episod baharu walaupun aplikasi ditutup.
+
+Pengesanan pada Android ialah Jellyfin: tunjukkan pelayan anda kepada Karasu dan episod yang dimainkan di sana dikira ke arah kemas kini, dengan skrin mati jika anda membenarkan perkhidmatan penjejakan berjalan.
+
+Jika dipasang daripada F-Droid, Karasu mendapat kemas kininya daripada F-Droid; APK daripada keluaran GitHub mengambil sendiri dan membuka pemasang sistem. Karasu berhubung dengan AniList, dengan pelayan Jellyfin yang anda sediakan, dengan GitHub sekali seminggu untuk data komuniti tentang cara episod bersambung merentas musim, dan, apabila anda membuka profil, dengan hos imej dalam biodatanya, melalui pengambilan terhad tersendiri. Ia tiada pelayan sendiri dan tiada analitik.

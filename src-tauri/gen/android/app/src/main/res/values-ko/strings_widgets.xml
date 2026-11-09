@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/ko.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · 오늘 방영</string>
+    <string name="widget_airing_desc">내 목록의 오늘 에피소드</string>
+    <string name="widget_watching_label">Karasu · 이어서 보기</string>
+    <string name="widget_watching_desc">진행도와 함께 보는 중인 애니</string>
+    <string name="widget_reading_label">Karasu · 이어서 읽기</string>
+    <string name="widget_reading_desc">진행도와 함께 읽는 중인 만화</string>
+    <string name="widget_week_label">Karasu · 이번 주</string>
+    <string name="widget_week_desc">다가오는 주의 다음 에피소드</string>
+    <string name="widget_airing_title">오늘 방영</string>
+    <string name="widget_watching_title">이어서 보기</string>
+    <string name="widget_reading_title">이어서 읽기</string>
+    <string name="widget_week_title">이번 주</string>
+    <string name="widget_open">Karasu 열기</string>
+</resources>

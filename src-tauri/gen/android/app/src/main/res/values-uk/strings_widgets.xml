@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/uk.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Виходить сьогодні</string>
+    <string name="widget_airing_desc">Сьогоднішні серії з твого списку</string>
+    <string name="widget_watching_label">Karasu · Продовжити перегляд</string>
+    <string name="widget_watching_desc">Твоє поточне аніме з прогресом</string>
+    <string name="widget_reading_label">Karasu · Продовжити читання</string>
+    <string name="widget_reading_desc">Твоя поточна манґа з прогресом</string>
+    <string name="widget_week_label">Karasu · Цей тиждень</string>
+    <string name="widget_week_desc">Наступні серії на найближчий тиждень</string>
+    <string name="widget_airing_title">Виходить сьогодні</string>
+    <string name="widget_watching_title">Продовжити перегляд</string>
+    <string name="widget_reading_title">Продовжити читання</string>
+    <string name="widget_week_title">Цей тиждень</string>
+    <string name="widget_open">Відкрити Karasu</string>
+</resources>

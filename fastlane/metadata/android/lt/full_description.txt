@@ -1,0 +1,9 @@
+Karasu sinchronizuoja tavo AniList sąrašą su tuo, ką žiūri ir skaitai, telefone, kuris tiesiogiai kalbasi su AniList — jokio tarpinio serverio nėra.
+
+„Android“ įrenginyje jame rasi savo sąrašus su filtrais, išankstiniais nustatymais ir masiniais pakeitimais, sezonų kalendorių, statistiką ir metų apžvalgą, pranešimus, socialinį srautą, forumą ir savo profilį. Patempk sąrašą žemyn, kad sinchronizuotum, palaikyk pavadinimą, kad pamatytum visus galimus veiksmus, o braukdamas aukštyn nuo apatinės juostos atversi komandų paletę.
+
+Keturi pagrindinio ekrano valdikliai rodo, kas rodoma šiandien, ką žiūri ir skaitai bei artėjančią savaitę — duomenys imami iš talpyklos, be savo tinklo ryšio. Foninė patikra gali pranešti apie naujas serijas, kai programa uždaryta.
+
+„Android“ įrenginyje aptikimas veikia per Jellyfin: nurodyk Karasu savo serverį, ir ten grojama serija atskaičiuos laiką iki atnaujinimo, net ir išjungus ekraną, jei leisi veikti sekimo paslaugai.
+
+Įdiegus iš F-Droid, Karasu naujinius gauna per F-Droid; APK iš GitHub leidimų atsisiunčia naujinius pats ir atveria sistemos diegimo programą. Karasu jungiasi prie AniList, prie tavo nustatyto Jellyfin serverio, kartą per savaitę prie GitHub dėl bendruomenės duomenų apie tai, kaip serijos perkeliamos tarp sezonų, o atidarius profilį — prie jo aprašo paveikslėlių serverių, per savo ribotą užklausą. Savo serverio ir analitikos nėra.

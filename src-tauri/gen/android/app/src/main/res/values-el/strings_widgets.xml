@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/el.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Προβολές σήμερα</string>
+    <string name="widget_airing_desc">Τα σημερινά επεισόδια από τη λίστα σου</string>
+    <string name="widget_watching_label">Karasu · Συνέχισε να βλέπεις</string>
+    <string name="widget_watching_desc">Τα τρέχοντα anime σου με πρόοδο</string>
+    <string name="widget_reading_label">Karasu · Συνέχισε να διαβάζεις</string>
+    <string name="widget_reading_desc">Τα τρέχοντα manga σου με πρόοδο</string>
+    <string name="widget_week_label">Karasu · Αυτή την εβδομάδα</string>
+    <string name="widget_week_desc">Τα επόμενα επεισόδια της εβδομάδας</string>
+    <string name="widget_airing_title">Προβολές σήμερα</string>
+    <string name="widget_watching_title">Συνέχισε να βλέπεις</string>
+    <string name="widget_reading_title">Συνέχισε να διαβάζεις</string>
+    <string name="widget_week_title">Αυτή την εβδομάδα</string>
+    <string name="widget_open">Άνοιγμα Karasu</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/nb.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Sendes i dag</string>
+    <string name="widget_airing_desc">Dagens episoder fra listen din</string>
+    <string name="widget_watching_label">Karasu · Fortsett å se</string>
+    <string name="widget_watching_desc">Animen du ser nå, med framdrift</string>
+    <string name="widget_reading_label">Karasu · Fortsett å lese</string>
+    <string name="widget_reading_desc">Mangaen du leser nå, med framdrift</string>
+    <string name="widget_week_label">Karasu · Denne uken</string>
+    <string name="widget_week_desc">Neste episoder den kommende uken</string>
+    <string name="widget_airing_title">Sendes i dag</string>
+    <string name="widget_watching_title">Fortsett å se</string>
+    <string name="widget_reading_title">Fortsett å lese</string>
+    <string name="widget_week_title">Denne uken</string>
+    <string name="widget_open">Åpne Karasu</string>
+</resources>

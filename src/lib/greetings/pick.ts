@@ -109,8 +109,9 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, "0")}-${String
 export function withoutName(text: string): string | null {
   if (!text.includes("{name}")) return text;
   const stripped = text
-    .replace(/,\s*\{name\}(?=[.!?…])/, "")
-    .replace(/^\{name\},\s*(\S)/, (_, c: string) => c.toUpperCase());
+    // The full-width comma and stops too, which Chinese and Japanese greetings use.
+    .replace(/[,，、]\s*\{name\}(?=[.!?…。！？])/, "")
+    .replace(/^\{name\}[,，、]\s*(\S)/, (_, c: string) => c.toUpperCase());
   return stripped.includes("{name}") ? null : stripped;
 }
 

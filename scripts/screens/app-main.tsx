@@ -17,7 +17,7 @@ useTheme.getState().init();
 useTitleLanguage.getState().init();
 
 await initLanguage();
-await setLanguageSetting(lang === "en" || lang === "qps" ? "en" : "de");
+await setLanguageSetting(lang === "qps" ? "en" : lang);
 // The pseudo-locale is built from English on the spot, so it can never ship and never goes stale.
 if (lang === "qps") {
   i18n.addResourceBundle("qps", "translation", pseudoTree(en));

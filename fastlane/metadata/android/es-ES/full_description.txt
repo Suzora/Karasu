@@ -1,0 +1,9 @@
+Karasu mantiene tu lista de AniList al día con lo que ves y lees, en un móvil que habla directamente con AniList: no hay ningún servidor de por medio.
+
+En Android lleva tus listas con filtros, preajustes y ediciones en bloque, el calendario de temporada, estadísticas y un resumen del año, notificaciones, la actividad social, el foro y tu perfil. Desliza una lista hacia abajo para sincronizar, mantén pulsado un título para ver todo lo que puedes hacer con él y desliza hacia arriba desde la barra inferior para abrir la paleta de comandos.
+
+Cuatro widgets de la pantalla de inicio muestran lo que se emite hoy, lo que estás viendo y leyendo, y la semana que viene, dibujados desde la caché y sin red propia. Una comprobación en segundo plano puede avisarte de episodios nuevos con la app cerrada.
+
+La detección en Android es Jellyfin: indica a Karasu tu servidor y el episodio que se reproduce allí cuenta atrás hasta una actualización, incluso con la pantalla apagada si permites que se ejecute el servicio de seguimiento.
+
+Si lo instalas desde F-Droid, Karasu recibe sus actualizaciones de F-Droid; el APK de las versiones de GitHub descarga las suyas y abre el instalador del sistema. Karasu habla con AniList, con el servidor de Jellyfin que configures, con GitHub una vez por semana para obtener los datos de la comunidad sobre cómo se reparten los episodios entre temporadas y, cuando abres un perfil, con los servidores de las imágenes de su biografía, mediante una descarga acotada propia. No tiene servidor propio ni analíticas.

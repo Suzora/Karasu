@@ -1,0 +1,9 @@
+Karasu, AniList listeni izlediklerin ve okuduklarınla uyumlu tutar. Telefonun doğrudan AniList ile konuşur; araya giren bir sunucu yoktur.
+
+Android'de listelerini filtreler, ön ayarlar ve toplu düzenlemelerle, sezon takvimini, istatistikleri ve yıllık özeti, bildirimleri, sosyal akışı, forumu ve profilini taşır. Eşitlemek için bir listeyi aşağı çek, bir başlığa uzun basarak yapabileceğin her şeye ulaş, komut paleti için alt çubuktan yukarı kaydır.
+
+Dört ana ekran widget'ı bugün yayınlananları, izlediklerini ve okuduklarını, ayrıca önümüzdeki haftayı gösterir; önbellekten çizilir, kendi ağ erişimi yoktur. Arka planda çalışan bir kontrol, uygulama kapalıyken yeni bölümleri haber verebilir.
+
+Android'de algılama Jellyfin ile yapılır: Karasu'yu sunucuna yönlendir, orada oynayan bölüm güncellemeye doğru geri sayar; izleme hizmetinin çalışmasına izin verirsen ekran kapalıyken de.
+
+F-Droid'den yüklendiğinde Karasu güncellemelerini F-Droid'den alır; GitHub sürümlerindeki APK kendi güncellemesini indirir ve sistem yükleyicisini açar. Karasu; AniList ile, kurduğun Jellyfin sunucusuyla, haftada bir kez bölümlerin sezonlar arasında nasıl devrettiğine dair topluluk verisi için GitHub ile ve bir profil açtığında, kendi sınırlı getirmesiyle biyografisindeki görsellerin barındırıcılarıyla konuşur. Kendi sunucusu ve analitiği yoktur.

@@ -1,0 +1,9 @@
+A Karasu szinkronban tartja az AniList-listádat azzal, amit nézel és olvasol, egy telefonon, amely közvetlenül az AniListtel beszél — köztes szerver nincs.
+
+Androidon magával hozza a listáidat szűrőkkel, előbeállításokkal és tömeges szerkesztéssel, az évadnaptárt, a statisztikát és az évösszegzést, az értesítéseket, a közösségi hírfolyamot, a fórumot és a profilodat. Húzd le a listát a szinkronizáláshoz, tartsd lenyomva a címet az összes lehetséges művelethez, és húzz felfelé az alsó sávról a parancspalettához.
+
+Négy kezdőképernyő-widget mutatja, mi jelenik meg ma, mit nézel és olvasol, és mi vár a következő héten — a gyorsítótárból rajzolva, saját hálózat nélkül. Egy háttérellenőrzés zárt alkalmazás mellett is szólhat az új epizódokról.
+
+Androidon a felismerés a Jellyfin: mutass a Karasunak a szerveredre, és az ott játszott epizód visszaszámol egy frissítésig, kikapcsolt képernyővel is, ha engedélyezed a követőszolgáltatás futását.
+
+F-Droidról telepítve a Karasu az F-Droidtól kapja a frissítéseit; a GitHub-kiadások APK-ja maga tölti le a sajátját, és megnyitja a rendszertelepítőt. A Karasu az AniListtel, a beállított Jellyfin-szerverrel, hetente egyszer a GitHubbal (a közösség adataiért arról, hogyan folytatódnak az epizódok az évadok között), és — amikor megnyitsz egy profilt — a bemutatkozásában lévő képek szervereivel beszél, egy saját, korlátozott lekéréssel. Nincs saját szervere és nincs analitikája.

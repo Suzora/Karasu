@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from src/i18n/native/fi.json by scripts/i18n-native.mjs; edit that file, not this one. -->
+<resources>
+    <string name="widget_airing_label">Karasu · Esitetään tänään</string>
+    <string name="widget_airing_desc">Tämän päivän jaksot listaltasi</string>
+    <string name="widget_watching_label">Karasu · Jatka katsomista</string>
+    <string name="widget_watching_desc">Nykyiset animesi etenemisen kanssa</string>
+    <string name="widget_reading_label">Karasu · Jatka lukemista</string>
+    <string name="widget_reading_desc">Nykyiset mangasi etenemisen kanssa</string>
+    <string name="widget_week_label">Karasu · Tällä viikolla</string>
+    <string name="widget_week_desc">Seuraavat jaksot tulevalla viikolla</string>
+    <string name="widget_airing_title">Esitetään tänään</string>
+    <string name="widget_watching_title">Jatka katsomista</string>
+    <string name="widget_reading_title">Jatka lukemista</string>
+    <string name="widget_week_title">Tällä viikolla</string>
+    <string name="widget_open">Avaa Karasu</string>
+</resources>

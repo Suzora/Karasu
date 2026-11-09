@@ -922,7 +922,12 @@ On 2026-10-12 the day's sync panel, entry dialog and copy took the figures to
 500 KiB and all script to 700, with the largest lazy chunk at 30, to leave room
 for a while. On 2026-10-17 the redesign took the stylesheet to 18.2 KiB, and
 the maintainer set its budget to 50 KiB for the screens still to come. On 2026-10-22 the statistics page's insight cards took the German
-copy, the largest lazy chunk, to 30.3 KiB, and its budget went to 32. A
+copy, the largest lazy chunk, to 30.3 KiB, and its budget went to 32. On
+2026-11-09 the 38 machine-translated languages became a fifth figure,
+`largestLocale` (one language's texts or greetings, 40 KiB over Greek's
+37.6), and left the largest lazy chunk and all script, since a user only
+ever loads their own and the sum would have tripled with nothing more
+reaching anyone. A
 raise names its reason in the commit) — then
 the three cargo tools
 one after another because they share the target directory's lock: **clippy**
