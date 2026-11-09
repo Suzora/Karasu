@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.78.0"
+version = "1.78.1"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -97,7 +97,7 @@ reqwest = { version = "0.13", features = ["json", "gzip"] }
 # them — so a dependency change elsewhere could have broken this build for a
 # reason nothing here would explain.
 tokio = { version = "1", features = ["time", "sync", "macros", "net", "io-util", "rt"] }
-rusqlite = { version = "0.40", features = ["bundled"] }
+rusqlite = { version = "0.41", features = ["bundled"] }
 regex = "1"
 discord-rich-presence = "1"
 # MPRIS hands over a `file://` URL for local playback, and the file name inside

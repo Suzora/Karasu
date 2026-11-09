@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 1882d4f -->
+<!-- generated-through: 98754dac -->
 
 ### Fixed
 
@@ -55,6 +55,10 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - A status tab can be grouped by tag or by custom list into sections you can fold, with a bar that jumps between them (Sort → Group by) ([#110](https://github.com/Suzora/Karasu/issues/110)).
 - Entries of one list can be stacked by hand (Select → Stack); a stack shows as one cover in the grid and opens as a sheet with its members ([#110](https://github.com/Suzora/Karasu/issues/110)).
 - Karasu speaks 38 more languages besides English and German, machine-translated, from French and Polish to Japanese, Chinese and Hindi; pick one in Settings → Appearance → Language.
+
+### Security
+
+- The bundled SQLite is updated to 3.54.1, which fixes a flaw where a crafted database and write-ahead log could return stale memory.
 
 ## 1.68.0 — 2026-10-25
 
