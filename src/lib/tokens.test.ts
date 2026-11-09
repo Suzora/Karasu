@@ -4,6 +4,7 @@ import { accentShades, contrastRatio, mix } from "@/lib/contrast";
 import { ACCENT_PRESETS, DEFAULT_ACCENT, customProperties } from "@/lib/designTokens";
 import { DEFAULT_STATUS_COLORS, STATUS_CONTRAST_MIN } from "@/lib/statusColors";
 import { systemBars } from "@/lib/systemBars";
+import { TAG_COLOURS } from "@/lib/tagColours";
 
 /** DESIGN.md's contrast obligations and the token blocks' parity, read from the stylesheet the app ships. */
 
@@ -35,7 +36,7 @@ const colour = (theme: "dark" | "light", name: string): string =>
   (theme === "light" ? light.get(`--color-${name}`) : undefined) ?? base.get(`--color-${name}`)!;
 
 /** The colours a theme swaps; status and accent are set at runtime and never live in a theme block. */
-const THEMED = /^--color-(surface|ink|gold|danger|success|graph)-?/;
+const THEMED = /^--color-(surface|ink|gold|danger|success|graph|tag)-?/;
 /** Root values `stores/theme` writes inline per accent, so no theme block carries them. */
 const RUNTIME = new Set(["--accent-rgb", "--w1", "--w2", "--hair"]);
 /** Accents past the presets: the corners of the colour cube and a mid grey, where a derivation is most likely to break. */
@@ -457,5 +458,17 @@ describe("the Overview's pairs", () => {
     const scrim = base.get("--color-on-cover")!;
     const edge = base.get("--color-on-cover-edge")!;
     expect(contrastRatio(mix(scrim, edge, 0.75), scrim)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("tag colours", () => {
+  it("lifts every tag's dot 3:1 off the chip it sits on, in every theme and contrast", () => {
+    for (const name of TAG_COLOURS) {
+      for (const theme of ["dark", "light"] as const) {
+        const token = `tag-${name}`;
+        expect(contrastRatio(colour(theme, token), colour(theme, "surface-800")), `${theme} ${name}`).toBeGreaterThanOrEqual(3);
+        expect(contrastRatio(high(theme, token), high(theme, "surface-800")), `high ${theme} ${name}`).toBeGreaterThanOrEqual(3);
+      }
+    }
   });
 });

@@ -140,6 +140,16 @@
   /* A mark or a node with no status. */
   --color-graph-none: #3a3f4d;
 
+  /* A tag's dot and border, chosen per tag on the device; the chip's text stays ink, so only the dot needs 3:1. */
+  --color-tag-rose: #f2788f;
+  --color-tag-amber: #e9b44c;
+  --color-tag-lime: #9ccc4a;
+  --color-tag-teal: #3cc7b4;
+  --color-tag-sky: #5fb3f0;
+  --color-tag-violet: #a48cf0;
+  --color-tag-pink: #e889cf;
+  --color-tag-slate: #9aa3b5;
+
   /* List-status defaults, overwritten at runtime by `stores/theme`; here so a cover ring paints on the first frame. */
   --color-status-current: #2f9e47;
   --color-status-repeating: #0e8f86;
@@ -498,6 +508,14 @@
   --float-edge: rgb(16 20 30 / 0.05);
 
   color-scheme: light;
+  --color-tag-rose: #c23a55;
+  --color-tag-amber: #94650a;
+  --color-tag-lime: #4d7a12;
+  --color-tag-teal: #0f7a6e;
+  --color-tag-sky: #1f6cad;
+  --color-tag-violet: #6a4fd0;
+  --color-tag-pink: #ad3d90;
+  --color-tag-slate: #5b6475;
 }
 
 :root[data-theme="dark"] {

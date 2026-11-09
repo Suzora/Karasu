@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: f6a35e3 -->
+<!-- generated-through: 960f020 -->
 
 ### Fixed
 
@@ -48,6 +48,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - The composer can add a spoiler with a label.
 - Activity feeds show who supports AniList, as the website does.
 - The tag filter takes several tags at once and shows entries that carry any of them ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- Tags can have a colour, chosen in Settings → Appearance under Tags, and show it wherever they appear ([#110](https://github.com/Suzora/Karasu/issues/110)).
 
 ## 1.68.0 — 2026-10-25
 

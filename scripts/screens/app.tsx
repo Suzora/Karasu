@@ -195,6 +195,12 @@ function richen(i: number, m: ReturnType<typeof media>, status: string) {
   };
 }
 
+/** The tags of the `i`th entry as the notes carry them, or none. */
+function tagNotes(i: number): string | null {
+  const tags = [i % 3 === 0 && "Comfort", i % 4 === 1 && "Family", i % 5 === 2 && "Rewatch"].filter(Boolean);
+  return tags.length ? `[[karasu:tags]]${tags.join(", ")}[[/karasu:tags]]` : null;
+}
+
 function baseEntry(i: number, m: ReturnType<typeof media>, status: (typeof STATUSES)[number], manga: boolean) {
   return {
     id: (manga ? 9000 : 5000) + i,
@@ -205,7 +211,8 @@ function baseEntry(i: number, m: ReturnType<typeof media>, status: (typeof STATU
     progress: status === "COMPLETED" ? (m.episodes ?? 12) : Math.min(i % 9, m.nextAiringEpisode ? m.nextAiringEpisode.episode - 1 : Infinity, m.episodes ?? Infinity),
     progressVolumes: manga ? i % 4 : 0,
     repeat: 0,
-    notes: null,
+    // A few tags across the list, so the chips, the tag filter and Settings' tag colours have something to show.
+    notes: tagNotes(i),
     updatedAt: now - i * 3600,
     private: false,
     hiddenFromStatusLists: !manga && i === 8,

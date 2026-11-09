@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   collectTags,
+  tagCounts,
   normalizeTags,
   parseNotes,
   serializeNotes,
@@ -111,5 +112,21 @@ describe("collectTags", () => {
       null,
     ];
     expect(collectTags(notes)).toEqual(["alpha", "beta", "zeta"]);
+  });
+});
+
+describe("tagCounts", () => {
+  const block = (...tags: string[]) => `[[karasu:tags]]${tags.join(", ")}[[/karasu:tags]]`;
+
+  it("counts each tag across entries, case-insensitively, most used first", () => {
+    expect(tagCounts([block("Comfort", "Dub"), block("comfort"), null, block("Dub", "Family"), block("Dub")])).toEqual([
+      { tag: "Dub", count: 3 },
+      { tag: "Comfort", count: 2 },
+      { tag: "Family", count: 1 },
+    ]);
+  });
+
+  it("answers nothing for lists without tags", () => {
+    expect(tagCounts([null, "plain note"])).toEqual([]);
   });
 });

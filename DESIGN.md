@@ -1269,3 +1269,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   the card at its foot so the light theme has no hard edge. The card no longer
   shrinks: in the rail's height-capped column its `overflow-hidden` let it be
   squeezed to a sliver, which is why it looked cut off.
+- **2026-11-09:** A tag can carry one of eight colours (`--color-tag-*`, a light
+  twin each), picked in Settings → Appearance under "Tags", which lists every
+  tag on both lists with its count (C of three: a long press on the list
+  filter's tag pill, a click on the tag in the entry editor, and this list).
+  The colour sits on the chip's dot and border only, so the text keeps the
+  ink it was measured against and the dot alone needs 3:1, which a test holds
+  in every theme. It is kept per device, not in the notes, since a colour
+  belongs to the tag and would otherwise be rewritten on every entry carrying
+  it (#110).

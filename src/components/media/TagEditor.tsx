@@ -2,6 +2,7 @@ import { useId, useState, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { MAX_TAGS, normalizeTags } from "@/lib/tags";
 import { RemovableChip } from "@/components/ui/chip";
+import { TagColourDot } from "@/components/list/TagChip";
 
 /** Chip-based tag editor; never wrap it in a `<label>`, or a stray click deletes the first chip (use `labelledBy`). */
 export default function TagEditor({
@@ -46,6 +47,7 @@ export default function TagEditor({
     <div className="field-shell flex flex-wrap items-center gap-1.5 rounded-control border border-surface-700 bg-surface-900 px-2 py-1.5 transition-surface focus-within:border-accent-500">
       {tags.map((tag) => (
         <RemovableChip key={tag} size="sm" removeLabel={t("tags.remove", { tag })} onRemove={() => remove(tag)}>
+          <TagColourDot tag={tag} />
           {tag}
         </RemovableChip>
       ))}

@@ -6,6 +6,7 @@ import * as api from "@/api/anilist";
 import { UI_ZOOM_STEPS } from "@/lib/uiZoom";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { Card, CardTitle } from "@/components/ui/card";
+import { TagColoursCard } from "./TagColours";
 import { DisclosurePanel } from "@/components/ui/disclosure";
 import { usePresentValue } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
@@ -342,6 +343,8 @@ export function AppearanceSection() {
         </Row>
         </div>
       </Card>
+
+      <TagColoursCard />
 
       <Card>
         <CardTitle>{t("settings.groupLanguage")}</CardTitle>

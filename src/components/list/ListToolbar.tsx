@@ -1,5 +1,6 @@
 import { useId, useMemo, useState, type ReactNode, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
+import { TagColourDot } from "./TagChip";
 import type { TFunction } from "i18next";
 import {
   ArrowDown,
@@ -536,6 +537,7 @@ function FilterPanel({
             <PillGroup label={t("tags.label")}>
               {shownTags.map((tag) => (
                 <Pill key={tag} className="h-7" active={chosen.has(tag.toLowerCase())} onClick={() => pick("tag", tag)}>
+                  <TagColourDot tag={tag} />
                   {tag}
                 </Pill>
               ))}

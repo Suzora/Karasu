@@ -85,3 +85,17 @@ export function collectTags(notes: readonly (string | null)[]): string[] {
   }
   return out.sort((a, b) => a.localeCompare(b));
 }
+
+/** Every tag with the number of entries carrying it, most used first, spelt as it first appears. */
+export function tagCounts(notes: readonly (string | null)[]): { tag: string; count: number }[] {
+  const counts = new Map<string, { tag: string; count: number }>();
+  for (const n of notes) {
+    for (const tag of tagsOf(n)) {
+      const key = tag.toLowerCase();
+      const seen = counts.get(key);
+      if (seen) seen.count += 1;
+      else counts.set(key, { tag, count: 1 });
+    }
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
