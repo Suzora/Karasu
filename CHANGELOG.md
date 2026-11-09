@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: e6e9f610 -->
+<!-- generated-through: 7d659708 -->
 
 ### Fixed
 
