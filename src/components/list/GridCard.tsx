@@ -39,7 +39,7 @@ export const GridCard = memo(function GridCard({
   focused: boolean;
   onToggleSelect: (mediaId: number) => void;
   /** Drawn as a stack: the members in the stack's order, this entry first among them, and how to open them. */
-  stack?: { members: MediaListEntry[]; onOpen: (mediaId: number) => void };
+  stack?: { members: MediaListEntry[]; name: string | null; onOpen: (mediaId: number) => void };
 }) {
   const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
@@ -69,7 +69,7 @@ export const GridCard = memo(function GridCard({
           ? formatScore(scoreFormat, entry.score, i18n.language)
           : undefined
       }
-      caption={stack ? <StackCaption lead={entry} members={stack.members} /> : <CardCaption entry={entry} max={max} unit={unit} />}
+      caption={stack ? <StackCaption lead={entry} name={stack.name} members={stack.members} /> : <CardCaption entry={entry} max={max} unit={unit} />}
       overlay={
         selectMode ? (
           <SelectBox
@@ -82,7 +82,7 @@ export const GridCard = memo(function GridCard({
           <button
             type="button"
             onClick={() => stack.onOpen(entry.mediaId)}
-            aria-label={t("stack.open", { title: displayTitle(media.title) })}
+            aria-label={t("stack.open", { title: stack.name || displayTitle(media.title) })}
             className="absolute bottom-2 left-2 rounded-full bg-on-cover/93 px-2 py-0.5 text-2xs font-semibold text-on-cover-edge focus-visible:outline-2 focus-visible:outline-accent-500"
           >
             {t("stack.count", { count: stack.members.length })}
@@ -172,7 +172,7 @@ export const GridCard = memo(function GridCard({
 });
 
 /** A stack's caption: the cover's title, then how many of its members are finished. */
-function StackCaption({ lead, members }: { lead: MediaListEntry; members: MediaListEntry[] }) {
+function StackCaption({ lead, name, members }: { lead: MediaListEntry; name: string | null; members: MediaListEntry[] }) {
   const { t } = useTranslation();
   const done = members.filter((m) => {
     const max = maxProgress(m.media);
@@ -180,7 +180,7 @@ function StackCaption({ lead, members }: { lead: MediaListEntry; members: MediaL
   }).length;
   return (
     <>
-      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(lead.media.title)}</p>
+      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{name || displayTitle(lead.media.title)}</p>
       <p className="mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">{t("stack.summary", { done, count: members.length })}</p>
     </>
   );

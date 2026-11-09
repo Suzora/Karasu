@@ -62,13 +62,13 @@ describe("ListToolbar", () => {
     const panel = dialog("list.sortTitle");
     expect(within(panel).getByRole("radio", { name: "sort.title" })).toBeChecked();
     expect(within(panel).getByRole("radio", { name: "list.descending" })).toBeChecked();
-    expect(within(panel).getAllByRole("radio")).toHaveLength(9);
+    expect(within(panel).getAllByRole("radio")).toHaveLength(6);
   });
 
-  it("offers the grouping beside the sort, with no grouping checked on a bare URL", () => {
+  it("offers the grouping on its own button, with no grouping checked on a bare URL", () => {
     render(<Probe url="" />);
-    fireEvent.click(button('list.sortButton:{"key":"sort.updated","dir":"list.descending"}'));
-    const panel = dialog("list.sortTitle");
+    fireEvent.click(button('list.groupButtonName:{"name":"list.groupButton"}'));
+    const panel = dialog("list.groupTitle");
     expect(within(panel).getByRole("radio", { name: "list.groupNone" })).toBeChecked();
     expect(within(panel).getByRole("radio", { name: "list.groupTag" })).not.toBeChecked();
     expect(within(panel).getByRole("radio", { name: "list.groupList" })).not.toBeChecked();
@@ -235,6 +235,8 @@ describe("ListToolbar", () => {
             onRandom={vi.fn()}
             layout="rows"
             onLayout={vi.fn()}
+            group=""
+            onGroup={vi.fn()}
           />
         </>,
       );

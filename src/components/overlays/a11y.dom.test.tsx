@@ -5,6 +5,7 @@ import MatchPicker from "./MatchPicker";
 import PresetModal from "./PresetModal";
 import RandomPickModal from "./RandomPickModal";
 import StackSheet from "./StackSheet";
+import StackRename from "./StackRename";
 import { NewThreadModal } from "./NewThreadModal";
 import { SeasonSplitModal } from "./SeasonSplitModal";
 import { ReviewComposerModal } from "./ReviewComposerModal";
@@ -24,6 +25,7 @@ const CASES: [string, () => React.ReactElement][] = [
   ["MatchPicker", () => <MatchPicker parsedTitle="Cowboy Bebop" season={1} currentId={1} detectedEpisode={5} onPick={noop} onClear={noop} onCancel={noop} />],
   ["PresetModal", () => <PresetModal presets={[{ name: "Airing", tab: "CURRENT", filter: "", sort: "" }]} onSave={noop} onDelete={noop} onClose={noop} />],
   ["RandomPickModal", () => <RandomPickModal pool={[entry()]} onClose={noop} />],
+  ["StackRename", () => <StackRename name="" fallback="Cowboy Bebop" onSave={noop} onClose={noop} />],
   [
     "StackSheet",
     () => (

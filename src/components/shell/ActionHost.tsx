@@ -20,6 +20,7 @@ import { isAndroid, usePlatform } from "@/stores/platform";
 import { tick } from "@/lib/haptics";
 import { collectTags } from "@/lib/tags";
 import { displayTitle, maxProgress, type ListResult, type MediaListEntry, type MediaType } from "@/api/types";
+import { useListPage } from "@/stores/listPage";
 
 /** Android's own long-press timeout; anything shorter turns a slow tap into a menu. */
 const LONG_PRESS_MS = 500;
@@ -57,6 +58,13 @@ const factsOf = (entry: MediaListEntry): EntryFacts => ({
 /** Whether any list cache could answer at all; without one, "not on your list" would be a guess rather than a fact. */
 function anyListCached(lists: [unknown, ListResult | undefined][]): boolean {
   return lists.some(([, data]) => data !== undefined);
+}
+
+/** The open list's grouping and, for a card, the stack it stands for; read at open time like the mutes. */
+function listContext(target: ActionTarget) {
+  const page = useListPage.getState().page;
+  if (!page) return null;
+  return { group: page.group, stackId: target.kind === "entry" ? page.stackAt(target.mediaId) : null };
 }
 
 /** Owns the long press, resolves what was pressed, and renders the sheet plus whatever dialog an action asks for. */
@@ -118,6 +126,7 @@ export default function ActionHost() {
         // Read at open time: the menu is rebuilt per gesture, so a mute made a moment ago is already in the store.
         airingMutes: isTauri && ctx.mode === "anilist" ? useAiringMutes.getState().ids : null,
         airingNotify: useAiringMutes.getState().notify,
+        list: listContext(target),
       });
       setOpen({
         target,

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -118,6 +118,20 @@ export function GroupedList({
     });
   };
 
+  // One stop in the Tab order and the arrows inside it, as the status tabs work.
+  const [barStop, setBarAt] = useState(0);
+  const barCount = groups.length + 1;
+  // Clamped, so a section that went away never leaves the bar with no stop at all.
+  const barAt = Math.min(barStop, groups.length);
+  const onBarKey = (e: KeyboardEvent<HTMLElement>) => {
+    const moves: Record<string, number> = { ArrowLeft: barAt - 1, ArrowRight: barAt + 1, Home: 0, End: barCount - 1 };
+    if (!(e.key in moves)) return;
+    e.preventDefault();
+    const next = Math.min(Math.max(moves[e.key], 0), barCount - 1);
+    setBarAt(next);
+    e.currentTarget.querySelectorAll<HTMLButtonElement>("button")[next]?.focus();
+  };
+
   const body = (
     <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
       {virtualizer.getVirtualItems().map((v) => {
@@ -151,12 +165,15 @@ export function GroupedList({
     <>
       <nav
         aria-label={t("list.groupJump")}
+        onKeyDown={onBarKey}
         className="sticky top-0 z-10 -mx-1 mb-2 flex items-center gap-1.5 overflow-x-auto overflow-y-hidden bg-surface-950 px-1 pb-2.5 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {groups.map((g) => (
+        {groups.map((g, i) => (
           <button
             key={g.key}
             type="button"
+            tabIndex={i === barAt ? 0 : -1}
+            onFocus={() => setBarAt(i)}
             onClick={() => jump(g.key)}
             className="flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-surface-850 px-2.5 text-xs text-ink-300 transition-surface hover:bg-surface-800 hover:text-ink-100"
           >
@@ -167,6 +184,8 @@ export function GroupedList({
         ))}
         <button
           type="button"
+          tabIndex={barAt === groups.length ? 0 : -1}
+          onFocus={() => setBarAt(groups.length)}
           onClick={() => setFolded(allFolded ? new Set() : new Set(groups.map((g) => g.key)))}
           className="ml-auto flex h-7 shrink-0 items-center rounded-full px-2.5 text-xs text-ink-500 transition-surface hover:bg-surface-850 hover:text-ink-100"
         >

@@ -4,6 +4,8 @@ export interface Stack {
   id: string;
   /** Media ids in the order the stack shows them. */
   members: number[];
+  /** The user's name for it; absent, the stack goes by its front title. */
+  name?: string;
 }
 
 export type StackStore = Record<string, Stack[]>;
@@ -21,6 +23,16 @@ export function makeStack(stacks: Stack[], ids: number[], id: string): Stack[] {
 
 export function removeMember(stacks: Stack[], id: string, mediaId: number): Stack[] {
   return keep(stacks.map((s) => (s.id === id ? { ...s, members: s.members.filter((m) => m !== mediaId) } : s)));
+}
+
+/** A blank name removes the name, so the stack goes back to reading as its front title. */
+export function renameStack(stacks: Stack[], id: string, name: string): Stack[] {
+  const trimmed = name.trim();
+  return stacks.map((s) => {
+    if (s.id !== id) return s;
+    const { name: _old, ...rest } = s;
+    return trimmed ? { ...rest, name: trimmed } : rest;
+  });
 }
 
 export function dissolveStack(stacks: Stack[], id: string): Stack[] {
@@ -72,7 +84,8 @@ const isStack = (v: unknown): v is Stack =>
   v !== null &&
   typeof (v as Stack).id === "string" &&
   Array.isArray((v as Stack).members) &&
-  (v as Stack).members.every((m) => Number.isInteger(m));
+  (v as Stack).members.every((m) => Number.isInteger(m)) &&
+  ((v as Stack).name === undefined || typeof (v as Stack).name === "string");
 
 /** The stored stacks per media type; anything malformed is dropped rather than trusted. */
 export function parseStacks(raw: string | null): StackStore {

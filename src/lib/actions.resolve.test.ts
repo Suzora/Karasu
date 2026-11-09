@@ -209,3 +209,18 @@ describe("resolveActions, airing mute", () => {
     expect(ids(entry({ status: "COMPLETED" }), watcher([1]))).toContain("unmuteAiring");
   });
 });
+
+describe("the open list's actions", () => {
+  it("offers the groupings other than the current one on the page, and nowhere without a list", () => {
+    const menu = resolveActions({ kind: "page" }, ctx({ list: { group: "tag", stackId: null } }));
+    const group = menu.find((a) => a.id === "groupBy");
+    expect(group?.items?.map((a) => (a.arg?.kind === "group" ? a.arg.group : null))).toEqual(["", "list"]);
+    expect(resolveActions({ kind: "page" }, ctx()).some((a) => a.id === "groupBy")).toBe(false);
+    expect(resolveActions(entry(), ctx({ list: { group: "", stackId: null } })).some((a) => a.id === "groupBy")).toBe(false);
+  });
+
+  it("offers renaming on a stack's card alone", () => {
+    expect(resolveActions(entry(), ctx({ list: { group: "", stackId: "s" } })).some((a) => a.id === "renameStack")).toBe(true);
+    expect(resolveActions(entry(), ctx({ list: { group: "", stackId: null } })).some((a) => a.id === "renameStack")).toBe(false);
+  });
+});

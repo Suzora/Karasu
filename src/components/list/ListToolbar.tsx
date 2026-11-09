@@ -23,6 +23,7 @@ import {
 import { STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import { Popover, type PopoverTriggerProps } from "@/components/ui/popover";
 import { type GroupBy } from "@/lib/listGroups";
+import { GROUP_LABEL } from "@/components/shell/actionLabels";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
 import { RemovableChip } from "@/components/ui/chip";
@@ -108,7 +109,7 @@ export function ListToolbar(props: ListToolbarProps) {
       inputRef={props.searchRef}
       count={count}
       hint={!props.touch}
-      className="min-w-0 flex-1 overflow-hidden rounded-full focus-within:bg-transparent"
+      className="min-w-32 flex-1 overflow-hidden rounded-full focus-within:bg-transparent"
     />
   );
 
@@ -120,10 +121,10 @@ export function ListToolbar(props: ListToolbarProps) {
       onOpen={props.onPanelOpen}
       onClosed={props.onPanelClosed}
       renderTrigger={(p) => (
-        <ToolTrigger p={p} name={t("list.sortButton", { key: sortName, dir: dirName })} iconOnly={phone} active={view.group !== ""}>
+        <ToolTrigger p={p} name={t("list.sortButton", { key: sortName, dir: dirName })} iconOnly={phone}>
           <ArrowUpDown aria-hidden className="size-4 shrink-0" />
-          {!phone && sortName}
-          {!phone && <DirIcon aria-hidden className="size-3.25 text-ink-500" />}
+          {!phone && <span className="@max-toolbar-tight:sr-only">{sortName}</span>}
+          {!phone && <DirIcon aria-hidden className="size-3.25 text-ink-500 @max-toolbar-tight:hidden" />}
         </ToolTrigger>
       )}
     >
@@ -141,7 +142,7 @@ export function ListToolbar(props: ListToolbarProps) {
       renderTrigger={(p) => (
         <ToolTrigger p={p} name={filterName} iconOnly={phone} active={chips.length > 0}>
           <SlidersHorizontal aria-hidden className="size-4 shrink-0" />
-          {!phone && t("list.filters")}
+          {!phone && <span className="@max-toolbar-tight:sr-only">{t("list.filters")}</span>}
           {chips.length > 0 && (
             <Badge aria-hidden count={chips.length} floating={phone} className={phone ? "-right-1.5 -top-1.5" : undefined} />
           )}
@@ -150,6 +151,33 @@ export function ListToolbar(props: ListToolbarProps) {
     >
       {({ close, closeThen }) => (
         <FilterPanel {...props} narrowed={narrowed} onDone={close} closeThen={closeThen} />
+      )}
+    </Popover>
+  );
+
+  const groupName = view.group === "" ? t("list.groupButton") : t(GROUP_LABEL[view.group]);
+  const grouping = (
+    <Popover
+      label={t("list.groupTitle")}
+      variant={variant}
+      width={240}
+      onOpen={props.onPanelOpen}
+      onClosed={props.onPanelClosed}
+      renderTrigger={(p) => (
+        <ToolTrigger p={p} name={t("list.groupButtonName", { name: groupName })} active={view.group !== ""}>
+          <LayoutList aria-hidden className="size-4 shrink-0" />
+          <span className="@max-toolbar-tight:sr-only">{groupName}</span>
+        </ToolTrigger>
+      )}
+    >
+      {({ close }) => (
+        <GroupPanel
+          group={view.group}
+          onPick={(group) => {
+            props.onDraft({ group });
+            close();
+          }}
+        />
       )}
     </Popover>
   );
@@ -168,6 +196,7 @@ export function ListToolbar(props: ListToolbarProps) {
             {search}
             {sort}
             {filters}
+            {grouping}
             <Popover
               label={t("presets.title")}
               variant="dropdown"
@@ -177,8 +206,8 @@ export function ListToolbar(props: ListToolbarProps) {
               renderTrigger={(p) => (
                 <ToolTrigger p={p} name={t("presets.button")}>
                   <Bookmark aria-hidden className="size-4 shrink-0" />
-                  {t("presets.button")}
-                  <ChevronDown aria-hidden className="size-3.5 text-ink-500" />
+                  <span className="@max-toolbar-tight:sr-only">{t("presets.button")}</span>
+                  <ChevronDown aria-hidden className="size-3.5 text-ink-500 @max-toolbar-tight:hidden" />
                 </ToolTrigger>
               )}
             >
@@ -211,10 +240,12 @@ export function ListMoreMenu({
   onRandom,
   layout,
   onLayout,
+  group,
+  onGroup,
 }: Pick<
   ListToolbarProps,
   "type" | "presets" | "onApplyPreset" | "onManagePresets" | "onRandom" | "layout" | "onLayout"
->) {
+> & { group: GroupBy; onGroup: (group: GroupBy) => void }) {
   const { t } = useTranslation();
   return (
     <Popover
@@ -239,6 +270,13 @@ export function ListMoreMenu({
               }}
             />
           </PanelSection>
+          <GroupPanel
+            group={group}
+            onPick={(next) => {
+              onGroup(next);
+              close();
+            }}
+          />
           <PanelSection title={t("presets.title")}>
             <PresetList
               type={type}
@@ -266,7 +304,7 @@ const toolClass = cn(
 );
 
 /** The search bar the list's tools sit inside: one rounded surface, the query first. */
-const barClass = "flex items-center gap-0.5 rounded-full bg-surface-900 py-1 pl-1 pr-1.5 surface-outline focus-within:bg-surface-850 transition-surface";
+const barClass = "@container flex items-center gap-0.5 rounded-full bg-surface-900 py-1 pl-1 pr-1.5 surface-outline focus-within:bg-surface-850 transition-surface";
 
 /** A toolbar button that opens a panel; `active` marks one whose panel is narrowing the list right now. */
 function ToolTrigger({
@@ -409,15 +447,23 @@ function SortPanel({ view, onDraft }: { view: ListView; onDraft: (patch: ViewPat
           className="flex w-full [&>button]:flex-1"
         />
       </div>
-      <fieldset className="flex flex-col gap-0.5 border-t border-hair pt-3">
-        <legend className="mb-1.5 label-text text-ink-500">{t("list.groupTitle")}</legend>
-        {GROUPS.map(([key, label]) => (
-          <Choice key={key} name={`${id}-group`} checked={view.group === key} onSelect={() => onDraft({ group: key })}>
-            {t(label)}
-          </Choice>
-        ))}
-      </fieldset>
     </div>
+  );
+}
+
+/** The grouping as one radio group; a choice writes at once, since it re-draws the list rather than narrowing it. */
+function GroupPanel({ group, onPick }: { group: GroupBy; onPick: (group: GroupBy) => void }) {
+  const { t } = useTranslation();
+  const id = useId();
+  return (
+    <fieldset className="flex flex-col gap-0.5">
+      <legend className="mb-1.5 label-text text-ink-500">{t("list.groupTitle")}</legend>
+      {GROUPS.map(([key, label]) => (
+        <Choice key={key} name={`${id}-group`} checked={group === key} onSelect={() => onPick(key)}>
+          {t(label)}
+        </Choice>
+      ))}
+    </fieldset>
   );
 }
 

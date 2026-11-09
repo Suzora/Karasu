@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 8751d9c8422e) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 124a5fe5f325) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -25,6 +25,8 @@
   --container-chart-pair: 48rem;
   /* The narrowest legend that holds two columns of a label beside its count; narrower, it takes one. */
   --container-legend-pair: 20rem;
+  /* The list toolbar's width under which its buttons drop their words, so the search keeps room to type in. */
+  --container-toolbar-tight: 40rem;
   /* The Japanese sub-lockup beside a screen title, opened a little so its kana do not crowd. */
   --tracking-lockup: 0.04em;
   /* The titlebar's wordmark, spaced as a brand mark rather than a label. */

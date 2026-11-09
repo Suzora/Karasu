@@ -7,6 +7,8 @@ import {
   CheckCheck,
   Command,
   Copy,
+  Layers,
+  LayoutList,
   ExternalLink,
   FileText,
   Pencil,
@@ -29,6 +31,8 @@ import type { ActionId } from "@/lib/actions";
 /** Lucide only, and one per action, so the two renderers cannot illustrate the same action differently. */
 export const ACTION_ICON: Record<ActionId, LucideIcon> = {
   open: FileText,
+  groupBy: LayoutList,
+  renameStack: Layers,
   openAniList: ExternalLink,
   share: Share2,
   copySelection: Copy,

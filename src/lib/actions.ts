@@ -1,6 +1,7 @@
 import type { MediaListStatus, MediaType } from "@/api/types";
 import { scoreOptions, type ScoreFormat } from "@/lib/scoreFormat";
 import type { ScrobblePhase } from "@/stores/nowPlaying";
+import { GROUP_KEYS, type GroupBy } from "@/lib/listGroups";
 
 /** What can be done to a thing, resolved once so the context menu, the long-press sheet and the palette cannot drift. */
 
@@ -29,7 +30,9 @@ export type ActionId =
   | "palette"
   | "settings"
   | "sync"
-  | "search";
+  | "search"
+  | "groupBy"
+  | "renameStack";
 
 /** Renderers draw a separator where this changes, and each picks the groups it is willing to show. */
 export type ActionGroup = "item" | "edit" | "detect" | "link" | "command" | "app";
@@ -71,12 +74,15 @@ export const ACTION_LABEL_KEY: Record<ActionId, string> = {
   settings: "ctx.settings",
   sync: "sync.button",
   search: "nav.search",
+  groupBy: "list.groupTitle",
+  renameStack: "stack.rename",
 };
 
 /** A submenu leaf carries the value it would write; its label is that value, not a phrase. */
 export type ActionArg =
   | { kind: "status"; status: MediaListStatus }
-  | { kind: "score"; score: number };
+  | { kind: "score"; score: number }
+  | { kind: "group"; group: GroupBy };
 
 export interface Action {
   id: ActionId;
@@ -139,6 +145,8 @@ export interface ActionContext {
   airingMutes: ReadonlySet<number> | null;
   /** The new-episode switch; with it off a mute is inert, so only an unmute is offered. */
   airingNotify: boolean;
+  /** The open list's grouping and the stack under the pointer, or null where no list is on screen. */
+  list?: { group: GroupBy; stackId: string | null } | null;
 }
 
 export const STATUSES: readonly MediaListStatus[] = [
@@ -296,6 +304,16 @@ export function resolveActions(target: ActionTarget, ctx: ActionContext): Action
     if (ctx.share) out.push(act("share", "link"));
   }
   if (ctx.hasSelection) out.push(act("copySelection", "link"));
+  // A stack is named on its own card; the grouping belongs to the page, so it comes with the page's commands.
+  if (target.kind === "entry" && ctx.list?.stackId) out.push(act("renameStack", "edit"));
+  if (target.kind === "page" && ctx.list) {
+    const current = ctx.list.group;
+    out.push(
+      act("groupBy", "command", {
+        items: GROUP_KEYS.filter((g) => g !== current).map((group) => act("groupBy", "command", { arg: { kind: "group", group } })),
+      }),
+    );
+  }
   // A title's menu is about the title; the page's commands come only with the page, or where nothing else would.
   if (target.kind === "page" || out.length === 0) out.push(...chrome(ctx));
 

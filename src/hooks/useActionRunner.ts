@@ -13,6 +13,7 @@ import { mediaUrl } from "@/lib/anilistUrl";
 import type { Action, ActionTarget } from "@/lib/actions";
 import { displayTitle, type MediaListEntry, type MediaType } from "@/api/types";
 import { useAiringMutes } from "@/stores/airingMutes";
+import { useListPage } from "@/stores/listPage";
 
 /** An action the runner cannot finish alone; the host renders the dialog, so nothing here has to hold overlay state. */
 export type ActionOverlay = "edit" | "confirmRemove" | "matchPicker";
@@ -170,6 +171,15 @@ export function useActionRunner(): (input: ActionRunInput) => ActionEffect {
         case "search":
           afterBackSettles(() => goToSearch(pathname.current, navigate));
           return done;
+        case "groupBy":
+          if (action.arg?.kind === "group") useListPage.getState().page?.setGroup(action.arg.group);
+          return done;
+        case "renameStack": {
+          const page = useListPage.getState().page;
+          const stackId = target.kind === "entry" ? page?.stackAt(target.mediaId) : null;
+          if (page && stackId) page.renameStack(stackId);
+          return done;
+        }
         case "sync":
           // The lock is shared, so a sync already running from the tray or the pull gesture is not started twice.
           void onSync();

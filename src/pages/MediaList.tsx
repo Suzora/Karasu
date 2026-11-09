@@ -29,11 +29,13 @@ import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { isTyping } from "@/components/shell/KeyboardSheet";
 import { nextFocus, ownsKeyboard, restingSurfaces, type Move } from "@/lib/roving";
 import { nextFocusGrouped } from "@/lib/formatGroups";
-import { groupEntries, type EntryGroup } from "@/lib/listGroups";
+import { groupEntries, type EntryGroup, type GroupBy } from "@/lib/listGroups";
 import { GroupedList } from "@/components/list/GroupedList";
 import { TagColourDot } from "@/components/list/TagChip";
 import StackSheet from "@/components/overlays/StackSheet";
-import { collapseStacks, dissolveStack, makeStack, moveMember, removeMember } from "@/lib/stacks";
+import StackRename from "@/components/overlays/StackRename";
+import { useListPage } from "@/stores/listPage";
+import { collapseStacks, dissolveStack, makeStack, moveMember, removeMember, renameStack, type ShownStack } from "@/lib/stacks";
 import { useStacks, useTypeStacks } from "@/stores/stacks";
 import RandomPickModal from "@/components/overlays/RandomPickModal";
 import PresetModal from "@/components/overlays/PresetModal";
@@ -467,6 +469,24 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     () => (layout === "grid" ? collapseStacks(entries, stacks) : { items: entries, stackOf: new Map() }),
     [layout, entries, stacks],
   );
+  // Every member's stack, since the card shows the stack's front member while the list places it by its first one.
+  const memberStack = useMemo(() => {
+    const map = new Map<number, ShownStack<MediaListEntry>>();
+    for (const shown of stackOf.values()) for (const m of shown.members) map.set(m.mediaId, shown);
+    return map;
+  }, [stackOf]);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  // The shell's context menu reaches the grouping and the stacks through this handle while the list is open.
+  const setGroupView = useCallback((group: GroupBy) => setView({ group }), [setView]);
+  useEffect(() => {
+    useListPage.getState().setPage({
+      group: view.group,
+      setGroup: setGroupView,
+      stackAt: (mediaId) => memberStack.get(mediaId)?.stack.id ?? null,
+      renameStack: setRenaming,
+    });
+  }, [view.group, setGroupView, memberStack]);
+  useEffect(() => () => useListPage.getState().setPage(null), []);
 
   // Sections by tag or custom list; an entry sits in each it names, and those naming none gather last.
   const groups = useMemo<EntryGroup<MediaListEntry>[] | null>(() => {
@@ -499,7 +519,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
   // A chosen stack brings all its members, so stacking a stack with another title grows it rather than splitting it.
   const stackSelection = () => {
-    const ids = [...selected].flatMap((id) => stackOf.get(id)?.members.map((m: MediaListEntry) => m.mediaId) ?? [id]);
+    const ids = [...selected].flatMap((id) => memberStack.get(id)?.members.map((m) => m.mediaId) ?? [id]);
     updateStacks(type, (s) => makeStack(s, ids, crypto.randomUUID()));
     exitSelect();
   };
@@ -518,7 +538,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       if (isTyping() || document.querySelector("[data-overlay]")) return;
       // Any other focused control owns it too; keep this above the arrow branch, a focused select reads arrows as well.
       if (!ownsKeyboard(document.activeElement, restingSurfaces(scrollRef.current))) return;
-      if (editing || removing || showRandom || showPresetSave) return;
+      if (editing || removing || showRandom || showPresetSave || openStack || renaming) return;
       if (e.altKey) return;
       if (nav.length === 0) return;
 
@@ -570,7 +590,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       switch (e.key) {
         case "Enter": {
           e.preventDefault();
-          const stacked = stackOf.get(entry.mediaId);
+          const stacked = memberStack.get(entry.mediaId);
           if (stacked) setOpenStack(stacked.stack.id);
           else navigate(`/media/${entry.media.id}`);
           break;
@@ -578,8 +598,10 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
         case " ":
           // Without this the page scrolls a screen down under the grid.
           e.preventDefault();
-          if (selectMode) toggleSelect(entry.mediaId);
-          else if (canIncrement(entry)) plusOne(entry);
+          // A stack takes the +1 on its front member, the one its cover shows.
+          const front = memberStack.get(entry.mediaId)?.members[0] ?? entry;
+          if (selectMode) toggleSelect(front.mediaId);
+          else if (canIncrement(front)) plusOne(front);
           break;
         case "e":
           e.preventDefault();
@@ -633,19 +655,26 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
   const renderCard = (entry: MediaListEntry, i: number) => {
     const stacked = stackOf.get(entry.mediaId);
+    const front = stacked?.members[0] ?? entry;
     return (
     <GridCard
       key={entry.id}
-      stack={stacked && { members: stacked.members, onOpen: () => setOpenStack(stacked.stack.id) }}
-      entry={entry}
+      stack={
+        stacked && {
+          members: stacked.members,
+          name: stacked.stack.name ?? null,
+          onOpen: () => setOpenStack(stacked.stack.id),
+        }
+      }
+      entry={front}
       focused={i === focus}
       unit={unit}
-      blurred={shouldBlur(entry.media, level, blurAdult)}
+      blurred={shouldBlur(front.media, level, blurAdult)}
       onPlusOne={plusOne}
       onComplete={complete}
       onEdit={startEdit}
       selectMode={selectMode}
-      selected={selected.has(entry.mediaId)}
+      selected={selected.has(front.mediaId)}
       onToggleSelect={toggleSelect}
     />
     );
@@ -753,6 +782,8 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
           onRandom={() => setShowRandom(true)}
           layout={layout}
           onLayout={changeLayout}
+          group={view.group}
+          onGroup={setGroupView}
         />
       ) : (
         <IconButton
@@ -1005,6 +1036,8 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
           return (
             <StackSheet
               leaving={leaving}
+              name={stack.name ?? null}
+              onRename={() => setRenaming(stack.id)}
               members={members}
               unit={unit}
               onPlusOne={plusOne}
@@ -1015,6 +1048,21 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
                 setOpenStack(null);
               }}
               onClose={() => setOpenStack(null)}
+            />
+          );
+        }}
+      </Presence>
+
+      <Presence value={renaming ? (stacks.find((s) => s.id === renaming) ?? null) : null}>
+        {(stack, leaving) => {
+          const front = (byStatus.get(tab) ?? []).find((e) => e.mediaId === stack.members[0]);
+          return (
+            <StackRename
+              leaving={leaving}
+              name={stack.name ?? ""}
+              fallback={front ? displayTitle(front.media.title) : ""}
+              onSave={(name) => updateStacks(type, (s) => renameStack(s, stack.id, name))}
+              onClose={() => setRenaming(null)}
             />
           );
         }}

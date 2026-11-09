@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collapseStacks, makeStack, moveMember, parseStacks, removeMember, type Stack } from "./stacks";
+import { collapseStacks, makeStack, moveMember, parseStacks, removeMember, renameStack, type Stack } from "./stacks";
 
 const e = (mediaId: number) => ({ mediaId });
 
@@ -55,5 +55,18 @@ describe("parseStacks", () => {
       ANIME: [{ id: "a", members: [1, 2] }],
     });
     expect(parseStacks("nope")).toEqual({});
+  });
+});
+
+describe("renameStack", () => {
+  it("names a stack, and an empty or blank name hands it back to its front title", () => {
+    const named = renameStack([{ id: "a", members: [1, 2] }], "a", "  Mushoku  ");
+    expect(named).toEqual([{ id: "a", members: [1, 2], name: "Mushoku" }]);
+    expect(renameStack(named, "a", " ")).toEqual([{ id: "a", members: [1, 2] }]);
+  });
+
+  it("keeps a stored name and drops one that is not text", () => {
+    expect(parseStacks('{"ANIME":[{"id":"a","members":[1,2],"name":"X"}]}').ANIME).toEqual([{ id: "a", members: [1, 2], name: "X" }]);
+    expect(parseStacks('{"ANIME":[{"id":"a","members":[1,2],"name":5}]}').ANIME).toEqual([]);
   });
 });
