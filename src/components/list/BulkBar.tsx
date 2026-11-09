@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Trash2, X } from "lucide-react";
+import { Layers, Trash2, X } from "lucide-react";
 import {
   STATUS_ORDER,
   type MediaListStatus,
@@ -25,6 +25,7 @@ export function BulkBar({
   onPrivate,
   onDelete,
   onClear,
+  onStack,
   names,
   leaving = false,
 }: {
@@ -38,6 +39,8 @@ export function BulkBar({
   onPrivate: (hidden: boolean) => void;
   onDelete: () => void;
   onClear: () => void;
+  /** Lays the selection on one stack; absent where stacks are not drawn. */
+  onStack?: () => void;
   names: string[];
   /** On its way out: plays the exit and takes no input. */
   leaving?: boolean;
@@ -118,6 +121,12 @@ export function BulkBar({
         ]}
         className={cn(disabled && "pointer-events-none opacity-50")}
       />
+
+      {onStack && (
+        <Button variant="secondary" size="control" disabled={count < 2} onClick={onStack}>
+          <Layers className="size-3.5" /> {t("stack.stack")}
+        </Button>
+      )}
 
       <Button
         variant="dangerGhost"

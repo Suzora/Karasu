@@ -32,6 +32,9 @@ import { nextFocusGrouped } from "@/lib/formatGroups";
 import { groupEntries, type EntryGroup } from "@/lib/listGroups";
 import { GroupedList } from "@/components/list/GroupedList";
 import { TagColourDot } from "@/components/list/TagChip";
+import StackSheet from "@/components/overlays/StackSheet";
+import { collapseStacks, dissolveStack, makeStack, moveMember, removeMember } from "@/lib/stacks";
+import { useStacks, useTypeStacks } from "@/stores/stacks";
 import RandomPickModal from "@/components/overlays/RandomPickModal";
 import PresetModal from "@/components/overlays/PresetModal";
 import { loadPresets, savePresets, type Preset } from "@/lib/presets";
@@ -456,16 +459,25 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     setSelected(new Set());
   }, []);
 
+  // Stacks are drawn in the grid only, where a cover can carry the others behind it; rows list every entry.
+  const stacks = useTypeStacks(type);
+  const updateStacks = useStacks((s) => s.update);
+  const [openStack, setOpenStack] = useState<string | null>(null);
+  const { items: shown, stackOf } = useMemo(
+    () => (layout === "grid" ? collapseStacks(entries, stacks) : { items: entries, stackOf: new Map() }),
+    [layout, entries, stacks],
+  );
+
   // Sections by tag or custom list; an entry sits in each it names, and those naming none gather last.
   const groups = useMemo<EntryGroup<MediaListEntry>[] | null>(() => {
     if (view.group === "tag") {
-      return groupEntries(entries, (e) => searchKeys.get(e.id)?.tags ?? [], allTags.map((x) => x.toLowerCase()));
+      return groupEntries(shown, (e) => searchKeys.get(e.id)?.tags ?? [], allTags.map((x) => x.toLowerCase()));
     }
     if (view.group === "list") {
-      return groupEntries(entries, (e) => listNames.filter((n) => e.customLists?.[n] === true), listNames);
+      return groupEntries(shown, (e) => listNames.filter((n) => e.customLists?.[n] === true), listNames);
     }
     return null;
-  }, [view.group, entries, searchKeys, allTags, listNames]);
+  }, [view.group, shown, searchKeys, allTags, listNames]);
   const tagNames = useMemo(() => new Map(allTags.map((x) => [x.toLowerCase(), x])), [allTags]);
   const groupLabel = useCallback(
     (key: string) =>
@@ -483,7 +495,14 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   // What the sections draw, in their order; the keys walk this rather than the flat list while grouped.
   const [drawn, setDrawnState] = useState<{ entries: MediaListEntry[]; sizes: number[] } | null>(null);
   const setDrawn = useCallback((d: MediaListEntry[], sizes: number[]) => setDrawnState({ entries: d, sizes }), []);
-  const nav = groups && drawn ? drawn.entries : entries;
+  const nav = groups && drawn ? drawn.entries : shown;
+
+  // A chosen stack brings all its members, so stacking a stack with another title grows it rather than splitting it.
+  const stackSelection = () => {
+    const ids = [...selected].flatMap((id) => stackOf.get(id)?.members.map((m: MediaListEntry) => m.mediaId) ?? [id]);
+    updateStacks(type, (s) => makeStack(s, ids, crypto.randomUUID()));
+    exitSelect();
+  };
 
   const selectedEntries = useMemo(
     () => entries.filter((e) => selected.has(e.mediaId)),
@@ -549,10 +568,13 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       if (focus === null || !entry) return;
 
       switch (e.key) {
-        case "Enter":
+        case "Enter": {
           e.preventDefault();
-          navigate(`/media/${entry.media.id}`);
+          const stacked = stackOf.get(entry.mediaId);
+          if (stacked) setOpenStack(stacked.stack.id);
+          else navigate(`/media/${entry.media.id}`);
           break;
+        }
         case " ":
           // Without this the page scrolls a screen down under the grid.
           e.preventDefault();
@@ -609,9 +631,12 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
   const unit = type === "ANIME" ? t("common.episodes") : t("common.chapters");
 
-  const renderCard = (entry: MediaListEntry, i: number) => (
+  const renderCard = (entry: MediaListEntry, i: number) => {
+    const stacked = stackOf.get(entry.mediaId);
+    return (
     <GridCard
       key={entry.id}
+      stack={stacked && { members: stacked.members, onOpen: () => setOpenStack(stacked.stack.id) }}
       entry={entry}
       focused={i === focus}
       unit={unit}
@@ -623,7 +648,8 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       selected={selected.has(entry.mediaId)}
       onToggleSelect={toggleSelect}
     />
-  );
+    );
+  };
   const renderPhoneRow = (entry: MediaListEntry, i: number) => (
     <PhoneRow
       key={entry.id}
@@ -878,7 +904,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
                 <VirtualGrid
                   // Keyed on the view and the shell, so no row height measured for one layout is reused by another.
                   key={`grid-${phone}`}
-                  items={entries}
+                  items={shown}
                   scrollRef={scrollRef}
                   gridClassName="media-grid gap-x-4"
                   rowGap={24}
@@ -961,9 +987,33 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
             onPrivate={bulkPrivate}
             onDelete={bulkDelete}
             onClear={exitSelect}
+            onStack={layout === "grid" ? stackSelection : undefined}
             names={chosen.map((e) => displayTitle(e.media.title))}
           />
         )}
+      </Presence>
+
+      <Presence value={openStack ? (stacks.find((s) => s.id === openStack) ?? null) : null}>
+        {(stack, leaving) => {
+          // The tab's own copy, so a +1 in the sheet shows at once; a member that left the tab leaves the sheet.
+          const pool = new Map((byStatus.get(tab) ?? []).map((e) => [e.mediaId, e]));
+          const members = stack.members.map((id) => pool.get(id)).filter((e): e is MediaListEntry => e !== undefined);
+          return (
+            <StackSheet
+              leaving={leaving}
+              members={members}
+              unit={unit}
+              onPlusOne={plusOne}
+              onMove={(id, by) => updateStacks(type, (s) => moveMember(s, stack.id, id, by))}
+              onTake={(id) => updateStacks(type, (s) => removeMember(s, stack.id, id))}
+              onDissolve={() => {
+                updateStacks(type, (s) => dissolveStack(s, stack.id));
+                setOpenStack(null);
+              }}
+              onClose={() => setOpenStack(null)}
+            />
+          );
+        }}
       </Presence>
 
       {/* Presence rather than a bare conditional: the dialog keeps its entry while it animates away. */}

@@ -955,6 +955,18 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
       "Ihre Episoden- und Kapitelzahlen unterscheiden sich, daher braucht das {{n}} Anfragen an AniList statt einer, aus demselben Minutenbudget wie Sync und Scrobbling.",
     completeConfirm: "Alle abschließen",
   },
+  stack: {
+    stack: "Stapeln",
+    count: "{{count}} Einträge",
+    summary: "Stapel · {{done}} von {{count}} fertig",
+    open: "Stapel {{title}} öffnen",
+    sheetTitle: "Stapel: {{title}}",
+    moveUp: "{{title}} nach oben",
+    moveDown: "{{title}} nach unten",
+    take: "{{title}} aus dem Stapel nehmen",
+    dissolve: "Stapel auflösen",
+    hint: "Stapel liegen nur auf diesem Gerät.",
+  },
   palette: {
     placeholder: "Zu Seite oder Titel springen …",
     empty: "Keine Treffer.",

@@ -25,6 +25,7 @@ export const GridCard = memo(function GridCard({
   selected,
   focused,
   onToggleSelect,
+  stack,
 }: {
   entry: MediaListEntry;
   unit: string;
@@ -37,6 +38,8 @@ export const GridCard = memo(function GridCard({
   selected: boolean;
   focused: boolean;
   onToggleSelect: (mediaId: number) => void;
+  /** Drawn as a stack: the members in the stack's order, this entry first among them, and how to open them. */
+  stack?: { members: MediaListEntry[]; onOpen: (mediaId: number) => void };
 }) {
   const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
@@ -44,7 +47,7 @@ export const GridCard = memo(function GridCard({
   const max = maxProgress(media);
   const plusOne = canIncrement(entry);
   const completable = entry.status !== "COMPLETED";
-  return (
+  const cell = (
     <CoverCell
       to={`/media/${media.id}`}
       cover={media.coverImage.large}
@@ -59,14 +62,14 @@ export const GridCard = memo(function GridCard({
       selected={focused || (selectMode && selected)}
       // In select mode the cover is the checkbox target; navigating away mid-selection is never what the click meant.
       onCoverClick={
-        selectMode ? () => onToggleSelect(entry.mediaId) : undefined
+        selectMode ? () => onToggleSelect(entry.mediaId) : stack ? () => stack.onOpen(entry.mediaId) : undefined
       }
       score={
         !selectMode && entry.score > 0
           ? formatScore(scoreFormat, entry.score, i18n.language)
           : undefined
       }
-      caption={<CardCaption entry={entry} max={max} unit={unit} />}
+      caption={stack ? <StackCaption lead={entry} members={stack.members} /> : <CardCaption entry={entry} max={max} unit={unit} />}
       overlay={
         selectMode ? (
           <SelectBox
@@ -75,6 +78,15 @@ export const GridCard = memo(function GridCard({
             label={t("bulk.selectTitle", { title: displayTitle(media.title) })}
             className="absolute left-2 top-2 z-20"
           />
+        ) : stack ? (
+          <button
+            type="button"
+            onClick={() => stack.onOpen(entry.mediaId)}
+            aria-label={t("stack.open", { title: displayTitle(media.title) })}
+            className="absolute bottom-2 left-2 rounded-full bg-on-cover/93 px-2 py-0.5 text-2xs font-semibold text-on-cover-edge focus-visible:outline-2 focus-visible:outline-accent-500"
+          >
+            {t("stack.count", { count: stack.members.length })}
+          </button>
         ) : (
           // A wash under the top corner while the actions show; touch has no hover, so it stays there.
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-on-cover/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100" />
@@ -82,7 +94,7 @@ export const GridCard = memo(function GridCard({
       }
       actions={
         // Suppressed in select mode; keep `group-focus-within`, or Tab lands on fully transparent buttons.
-        !selectMode && (
+        !selectMode && !stack && (
           <div className="flex gap-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
             {/* Narrow or touched, a cover keeps one circle, the quick write; a long press reaches the editor. */}
             <IconButton
@@ -132,7 +144,46 @@ export const GridCard = memo(function GridCard({
       <TagChips notes={entry.notes} />
     </CoverCell>
   );
+  if (!stack) return cell;
+  // The next two members lie behind the cover, offset up and right, so the stack reads as one before it is opened.
+  const behind = stack.members.filter((m) => m.mediaId !== entry.mediaId).slice(0, 2);
+  return (
+    <div className="relative">
+      {behind
+        .map((m, i) => (
+          <div
+            key={m.mediaId}
+            aria-hidden
+            className={cn(
+              "absolute inset-x-0 top-0 aspect-[2/3] overflow-hidden rounded-cover border border-surface-700 bg-surface-800",
+              i === 0 ? "translate-x-2 -translate-y-2 brightness-75" : "translate-x-3.5 -translate-y-3.5 brightness-50",
+            )}
+          >
+            {m.media.coverImage.large && !blurred && (
+              <img src={m.media.coverImage.large} alt="" loading="lazy" className="h-full w-full object-cover" />
+            )}
+          </div>
+        ))
+        .reverse()}
+      {cell}
+    </div>
+  );
 });
+
+/** A stack's caption: the cover's title, then how many of its members are finished. */
+function StackCaption({ lead, members }: { lead: MediaListEntry; members: MediaListEntry[] }) {
+  const { t } = useTranslation();
+  const done = members.filter((m) => {
+    const max = maxProgress(m.media);
+    return m.status === "COMPLETED" || (max !== null && m.progress >= max);
+  }).length;
+  return (
+    <>
+      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(lead.media.title)}</p>
+      <p className="mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">{t("stack.summary", { done, count: members.length })}</p>
+    </>
+  );
+}
 
 /** The title, the count and a tick per episode, laid on the cover's foot the way the Overview's cards carry them. */
 function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number | null; unit: string }) {

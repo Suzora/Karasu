@@ -65,7 +65,15 @@ const openCast = async (p) => {
   for (const title of ["Besetzung & Staff", "Cast & staff"]) await toCard(title)(p);
 };
 const statusButton = (p) => p.locator('[title="Status ändern"], [title="Change status"], [title="Status wählen"], [title="Choose a status"]').first();
-export const SCREENS = [
+export /** Selects the list's first three covers and lays them on one stack through the bulk bar, as a person would. */
+async function stackFirstThree(p) {
+  await p.getByRole("button", { name: "Auswählen" }).first().click();
+  for (let i = 0; i < 3; i++) await p.locator("[data-media-id] [data-fills-frame]").nth(i).click();
+  await p.getByRole("button", { name: "Stapeln" }).click();
+  await p.waitForTimeout(400);
+}
+
+const SCREENS = [
   { id: "d1-uebersicht", w: 1232, h: 800, route: "/" },
   { id: "d1-uebersicht-fenster", w: 1536, h: 960, route: "/" },
   { id: "d1-uebersicht-erkannt", w: 1536, h: 960, route: "/", playing: true },
@@ -301,6 +309,9 @@ export const SCREENS = [
   { id: "d25-raster-hover", w: 1232, h: 800, route: "/list", act: (p) => p.locator("[data-media-id]").nth(1).hover() },
   { id: "d115-liste-gruppiert", w: 1232, h: 800, route: "/list?group=tag" },
   { id: "p83-liste-gruppiert", w: 405, h: 860, phone: true, route: "/list?group=tag" },
+  { id: "d117-liste-stapel", w: 1232, h: 800, route: "/list", act: stackFirstThree },
+  { id: "d118-liste-stapel-blatt", w: 1232, h: 800, route: "/list", act: async (p) => { await stackFirstThree(p); await p.locator("[data-media-id] button", { hasText: "3 Einträge" }).click(); } },
+  { id: "p84-liste-stapel-blatt", w: 405, h: 860, phone: true, route: "/list", act: async (p) => { await stackFirstThree(p); await p.locator("[data-media-id] button", { hasText: "3 Einträge" }).click(); } },
   { id: "d116-liste-gruppiert-zu", w: 1232, h: 800, route: "/list?group=tag", act: async (p) => { await p.locator("nav[aria-label=Abschnitte] button").last().click(); await p.locator("nav[aria-label=Abschnitte] button", { hasText: "Rewatch" }).click(); } },
   { id: "d26-uebersicht-lang", w: 1232, h: 2600, route: "/" },
   { id: "p14-uebersicht-lang", w: 405, h: 4200, phone: true, route: "/" },

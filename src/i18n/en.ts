@@ -954,6 +954,18 @@ export const en = {
       "Their episode and chapter counts differ, so this takes {{n}} requests to AniList instead of one, from the same per-minute budget syncing and scrobbling use.",
     completeConfirm: "Complete all",
   },
+  stack: {
+    stack: "Stack",
+    count: "{{count}} entries",
+    summary: "Stack · {{done}} of {{count}} finished",
+    open: "Open the stack {{title}}",
+    sheetTitle: "Stack: {{title}}",
+    moveUp: "Move {{title}} up",
+    moveDown: "Move {{title}} down",
+    take: "Take {{title}} out of the stack",
+    dissolve: "Dissolve stack",
+    hint: "Stacks are kept on this device only.",
+  },
   palette: {
     placeholder: "Jump to a page or title…",
     empty: "No matches.",
