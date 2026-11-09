@@ -16,7 +16,8 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Presence } from "@/components/ui/presence";
 import MatchPicker from "@/components/overlays/MatchPicker";
 import { DecodedImage } from "@/components/media/DecodedImage";
-import type { Media } from "@/api/types";
+import type { Media, MediaType } from "@/api/types";
+import { useCachedEntry } from "@/hooks/useCachedEntry";
 import { useContentFilter } from "@/stores/contentFilter";
 import { shouldBlur } from "@/lib/contentFilter";
 import { formatLabel } from "@/lib/format";
@@ -107,11 +108,14 @@ export default function DetectionSurface({
   playing,
   variant = "expanded",
   media = null,
+  rail = false,
 }: {
   playing: NowPlaying;
   variant?: DetectionVariant;
   /** The matched entry's media, for the cover and the meta line; null draws the placeholder. */
   media?: Media | null;
+  /** The Overview's rail: the cover as a band behind the heading, which the card then draws itself. */
+  rail?: boolean;
 }) {
   const scrobble = useNowPlaying((s) => s.scrobble);
   const countdown = useCountdown(
@@ -189,6 +193,55 @@ export default function DetectionSurface({
     );
   }
 
+  // The Overview's rail has room for the cover twice: blurred as a band behind the heading, and sharp over it.
+  if (rail) {
+    return (
+      <div>
+        <div className="relative h-20 overflow-hidden bg-on-cover">
+          {cover && (
+            <DecodedImage
+              src={cover}
+              className={cn("absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-md", veiled && "veil")}
+            />
+          )}
+          <div aria-hidden className="absolute inset-0 banner-scrim" />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-b from-transparent to-surface-900" />
+          <p className="relative flex items-center justify-between gap-2 px-4 pt-3 text-xs">
+            <span className="font-medium text-on-cover-edge">{t("dashboard.nowPlaying")}</span>
+            <span className="truncate text-on-cover-edge/80">{playing.process}</span>
+          </p>
+        </div>
+        <div className="-mt-10 flex gap-3 px-4">
+          <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-inner bg-surface-800 shadow-float">
+            {cover ? (
+              <DecodedImage src={cover} className={cn("h-full w-full object-cover", veiled && "veil")} />
+            ) : (
+              <span className="grid h-full place-items-center text-ink-600">
+                <KindIcon playing={playing} className="size-5" />
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1 pt-11">
+            <p className={cn("line-clamp-2 text-ui font-semibold leading-snug text-ink-100", titleJp && "font-brand-jp")}>{titleNode}</p>
+            {(labelText || playing.episodeTitle) && (
+              <p className="truncate text-xs text-ink-300">
+                {labelText && <span className="font-medium tabular-nums text-ink-100">{labelText}</span>}
+                {labelText && playing.episodeTitle && " · "}
+                {playing.episodeTitle}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="space-y-1 px-4 pb-4 pt-3">
+          {metaText && <p className="truncate text-xs text-ink-500">{metaText}</p>}
+          <div key={scrobble.phase} className="animate-fade-in">
+            <ScrobbleStatus countdown={countdown.label} compact={false} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="flex gap-3">
@@ -244,7 +297,10 @@ function ScrobbleStatus({
   const { t } = useTranslation();
   const current = useNowPlaying((s) => s.current);
   const scrobble = useNowPlaying((s) => s.scrobble);
-  const signedIn = !!useAuth((s) => s.viewer);
+  const viewerId = useAuth((s) => s.viewer?.id);
+  const signedIn = viewerId != null;
+  // The list as it stands now; the detection's own copy is read once, at the match, and goes stale after a sync.
+  const entry = useCachedEntry(viewerId, current?.mediaType as MediaType | undefined, current?.mediaId ?? undefined);
 
   // Compact keeps the countdown and nothing else: the sentences below need room the collapsed strip does not have.
   if (compact) {
@@ -341,7 +397,7 @@ function ScrobbleStatus({
         return (
           <p className="text-xs text-ink-500">
             {t("nowPlaying.yourProgress", {
-              progress: `${current.progress}${
+              progress: `${entry?.progress ?? current.progress}${
                 current.totalEpisodes ? ` / ${current.totalEpisodes}` : ""
               }`,
             })}

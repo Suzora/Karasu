@@ -141,9 +141,8 @@ function RailDetection() {
   const media = useDetectionMedia(current?.mediaId ?? null);
   if (!current) return null;
   return (
-    <section aria-label={t("dashboard.nowPlaying")} className={cn(panel, "overflow-hidden")}>
-      <p className="px-4 pt-3 label-text text-accent-400">{t("dashboard.nowPlaying")}</p>
-      <DetectionSurface playing={current} variant="expanded" media={media} />
+    <section aria-label={t("dashboard.nowPlaying")} className={cn(panel, "shrink-0 overflow-hidden")}>
+      <DetectionSurface playing={current} variant="expanded" media={media} rail />
     </section>
   );
 }

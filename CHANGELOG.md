@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 866187ff -->
+<!-- generated-through: 8a46fcb -->
 
 ### Fixed
 
@@ -37,6 +37,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - A click anywhere on the Overview's banner opens the title it shows; the search and the timeline keep their own.
 - The Overview's banner shows a different one of the season's ten most popular titles on every visit.
 - The diagnostics report reads as plain headings and lists instead of tables, in the app as well as in an issue.
+- The Overview's "Playing now" card shows the cover as a band behind its heading, is no longer cut off, and its progress matches the list.
 
 ### Added
 

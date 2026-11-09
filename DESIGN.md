@@ -1259,3 +1259,13 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   reads the same everywhere, and it needs no tooltip, which the phone does
   not have. `donatorLabel` decides, by tier and never by the badge text,
   and the two fields ride on the feed request that was already made.
+- **2026-11-08:** The Overview rail's "Playing now" card draws the cover twice:
+  blurred as a band behind the heading, and sharp over its lower edge beside
+  the title and the episode, with the format line and the status beneath (B
+  of three: today's layout with its padding fixed, this cover band, and a
+  smaller cover over a progress bar). The heading and the player's name sit
+  on the band in the banner's `on-cover` colours over its scrim, after the
+  mockup's accent text on the bare blur read poorly, and the band fades into
+  the card at its foot so the light theme has no hard edge. The card no longer
+  shrinks: in the rail's height-capped column its `overflow-hidden` let it be
+  squeezed to a sliver, which is why it looked cut off.
