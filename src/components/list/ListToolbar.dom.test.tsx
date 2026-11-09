@@ -117,6 +117,15 @@ describe("ListToolbar", () => {
     expect(onChange).toHaveBeenLastCalledWith(CLEAR_FILTERS);
   });
 
+  it("draws a chip per chosen tag, and removing one keeps the other", () => {
+    const onChange = vi.fn();
+    render(<Probe url="tag=cozy,dub" onChange={onChange} />);
+    const chips = screen.getByRole("group", { name: "list.activeFilters" });
+    fireEvent.click(within(chips).getByRole("button", { name: 'list.removeFilter:{"name":"cozy"}' }));
+    expect(onChange).toHaveBeenLastCalledWith({ tag: "dub" });
+    expect(within(chips).getByRole("button", { name: 'list.removeFilter:{"name":"dub"}' })).toBeInTheDocument();
+  });
+
   it("draws no chip row while only the search or the sort is set", () => {
     render(<Probe url="q=x&sort=title" />);
     expect(screen.queryByRole("group", { name: "list.activeFilters" })).toBeNull();

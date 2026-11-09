@@ -64,6 +64,7 @@ import {
   mergeView,
   parseListView,
   SORT_DEFAULT_DIR,
+  tagSet,
   writeViewParams,
   type SortKey,
   type ViewPatch,
@@ -328,10 +329,12 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   // Custom list names from the entries' membership maps, never the groups' display name; lib/customLists says why.
   const listNames = useMemo(() => customListNames(data?.lists ?? []), [data]);
 
-  // A tag that no longer exists anywhere must not keep the list empty.
+  // A chosen tag that no longer exists anywhere drops out alone, so it cannot keep the list empty.
   useEffect(() => {
-    if (tagFilter && !allTags.some((x) => x.toLowerCase() === tagFilter.toLowerCase()))
-      setView({ tag: "" });
+    if (!tagFilter) return;
+    const known = new Set(allTags.map((x) => x.toLowerCase()));
+    const kept = tagFilter.split(",").filter((x) => known.has(x.trim().toLowerCase()));
+    if (kept.length !== tagFilter.split(",").length) setView({ tag: kept.join(",") });
   }, [allTags, tagFilter, setView]);
 
   // Same for a custom list deleted on anilist.co since the URL was minted.
@@ -377,8 +380,9 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       scores = found;
     }
     if (tagFilter) {
-      const tag = tagFilter.toLowerCase();
-      list = list.filter((e) => searchKeys.get(e.id)?.tags.includes(tag));
+      // Any chosen tag will do: tags are personal labels, and asking for all of them at once empties a list.
+      const wanted = new Set(tagSet(tagFilter));
+      list = list.filter((e) => searchKeys.get(e.id)?.tags.some((x) => wanted.has(x)));
     }
     if (formatFilter) {
       list = list.filter((e) => e.media.format === formatFilter);

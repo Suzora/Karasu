@@ -5,7 +5,9 @@ import {
   mergeView,
   parseListView,
   sortPatch,
+  tagSet,
   toggleFilter,
+  toggleTag,
   writeViewParams,
 } from "./listFilters";
 
@@ -112,5 +114,39 @@ describe("toggleFilter", () => {
     const view = { format: "TV", country: "", list: "", tag: "" };
     expect(toggleFilter(view, "format", "MOVIE")).toEqual({ format: "MOVIE" });
     expect(toggleFilter(view, "format", "TV")).toEqual({ format: "" });
+  });
+});
+
+describe("several tags", () => {
+  const view = (tag: string) => ({ format: "", country: "", list: "", tag });
+
+  it("reads a comma-joined value as a set, an old single tag as one", () => {
+    expect(tagSet("Comfort,Family")).toEqual(["comfort", "family"]);
+    expect(tagSet("fav")).toEqual(["fav"]);
+    expect(tagSet(" a , A ,, b ")).toEqual(["a", "b"]);
+    expect(tagSet("")).toEqual([]);
+  });
+
+  it("adds a tag beside the ones chosen and takes one off alone", () => {
+    expect(toggleTag(view(""), "Comfort")).toEqual({ tag: "Comfort" });
+    expect(toggleTag(view("Comfort"), "Family")).toEqual({ tag: "Comfort,Family" });
+    expect(toggleTag(view("Comfort,Family"), "comfort")).toEqual({ tag: "Family" });
+    expect(toggleTag(view("Family"), "Family")).toEqual({ tag: "" });
+  });
+
+  it("routes a tag pill through the set, not the single-value toggle", () => {
+    expect(toggleFilter(view("Comfort"), "tag", "Family")).toEqual({ tag: "Comfort,Family" });
+  });
+
+  it("draws one chip per chosen tag", () => {
+    expect(activeFilters(view("Comfort,Family"))).toEqual([
+      { key: "tag", value: "Comfort" },
+      { key: "tag", value: "Family" },
+    ]);
+  });
+
+  it("writes the set to the URL and drops the param once it is empty", () => {
+    expect(writeViewParams(url(""), { tag: "Comfort,Family" }).get("tag")).toBe("Comfort,Family");
+    expect(writeViewParams(url("tag=Comfort"), { tag: "" }).has("tag")).toBe(false);
   });
 });

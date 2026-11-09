@@ -108,9 +108,33 @@ export interface FilterChip {
   value: string;
 }
 
-/** The active panel filters in panel order, one chip each. */
+/** The chosen tags as written, in the order picked; a tag can hold no comma, since the notes block splits on one. */
+function tagParts(raw: string): string[] {
+  const seen = new Set<string>();
+  return raw
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t !== "" && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
+}
+
+/** The chosen tags lower-cased, which is how an entry's tags are compared; an entry matches any of them. */
+export function tagSet(raw: string): string[] {
+  return tagParts(raw).map((t) => t.toLowerCase());
+}
+
+/** Adds a tag beside the ones chosen, or takes it off alone when it is already there. */
+export function toggleTag(view: Pick<ListView, "tag">, tag: string): ViewPatch {
+  const parts = tagParts(view.tag);
+  const has = parts.some((t) => t.toLowerCase() === tag.toLowerCase());
+  const next = has ? parts.filter((t) => t.toLowerCase() !== tag.toLowerCase()) : [...parts, tag];
+  return { tag: next.join(",") };
+}
+
+/** The active panel filters in panel order, one chip each and one per chosen tag. */
 export function activeFilters(view: Pick<ListView, FilterKey>): FilterChip[] {
-  return FILTER_KEYS.filter((key) => view[key] !== "").map((key) => ({ key, value: view[key] }));
+  return FILTER_KEYS.filter((key) => view[key] !== "").flatMap((key): FilterChip[] =>
+    key === "tag" ? tagParts(view.tag).map((value) => ({ key, value })) : [{ key, value: view[key] }],
+  );
 }
 
 /** Clears every panel filter and nothing else; the search has its own clear button. */
@@ -118,5 +142,6 @@ export const CLEAR_FILTERS: ViewPatch = { format: "", country: "", list: "", tag
 
 /** A pill pressed again takes its filter off, as a radio group with nothing chosen would. */
 export function toggleFilter(view: Pick<ListView, FilterKey>, key: FilterKey, value: string): ViewPatch {
+  if (key === "tag") return toggleTag(view, value);
   return { [key]: view[key] === value ? "" : value };
 }

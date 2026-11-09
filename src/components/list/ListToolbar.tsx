@@ -36,7 +36,9 @@ import {
   SORT_DEFAULT_DIR,
   SORT_KEYS,
   sortPatch,
+  tagSet,
   toggleFilter,
+  toggleTag,
   type FilterChip,
   type ListView,
   type SortDir,
@@ -193,7 +195,7 @@ export function ListToolbar(props: ListToolbarProps) {
           <ViewSwitch layout={props.layout} onLayout={props.onLayout} />
         </div>
       )}
-      <FilterChips chips={chips} onChange={props.onChange} />
+      <FilterChips chips={chips} tag={view.tag} onChange={props.onChange} />
     </div>
   );
 }
@@ -468,13 +470,14 @@ function FilterPanel({
   const pick = (key: "format" | "country" | "list" | "tag", value: string) => onDraft(toggleFilter(view, key, value));
 
   const docs = useMemo(() => new Map(tags.map((tag) => [tag, prepareDoc([tag])] as const)), [tags]);
-  // The chosen tag stays in view whatever the search says, so it can always be let go of.
+  const chosen = useMemo(() => new Set(tagSet(view.tag)), [view.tag]);
+  // The chosen tags stay in view whatever the search says, so each can always be let go of.
   const shownTags = useMemo(() => {
     const needle = term.trim();
     if (!needle) return tags;
     const pq = prepareQuery(needle);
-    return tags.filter((tag) => tag === view.tag || fuzzyScore(docs.get(tag)!, pq) > 0);
-  }, [tags, docs, term, view.tag]);
+    return tags.filter((tag) => chosen.has(tag.toLowerCase()) || fuzzyScore(docs.get(tag)!, pq) > 0);
+  }, [tags, docs, term, chosen]);
 
   return (
     <div>
@@ -532,7 +535,7 @@ function FilterPanel({
             )}
             <PillGroup label={t("tags.label")}>
               {shownTags.map((tag) => (
-                <Pill key={tag} className="h-7" active={view.tag === tag} onClick={() => pick("tag", tag)}>
+                <Pill key={tag} className="h-7" active={chosen.has(tag.toLowerCase())} onClick={() => pick("tag", tag)}>
                   {tag}
                 </Pill>
               ))}
@@ -654,9 +657,12 @@ function chipName(chip: FilterChip, t: TFunction): string {
 /** One button per active panel filter plus the reset, and nothing at all while no panel filter is set. */
 function FilterChips({
   chips,
+  tag,
   onChange,
 }: {
   chips: FilterChip[];
+  /** The chosen tags as written, so removing one tag's chip keeps the others. */
+  tag: string;
   onChange: (patch: ViewPatch) => void;
 }) {
   const { t } = useTranslation();
@@ -672,10 +678,10 @@ function FilterChips({
         const name = chipName(chip, t);
         return (
           <RemovableChip
-            key={chip.key}
+            key={`${chip.key}:${chip.value}`}
             icon={chip.key === "tag" ? Tag : chip.key === "list" ? ListChecks : undefined}
             removeLabel={t("list.removeFilter", { name })}
-            onRemove={() => onChange({ [chip.key]: "" })}
+            onRemove={() => onChange(chip.key === "tag" ? toggleTag({ tag }, chip.value) : { [chip.key]: "" })}
           >
             {name}
           </RemovableChip>
