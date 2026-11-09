@@ -28,6 +28,10 @@ import { CoverGridSkeleton } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
 import { isTyping } from "@/components/shell/KeyboardSheet";
 import { nextFocus, ownsKeyboard, restingSurfaces, type Move } from "@/lib/roving";
+import { nextFocusGrouped } from "@/lib/formatGroups";
+import { groupEntries, type EntryGroup } from "@/lib/listGroups";
+import { GroupedList } from "@/components/list/GroupedList";
+import { TagColourDot } from "@/components/list/TagChip";
 import RandomPickModal from "@/components/overlays/RandomPickModal";
 import PresetModal from "@/components/overlays/PresetModal";
 import { loadPresets, savePresets, type Preset } from "@/lib/presets";
@@ -238,6 +242,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       format: p.format ?? "",
       country: p.country ?? "",
       list: p.list ?? "",
+      group: p.group === "tag" || p.group === "list" ? p.group : "",
     });
   };
 
@@ -255,6 +260,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
         format: formatFilter,
         country: countryFilter,
         list: listFilter,
+        group: view.group,
       },
     ];
     setPresets(next);
@@ -450,6 +456,35 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     setSelected(new Set());
   }, []);
 
+  // Sections by tag or custom list; an entry sits in each it names, and those naming none gather last.
+  const groups = useMemo<EntryGroup<MediaListEntry>[] | null>(() => {
+    if (view.group === "tag") {
+      return groupEntries(entries, (e) => searchKeys.get(e.id)?.tags ?? [], allTags.map((x) => x.toLowerCase()));
+    }
+    if (view.group === "list") {
+      return groupEntries(entries, (e) => listNames.filter((n) => e.customLists?.[n] === true), listNames);
+    }
+    return null;
+  }, [view.group, entries, searchKeys, allTags, listNames]);
+  const tagNames = useMemo(() => new Map(allTags.map((x) => [x.toLowerCase(), x])), [allTags]);
+  const groupLabel = useCallback(
+    (key: string) =>
+      key === ""
+        ? t(view.group === "tag" ? "list.groupUntagged" : "list.groupUnlisted")
+        : view.group === "tag"
+          ? (tagNames.get(key) ?? key)
+          : key,
+    [t, view.group, tagNames],
+  );
+  const groupDot = useCallback(
+    (key: string) => (view.group === "tag" && key !== "" ? <TagColourDot tag={key} /> : null),
+    [view.group],
+  );
+  // What the sections draw, in their order; the keys walk this rather than the flat list while grouped.
+  const [drawn, setDrawnState] = useState<{ entries: MediaListEntry[]; sizes: number[] } | null>(null);
+  const setDrawn = useCallback((d: MediaListEntry[], sizes: number[]) => setDrawnState({ entries: d, sizes }), []);
+  const nav = groups && drawn ? drawn.entries : entries;
+
   const selectedEntries = useMemo(
     () => entries.filter((e) => selected.has(e.mediaId)),
     [entries, selected],
@@ -466,19 +501,21 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       if (!ownsKeyboard(document.activeElement, restingSurfaces(scrollRef.current))) return;
       if (editing || removing || showRandom || showPresetSave) return;
       if (e.altKey) return;
-      if (entries.length === 0) return;
+      if (nav.length === 0) return;
 
-      const entry = focus === null ? undefined : entries[focus];
+      const entry = focus === null ? undefined : nav[focus];
 
       const move = (direction: Move) => {
         e.preventDefault();
-        const next = nextFocus(focus, direction, columns, entries.length);
+        const next = groups && drawn
+          ? nextFocusGrouped(focus, direction, columns, drawn.sizes)
+          : nextFocus(focus, direction, columns, nav.length);
         if (next === null) return;
         setFocus(next);
         // Shift extends the selection one step at a time, which is what a range select is from a held anchor.
         if (e.shiftKey) {
           setSelectMode(true);
-          setSelected((prev) => new Set(prev).add(entries[next].mediaId));
+          setSelected((prev) => new Set(prev).add(nav[next].mediaId));
         }
       };
 
@@ -497,7 +534,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
         if (e.key.toLowerCase() === "a") {
           e.preventDefault();
           setSelectMode(true);
-          setSelected(new Set(entries.map((x) => x.mediaId)));
+          setSelected(new Set(nav.map((x) => x.mediaId)));
         }
         return;
       }
@@ -564,10 +601,70 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   // A filter or tab change re-pools the entries, so an old index would name a different title.
   useEffect(
     () => setFocus(null),
-    [tab, deferredFilter, tagFilter, formatFilter, countryFilter, listFilter, sort, dir],
+    [tab, deferredFilter, tagFilter, formatFilter, countryFilter, listFilter, sort, dir, view.group],
   );
+  useEffect(() => {
+    if (!groups) setDrawnState(null);
+  }, [groups]);
 
   const unit = type === "ANIME" ? t("common.episodes") : t("common.chapters");
+
+  const renderCard = (entry: MediaListEntry, i: number) => (
+    <GridCard
+      key={entry.id}
+      entry={entry}
+      focused={i === focus}
+      unit={unit}
+      blurred={shouldBlur(entry.media, level, blurAdult)}
+      onPlusOne={plusOne}
+      onComplete={complete}
+      onEdit={startEdit}
+      selectMode={selectMode}
+      selected={selected.has(entry.mediaId)}
+      onToggleSelect={toggleSelect}
+    />
+  );
+  const renderPhoneRow = (entry: MediaListEntry, i: number) => (
+    <PhoneRow
+      key={entry.id}
+      entry={entry}
+      variant={layout === "text" ? "text" : "thumbs"}
+      unit={unit}
+      focused={i === focus}
+      blurred={shouldBlur(entry.media, level, blurAdult)}
+      onPlusOne={plusOne}
+      onEdit={startEdit}
+      selectMode={selectMode}
+      selected={selected.has(entry.mediaId)}
+      onToggleSelect={toggleSelect}
+    />
+  );
+  const renderTableRow = (entry: MediaListEntry, i: number) => (
+    <ListRow
+      key={entry.id}
+      entry={entry}
+      tier={tier}
+      variant={layout === "text" ? "text" : "thumbs"}
+      focused={i === focus}
+      blurred={shouldBlur(entry.media, level, blurAdult)}
+      onQuickSave={quickSave}
+      onComplete={complete}
+      onEdit={startEdit}
+      selectMode={selectMode}
+      selected={selected.has(entry.mediaId)}
+      onToggleSelect={toggleSelect}
+    />
+  );
+  const groupProps = {
+    groups: groups ?? [],
+    label: groupLabel,
+    dot: groupDot,
+    scrollRef,
+    focusIndex: focus,
+    onColumns: setColumns,
+    onDrawn: setDrawn,
+  };
+
 
   if (isLoading) {
     // The grid, not a sentence: a line of text where a wall of covers is about to appear moves everything twice.
@@ -768,61 +865,67 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
                 />
               )
             ) : layout === "grid" ? (
-              <VirtualGrid
-                // Keyed on the view and the shell, so no row height measured for one layout is reused by another.
-                key={`grid-${phone}`}
-                items={entries}
-                scrollRef={scrollRef}
-                gridClassName="media-grid gap-x-4"
-                rowGap={24}
-                estimateRowHeight={300}
-                focusIndex={focus}
-                onColumns={setColumns}
-                renderItem={(entry, i) => (
-                  <GridCard
-                    key={entry.id}
-                    entry={entry}
-                    focused={i === focus}
-                    unit={unit}
-                    blurred={shouldBlur(entry.media, level, blurAdult)}
-                    onPlusOne={plusOne}
-                    onComplete={complete}
-                    onEdit={startEdit}
-                    selectMode={selectMode}
-                    selected={selected.has(entry.mediaId)}
-                    onToggleSelect={toggleSelect}
-                  />
-                )}
-              />
-            ) : phone ? (
-              <div className="overflow-hidden rounded-panel border border-hair">
+              groups ? (
+                <GroupedList
+                  key={`grouped-grid-${phone}-${view.group}-${tab}`}
+                  {...groupProps}
+                  gridClassName="media-grid gap-x-4"
+                  rowGap={24}
+                  estimateRowHeight={300}
+                  renderItem={renderCard}
+                />
+              ) : (
                 <VirtualGrid
-                  key={`phone-${layout}`}
+                  // Keyed on the view and the shell, so no row height measured for one layout is reused by another.
+                  key={`grid-${phone}`}
                   items={entries}
                   scrollRef={scrollRef}
-                  // One bounded track: an `auto` one grows to a nowrap title and pushes the buttons out of the row.
+                  gridClassName="media-grid gap-x-4"
+                  rowGap={24}
+                  estimateRowHeight={300}
+                  focusIndex={focus}
+                  onColumns={setColumns}
+                  renderItem={renderCard}
+                />
+              )
+            ) : phone ? (
+              groups ? (
+                <GroupedList
+                  key={`grouped-phone-${layout}-${view.group}-${tab}`}
+                  {...groupProps}
                   gridClassName="grid grid-cols-1"
                   rowGap={0}
                   estimateRowHeight={layout === "text" ? PHONE_ROW_PX.text : PHONE_ROW_PX.thumbs}
-                  focusIndex={focus}
-                  onColumns={setColumns}
-                  renderItem={(entry, i) => (
-                    <PhoneRow
-                      key={entry.id}
-                      entry={entry}
-                      variant={layout === "text" ? "text" : "thumbs"}
-                      unit={unit}
-                      focused={i === focus}
-                      blurred={shouldBlur(entry.media, level, blurAdult)}
-                      onPlusOne={plusOne}
-                      onEdit={startEdit}
-                      selectMode={selectMode}
-                      selected={selected.has(entry.mediaId)}
-                      onToggleSelect={toggleSelect}
-                    />
-                  )}
+                  renderItem={renderPhoneRow}
+                  frameClassName="overflow-hidden rounded-panel border border-hair"
                 />
-              </div>
+              ) : (
+                <div className="overflow-hidden rounded-panel border border-hair">
+                  <VirtualGrid
+                    key={`phone-${layout}`}
+                    items={entries}
+                    scrollRef={scrollRef}
+                    // One bounded track: an `auto` one grows to a nowrap title and pushes the buttons out of the row.
+                    gridClassName="grid grid-cols-1"
+                    rowGap={0}
+                    estimateRowHeight={layout === "text" ? PHONE_ROW_PX.text : PHONE_ROW_PX.thumbs}
+                    focusIndex={focus}
+                    onColumns={setColumns}
+                    renderItem={renderPhoneRow}
+                  />
+                </div>
+              )
+            ) : groups ? (
+              <GroupedList
+                key={`grouped-table-${layout}-${view.group}-${tab}`}
+                {...groupProps}
+                gridClassName="grid"
+                rowGap={0}
+                estimateRowHeight={layout === "text" ? TEXT_ROW_HEIGHT_PX : ROW_HEIGHT_PX}
+                renderItem={renderTableRow}
+                frameClassName="overflow-hidden rounded-panel border border-hair"
+                frameHead={<ListHeader tier={tier} selectMode={selectMode} mediaType={type} cover={layout !== "text"} />}
+              />
             ) : (
               <div className="overflow-hidden rounded-panel border border-hair">
                 <ListHeader tier={tier} selectMode={selectMode} mediaType={type} cover={layout !== "text"} />
@@ -836,22 +939,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
                   estimateRowHeight={layout === "text" ? TEXT_ROW_HEIGHT_PX : ROW_HEIGHT_PX}
                   focusIndex={focus}
                   onColumns={setColumns}
-                  renderItem={(entry, i) => (
-                    <ListRow
-                      key={entry.id}
-                      entry={entry}
-                      tier={tier}
-                      variant={layout === "text" ? "text" : "thumbs"}
-                      focused={i === focus}
-                      blurred={shouldBlur(entry.media, level, blurAdult)}
-                      onQuickSave={quickSave}
-                      onComplete={complete}
-                      onEdit={startEdit}
-                      selectMode={selectMode}
-                      selected={selected.has(entry.mediaId)}
-                      onToggleSelect={toggleSelect}
-                    />
-                  )}
+                  renderItem={renderTableRow}
                 />
               </div>
             )}

@@ -25,6 +25,7 @@ describe("parseListView", () => {
       country: "",
       list: "",
       tag: "",
+      group: "",
     });
   });
 
@@ -148,5 +149,18 @@ describe("several tags", () => {
   it("writes the set to the URL and drops the param once it is empty", () => {
     expect(writeViewParams(url(""), { tag: "Comfort,Family" }).get("tag")).toBe("Comfort,Family");
     expect(writeViewParams(url("tag=Comfort"), { tag: "" }).has("tag")).toBe(false);
+  });
+});
+
+describe("the group param", () => {
+  it("reads a known grouping and drops anything else", () => {
+    expect(parseListView(new URLSearchParams("group=tag"), "ANIME").group).toBe("tag");
+    expect(parseListView(new URLSearchParams("group=list"), "ANIME").group).toBe("list");
+    expect(parseListView(new URLSearchParams("group=stack"), "ANIME").group).toBe("");
+  });
+
+  it("writes nothing for no grouping, so a whole tab is a clean URL", () => {
+    expect(writeViewParams(new URLSearchParams("group=tag"), { group: "" }).toString()).toBe("");
+    expect(writeViewParams(new URLSearchParams(), { group: "list" }).toString()).toBe("group=list");
   });
 });

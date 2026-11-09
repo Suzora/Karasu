@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import { Popover, type PopoverTriggerProps } from "@/components/ui/popover";
+import { type GroupBy } from "@/lib/listGroups";
 import { Pill } from "@/components/ui/pill";
 import { Badge } from "@/components/ui/badge";
 import { RemovableChip } from "@/components/ui/chip";
@@ -107,7 +108,7 @@ export function ListToolbar(props: ListToolbarProps) {
       inputRef={props.searchRef}
       count={count}
       hint={!props.touch}
-      className="min-w-0 flex-1 rounded-full focus-within:bg-transparent"
+      className="min-w-0 flex-1 overflow-hidden rounded-full focus-within:bg-transparent"
     />
   );
 
@@ -119,7 +120,7 @@ export function ListToolbar(props: ListToolbarProps) {
       onOpen={props.onPanelOpen}
       onClosed={props.onPanelClosed}
       renderTrigger={(p) => (
-        <ToolTrigger p={p} name={t("list.sortButton", { key: sortName, dir: dirName })} iconOnly={phone}>
+        <ToolTrigger p={p} name={t("list.sortButton", { key: sortName, dir: dirName })} iconOnly={phone} active={view.group !== ""}>
           <ArrowUpDown aria-hidden className="size-4 shrink-0" />
           {!phone && sortName}
           {!phone && <DirIcon aria-hidden className="size-3.25 text-ink-500" />}
@@ -408,9 +409,24 @@ function SortPanel({ view, onDraft }: { view: ListView; onDraft: (patch: ViewPat
           className="flex w-full [&>button]:flex-1"
         />
       </div>
+      <fieldset className="flex flex-col gap-0.5 border-t border-hair pt-3">
+        <legend className="mb-1.5 label-text text-ink-500">{t("list.groupTitle")}</legend>
+        {GROUPS.map(([key, label]) => (
+          <Choice key={key} name={`${id}-group`} checked={view.group === key} onSelect={() => onDraft({ group: key })}>
+            {t(label)}
+          </Choice>
+        ))}
+      </fieldset>
     </div>
   );
 }
+
+/** The ways a tab can be split; the labels are literal keys so the i18n test sees them. */
+const GROUPS = [
+  ["", "list.groupNone"],
+  ["tag", "list.groupTag"],
+  ["list", "list.groupList"],
+] as const satisfies readonly (readonly [GroupBy, string])[];
 
 function DirLabel({ icon: Icon, text }: { icon: typeof ArrowUp; text: string }) {
   return (

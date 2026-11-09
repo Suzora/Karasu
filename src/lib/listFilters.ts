@@ -2,6 +2,7 @@
 
 import { STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import { MEDIA_FORMATS, ORIGINS } from "@/lib/format";
+import { GROUP_KEYS, type GroupBy } from "@/lib/listGroups";
 
 export type SortKey = "updated" | "title" | "score" | "progress";
 export type SortDir = "asc" | "desc";
@@ -31,6 +32,8 @@ export interface ListView {
   country: string;
   list: string;
   tag: string;
+  /** How the tab is split into sections, "" for not at all; a view like sort, so it lives in the URL and in presets. */
+  group: GroupBy;
 }
 
 /** A change to the view; `dir: ""` hands the direction back to the sort key. */
@@ -58,6 +61,7 @@ export function parseListView(params: URLSearchParams, type: MediaType): ListVie
     country: type === "MANGA" && (ORIGINS as readonly string[]).includes(country) ? country : "",
     list: params.get("list") ?? "",
     tag: params.get("tag") ?? "",
+    group: GROUP_KEYS.includes(params.get("group") as GroupBy) ? (params.get("group") as GroupBy) : "",
   };
 }
 
@@ -94,6 +98,7 @@ export function writeViewParams(prev: URLSearchParams, patch: ViewPatch): URLSea
   write("country", patch.country, "");
   write("list", patch.list, "");
   write("tag", patch.tag, "");
+  write("group", patch.group, "");
   write("q", patch.q?.trim(), "");
   return p;
 }

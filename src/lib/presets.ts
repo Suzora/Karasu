@@ -12,6 +12,8 @@ export interface Preset {
   list?: string;
   /** "" or absent means the sort key's own default direction. */
   dir?: string;
+  /** The sections the tab is split into; absent on older presets, which then draw it whole. */
+  group?: string;
 }
 
 const KEY = "karasu-presets";

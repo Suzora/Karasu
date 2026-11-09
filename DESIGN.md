@@ -1278,3 +1278,16 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   in every theme. It is kept per device, not in the notes, since a colour
   belongs to the tag and would otherwise be rewritten on every entry carrying
   it (#110).
+- **2026-11-09:** A status tab can be grouped into sections by tag or by
+  custom list, each one folding away under its head, with a bar above them
+  that jumps to a section and folds them all (B of three: heads alone over
+  the grid, and Overview-style shelves). Grouping is a view like the grid or
+  the rows, so it lives in the URL and in presets; an entry with two tags sits
+  in both sections, and the untagged ones gather last (#110, step 2).
+- **2026-11-09:** Several entries of one status can be stacked by hand,
+  through Select → Stack, and a stack draws as one cover with the others
+  layered behind it and a count on it. A press opens a sheet listing the
+  members with their progress and a +1, where they are reordered or the stack
+  dissolved (B of three: a band unfolding under the row, and a chain of full
+  covers marked 1/3, 2/3). Stacks are kept per device, as the tag colours
+  are, since AniList has no field for them (#110, step 3).

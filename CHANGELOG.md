@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 0de417d -->
+<!-- generated-through: ca1e4d2 -->
 
 ### Fixed
 
@@ -50,6 +50,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - The tag filter takes several tags at once and shows entries that carry any of them ([#110](https://github.com/Suzora/Karasu/issues/110)).
 - Tags can have a colour, chosen in Settings → Appearance under Tags, and show it wherever they appear ([#110](https://github.com/Suzora/Karasu/issues/110)).
 - A tag can take any colour you pick, not just one of the eight ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- A status tab can be grouped by tag or by custom list into sections you can fold, with a bar that jumps between them (Sort → Group by) ([#110](https://github.com/Suzora/Karasu/issues/110)).
 
 ## 1.68.0 — 2026-10-25
 
