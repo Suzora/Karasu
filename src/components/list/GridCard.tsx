@@ -155,8 +155,9 @@ export const GridCard = memo(function GridCard({
             key={m.mediaId}
             aria-hidden
             className={cn(
-              "absolute inset-x-0 top-0 aspect-[2/3] overflow-hidden rounded-cover border border-surface-700 bg-surface-800",
-              i === 0 ? "translate-x-2 -translate-y-2 brightness-75" : "translate-x-3.5 -translate-y-3.5 brightness-50",
+              "absolute inset-x-0 top-0 aspect-[2/3] overflow-hidden rounded-cover border border-surface-700",
+              // Each layer further back is darker and fainter, so the stack recedes into the page.
+              i === 0 ? "translate-x-2 -translate-y-2 opacity-70 brightness-60" : "translate-x-3.5 -translate-y-3.5 opacity-40 brightness-40",
             )}
           >
             {m.media.coverImage.large && !blurred && (

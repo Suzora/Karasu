@@ -847,7 +847,11 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
               {!phone && actions}
             </div>
           </div>
-          <div ref={scrollRef} className={cn("min-h-0 flex-1 overflow-y-auto pb-12 pt-1 float-clear", phone ? "px-8" : "pl-2 pr-8")}>
+          <div
+            ref={scrollRef}
+            // A stack's layers reach above its cover, so the first row needs that much room under the scroller's edge.
+            className={cn("min-h-0 flex-1 overflow-y-auto pb-12 float-clear", stackOf.size > 0 ? "pt-4" : "pt-1", phone ? "px-8" : "pl-2 pr-8")}
+          >
             {/* Above the grid, since VirtualGrid takes entries only; the whole-list count, so it does not jump per tab. */}
             <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
             {entries.length === 0 ? (

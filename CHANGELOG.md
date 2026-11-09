@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 9d2d535 -->
+<!-- generated-through: a0cc860 -->
 
 ### Fixed
 
@@ -28,6 +28,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
 - A trailer's player page loads even when its request reaches it in pieces.
 - Discord's timer no longer jumps back to zero every few seconds for a player that names no episode.
+- A stack in the list's first row shows its layers whole, and the covers behind it fade back one by one.
 
 ### Changed
 
