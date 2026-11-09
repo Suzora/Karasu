@@ -100,7 +100,14 @@ fn handle(mut stream: TcpStream, token: &str) {
     let _ = stream.set_nonblocking(false);
     let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
     let mut buf = [0u8; 2048];
-    let n = stream.read(&mut buf).unwrap_or(0);
+    let mut n = 0;
+    // TCP may split a request anywhere, so read until the headers end, the buffer fills or the peer stops.
+    while n < buf.len() && !buf[..n].windows(4).any(|w| w == b"\r\n\r\n") {
+        match stream.read(&mut buf[n..]) {
+            Ok(0) | Err(_) => break,
+            Ok(read) => n += read,
+        }
+    }
     let request = String::from_utf8_lossy(&buf[..n]);
     let path = request.lines().next().and_then(|line| line.strip_prefix("GET ")).and_then(|rest| rest.split(' ').next());
     let response = match path.and_then(|p| route(p, token)) {
@@ -173,16 +180,38 @@ mod tests {
         assert!(page_url("youtube", "a b").is_err());
     }
 
-    #[test]
-    fn the_listener_serves_its_page_over_loopback() {
+    /// Sends the request as the pieces given, each pause longer than the accept poll, and returns the whole answer.
+    fn ask(pieces: &[&str]) -> String {
         let url = page_url("youtube", "aqz-KE-bpKQ").unwrap();
         let rest = url.strip_prefix("http://127.0.0.1:").unwrap();
         let (port, path) = rest.split_once('/').unwrap();
         let mut stream = TcpStream::connect(("127.0.0.1", port.parse::<u16>().unwrap())).unwrap();
-        write!(stream, "GET /{path} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n").unwrap();
+        let request = format!("GET /{path} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n");
+        let mut at = 0;
+        for piece in pieces {
+            let end = at + piece.len();
+            stream.write_all(&request.as_bytes()[at..end]).unwrap();
+            stream.flush().unwrap();
+            std::thread::sleep(Duration::from_millis(300));
+            at = end;
+        }
+        stream.write_all(&request.as_bytes()[at..]).unwrap();
         let mut answer = String::new();
         stream.read_to_string(&mut answer).unwrap();
+        answer
+    }
+
+    #[test]
+    fn the_listener_serves_its_page_over_loopback() {
+        let answer = ask(&[]);
         assert!(answer.starts_with("HTTP/1.1 200"));
         assert!(answer.contains("youtube-nocookie.com/embed/aqz-KE-bpKQ"));
+    }
+
+    #[test]
+    fn a_request_that_arrives_in_pieces_is_read_whole() {
+        // The path sits in the second piece, so an answer after the first read would be a 404.
+        let answer = ask(&["GET /"]);
+        assert!(answer.starts_with("HTTP/1.1 200"), "{answer}");
     }
 }
