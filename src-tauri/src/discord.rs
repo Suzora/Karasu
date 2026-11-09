@@ -127,12 +127,18 @@ fn clock(
     Clock::Running { start, end: length.map(|l| start + l) }
 }
 
-/// Keeps the start already showing while a fresh one stays within the drift, so an unchanged playback is not re-sent.
-fn anchored(showing: Option<i64>, fresh: i64) -> i64 {
+/// Keeps the start already showing while a fresh one stays within the drift; without a position it always stands.
+fn anchored(showing: Option<i64>, fresh: i64, from_position: bool) -> i64 {
     match showing {
-        Some(s) if (fresh - s).abs() <= DRIFT_SECS => s,
+        Some(s) if !from_position || (fresh - s).abs() <= DRIFT_SECS => s,
         _ => fresh,
     }
+}
+
+/// The state line of a paused playback, with its number when there is one.
+fn paused_text(base: &str, at_sec: Option<u32>) -> String {
+    let paused = at_sec.map_or("Paused".to_string(), |at| format!("Paused at {}", clock_text(at)));
+    if base.is_empty() { paused } else { format!("{base} · {paused}") }
 }
 
 /// A position as a player shows it: minutes and seconds, with hours only when there are any.
@@ -254,8 +260,9 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
                     Some(total) => format!("Episode {e} / {total}"),
                     None => format!("Episode {e}"),
                 },
+                // Discord has no Reading type, so a manga says it here; for video the card already says "Watching".
                 None if is_manga => "Reading".to_string(),
-                None => "Watching".to_string(),
+                None => String::new(),
             };
             // Elapsed timer, plus a progress bar when the episode length is known; a pause stops it and names the spot.
             let fresh = clock(
@@ -278,7 +285,7 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
                 .map(|(_, start)| *start);
             let shown = match fresh {
                 Clock::Running { start, end } => {
-                    let kept = anchored(showing, start);
+                    let kept = anchored(showing, start, np.position_sec.is_some());
                     anchor = Some((key, kept));
                     Clock::Running { start: kept, end: end.map(|e| e + kept - start) }
                 }
@@ -288,8 +295,7 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
             let (state_text, timestamps) = match shown {
                 Clock::Running { start, end: Some(end) } => (base, Timestamps::new().start(start).end(end)),
                 Clock::Running { start, end: None } => (base, Timestamps::new().start(start)),
-                Clock::Paused { at_sec: Some(at) } => (format!("{base} · Paused at {}", clock_text(at)), Timestamps::new()),
-                Clock::Paused { at_sec: None } => (format!("{base} · Paused"), Timestamps::new()),
+                Clock::Paused { at_sec } => (paused_text(&base, at_sec), Timestamps::new()),
             };
             // "Watching X" reads better than "Playing Karasu" for video; Discord has no Reading type, so manga keeps Playing.
             let kind = if is_manga {
@@ -355,13 +361,16 @@ pub fn sync(app: &AppHandle, now: Option<&NowPlaying>) {
     let mut activity = Activity::new()
         .activity_type(kind)
         .details(&details)
-        .state(&state_text)
+
         .assets(assets)
         .timestamps(timestamps)
         .buttons(buttons);
+    if !state_text.is_empty() {
+        activity = activity.state(&state_text);
+    }
     // While something plays the member list names the title, not "Karasu", and the title line opens its page.
     if now.is_some() {
-        activity = activity.status_display_type(StatusDisplayType::Details);
+        activity = activity.status_display_type(StatusDisplayType::Details).name(&details);
     }
     if let Some(page) = anilist_url.as_deref() {
         activity = activity.details_url(page);
@@ -433,11 +442,14 @@ mod tests {
 
     #[test]
     fn poll_jitter_keeps_the_start_and_a_seek_moves_it() {
-        assert_eq!(anchored(Some(9_246), 9_248), 9_246);
-        assert_eq!(anchored(Some(9_246), 9_243), 9_246);
-        assert_eq!(anchored(Some(9_246), 9_200), 9_200);
-        assert_eq!(anchored(Some(9_246), 9_400), 9_400);
-        assert_eq!(anchored(None, 9_246), 9_246);
+        assert_eq!(anchored(Some(9_246), 9_248, true), 9_246);
+        assert_eq!(anchored(Some(9_246), 9_243, true), 9_246);
+        assert_eq!(anchored(Some(9_246), 9_200, true), 9_200);
+        assert_eq!(anchored(Some(9_246), 9_400, true), 9_400);
+        assert_eq!(anchored(None, 9_246, true), 9_246);
+        // Without a position the fresh start is only "now", so the first one stands or the timer loops back to zero.
+        assert_eq!(anchored(Some(9_246), 9_400, false), 9_246);
+        assert_eq!(anchored(None, 9_400, false), 9_400);
     }
 
     #[test]
@@ -445,6 +457,13 @@ mod tests {
         assert_eq!(clock_text(0), "0:00");
         assert_eq!(clock_text(754), "12:34");
         assert_eq!(clock_text(3_723), "1:02:03");
+    }
+
+    #[test]
+    fn a_pause_without_a_number_reads_on_its_own() {
+        assert_eq!(paused_text("Episode 3 / 12", Some(754)), "Episode 3 / 12 · Paused at 12:34");
+        assert_eq!(paused_text("", Some(754)), "Paused at 12:34");
+        assert_eq!(paused_text("", None), "Paused");
     }
 
     #[test]

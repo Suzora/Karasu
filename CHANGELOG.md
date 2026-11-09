@@ -13,7 +13,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 
 1. rename `## Unreleased
 
-<!-- generated-through: 7d659708 -->
+<!-- generated-through: 866187ff -->
 
 ### Fixed
 
@@ -27,6 +27,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - The cover grid no longer overlaps its rows after the window changes size.
 - Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
 - A trailer's player page loads even when its request reaches it in pieces.
+- Discord's timer no longer jumps back to zero every few seconds for a player that names no episode.
 
 ### Changed
 

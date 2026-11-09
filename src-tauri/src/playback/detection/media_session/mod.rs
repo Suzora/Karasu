@@ -26,6 +26,9 @@ const MUSIC_PLAYERS: &[&str] = &[
 /// The first parts of a reverse-DNS app id, whose last part is then the app's own name.
 const REVERSE_DNS_ROOTS: &[&str] = &["io", "com", "org", "net", "dev", "app", "de", "me", "page"];
 
+/// Segments an app appends to its own bus name for a player channel; they name the channel, not the app.
+const CHANNEL_TAILS: &[&str] = &["channel", "playback", "player", "mpris", "media", "audio", "video"];
+
 /// One media session as the desktop sees it, serialized straight into the Settings diagnostic.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, specta::Type)]
 pub struct MediaSession {
@@ -114,10 +117,15 @@ pub fn short_app_name(app_id: &str) -> String {
     }
     // An MPRIS bus name, checked first because it has no underscore and would otherwise reduce to its instance suffix.
     if let Some(rest) = id.strip_prefix("org.mpris.MediaPlayer2.") {
-        let parts: Vec<&str> = rest.split('.').take_while(|p| !p.starts_with("instance")).collect();
+        let mut parts: Vec<&str> = rest.split('.').take_while(|p| !p.starts_with("instance")).collect();
+        // A country domain ("nl.jknaapen.fladder") is as reverse-DNS as a generic one.
+        let reverse_dns = parts.len() >= 3 && parts.first().is_some_and(|f| REVERSE_DNS_ROOTS.contains(f) || f.len() == 2);
+        while reverse_dns && parts.len() > 3 && parts.last().is_some_and(|l| CHANNEL_TAILS.contains(&l.to_lowercase().as_str())) {
+            parts.pop();
+        }
         // A reverse-DNS app id ("io.github.x.app") names the app last; a plain one ("mpv") first.
         let name = match parts.as_slice() {
-            [first, .., last] if parts.len() >= 3 && REVERSE_DNS_ROOTS.contains(first) => *last,
+            [_, .., last] if reverse_dns => *last,
             [first, ..] => *first,
             [] => rest,
         };
@@ -591,6 +599,8 @@ mod tests {
         assert_eq!(short_app_name("org.mpris.MediaPlayer2.io.github.lullabyX.sone"), "sone");
         assert_eq!(short_app_name("org.mpris.MediaPlayer2.io.bassi.Amberol"), "amberol");
         assert_eq!(short_app_name("org.mpris.MediaPlayer2.com.github.Foo.instance42"), "foo");
+        // A country domain is reverse-DNS too, and a trailing channel name is not the app's.
+        assert_eq!(short_app_name("org.mpris.MediaPlayer2.nl.jknaapen.fladder.channel.playback.instance356593"), "fladder");
     }
 
     /// Tidal clients are music players, so a track there is never taken for an episode.
