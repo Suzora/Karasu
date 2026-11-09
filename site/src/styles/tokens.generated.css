@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 2565f23b7265) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 8751d9c8422e) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -731,6 +731,23 @@
   line-height: var(--text-xs--line-height);
   letter-spacing: normal;
   text-transform: none;
+}
+
+/* A tag in a colour the user picked: the chip carries both readable fills and the theme takes its own. */
+@utility tag-custom-dot {
+  background-color: var(--tag-dark);
+
+  :root[data-theme="light"] & {
+    background-color: var(--tag-light);
+  }
+}
+
+@utility tag-custom-edge {
+  border-color: color-mix(in srgb, var(--tag-dark) 60%, transparent);
+
+  :root[data-theme="light"] & {
+    border-color: color-mix(in srgb, var(--tag-light) 60%, transparent);
+  }
 }
 
 /* No hairline in the standard looks; high contrast draws the border role the theme writes into `--hair`. */

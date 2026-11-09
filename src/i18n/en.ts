@@ -1806,6 +1806,7 @@ export const en = {
     tagCount: "{{count}} entries",
     tagColourFor: "Colour for {{tag}}",
     tagColourNone: "None",
+    tagColourCustom: "Your own colour",
     tagColourRose: "Rose",
     tagColourAmber: "Amber",
     tagColourLime: "Lime",

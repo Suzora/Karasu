@@ -850,6 +850,23 @@ nav a {
   text-transform: none;
 }
 
+/* A tag in a colour the user picked: the chip carries both readable fills and the theme takes its own. */
+@utility tag-custom-dot {
+  background-color: var(--tag-dark);
+
+  :root[data-theme="light"] & {
+    background-color: var(--tag-light);
+  }
+}
+
+@utility tag-custom-edge {
+  border-color: color-mix(in srgb, var(--tag-dark) 60%, transparent);
+
+  :root[data-theme="light"] & {
+    border-color: color-mix(in srgb, var(--tag-light) 60%, transparent);
+  }
+}
+
 /* No hairline in the standard looks; high contrast draws the border role the theme writes into `--hair`. */
 @utility border-hair {
   border-color: transparent;

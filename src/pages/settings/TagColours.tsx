@@ -1,9 +1,12 @@
-import { useMemo } from "react";
+import { useId, useMemo, useState } from "react";
+import { Palette } from "lucide-react";
+import { DisclosurePanel } from "@/components/ui/disclosure";
 import { useTranslation } from "react-i18next";
 import { Card, CardTitle } from "@/components/ui/card";
 import { TagChip, TagDot } from "@/components/list/TagChip";
 import { useCachedList } from "@/hooks/useCachedEntry";
-import { colourOf, TAG_COLOURS, type TagColour } from "@/lib/tagColours";
+import { colourOf, isCustom, TAG_COLOURS, type TagColour } from "@/lib/tagColours";
+import { ColorPicker } from "./shared";
 import { tagCounts } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth";
@@ -39,6 +42,9 @@ export function TagColoursCard() {
   const manga = useCachedList(userId, "MANGA");
   const colours = useTagColours((s) => s.colours);
   const setColour = useTagColours((s) => s.setColour);
+  // One tag's own picker open at a time, so the list never grows a picker under every row.
+  const [picking, setPicking] = useState<string | null>(null);
+  const pickerId = useId();
   const tags = useMemo(
     () =>
       tagCounts(
@@ -55,10 +61,13 @@ export function TagColoursCard() {
         <p className="mt-3 text-sm text-ink-500">{t("settings.tagsEmpty")}</p>
       ) : (
         <ul className="mt-3">
-          {tags.map(({ tag, count }) => {
+          {tags.map(({ tag, count }, index) => {
             const current = colourOf(colours, tag);
+            const custom = current !== null && isCustom(current);
+            const open = picking === tag;
             return (
-              <li key={tag} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-surface-800 py-2.5 not-first:border-t">
+              <li key={tag} className="border-surface-800 py-2.5 not-first:border-t">
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <TagChip tag={tag} size="sm" />
                   <span className="text-xs text-ink-600">{count === 1 ? t("settings.tagCountOne") : t("settings.tagCount", { count })}</span>
@@ -93,7 +102,25 @@ export function TagColoursCard() {
                   >
                     {t("settings.tagColourNone")}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setPicking(open ? null : tag)}
+                    aria-expanded={open}
+                    aria-controls={`${pickerId}-${index}`}
+                    title={t("settings.tagColourCustom")}
+                    aria-label={t("settings.tagColourCustom")}
+                    className={cn(
+                      "relative grid size-6 place-items-center rounded-full border transition-surface coarse:hit-area focus-visible:outline-2 focus-visible:outline-accent-500",
+                      custom || open ? "border-accent-500 text-accent-400" : "border-surface-600 text-ink-500",
+                    )}
+                  >
+                    {custom ? <TagDot colour={current} className="size-3.5" /> : <Palette className="size-3.5" />}
+                  </button>
                 </span>
+                </div>
+                <DisclosurePanel open={open} id={`${pickerId}-${index}`}>
+                  <ColorPicker value={custom ? current : "#6c7fff"} onChange={(hex) => setColour(tag, hex as `#${string}`)} />
+                </DisclosurePanel>
               </li>
             );
           })}

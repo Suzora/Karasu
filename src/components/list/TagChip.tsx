@@ -1,5 +1,6 @@
+import type { CSSProperties } from "react";
 import { Chip, type ChipSize } from "@/components/ui/chip";
-import { colourOf, type TagColour } from "@/lib/tagColours";
+import { colourOf, isCustom, readableDot, type TagColour, type TagColourValue } from "@/lib/tagColours";
 import { cn } from "@/lib/utils";
 import { useTagColours } from "@/stores/tagColours";
 
@@ -25,9 +26,17 @@ const EDGE: Record<TagColour, string> = {
   slate: "border-tag-slate/60",
 };
 
-/** The dot of one colour, for the picker's swatches as for the chip. */
-export function TagDot({ colour, className }: { colour: TagColour; className?: string }) {
-  return <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", DOT[colour], className)} />;
+/** Both themes' readable fills of a picked colour, for the `tag-custom-*` utilities to choose from. */
+function customVars(hex: string): CSSProperties {
+  return { "--tag-dark": readableDot(hex, "dark"), "--tag-light": readableDot(hex, "light") } as CSSProperties;
+}
+
+/** The dot of one colour, palette or picked, for the picker's swatches as for the chip. */
+export function TagDot({ colour, className }: { colour: TagColourValue; className?: string }) {
+  if (isCustom(colour)) {
+    return <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full tag-custom-dot", className)} style={customVars(colour)} />;
+  }
+  return <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", DOT[colour as TagColour], className)} />;
 }
 
 /** One tag: in its colour on a neutral chip once it has one, as the accent outline it always was until then. */
@@ -41,7 +50,12 @@ export function TagChip({ tag, size = "xs" }: { tag: string; size?: ChipSize }) 
     );
   }
   return (
-    <Chip tone="neutral" size={size} className={cn("text-ink-100", EDGE[colour])}>
+    <Chip
+      tone="neutral"
+      size={size}
+      className={cn("text-ink-100", isCustom(colour) ? "tag-custom-edge" : EDGE[colour as TagColour])}
+      style={isCustom(colour) ? customVars(colour) : undefined}
+    >
       <TagDot colour={colour} />
       {tag}
     </Chip>

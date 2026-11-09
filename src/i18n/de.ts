@@ -1815,6 +1815,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     tagCount: "{{count}} Einträge",
     tagColourFor: "Farbe für {{tag}}",
     tagColourNone: "Keine",
+    tagColourCustom: "Eigene Farbe",
     tagColourRose: "Rosé",
     tagColourAmber: "Bernstein",
     tagColourLime: "Limette",
