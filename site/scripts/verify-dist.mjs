@@ -36,7 +36,13 @@ function walk(dir) {
 const files = walk(CLIENT);
 const rel = (p) => path.relative(CLIENT, p).replace(/\\/g, "/");
 
-for (const page of ["index.html", "404.html"]) {
+// Every language's page: the root one plus `<code>/index.html` for each folder that holds one.
+const languagePages = readdirSync(CLIENT, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(path.join(CLIENT, e.name, "index.html")))
+  .map((e) => `${e.name}/index.html`);
+if (languagePages.length < 39) fail(`only ${languagePages.length} language pages besides English`);
+
+for (const page of ["index.html", "404.html", ...languagePages]) {
   const file = path.join(CLIENT, page);
   if (!existsSync(file)) {
     fail(`${page} is missing`);
@@ -46,6 +52,9 @@ for (const page of ["index.html", "404.html"]) {
   if (html.includes("<!--app-")) fail(`${page}: a prerender placeholder survived`);
   if (!/<h1[\s>]/.test(html)) fail(`${page}: no <h1> in the pre-rendered markup`);
   if (!/<title>[^<]+<\/title>/.test(html)) fail(`${page}: no <title>`);
+  if (!/<script type="application\/json" id="i18n">/.test(html)) fail(`${page}: no inline catalog`);
+  const lang = page.includes("/") ? page.split("/")[0] : "en";
+  if (!html.includes(`<html lang="${lang}"`)) fail(`${page}: <html lang> is not ${lang}`);
 
   for (const m of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
     const url = m[1];

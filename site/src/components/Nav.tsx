@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { usePresence } from "@/lib/usePresence";
 import { LINKS, NAV } from "@/site.config";
+import { useI18n } from "@/i18n/context";
 
 /**
  * The sticky top bar. One accent marker slides under the active anchor, the
@@ -13,6 +14,7 @@ import { LINKS, NAV } from "@/site.config";
  * Download button at its foot; the sheet traps focus and closes on Escape.
  */
 export function Nav() {
+  const { t } = useI18n();
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const { mounted, leaving } = usePresence(open);
@@ -23,7 +25,7 @@ export function Nav() {
 
   // Which section is on screen: the last one whose top has passed the nav.
   useEffect(() => {
-    const sections = NAV.map((n) => document.getElementById(n.id)).filter(
+    const sections = NAV.map((id) => document.getElementById(id)).filter(
       (el): el is HTMLElement => el !== null,
     );
     if (!sections.length) return;
@@ -117,24 +119,24 @@ export function Nav() {
 
   return (
     <header data-scrolled={scrolled || open} className="site-nav sticky top-0 z-40 border-b border-hair bg-surface-950/95">
-      <nav aria-label="Primary" className="container-site flex h-14 items-center justify-between px-5">
-        <a href="#top" className="flex items-center gap-2.5 rounded-control focus-visible:outline-2 focus-visible:outline-accent-500" aria-label="Karasu — back to top">
+      <nav aria-label={t.nav.label} className="container-site flex h-14 items-center justify-between px-5">
+        <a href="#top" className="flex items-center gap-2.5 rounded-control focus-visible:outline-2 focus-visible:outline-accent-500" aria-label={t.nav.home}>
           <KarasuMark className="size-6" />
           <span className="font-brand text-xs font-semibold tracking-wordmark text-ink-300">KARASU</span>
         </a>
 
         <ul ref={list} className="relative hidden items-center gap-1 md:flex">
-          {NAV.map((item) => (
-            <li key={item.id}>
+          {NAV.map((id) => (
+            <li key={id}>
               <a
-                href={`#${item.id}`}
-                aria-current={active === item.id ? "location" : undefined}
+                href={`#${id}`}
+                aria-current={active === id ? "location" : undefined}
                 className={cn(
                   "block rounded-control px-3 py-1.5 text-ui font-medium transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500",
-                  active === item.id ? "text-ink-100" : "text-ink-500",
+                  active === id ? "text-ink-100" : "text-ink-500",
                 )}
               >
-                {item.label}
+                {t.nav[id]}
               </a>
             </li>
           ))}
@@ -147,10 +149,10 @@ export function Nav() {
 
         <div className="flex items-center gap-2">
           <ButtonLink href={LINKS.repo} variant="ghost" size="sm" className="hidden md:inline-flex">
-            GitHub
+            {t.nav.github}
           </ButtonLink>
           <ButtonLink href={LINKS.latest} size="sm">
-            Download
+            {t.nav.download}
           </ButtonLink>
           <button
             ref={toggle}
@@ -158,7 +160,7 @@ export function Nav() {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
             className="grid size-9 place-items-center rounded-control text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500 md:hidden"
           >
             {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
@@ -177,14 +179,14 @@ export function Nav() {
           )}
         >
           <ul className="flex flex-col">
-            {NAV.map((item) => (
-              <li key={item.id}>
+            {NAV.map((id) => (
+              <li key={id}>
                 <a
-                  href={`#${item.id}`}
+                  href={`#${id}`}
                   onClick={close}
                   className="block rounded-control px-3 py-2.5 text-body font-medium text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
                 >
-                  {item.label}
+                  {t.nav[id]}
                 </a>
               </li>
             ))}
@@ -193,12 +195,12 @@ export function Nav() {
                 href={LINKS.repo}
                 className="block rounded-control px-3 py-2.5 text-body font-medium text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
               >
-                GitHub
+                {t.nav.github}
               </a>
             </li>
           </ul>
           <ButtonLink href={LINKS.latest} size="lg" className="mt-2 w-full">
-            Download Karasu
+            {t.nav.downloadKarasu}
           </ButtonLink>
         </div>
       )}

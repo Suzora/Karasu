@@ -112,6 +112,20 @@ description in row 80); the rest below were true but had no row.
 | 90 | The social card (`site/public/og.png`, drawn by `site/scripts/og-image.mjs`) repeats the hero's sentence | row 2 | confirmed |
 | 92 | FAQ "Does it update my AniList progress automatically?": two thirds, your minutes or a toast; "A chapter from a site Karasu does not name always asks first." | rows 14, 17 and 88 | confirmed |
 
+## Languages, 2026-11-09
+
+The page is published in forty languages: English at the root, every other
+one under `/<code>/` (`site/src/i18n/languages.ts`). English
+(`site/src/i18n/en.ts`) is the source; every other catalog under
+`site/src/i18n/locales/` translates it key for key, and `satisfies Messages`
+fails `npm --prefix site run check` on a missing or extra key.
+
+| # | Claim | Evidence | Status |
+|---|---|---|---|
+| 103 | Every language makes exactly the English claims, no more and no fewer: each sentence in a catalog is a translation of the sentence under the same key in `en.ts`, whose rows are the ones above. A claim changes in English first and in every catalog in the same commit. The screenshots are the English captures in every language; only their captions and alt texts are translated | `site/src/i18n/en.ts` `Messages`; `site/src/i18n/catalogs.ts` (a language without a catalog is a type error); `site/src/i18n/context.tsx` `shotText` | confirmed for English; German was drafted in an agent session for the maintainer to read before the deploy, the other thirty-eight are unreviewed AI translations, and the page says so |
+| 104 | "Every language other than English and German is an AI translation that no person has reviewed" (the language switch in the footer) | `site/src/i18n/languages.ts` `HUMAN_LANGUAGES`; the catalogs were written by AI agents on 2026-11-09 and have not been read by a speaker | confirmed |
+| 105 | The changelog card's lines stay English on every page (`lang="en"`) | `site/src/sections/Showcase.tsx`; `CHANGELOG.md` is written in English only | confirmed |
+
 ## Screenshots
 
 All twenty-two are rendered by the screens harness (`node scripts/screens.mjs

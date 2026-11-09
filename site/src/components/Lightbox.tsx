@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Shot } from "@/content/screenshots";
 import { cn } from "@/lib/cn";
 import { usePresence } from "@/lib/usePresence";
+import { fmt, useI18n, shotText } from "@/i18n/context";
 
 /**
  * The screenshot viewer: one image at a time, captioned, with arrows, the
@@ -22,6 +23,7 @@ export function Lightbox({
   onClose: () => void;
   onIndex: (i: number) => void;
 }) {
+  const { t } = useI18n();
   const open = index !== null;
   const { mounted, leaving } = usePresence(open);
   const panel = useRef<HTMLDivElement>(null);
@@ -87,13 +89,14 @@ export function Lightbox({
 
   if (!mounted || index === null) return null;
   const shot = shots[index];
+  const text = shotText(t, shot);
 
   return (
     <div
       data-overlay
       role="dialog"
       aria-modal="true"
-      aria-label={`Screenshot ${index + 1} of ${shots.length}: ${shot.caption}`}
+      aria-label={fmt(t.gallery.dialog, { n: index + 1, total: shots.length, caption: text.caption })}
       className={cn(
         "fixed inset-0 z-50 grid place-items-center bg-scrim-deep p-4 md:p-8",
         leaving ? "animate-fade-out" : "animate-fade-in",
@@ -131,13 +134,13 @@ export function Lightbox({
                 src={shot.jpg[0]?.src ?? shot.webp[0]?.src}
                 width={shot.width}
                 height={shot.height}
-                alt={shot.alt}
+                alt={text.alt}
                 className="mx-auto block max-h-[78vh] w-auto max-w-full"
               />
             </picture>
           </div>
           <figcaption className="mt-3 flex items-center justify-between gap-4 text-sm text-ink-300">
-            <span>{shot.caption}</span>
+            <span>{text.caption}</span>
             <span className="shrink-0 text-2xs tabular-nums text-ink-600">
               {index + 1} / {shots.length}
             </span>
@@ -147,7 +150,7 @@ export function Lightbox({
           <button
             type="button"
             onClick={prev}
-            aria-label="Previous screenshot"
+            aria-label={t.gallery.previous}
             className="grid size-9 place-items-center rounded-control text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
@@ -155,7 +158,7 @@ export function Lightbox({
           <button
             type="button"
             onClick={next}
-            aria-label="Next screenshot"
+            aria-label={t.gallery.next}
             className="grid size-9 place-items-center rounded-control text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
           >
             <ChevronRight className="size-5" aria-hidden="true" />
@@ -164,7 +167,7 @@ export function Lightbox({
             ref={closeButton}
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t.gallery.close}
             className="grid size-9 place-items-center rounded-control text-ink-300 transition-surface hover:bg-surface-850 hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
           >
             <X className="size-5" aria-hidden="true" />

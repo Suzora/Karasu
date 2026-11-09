@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/Section";
 import { Pill } from "@/components/ui/pill";
 import { SHOTS, type Shot } from "@/content/screenshots";
 import { cn } from "@/lib/cn";
+import { useI18n, useShotText } from "@/i18n/context";
 
 const pick = (ids: string[]) => ids.map((id) => SHOTS.find((s) => s.id === id)!);
 
@@ -13,16 +14,18 @@ const PHONE = pick(["phone-overview", "phone-list", "phone-detail", "phone-searc
 
 /** A thumbnail that opens the lightbox, with its caption under it. */
 function Thumb({ shot, onOpen, className }: { shot: Shot; onOpen: () => void; className?: string }) {
+  const text = useShotText(shot);
   return (
     <figure className={className}>
       <Screenshot shot={shot} onClick={onOpen} sizes="24rem" />
-      <figcaption className="mt-2 text-xs leading-snug text-ink-500">{shot.caption}</figcaption>
+      <figcaption className="mt-2 text-xs leading-snug text-ink-500">{text.caption}</figcaption>
     </figure>
   );
 }
 
 /** A chosen handful of screenshots, desktop or Android by a toggle; a click opens the lightbox with the rest of that kind. */
 export function Gallery() {
+  const { t } = useI18n();
   const [kind, setKind] = useState<"desktop" | "phone">("desktop");
   const [open, setOpen] = useState<number | null>(null);
   const shots = kind === "desktop" ? DESKTOP : PHONE;
@@ -31,17 +34,17 @@ export function Gallery() {
       <div className="container-site">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Eyebrow>Screenshots</Eyebrow>
+            <Eyebrow>{t.gallery.eyebrow}</Eyebrow>
             <h2 id="screenshots-title" className="mt-3 font-brand text-h3 font-bold text-ink-100">
-              The app, as it is
+              {t.gallery.title}
             </h2>
           </div>
-          <div className="flex gap-2" role="group" aria-label="Which screenshots">
+          <div className="flex gap-2" role="group" aria-label={t.gallery.which}>
             <Pill active={kind === "desktop"} onClick={() => setKind("desktop")}>
-              Desktop
+              {t.gallery.desktop}
             </Pill>
             <Pill active={kind === "phone"} onClick={() => setKind("phone")}>
-              Android
+              {t.gallery.android}
             </Pill>
           </div>
         </div>

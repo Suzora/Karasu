@@ -7,8 +7,14 @@ root `CLAUDE.md` under "The website".
 ## Stack
 
 Vite 8 + React 19 + TypeScript, Tailwind v4 on the app's own design tokens.
-One short page, pre-rendered to static HTML (`scripts/prerender.mjs`) so it
-reads without JavaScript. Its "What changed" card is `virtual:changes`, which
+One short page in forty languages, pre-rendered to static HTML
+(`scripts/prerender.mjs`) so it reads without JavaScript: English at the
+root, every other language under `/<code>/`, each with `<html lang>`, the
+`hreflang` alternates and its catalog inline for hydration. English
+(`src/i18n/en.ts`) is the source; every catalog in `src/i18n/locales/` is
+typed `satisfies Messages`, so `check` fails on a missing key. A change of
+copy lands in every catalog in the same commit; the screenshots stay the
+English captures everywhere. Its "What changed" card is `virtual:changes`, which
 `vite.config.ts` fills at build time from the repository's `CHANGELOG.md`
 through `scripts/changes.mjs` (tested by `changes.test.mjs`, run by `check`),
 so nobody keeps it by hand and `pages.yml` redeploys on a changelog push.
@@ -48,7 +54,8 @@ src/
   components/ui/        button, card, pill — copies of the app's, on purpose
   components/           KarasuMark and the site's own pieces
   sections/             one file per section of the page
-  content/              copy and data the sections render
+  i18n/                 the languages, the English catalog, locales/ with the rest
+  content/              the screenshots the sections render
   generated/            release.json (committed fallback; CI overwrites it)
   assets/               the mark and the processed screenshots
   dev/                  the sample page; never bundled

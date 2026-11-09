@@ -1,38 +1,74 @@
 import KarasuMark from "@/components/KarasuMark";
 import { LINKS } from "@/site.config";
 import { Eyebrow } from "@/components/Section";
+import { useI18n } from "@/i18n/context";
+import { LANGUAGES, langPath } from "@/i18n/languages";
+import type { Messages } from "@/i18n/en";
+import { cn } from "@/lib/cn";
 
-const COLUMNS = [
+const columns = (f: Messages["footer"]) => [
   {
-    title: "Project",
+    title: f.project,
     links: [
-      { label: "GitHub", href: LINKS.repo },
-      { label: "Download", href: LINKS.latest },
-      { label: "Changelog", href: LINKS.changelog },
-      { label: "Nightly builds", href: LINKS.nightly },
+      { label: f.github, href: LINKS.repo },
+      { label: f.download, href: LINKS.latest },
+      { label: f.changelog, href: LINKS.changelog },
+      { label: f.nightly, href: LINKS.nightly },
     ],
   },
   {
-    title: "Help",
+    title: f.help,
     links: [
-      { label: "Documentation", href: LINKS.readme },
-      { label: "Report an issue", href: LINKS.bugReport },
-      { label: "Request a feature", href: LINKS.featureRequest },
-      { label: "Discord", href: LINKS.discord },
+      { label: f.docs, href: LINKS.readme },
+      { label: f.issue, href: LINKS.bugReport },
+      { label: f.feature, href: LINKS.featureRequest },
+      { label: f.discord, href: LINKS.discord },
     ],
   },
   {
-    title: "Elsewhere",
+    title: f.elsewhere,
     links: [
-      { label: "AniList", href: LINKS.anilist },
-      { label: "Security policy", href: LINKS.security },
-      { label: "Contributing", href: LINKS.contributing },
-      { label: "AGPL-3.0 licence", href: LINKS.license },
+      { label: f.anilist, href: LINKS.anilist },
+      { label: f.security, href: LINKS.security },
+      { label: f.contributing, href: LINKS.contributing },
+      { label: f.license, href: LINKS.license },
     ],
   },
-] as const;
+];
+
+/** Every language by its own name, as plain links so the switch works without JavaScript. */
+function Languages() {
+  const { t, lang } = useI18n();
+  return (
+    <nav aria-labelledby="lang-title" className="mt-12 border-t border-hair pt-6">
+      <Eyebrow tone="muted">
+        <span id="lang-title">{t.footer.language}</span>
+      </Eyebrow>
+      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+        {LANGUAGES.map((l) => (
+          <li key={l.code}>
+            <a
+              href={`${import.meta.env.BASE_URL}${langPath(l.code)}`}
+              hrefLang={l.code}
+              lang={l.code}
+              aria-current={l.code === lang ? "page" : undefined}
+              className={cn(
+                "rounded-inner text-sm transition-surface hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500",
+                l.code === lang ? "text-ink-100" : "text-ink-500",
+              )}
+            >
+              {l.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-ink-600">{t.footer.aiNote}</p>
+    </nav>
+  );
+}
 
 export function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="border-t border-hair">
       <div className="container-site px-5 py-14">
@@ -42,19 +78,15 @@ export function Footer() {
               <KarasuMark className="size-7" />
               <span className="font-brand text-xs font-semibold tracking-wordmark text-ink-300">KARASU</span>
             </a>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-500">
-              A modern anime &amp; manga tracker — built exclusively for AniList.
-            </p>
-            <p className="mt-4 text-2xs uppercase tracking-eyebrow text-ink-600">
-              Open source · free of cost
-            </p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-500">{t.footer.tagline}</p>
+            <p className="mt-4 text-2xs uppercase tracking-eyebrow text-ink-600">{t.footer.badge}</p>
           </div>
-          {COLUMNS.map((col) => (
+          {columns(t.footer).map((col) => (
             <div key={col.title}>
               <Eyebrow tone="muted">{col.title}</Eyebrow>
               <ul className="mt-3 space-y-2">
                 {col.links.map((l) => (
-                  <li key={l.label}>
+                  <li key={l.href}>
                     <a
                       href={l.href}
                       className="rounded-inner text-sm text-ink-300 transition-surface hover:text-ink-100 focus-visible:outline-2 focus-visible:outline-accent-500"
@@ -67,12 +99,10 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hair pt-6 text-xs text-ink-600">
-          <span>AGPL-3.0 licensed · © 2026 Kyu and Karasu contributors</span>
-          <span>
-            Karasu is an independent project and is not affiliated with or endorsed by AniList. SN Pro is
-            used under the SIL Open Font License 1.1.
-          </span>
+        <Languages />
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hair pt-6 text-xs text-ink-600">
+          <span>{t.footer.copyright}</span>
+          <span>{t.footer.disclaimer}</span>
         </div>
       </div>
     </footer>

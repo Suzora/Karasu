@@ -1,9 +1,11 @@
 import KarasuMark from "@/components/KarasuMark";
 import { ButtonLink } from "@/components/ui/button";
 import { Eyebrow } from "@/components/Section";
+import { useI18n } from "@/i18n/context";
 
 /** The page GitHub Pages serves for any path that is not the site. */
 export function NotFound() {
+  const { t } = useI18n();
   return (
     <main
       id="main"
@@ -13,13 +15,12 @@ export function NotFound() {
         <KarasuMark className="size-20" title="Karasu" />
         <Eyebrow>404</Eyebrow>
         <h1 className="font-brand text-h3 font-bold text-ink-100">
-          Nothing perched here.
+          {t.notFound.title}
         </h1>
         <p className="text-sm leading-relaxed text-ink-500">
-          The page you were looking for does not exist. The whole site is one
-          page, and this is not it.
+          {t.notFound.body}
         </p>
-        <ButtonLink href={import.meta.env.BASE_URL}>Back to Karasu</ButtonLink>
+        <ButtonLink href={import.meta.env.BASE_URL}>{t.notFound.back}</ButtonLink>
       </div>
     </main>
   );

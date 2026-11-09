@@ -26,6 +26,8 @@ extend-exclude = [
   "!fastlane/metadata/android/en-US/",
   "fastlane/metadata/android/de-DE/",
   "site/src/content/*.de.ts",
+  "site/src/i18n/locales/*.ts",
+  "!site/src/i18n/locales/en.ts",
   "CHANGELOG.md",
 ]
 

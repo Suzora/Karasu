@@ -28,16 +28,9 @@ export const LINKS = {
   taiga: "https://github.com/erengy/taiga",
 } as const;
 
-export const NAV = [
-  { id: "changes", label: "What changed" },
-  { id: "screenshots", label: "Screenshots" },
-  { id: "join", label: "Get involved" },
-  { id: "faq", label: "FAQ" },
-] as const;
+/** The page's anchors, in order; each id is also its label's key in the catalog's `nav`. */
+export const NAV = ["changes", "screenshots", "join", "faq"] as const;
 
 export const META = {
-  title: "Karasu — A modern anime & manga tracker for AniList",
-  description:
-    "Karasu is a free, open-source anime and manga tracker built exclusively for AniList. It notices what you play — and, on Windows, what you read — and keeps your AniList progress in sync. Windows, Linux and Android.",
   themeColor: "#0b0d12",
 } as const;

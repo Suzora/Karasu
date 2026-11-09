@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { Shot } from "@/content/screenshots";
+import { fmt, useI18n, shotText } from "@/i18n/context";
 
 /** `srcset` for one format: "url 2880w, url 1440w". */
 const srcset = (sources: Shot["avif"]) => sources.map((s) => `${s.src} ${s.w}w`).join(", ");
@@ -25,6 +26,8 @@ export function Screenshot({
   sizes?: string;
   onClick?: () => void;
 }) {
+  const { t } = useI18n();
+  const text = shotText(t, shot);
   const fallback = shot.jpg[0] ?? shot.webp[shot.webp.length - 1];
   const picture = (
     <picture>
@@ -34,7 +37,7 @@ export function Screenshot({
         src={fallback.src}
         width={shot.width}
         height={shot.height}
-        alt={shot.alt}
+        alt={text.alt}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         className="block h-auto w-full"
@@ -53,7 +56,7 @@ export function Screenshot({
         type="button"
         onClick={onClick}
         className={cn(frame, "shot-button group block w-full text-left hover:border-surface-700 focus-visible:outline-2 focus-visible:outline-accent-500")}
-        aria-label={`Open: ${shot.caption}`}
+        aria-label={fmt(t.gallery.open, { caption: text.caption })}
       >
         {picture}
       </button>

@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Reveal, Section } from "@/components/Section";
-import { FAQ } from "@/content/faq";
+import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/cn";
 
 function Item({ q, a, index }: { q: string; a: string; index: number }) {
@@ -37,12 +37,13 @@ function Item({ q, a, index }: { q: string; a: string; index: number }) {
 }
 
 export function Faq() {
+  const { t } = useI18n();
   return (
-    <Section id="faq" eyebrow="FAQ" title="Questions, answered from the code." width="4xl">
+    <Section id="faq" eyebrow={t.faq.eyebrow} title={t.faq.title} width="4xl">
       <Reveal>
         <ul className="mt-10 border-b border-hair">
-          {FAQ.map((f, i) => (
-            <Item key={f.q} q={f.q} a={f.a} index={i} />
+          {Object.entries(t.faq.items).map(([key, f], i) => (
+            <Item key={key} q={f.q} a={f.a} index={i} />
           ))}
         </ul>
       </Reveal>

@@ -2,6 +2,9 @@ import { StrictMode } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { App } from "./App";
 import { NotFound } from "./NotFound";
+import { I18nProvider } from "./i18n/context";
+import type { Messages } from "./i18n/en";
+import type { Lang } from "./i18n/languages";
 import "./styles/index.css";
 
 const root = document.getElementById("root");
@@ -17,9 +20,18 @@ if (import.meta.env.DEV && location.hash === "#sample") {
     </StrictMode>,
   );
 } else {
-  // `prerender.mjs` stamps the 404 page; everything else is the landing page.
+  // `prerender.mjs` stamps the 404 page and inlines the page's catalog; the dev server has neither and gets English.
   const page = root.dataset.page === "404" ? <NotFound /> : <App />;
-  const tree = <StrictMode>{page}</StrictMode>;
+  const inline = document.getElementById("i18n")?.textContent;
+  const t: Messages = inline ? JSON.parse(inline) : (await import("./i18n/en")).en;
+  const lang = (document.documentElement.lang || "en") as Lang;
+  const tree = (
+    <StrictMode>
+      <I18nProvider lang={lang} t={t}>
+        {page}
+      </I18nProvider>
+    </StrictMode>
+  );
 
   // A pre-rendered page hydrates; the dev server, which serves the bare
   // template, mounts from scratch. Element children, not child nodes: the

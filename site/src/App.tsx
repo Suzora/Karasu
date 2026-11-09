@@ -6,13 +6,15 @@ import { Gallery } from "@/sections/Gallery";
 import { Hero } from "@/sections/Hero";
 import { Join } from "@/sections/Join";
 import { Showcase } from "@/sections/Showcase";
+import { useI18n } from "@/i18n/context";
 
 /** The landing page, top to bottom: the pitch and downloads, the app beside its changelog, the gallery, the call to join, the FAQ. */
 export function App() {
+  const { t } = useI18n();
   return (
     <>
       <a href="#main" className="skip-link">
-        Skip to content
+        {t.skip}
       </a>
       <Feathers />
       <Nav />
