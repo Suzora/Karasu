@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addEntries } from "../../scripts/changelog-section.mjs";
+import { addEntries, findSection } from "../../scripts/changelog-section.mjs";
 
 /** `scripts/changelog.mjs`'s edit to the Unreleased section, without git: the entries are what `collect` would hand it. */
 
@@ -45,5 +45,17 @@ describe("adding entries to the Unreleased section", () => {
         "",
       ),
     );
+  });
+});
+
+describe("finding the Unreleased section", () => {
+  it("takes the heading only at the start of a line", () => {
+    const file = "# Changelog\n\n1. rename `## Unreleased\n\n## Unreleased\n\n### Fixed\n\n- One.\n\n## 1.0.0\n";
+    const found = findSection(file);
+    expect(file.slice(found!.start).startsWith("## Unreleased\n\n### Fixed")).toBe(true);
+  });
+
+  it("finds none where the words only appear inside a sentence", () => {
+    expect(findSection("# Changelog\n\n1. rename `## Unreleased\n\n### Fixed\n\n- One.\n")).toBeNull();
   });
 });

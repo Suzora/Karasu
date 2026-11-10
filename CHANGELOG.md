@@ -11,9 +11,67 @@ slices the section between `## <version>` and the next `## `, and *throws* if
 there isn't one — a release published with an empty body is not something
 GitHub complains about, so the script does. So before pushing a `v*` tag:
 
-1. rename `## Unreleased
+1. rename `## Unreleased` to `## <version>` (a trailing ` — <date>` is fine,
+   the match only needs the version to come first; brackets around it or a
+   fourth dotted segment break the match and the tag build throws),
+2. open a fresh empty `## Unreleased` above it, carrying a
+   `<!-- generated-through: <sha> -->` marker so the generator knows where to
+   resume,
+3. make sure `package.json` already says the same version — the workflow
+   refuses a tag whose version disagrees with the commit it points at,
+4. and, in the same commit, write F-Droid's
+   `fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt`
+   (at most 500 characters each) and check the section against
+   `git log v<previous>..HEAD` for anything left out; the project skill
+   `.claude/skills/karasu-changelog` has both procedures.
 
-<!-- generated-through: 98754dac -->
+Commit subjects are the real record and are written to be read; this file is the
+short version, grouped by what it means for someone using the app. The app
+shows its lines as written, once after an update and under About, so each line
+has to make sense on its own.
+
+**How this file is maintained: by `scripts/changelog.mjs`, not by hand.**
+Keeping two records of the same work in step by hand is the kind of chore that
+gets skipped under pressure, and skipping it silently is worse than not doing
+it — a half-updated changelog reads as complete. So the `Unreleased` section is
+generated from the commits.
+
+    node scripts/changelog.mjs           # bring it up to HEAD
+    node scripts/changelog.mjs --check   # is anything undescribed?
+
+The `<!-- generated-through: <sha> -->` marker in that section records how far
+it has read; the script only ever appends past that point, so anything already
+written by hand survives and a second run is a no-op. What makes the output
+readable is that commit subjects here are prose, written to be read — a
+conventional-commits parser would have had nothing to work with. A commit that
+deserves a better line than its subject says so in a trailer:
+
+    Changelog: Fixed: A declined update no longer re-downloads every day.
+    Changelog: skip
+
+Version-only commits and changes confined to docs, CI or scripts are left out
+without needing the trailer.
+
+It is kept rather than deleted for two concrete reasons:
+
+1. **`scripts/release/release-notes.ps1` throws without it.** No `## <version>`
+   section, or an empty one, and the tag build fails by design — a release
+   published with an empty body is not something GitHub complains about, so the
+   script does. The file is load-bearing at tag time whether or not it is
+   pleasant to maintain.
+2. **It is not the same artefact as the log.** Four hundred commit subjects
+   ordered by when they happened, several of them internal, is not what someone
+   deciding whether to update wants to read. This is grouped by what changed for
+   *them*.
+
+So the policy is: the section is generated, and the writing that matters
+happens in the commit subject — or in a `Changelog:` trailer when the subject
+is about the change and the reader needs to hear about the effect. Curating at
+tag time is then optional rather than load-bearing.
+
+## Unreleased
+
+<!-- generated-through: f069010 -->
 
 ### Fixed
 
@@ -29,6 +87,7 @@ GitHub complains about, so the script does. So before pushing a `v*` tag:
 - A trailer's player page loads even when its request reaches it in pieces.
 - Discord's timer no longer jumps back to zero every few seconds for a player that names no episode.
 - A stack in the list's first row shows its layers whole, and the covers behind it fade back one by one.
+- What's new and the changelog under About show the changes made since 1.68.0 again.
 
 ### Changed
 

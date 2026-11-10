@@ -5,8 +5,10 @@ export const UNRELEASED = "## Unreleased";
 
 /** The Unreleased section, from its heading to the next `## ` heading or the end; null without one. */
 export function findSection(file) {
-  const start = file.indexOf(`${UNRELEASED}\n`);
-  if (start === -1) return null;
+  const lead = `${UNRELEASED}\n`;
+  const at = file.startsWith(lead) ? 0 : file.indexOf(`\n${lead}`);
+  if (at === -1) return null;
+  const start = at === 0 ? 0 : at + 1;
   const after = file.indexOf("\n## ", start + 1);
   return { start, end: after === -1 ? file.length : after + 1 };
 }
