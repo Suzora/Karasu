@@ -178,7 +178,9 @@ with backslashes when it ran natively, and the build then failed on
 input `tag`, and `release.yml` starts it for every Stable tag) validates the
 metainfo with `appstreamcli --pedantic`, lints the manifest and the built
 repository with `flatpak-builder-lint`, and builds the bundle in the GNOME 51
-builder image. The `finish-args` are each a feature — StatusNotifier for the
+builder image, pinned since 2026-11-10 to the digest its `gnome-51` tag named
+that day because the job runs privileged; nothing moves the pin, so a newer
+image is a deliberate edit of `flatpak.yml`. The `finish-args` are each a feature — StatusNotifier for the
 tray, `org.mpris.MediaPlayer2.*` for the media-session pass,
 `org.freedesktop.secrets` for the token, `org.freedesktop.Notifications` for
 the toasts, Discord's IPC socket (native and Flatpak) for rich presence, the
