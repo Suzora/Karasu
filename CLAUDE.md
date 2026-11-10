@@ -1902,7 +1902,11 @@ async update the real code makes after an await warns instead.
   not consulted, because hosts send `octet-stream`, nothing, or the wrong
   one), timeout, no cookies, no `Referer` on any hop (`referer(false)`;
   reqwest's default sets one on redirects), and local/private hosts refused on
-  the URL *and every redirect hop* so a crafted bio cannot probe the LAN. The
+  the URL *and every redirect hop* so a crafted bio cannot probe the LAN, by
+  name and by answer: the client is `net::public_client_builder`, whose
+  resolver drops every local address a name resolves to, since a public name
+  may point anywhere and the spelling check alone let such a name through
+  until 1.78.3. A system proxy resolves for itself and is outside that. The
   frontend fetches each URL once per session (`lib/promiseCache`). The
   host still learns the user's IP; that is unavoidable in any design that shows
   the image, and it is the residue rather than the part that was solved. Anything

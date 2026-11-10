@@ -84,7 +84,8 @@ none is obvious from the screen you are on:
   size cap, the format decided by the bytes themselves (PNG, JPEG, GIF, WebP,
   AVIF or ICO — never SVG, whatever the host declares), a timeout, no cookies and
   no `Referer` on any hop, and local or private addresses refused on the URL
-  and on every redirect hop. Each image is fetched once per session.
+  and on every redirect hop, whether the host is spelled as one or only
+  resolves to one. Each image is fetched once per session.
   What that cannot hide is your IP address from the host, which is unavoidable
   in any design that displays the image at all. Anything that fails falls back
   to a plain chip.

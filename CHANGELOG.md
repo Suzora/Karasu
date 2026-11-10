@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: f069010 -->
+<!-- generated-through: a417373 -->
 
 ### Fixed
 
@@ -118,6 +118,7 @@ tag time is then optional rather than load-bearing.
 ### Security
 
 - The bundled SQLite is updated to 3.54.1, which fixes a flaw where a crafted database and write-ahead log could return stale memory.
+- Images in profiles, posts and comments can no longer make Karasu send a request to your own network through a host name that resolves there.
 
 ## 1.68.0 — 2026-10-25
 

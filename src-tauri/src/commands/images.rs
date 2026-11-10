@@ -66,7 +66,7 @@ pub async fn fetch_bio_image(url: String) -> Result<String, String> {
         return Err("refused".into());
     }
 
-    // Every hop is re-checked, and `referer(false)` keeps "no Referer" true on redirects, where reqwest would set one.
+    // Every hop is checked by name and by resolved address, and `referer(false)` keeps redirects without a Referer too.
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
         reqwest::header::ACCEPT,
@@ -74,7 +74,7 @@ pub async fn fetch_bio_image(url: String) -> Result<String, String> {
             "image/avif,image/webp,image/png,image/jpeg,image/gif,image/x-icon,*/*;q=0.1",
         ),
     );
-    let client = crate::net::client_builder()
+    let client = crate::net::public_client_builder()
         .user_agent(concat!("Karasu/", env!("CARGO_PKG_VERSION")))
         .default_headers(headers)
         .referer(false)
