@@ -11,6 +11,13 @@ vi.mock("@/api/anilist", async (orig) => ({
   fetchMediaList: () => Promise.resolve({ lists: [] }),
 }));
 
+const scan = vi.hoisted(() => vi.fn());
+vi.mock("@/api/library", async (orig) => ({
+  ...(await orig<typeof import("@/api/library")>()),
+  scanLibrary: scan,
+}));
+
+import { useToast } from "@/stores/toast";
 import LocalLibrary from "./LocalLibrary";
 
 const nav: { go: NavigateFunction } = { go: () => {} };
@@ -70,5 +77,21 @@ describe("Local library's column", () => {
     expect(within(column).getByRole("button", { name: /settings\.libraryScan/ })).toBeInTheDocument();
     expect(within(column).getByRole("button", { name: "library.change" })).toBeInTheDocument();
     expect(within(column).queryByRole("navigation")).toBeNull();
+  });
+
+  it("says so when a rescan fails, and stays quiet about a folder that was never set", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/library" });
+    const button = await screen.findByRole("button", { name: /settings\.libraryScan/ });
+
+    scan.mockRejectedValueOnce("No library folder set");
+    await user.click(button);
+    await waitFor(() => expect(scan).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(useToast.getState().toast).toBeNull();
+
+    scan.mockRejectedValueOnce("Cannot read the library folder");
+    await user.click(button);
+    await waitFor(() => expect(useToast.getState().toast?.text).toBe("library.scanFailed"));
   });
 });

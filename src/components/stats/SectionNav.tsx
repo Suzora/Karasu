@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { moveTabFocus } from "@/components/ui/tab-focus";
 import type { LucideIcon } from "lucide-react";
 import { Popover } from "@/components/ui/popover";
 import { PickerField, columnRow } from "@/components/shell/PageColumn";
@@ -19,23 +19,6 @@ interface Props<T extends string> {
   onChange: (value: T) => void;
 }
 
-/** Up and Down walk the column and wrap, Home and End jump to its ends; only a press switches the section. */
-function moveFocus(e: KeyboardEvent<HTMLButtonElement>) {
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  const tabs = [...(e.currentTarget.parentElement?.querySelectorAll<HTMLElement>('[role="tab"]') ?? [])];
-  const i = tabs.indexOf(e.currentTarget);
-  const last = tabs.length - 1;
-  const next =
-    e.key === "ArrowDown" ? (i === last ? 0 : i + 1)
-    : e.key === "ArrowUp" ? (i === 0 ? last : i - 1)
-    : e.key === "Home" ? 0
-    : e.key === "End" ? last
-    : null;
-  if (next === null) return;
-  e.preventDefault();
-  tabs[next].focus();
-}
-
 /** A page's sections as a column of pills with their icons; `onPicked` closes the phone's sheet. */
 export function SectionNav<T extends string>({ label, items, value, onChange, onPicked }: Props<T> & { onPicked?: () => void }) {
   return (
@@ -47,7 +30,7 @@ export function SectionNav<T extends string>({ label, items, value, onChange, on
           role="tab"
           aria-selected={v === value}
           tabIndex={v === value ? 0 : -1}
-          onKeyDown={moveFocus}
+          onKeyDown={moveTabFocus}
           onClick={() => {
             onChange(v);
             onPicked?.();

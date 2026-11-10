@@ -398,8 +398,11 @@ function LibraryView({ userId }: { userId: number }) {
       await refresh();
       await refetchStatus();
       await refetchUnmatched();
-    } catch {
-      /* the folder may be unset — Settings owns that flow */
+    } catch (e) {
+      // An unset folder is Settings' flow and says so there; any other failure would otherwise look like a scan that ran.
+      if (!String(e).includes("No library folder set")) {
+        showToast({ kind: "error", text: t("library.scanFailed"), detail: backendErrorText(e, t) });
+      }
     } finally {
       setScanning(false);
     }

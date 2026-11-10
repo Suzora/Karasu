@@ -1133,6 +1133,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
   library: {
     title: "Lokale Bibliothek",
     folderFailed: "Ordner konnte nicht gesetzt werden",
+    scanFailed: "Die Bibliothek konnte nicht durchsucht werden",
     readyToPlay: "Bereit — nächste ungesehene Datei",
     upToDate: "Aktuell — nichts Neues auf der Platte",
     filesMatched: "{{files}} Dateien · {{matched}} zugeordnet",

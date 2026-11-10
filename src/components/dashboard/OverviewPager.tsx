@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from "react";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
+import { prefersReducedMotion } from "@/lib/motion";
 import { pagerIndex } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ export function OverviewPager({ pages }: { pages: { label: string; slot: string;
   const [at, setAt] = useState(0);
   // A page is the track's whole width, so one step sideways is the track's own width.
   const step = () => track.current?.clientWidth ?? 0;
-  const go = (i: number) => track.current?.scrollTo({ left: i * step(), behavior: "smooth" });
+  const go = (i: number) => track.current?.scrollTo({ left: i * step(), behavior: prefersReducedMotion() ? "auto" : "smooth" });
   return (
     <div className="relative h-full">
       <div

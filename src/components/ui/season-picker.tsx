@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
 import type { Season } from "@/api/queries";
+import { useBackClose } from "@/hooks/useBackClose";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export default function SeasonPicker({
   const box = useRef<HTMLDivElement>(null);
   // Exit through `usePresence`, since with `{open && …}` alone the panel would vanish mid-frame.
   const panel = usePresence(open);
+  useBackClose(open, () => setOpen(false));
 
   // The default years end at next year's Winter, the newest season AniList already lists.
   const latest = new Date().getFullYear() + 1;
