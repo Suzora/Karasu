@@ -165,18 +165,17 @@ describe("stopVerdict", () => {
 
 describe(".claude/settings.json", () => {
   const settings = JSON.parse(Object.values(SETTINGS)[0]) as {
-    permissions: { deny: string[]; ask: string[] };
+    permissions: { deny: string[]; ask?: string[] };
     hooks: Record<string, { matcher?: string; hooks: { command: string; args: string[] }[] }[]>;
   };
 
   it("parses, since a broken file switches every rule off without a word", () => {
     expect(settings.permissions.deny.length).toBeGreaterThan(0);
-    expect(settings.permissions.ask.length).toBeGreaterThan(0);
+    expect(new Set(settings.permissions.deny).size).toBe(settings.permissions.deny.length);
   });
 
-  it("names no rule twice, and none under both deny and ask", () => {
-    const all = [...settings.permissions.deny, ...settings.permissions.ask];
-    expect(new Set(all).size).toBe(all.length);
+  it("asks for nothing: a prompt stalls a session nobody is watching", () => {
+    expect(settings.permissions.ask ?? []).toEqual([]);
   });
 
   it("runs only hook scripts that exist, each in a mode the guard knows", () => {

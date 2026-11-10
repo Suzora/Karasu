@@ -1263,11 +1263,9 @@ of tags, a push past the hook, `git add -f`, creating, forking or renaming a
 repository, a release made by hand, a write to the remote that skips git, a
 hand edit of a generated file (the bindings, the site tokens, the widget
 strings, the entity table, snapshots, proptest regressions, the lockfiles),
-reading key material and editing the installed app's data. They ask before a
-ratchet or the gate's own configuration changes (the budget, the style
-baseline, the allowlists, `deny.toml`, `.oxlintrc.json`, `verify.mjs`, the
-hooks, the settings themselves), and before a merge, a workflow dispatch,
-`git clean` or `tauri android init`. Two hooks run `scripts/agent-guard.mjs`
+reading key material and editing the installed app's data. There is no ask
+rule, decided by the maintainer on 2026-11-10: a prompt stalls a session
+nobody is watching, so a rule here either refuses or stays prose. Two hooks run `scripts/agent-guard.mjs`
 (its decisions are `agent-guard-core.mjs`, tested by `agentGuard.test.ts`):
 before a file is written it refuses text shaped like a credential, naming the
 rule and never the match; before a command runs it refuses the gate in a

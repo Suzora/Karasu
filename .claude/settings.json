@@ -51,29 +51,6 @@
       "Edit(~/AppData/Local/dev.kyu.karasu/**)",
       "Edit(~/.local/share/dev.kyu.karasu/**)",
       "Edit(~/.var/app/io.github.Suzora.Karasu/**)"
-    ],
-    "ask": [
-      "Bash(git push *--force-with-lease*)",
-      "Bash(git clean *)",
-      "Bash(gh pr merge *)",
-      "Bash(gh workflow run *)",
-      "Bash(tauri android init*)",
-      "Bash(* tauri android init*)",
-      "Bash(node scripts/style-audit.mjs *--record*)",
-      "mcp__github__merge_pull_request",
-      "mcp__github__enable_pr_auto_merge",
-      "mcp__github__actions_run_trigger",
-      "Edit(/scripts/bundle-budget.json)",
-      "Edit(/scripts/style-baseline.json)",
-      "Edit(/scripts/style-allowlist.json)",
-      "Edit(/scripts/comment-allowlist.json)",
-      "Edit(/src-tauri/deny.toml)",
-      "Edit(/.oxlintrc.json)",
-      "Edit(/.githooks/**)",
-      "Edit(/scripts/verify.mjs)",
-      "Edit(/scripts/agent-guard.mjs)",
-      "Edit(/scripts/agent-guard-core.mjs)",
-      "Edit(/.claude/settings.json)"
     ]
   },
   "hooks": {

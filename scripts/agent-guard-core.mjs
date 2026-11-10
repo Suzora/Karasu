@@ -49,7 +49,7 @@ const TAURI_DEV = /\btauri(\.js)?\s+dev\b/;
 
 const DENIALS = [
   ["gate-piped", GATE_PIPED, "Run the gate bare and read its exit code: a pipe reports the other command's status."],
-  ["force-push", FORCE_PUSH, "A forced push rewrites history others may hold; --force-with-lease asks the maintainer."],
+  ["force-push", FORCE_PUSH, "A forced push rewrites history others may hold; --force-with-lease is the one that checks first."],
   ["tag-push", TAG_PUSH, "A Stable commit, its tag and its push are the maintainer's."],
 ];
 
