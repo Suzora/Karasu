@@ -88,6 +88,7 @@ export const en = {
     src_connect: "Sign-in",
     src_delete: "Entry removed",
     src_drain: "Waiting edits sent",
+    src_drainCheck: "Waiting edits checked against AniList",
     src_identify: "Library matching",
     src_save: "Entry saved",
     src_sequel: "Sequel announcements",

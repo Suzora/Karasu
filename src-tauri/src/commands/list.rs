@@ -343,7 +343,7 @@ pub async fn fetch_media_list(
     // Only a queue with rows costs a request here; an idle app must be able to read its list for nothing.
     if db.queue_len(user_id) > 0 {
         match process_queue(&db, &api, token.as_deref()).await {
-            Ok(drained) => report_dropped(&app, &drained.dropped),
+            Ok(drained) => report_dropped(&app, &drained),
             Err(e) => crate::logging::warn("queue", format!("cannot drain the offline queue: {e}")),
         }
     }
@@ -412,7 +412,7 @@ pub(crate) async fn save_entry_core(
     // A skipped drain takes the failed exit: a live write would otherwise be overwritten by older rows it still holds.
     if pending(db) > 0 {
         match process_queue(db, api, Some(token)).await {
-            Ok(drained) if !drained.skipped => report_dropped(app, &drained.dropped),
+            Ok(drained) if !drained.skipped => report_dropped(app, &drained),
             _ => {
                 queue_push_deduped(db, "save", &input.to_string())?;
                 return Ok(MutationResult { queued: true, entry: None });
@@ -579,7 +579,7 @@ pub async fn bulk_save_list_entries(
             // A stable code, not a sentence; `lib/backendError.ts` turns it into the reader's language.
             return Err("queue.busy".into());
         }
-        report_dropped(&app, &drained.dropped);
+        report_dropped(&app, &drained);
     }
 
     let mut updated = 0usize;
@@ -636,7 +636,7 @@ pub async fn delete_list_entry(
     // A skipped drain takes the failed exit, or an older queued save replays after the delete and recreates the row.
     if pending(&db) > 0 {
         match process_queue(&db, &api, Some(&token)).await {
-            Ok(drained) if !drained.skipped => report_dropped(&app, &drained.dropped),
+            Ok(drained) if !drained.skipped => report_dropped(&app, &drained),
             _ => {
                 queue_push_deduped(&db, "delete", &input.to_string())?;
                 return Ok(MutationResult { queued: true, entry: None });
@@ -833,6 +833,8 @@ pub(crate) struct Drained {
     pub dropped: Vec<String>,
     /// Another drain held the lock, so this call did nothing; without it, contention looks exactly like an empty queue.
     pub skipped: bool,
+    /// Queued saves left unsent because AniList holds a newer change to the same entry.
+    pub overtaken: usize,
 }
 
 /// What a queued payload is about, shared by the dedupe and the sync panel so the two cannot disagree.
@@ -919,15 +921,26 @@ async fn process_queue(
     let mut dropped = Vec::new();
     // Someone else is already draining; their pass covers these rows.
     let Ok(_drain) = DRAIN.try_lock() else {
-        return Ok(Drained { flushed, dropped, skipped: true });
+        return Ok(Drained { flushed, dropped, skipped: true, overtaken: 0 });
     };
     let _mark = DrainMark::set();
     // Only this account's rows: the queue outlives a sign-out, and an unscoped read drains one user's edits onto another.
     let Some(user_id) = viewer_id(db) else {
-        return Ok(Drained { flushed, dropped, skipped: false });
+        return Ok(Drained { flushed, dropped, skipped: false, overtaken: 0 });
     };
-    for row in db.queue_all(user_id) {
+    let rows = db.queue_all(user_id);
+    let remote = remote_updates(api, token, user_id, &rows).await?;
+    let mut overtaken = 0;
+    for row in rows {
         let (id, kind, payload) = (row.id, row.kind, row.payload);
+        // A save older than what AniList now holds would undo an edit made elsewhere since, so it is not sent.
+        let subject = queue_parts(&kind, &payload).map(|p| p.subject);
+        if kind == "save" && is_overtaken(row.created_at, subject.and_then(|m| remote.get(&m).copied())) {
+            crate::logging::info("queue", "a queued save is older than its entry on AniList; not sending it");
+            db.queue_remove(id);
+            overtaken += 1;
+            continue;
+        }
         let mut variables: Value =
             serde_json::from_str(&payload).unwrap_or_else(|_| json!({}));
         // The format is re-stamped at drain time; `advancedScores` cannot be, since the payload lacks its category names.
@@ -955,7 +968,56 @@ async fn process_queue(
             }
         }
     }
-    Ok(Drained { flushed, dropped, skipped: false })
+    Ok(Drained { flushed, dropped, skipped: false, overtaken })
+}
+
+/// How far this machine's clock may trail AniList's before a queued save counts as older than the entry it changes.
+const CLOCK_SLACK_SECS: i64 = 120;
+
+/// Whether AniList's copy of an entry changed after a save was queued; an entry it does not hold overtakes nothing.
+fn is_overtaken(queued_at: i64, remote_updated_at: Option<i64>) -> bool {
+    remote_updated_at.is_some_and(|at| at > queued_at + CLOCK_SLACK_SECS)
+}
+
+const QUEUE_CHECK_QUERY: &str = "query ($userId: Int, $ids: [Int]) { Page(perPage: 50) { mediaList(userId: $userId, mediaId_in: $ids) { mediaId updatedAt } } }";
+
+/// When AniList last changed each entry a queued save is about; only a failure worth retrying stops the drain.
+async fn remote_updates(
+    api: &AniList,
+    token: Option<&str>,
+    user_id: i64,
+    rows: &[crate::db::QueuedRow],
+) -> Result<std::collections::HashMap<i64, i64>, String> {
+    let mut ids: Vec<i64> = rows
+        .iter()
+        .filter(|r| r.kind == "save")
+        .filter_map(|r| queue_parts(&r.kind, &r.payload).map(|p| p.subject))
+        .collect();
+    ids.sort_unstable();
+    ids.dedup();
+    let mut found = std::collections::HashMap::new();
+    for chunk in ids.chunks(50) {
+        let variables = json!({ "userId": user_id, "ids": chunk });
+        match api.query_from("drainCheck", token, QUEUE_CHECK_QUERY, variables).await {
+            Ok(data) => found.extend(read_remote_updates(&data)),
+            Err(e) if e.is_retryable() => return Err(e.into()),
+            // A refused check must not hold the queue for good; the saves go out as they did before there was one.
+            Err(e) => crate::logging::warn("queue", format!("cannot compare the queue with AniList: {}", String::from(e))),
+        }
+    }
+    Ok(found)
+}
+
+/// The `mediaId` to `updatedAt` pairs of a check's answer; a row missing either is left out.
+fn read_remote_updates(data: &Value) -> Vec<(i64, i64)> {
+    data.pointer("/Page/mediaList")
+        .and_then(Value::as_array)
+        .map(|list| {
+            list.iter()
+                .filter_map(|e| Some((e.get("mediaId")?.as_i64()?, e.get("updatedAt")?.as_i64()?)))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 /// Mirrors a drained edit into the cache as its live twin does, since the scrobbler's guards read the cache as truth.
@@ -970,9 +1032,13 @@ fn mirror_drained(db: &Db, user_id: i64, kind: &str, payload: &str, data: &Value
 }
 
 /// Tells the user through the bell when a queued edit was thrown away, since a drop is otherwise silent.
-fn report_dropped(app: &AppHandle, dropped: &[String]) {
-    let Some(first) = dropped.first() else { return };
-    let body = match dropped.len() {
+fn report_dropped(app: &AppHandle, drained: &Drained) {
+    if drained.overtaken > 0 {
+        let body = crate::i18n::Msg::QueueOvertaken { count: drained.overtaken };
+        crate::alerts::notify::notify(app, "queue", crate::i18n::Msg::QueueTitle, body, None);
+    }
+    let Some(first) = drained.dropped.first() else { return };
+    let body = match drained.dropped.len() {
         1 => crate::i18n::Msg::QueueBodyOne { reason: first },
         n => crate::i18n::Msg::QueueBodyMany { count: n, reason: first },
     };
@@ -1103,16 +1169,36 @@ pub async fn flush_queue(
 ) -> Result<u32, String> {
     let token = auth::load_token().ok_or("Not connected to AniList")?;
     let drained = process_queue(&db, &api, Some(&token)).await?;
-    report_dropped(&app, &drained.dropped);
+    report_dropped(&app, &drained);
     Ok(drained.flushed as u32)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        bulk_chunks, list_freshness, list_plan, mirror_drained, queue_key, queue_parts, ListFreshness, ListPlan,
-        BULK_CHUNK, LIST_FRESH_SECS,
+        bulk_chunks, is_overtaken, list_freshness, list_plan, mirror_drained, queue_key, queue_parts,
+        read_remote_updates, ListFreshness, ListPlan, BULK_CHUNK, CLOCK_SLACK_SECS, LIST_FRESH_SECS,
     };
+
+    /// An edit made elsewhere after the save was queued wins; one made before it, or no entry at all, does not.
+    #[test]
+    fn a_queued_save_is_overtaken_only_by_a_later_change_on_anilist() {
+        assert!(is_overtaken(1_000, Some(1_000 + CLOCK_SLACK_SECS + 1)));
+        assert!(!is_overtaken(1_000, Some(1_000 + CLOCK_SLACK_SECS)));
+        assert!(!is_overtaken(1_000, Some(900)));
+        assert!(!is_overtaken(1_000, None));
+    }
+
+    #[test]
+    fn the_check_reads_each_entry_and_skips_a_row_without_its_stamp() {
+        let data = serde_json::json!({ "Page": { "mediaList": [
+            { "mediaId": 5, "updatedAt": 77 },
+            { "mediaId": 6 },
+            { "mediaId": 7, "updatedAt": 99 }
+        ] } });
+        assert_eq!(read_remote_updates(&data), vec![(5, 77), (7, 99)]);
+        assert!(read_remote_updates(&serde_json::json!({ "Page": null })).is_empty());
+    }
 
     /// The panel's countdown ends exactly where `list_plan` stops serving the cache.
     #[test]

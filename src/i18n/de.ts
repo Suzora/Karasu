@@ -90,6 +90,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     src_connect: "Anmeldung",
     src_delete: "Eintrag entfernt",
     src_drain: "Wartende Änderungen gesendet",
+    src_drainCheck: "Wartende Änderungen mit AniList abgeglichen",
     src_identify: "Bibliothek zuordnen",
     src_save: "Eintrag gespeichert",
     src_sequel: "Angekündigte Fortsetzungen",

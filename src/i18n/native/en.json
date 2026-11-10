@@ -46,6 +46,8 @@
   "queueTitle": "Offline changes were not saved",
   "queueBody_one": "AniList refused an offline change: {{reason}}",
   "queueBody_other": "AniList refused {{count}} offline changes. The first: {{reason}}",
+  "queueOvertaken_one": "An offline change was not sent, because its entry was changed on AniList in the meantime.",
+  "queueOvertaken_other": "{{count}} offline changes were not sent, because their entries were changed on AniList in the meantime.",
   "confirmAction": "Update now",
   "confirmEpisode": "Mark episode {{episode}} as watched?",
   "confirmChapter": "Mark chapter {{chapter}} as read?",

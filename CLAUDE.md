@@ -2592,6 +2592,18 @@ four or five places, made by careful code, because nothing said it once.
   `Outcome::{Landed, Queued, Refused}` exists so the compiler asks. A
   *skipped* drain takes the same exit as a failed one, in all three mutating
   commands.
+- **A queued save yields to a newer change on AniList.** Before a drain sends
+  anything it asks once per fifty titles when AniList last changed the
+  entries its queued saves are about (`remote_updates`, source `drainCheck`,
+  `Page.mediaList(userId:, mediaId_in:)`, validated live on 2026-11-10: an id
+  not on the list drops out of the answer). A save queued before that change
+  (`is_overtaken`, with two minutes of slack for a clock that trails
+  AniList's) is removed unsent and reported through the bell, because
+  replaying it set an entry back that another device or the website had
+  moved on since. An entry AniList does not hold overtakes nothing, so a
+  queued first add still lands, and queued deletes are not checked. A check
+  AniList refuses for good is logged and the saves go out as before; one
+  worth retrying stops the drain like any other.
 - **Identity changes only through `commands::auth::switch_identity`.** It
   forgets the outgoing account first and writes the identity *before* the
   credential. The order is the point: a failure then leaves "this account, no
