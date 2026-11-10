@@ -160,7 +160,7 @@ export const en = {
     security: "Security policy",
     contributing: "Contributing",
     license: "AGPL-3.0 licence",
-    copyright: "AGPL-3.0 licensed · © 2026 Kyu and Karasu contributors",
+    copyright: "AGPL-3.0 licensed · © 2026 Kyusetzu and Karasu contributors",
     disclaimer:
       "Karasu is an independent project and is not affiliated with or endorsed by AniList. SN Pro is used under the SIL Open Font License 1.1.",
     language: "Language",

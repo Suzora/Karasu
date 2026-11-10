@@ -571,7 +571,7 @@ Security issues go to the email above, privately — see
 
 ## License
 
-Copyright (C) 2026 Kyu and Karasu contributors.
+Copyright (C) 2026 Kyusetzu and Karasu contributors.
 
 Karasu is free software: you can redistribute it and/or modify it under the
 terms of the [GNU Affero General Public License](LICENSE) as published by the

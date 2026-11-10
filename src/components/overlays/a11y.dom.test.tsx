@@ -54,7 +54,7 @@ const CASES: [string, () => React.ReactElement][] = [
     ),
   ],
   ["ReviewComposerModal", () => <ReviewComposerModal mediaId={1} onClose={noop} />],
-  ["ProfileEditModal", () => <ProfileEditModal viewerName="Kyu" about="hi" profileColor="blue" onClose={noop} />],
+  ["ProfileEditModal", () => <ProfileEditModal viewerName="Kyusetzu" about="hi" profileColor="blue" onClose={noop} />],
   [
     "WhatsNewDialog",
     () => (

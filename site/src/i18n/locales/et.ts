@@ -133,7 +133,7 @@ export default {
     security: "Turvapoliitika",
     contributing: "Kaasaaitamine",
     license: "AGPL-3.0 litsents",
-    copyright: "Litsentsitud AGPL-3.0 all · © 2026 Kyu ja Karasu kaasautorid",
+    copyright: "Litsentsitud AGPL-3.0 all · © 2026 Kyusetzu ja Karasu kaasautorid",
     disclaimer:
       "Karasu on sõltumatu projekt ning pole AniListiga seotud ega AniListi poolt heaks kiidetud. SN Pro't kasutatakse SIL Open Font License 1.1 alusel.",
     language: "Keel",

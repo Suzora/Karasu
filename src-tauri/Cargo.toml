@@ -1,8 +1,8 @@
 [package]
 name = "karasu"
-version = "1.79.6"
+version = "1.79.7"
 description = "A modern anime and manga tracker built exclusively for AniList"
-authors = ["Kyu"]
+authors = ["Kyusetzu"]
 license = "AGPL-3.0-or-later"
 edition = "2021"
 

@@ -133,7 +133,7 @@ export default {
     security: "Patakaran sa seguridad",
     contributing: "Pag-aambag",
     license: "Lisensya ng AGPL-3.0",
-    copyright: "Lisensyado sa ilalim ng AGPL-3.0 · © 2026 Kyu at mga contributor ng Karasu",
+    copyright: "Lisensyado sa ilalim ng AGPL-3.0 · © 2026 Kyusetzu at mga contributor ng Karasu",
     disclaimer:
       "Ang Karasu ay isang malayang proyekto at hindi kaanib o inendorso ng AniList. Ginagamit ang SN Pro sa ilalim ng SIL Open Font License 1.1.",
     language: "Wika",

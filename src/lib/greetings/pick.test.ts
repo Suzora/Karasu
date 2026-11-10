@@ -80,7 +80,7 @@ describe("pickGreeting", () => {
 describe("fillGreeting", () => {
   it("fills the title its need names and the countdown", () => {
     const c = ctx({ facts: { ...facts([]), airingToday: { title: "Tonight", at: secs + 600 } } });
-    expect(fillGreeting(line("x", { text: "{title} in {when}, {name}.", need: ["airingToday"] }), c, "Kyu", (s) => `${s}s`)).toBe("Tonight in 600s, Kyu.");
+    expect(fillGreeting(line("x", { text: "{title} in {when}, {name}.", need: ["airingToday"] }), c, "Kyusetzu", (s) => `${s}s`)).toBe("Tonight in 600s, Kyusetzu.");
   });
 
   it("drops the name for a profile without one", () => {

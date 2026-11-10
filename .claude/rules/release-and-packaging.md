@@ -5,6 +5,7 @@ paths:
   - "fastlane/**"
   - ".github/workflows/**"
   - "src-tauri/tauri.conf.json"
+  - "src-tauri/windows/**"
 ---
 
 # The AppImage, Flatpak, F-Droid and the release workflows
@@ -314,3 +315,44 @@ reproducibility check only when it carries an arm64 APK, with a `::warning::`
 in the publish log when it skipped. A
 red run reaches the maintainer as that workflow's own notification; the
 release itself is already out by then and is not held back by either.
+
+## The Windows installer carries the old publisher name over
+
+The author was written "Kyu" until 2026-11-10 and is "Kyusetzu" since, the
+bundle's `publisher` included. Tauri's NSIS installer keeps the install folder
+under `Software\<publisher>\Karasu` and reads it back at the next run, so the
+rename alone made an update forget where the app is. Measured that day under
+Wine 9.0 with installers cross-built from Linux (`tauri build --target
+x86_64-pc-windows-gnu --bundles nsis`, the WebView step skipped): an install
+of the old publisher in `C:\Apps\Karasu`, updated the way the app's updater
+does it (`/UPDATE /P`) by an installer of the new publisher with no hook, got
+a second copy in the default folder, the old one untouched and both keys
+left behind.
+
+`src-tauri/windows/hooks.nsh` is the migration, and it stays in the installer
+for good, so an update from any older build is carried over. It hangs a
+function on `MUI_CUSTOMFUNCTION_GUIINIT`, which the template leaves free and
+which runs before the first page, in the updater's passive mode too: when the
+new key holds no folder and the old one does, it copies the folder and the
+installer language to the new key and installs where the app already is,
+unless a folder was named on the command line. A silent install shows no
+window and never runs that function, so `NSIS_HOOK_PREINSTALL` does the same
+and removes the empty default folder the template had just made.
+`NSIS_HOOK_POSTINSTALL` deletes the old key. The same four runs with the hook:
+the update landed in `C:\Apps\Karasu`, passive and silent alike, the new key
+named that folder, `Software\Kyu` was gone, the uninstall entry's publisher
+read Kyusetzu, a fresh install wrote the new key alone, and an install in the
+default folder was updated in place. An uninstall leaves the new key behind
+unless "delete app data" is ticked, which is the template's own behaviour.
+What Wine could not show is the folder page of an installer run by hand, and
+the installer's language choice reads its remembered value before the
+function runs, so the first update does not know it.
+
+The hook leans on how the template is built (where the hook file is
+included, that the GUI-init slot is free, the two hook macros, the key's
+shape), so `@tauri-apps/cli` is pinned to the exact version it was read
+against and `installerHook.test.ts` fails when the pin moves. Moving it means
+reading the new `installer.nsi` and running the four cases again. The package
+name `dev.kyu.karasu` did not move and must not: on Android it is the app's
+identity, a new name is a second app that inherits neither data nor sign-in,
+and F-Droid keys its listing on it.

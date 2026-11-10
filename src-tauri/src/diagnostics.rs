@@ -884,7 +884,7 @@ mod tests {
     #[test]
     fn a_home_directory_loses_the_user_name() {
         assert_eq!(
-            redact_home(r"C:\Users\Kyu\AppData\Roaming\dev.kyu.karasu"),
+            redact_home(r"C:\Users\Kyusetzu\AppData\Roaming\dev.kyu.karasu"),
             r"C:\Users\USER\AppData\Roaming\dev.kyu.karasu"
         );
         assert_eq!(

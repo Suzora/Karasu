@@ -694,7 +694,7 @@ mod tests {
             // The bare namespace names no pipe.
             assert!(!is_pipe_path(r"\\.\pipe\"));
             // An ordinary file `OPEN_EXISTING` would gladly open, and the UNC path whose connect can stall the loop.
-            assert!(!is_pipe_path(r"C:\Users\Kyu\notes.txt"));
+            assert!(!is_pipe_path(r"C:\Users\Kyusetzu\notes.txt"));
             assert!(!is_pipe_path(r"\\server\share\pipe\karasu-mpv"));
         } else {
             assert!(is_pipe_path("/tmp/karasu-mpv"));

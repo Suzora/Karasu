@@ -133,7 +133,7 @@ export default {
     security: "Biztonsági irányelv",
     contributing: "Közreműködés",
     license: "AGPL-3.0 licenc",
-    copyright: "AGPL-3.0 licenc alatt · © 2026 Kyu és a Karasu közreműködői",
+    copyright: "AGPL-3.0 licenc alatt · © 2026 Kyusetzu és a Karasu közreműködői",
     disclaimer:
       "A Karasu független projekt, nem áll kapcsolatban az AniListtel, és az AniList sem támogatja. Az SN Pro betűtípust a SIL Open Font License 1.1 alapján használjuk.",
     language: "Nyelv",
