@@ -5,6 +5,11 @@ developed with heavy AI assistance; this file records the conventions and
 guardrails those tools are expected to follow. Every change is reviewed and
 verified by a human maintainer before it lands.
 
+Where this file and a user's own preferences disagree, this file decides what
+lands in the repository (code, comments, commit messages, the changelog, tests,
+the build and release steps) and the user's preferences decide the
+conversation: its language, its tone, its length.
+
 ## Project
 
 **Karasu** is a modern anime & manga tracker built **exclusively for
@@ -77,7 +82,8 @@ src/
                      detail page's DetailHero and ProgressBand among them)
     overlays/        modal flows (confirm, preset, random pick, sign-in merge,
                      profile edit, match picker, favourites, new thread,
-                     season split, cover viewer, review composer, what's new)
+                     season split, cover viewer, review composer, what's new,
+                     the stack sheet and its rename)
     list/            the parts MediaList draws (StatusNav, the status column
                      and the phone's StatusPicker, the ListToolbar and
                      the phone's ListMoreMenu, virtual grid, rows, bulk bar)
@@ -121,25 +127,29 @@ src/
                      useDetectionMedia, useDetectionDrag, useElementSize,
                      useTabSwipe, useSeasonArt, useSettingLanding,
                      useFlickDismiss, useCustomListAdmin, useUrlState,
-                     useScrollMemory)
+                     useScrollMemory, useFloatInset, useGreeting,
+                     useRemoveFollower)
   i18n/              index.ts (setup) + en.ts + de.ts; `de: typeof en` enforces
-                     key parity across the two files
+                     key parity across the two files. locales/ holds the 38
+                     machine-translated languages and native/ the flat
+                     catalogs Rust and the Android widgets read
   lib/               pure logic + its *.test.ts — the place testable code goes
   pages/             one per route; settings/ holds the pane files — the seven
                      pane ids live in `lib/settingsPanes.ts` (the account pane
                      holds the AniList one's sections too), and the desktop
                      and data panes are sections exported from AdvancedPane
   stores/            Zustand stores (auth, theme, library, nowPlaying,
-                     overviewRail, …)
+                     overviewRail, stacks, tagColours, airingMutes, …)
   assets/            karasu-mark.svg, the one asset the bundle inlines
   test/              render.tsx — the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 src-tauri/src/
-  commands/          112 of the 136 frontend-facing commands, by subject:
+  commands/          most of the frontend-facing commands, by subject:
                      auth · images · list · playback · prefs · system ·
-                     update. The other 24 are the library scanner's 15 in
-                     `library.rs` and the Android updater's 9 in
-                     `apk_update.rs`.
+                     update. The rest are the library scanner's in
+                     `library.rs` and the Android updater's in
+                     `apk_update.rs`; `collect_commands!` in `lib.rs` is the
+                     one list of them all.
                      `mod.rs` re-exports all of it, so `commands::x` paths and
                      `generate_handler!` do not care which file a command is in.
                      Note what is *not* here: the entire social surface adds no
@@ -293,6 +303,8 @@ src-tauri/src/
                      rewritten whenever the list cache moves; Widgets.kt
                      renders it with no network and no schema knowledge
   apk_update.rs      the Android in-app updater, see "The Android updater"
+  trailer.rs         the loopback page a trailer plays in, see the note on
+                     YouTube's referrer
   discord.rs · library.rs · portable.rs · lib.rs (setup, the handler list,
   the background loops) · main.rs
 scripts/             bump-version.mjs (every commit), anilist-query.mjs
@@ -740,7 +752,8 @@ Four-part scheme **`MAJOR.MINOR.PATCH.COMMIT#`**:
 - **MAJOR** — breaking changes
 - **MINOR** — new backward-compatible features
 - **PATCH** — bug fixes / patches
-- **COMMIT#** — a monotonically increasing commit counter (`+1` every commit)
+- **COMMIT#** — a monotonically increasing commit counter (`+1` on every
+  commit that changes what a build contains)
 
 The three manifests (`package.json`, `src-tauri/Cargo.toml`,
 `src-tauri/tauri.conf.json`) carry the `MAJOR.MINOR.PATCH` semver core. The 4th
@@ -750,10 +763,13 @@ update check, which can match one string but cannot add two numbers (a test
 holds it to the crate version and the counter, and `bump-version --check` to
 the files); `app_version()` returns that full `MAJOR.MINOR.PATCH.COMMIT#` string, which the
 About window always displays. **Bump the appropriate segment and the
-`COMMIT_NUMBER` on every commit** — via `scripts/bump-version.mjs`, which also
-keeps `Cargo.lock` in step; see "The commit loop" below. The update check
-compares all four segments, COMMIT# included, so a commit-only bump still
-registers as an update.
+`COMMIT_NUMBER` on every commit that changes what a build contains** — via
+`scripts/bump-version.mjs`, which also keeps `Cargo.lock` in step; see "The
+commit loop" below. A commit no build reads carries no bump: docs alone,
+`site/` alone, tooling alone (the screens harness, `.claude/`), and the
+merges Dependabot makes. The update check compares all four segments,
+COMMIT# included, so two builds of one semver core still register as an
+update; the script always moves a segment and the counter together.
 
 **`latest.json` spells the commit number as semver build metadata**
 (`0.23.2+90`), not as a fourth dotted segment — see
@@ -832,12 +848,12 @@ Six commands per commit, in this order, and one more before a push. Don't do
 any of it by hand.
 
 ```sh
+node scripts/changelog.mjs --marker-head   # first: the committed marker names a commit an amend or a squash erased
 node scripts/bump-version.mjs patch   # minor for features, major for breaks
 npm run verify                        # typecheck, audits and lints, then vitest and cargo test side by side
 git commit                            # message ends with the Co-Authored-By trailer
 node scripts/changelog.mjs            # after the commit — it reads the commit
-git commit --amend --no-edit          # fold the changelog in, then re-run:
-node scripts/changelog.mjs --marker-head
+git commit --amend --no-edit          # fold the changelog in
 npm run verify:full                   # before a push: every check the repository owns, once
 ```
 
@@ -849,9 +865,10 @@ bump with nothing to describe is a mistake or a double-run. `--force` overrides
 that, `--print` just reports the current version.
 
 **`npm run verify`** is `scripts/verify.mjs`, the whole gate and what CI runs,
-so the two cannot drift. Typecheck, the comment audit, the style audit and the
-site tokens' freshness go first and stop the run on a failure; then vitest and
-`cargo test` run at the same time — **each only when the change can reach
+so the two cannot drift. Typecheck, the comment audit, the style audit, the
+site tokens' freshness and the native strings' go first and stop the run on a
+failure; then vitest and `cargo test` run at the same time — **each only when
+the change can reach
 it**. A plain local run asks `scripts/verify-scope.mjs` (pure, tested by
 `src/lib/verifyScope.test.ts`) what changed since HEAD, untracked files
 included, or in HEAD's own commit on a clean tree: `cargo test` runs for
@@ -950,22 +967,26 @@ The single-tool scripts (`lint`, `lint:rust`, `deny`, `deps:unused`, `knip`,
 gate is the one place they all run together, and CI runs the same pieces on
 its own jobs.
 
-**`scripts/changelog.mjs`** runs *after* the commit, because it reads it —
-which is also why the loop above ends the way it does. Folding the generated
-entry back in with `--amend` rewrites the sha the marker just recorded, so the
-next run would offer the same entry a second time; `--marker-head` re-points it
-at the amended commit and is the one-line answer. Skip the amend and commit the
-changelog separately if you prefer — the marker stays correct either way. It
+**`scripts/changelog.mjs`** runs *after* the commit, because it reads it.
+Folding the generated entry back in with `--amend` rewrites the sha the marker
+just recorded, so the next run would offer the same entry a second time — and
+in a fresh clone, or after a squash merge, that sha is no commit at all and the
+script stops. `--marker-head` re-points the marker at HEAD and is the one-line
+answer. It is the loop's first step, not its last: it leaves CHANGELOG.md
+modified, and `verify:full`'s clean-tree phase fails on a modified file. Skip
+the amend and commit the changelog separately if you prefer — the marker stays
+correct either way. It
 appends to `CHANGELOG.md`'s `## Unreleased` section from every commit since the
 `generated-through` marker, so nobody writes that file by hand — the maintainer
 declined to, and a changelog kept by hand is one that silently goes stale. The
 commit subject is the changelog line; add a `Changelog: Fixed: …` trailer when
 the subject describes the change and the reader needs the effect, or
 `Changelog: skip` to leave a commit out. Version-only, docs-only, CI-only and
-scripts-only commits drop out without a trailer. The marker that
-`--marker-head` re-points rides along uncommitted into the next commit, and
-the gate's scope counts a marker-only change of CHANGELOG.md as bookkeeping,
-like a version bump, so it starts no suite.
+scripts-only commits drop out without a trailer; a commit under `.claude/`
+does not, so it carries `Changelog: skip`. The marker that `--marker-head`
+re-points is committed with the change that follows it, and the gate's scope
+counts a marker-only change of CHANGELOG.md as bookkeeping, like a version
+bump, so it starts no suite.
 
 **The app shows that file, word for word and in English.** After an update
 Karasu opens What's new once over the first screen, and About's Changelog
@@ -1306,7 +1327,7 @@ intent: prefer one good line.
 **Two vitest projects, and the filename picks one.** Everything runs in **node**
 by default; only `*.dom.test.tsx` boots jsdom and Testing Library, via the
 `projects` block in `vite.config.ts`. That split is what keeps the suite fast
-(~1,900 tests in under eight seconds), and it is a *name* rather than an inference on purpose:
+(about 2,400 tests; the timings are below), and it is a *name* rather than an inference on purpose:
 `components/stats/Charts.test.tsx` renders with `renderToStaticMarkup` and needs
 no DOM, so an extension rule (`.tsx` ⇒ jsdom) dragged it into one and the suite
 went from 2.0 s to **14.1 s**. Needing a DOM is a decision, so it is spelled out
@@ -1345,7 +1366,8 @@ so an agent's own `npx vitest run` gets Vitest's failures-only `agent`
 reporter; `verify.mjs` asks for `default` because it parses that. `npm run
 test:changed` (and `vitest related`) follow imports only, so the tests that
 read files through `import.meta.glob(…?raw)` — `i18nKeys`, `tokens`,
-`notices`, `toolchain`, `notifSchedule`, `verifyScope`, `syncSources`, `changelogRead` — never come along for
+`notices`, `toolchain` and the rest, every one of them named by a glob in
+`RAW_READ_GLOBS` — never come along for
 a change to the files they read; the commit gate's scope (above) is the
 selection that knows them. A `slowTestThreshold` of 300 ms marks the tests to look at. `happy-dom` was
 measured against jsdom on 2026-09-19 and lost: tests 5.9 → 2.9 s, but the
@@ -2256,7 +2278,8 @@ family ~0.8. The one oddity was two crypto backends at once — `ring` (125 KiB)
 beside `aws_lc_sys` (197 KiB), because `tauri-plugin-updater`'s default
 `rustls-tls` feature asked for rustls with `ring` and installed it as the
 process default at its first check. Since 2026-10-06 the updater runs with
-`default-features = false` (plus `zip`), shares our reqwest and its aws-lc-rs,
+`default-features = false` (and no `zip`, since the release ships the bare
+`.exe` and `.AppImage`), shares our reqwest and its aws-lc-rs,
 and `ring` is out of the build: re-measured that day, `aws_lc_sys` 200 KiB and
 no `ring` in a 24.2 MiB file with 17.1 MiB of `.text` (the app grew since the
 first run). The live update over the new path ran on 2026-10-31: the
@@ -2421,8 +2444,8 @@ toolchain), and the Android job remaps `RUSTFLAGS --remap-path-prefix` for
 the workspace and `~/.cargo`. The release job has never set
 `SOURCE_DATE_EPOCH`; the rebuild and the recipe do, and the measurement above
 shows no build time reaching the output. Bumping the Rust pin means the
-toolchain file, the five workflow steps and the recipe in one commit; the test
-says so. Nothing under `packaging/` is built by the release; it reads the
+toolchain file, every `dtolnay/rust-toolchain` step and the recipe in one
+commit; the test says so. Nothing under `packaging/` is built by the release; it reads the
 release.
 
 **The two packaging workflows had never run against a real tag before
@@ -2465,8 +2488,9 @@ never writes one. A PR that changes `Cargo.lock` therefore compiles on top of
 main's nearest cache and saves nothing, which is the intended price. Both
 workflows also ignore `*.md`, `assets/screenshots/**` and the issue forms, so a
 changelog-marker commit builds nothing; every job has a `timeout-minutes` and
-every artifact a `retention-days`; and the four small workflows pin
-`ubuntu-24.04` rather than ride `ubuntu-latest` into the 26.04 migration.
+every artifact a `retention-days`; and every workflow but the three that build
+the app (`ci.yml`, `release.yml` and `reproducible.yml`, on `ubuntu-22.04`)
+pins `ubuntu-24.04` rather than ride `ubuntu-latest` into the 26.04 migration.
 
 ## Dependabot merges itself
 
@@ -2513,7 +2537,7 @@ written as rules because that is what the audit found: the same mistake in
 four or five places, made by careful code, because nothing said it once.
 
 - **`list_cache` has one owner.** `db::edit_cached_list` does read, edit and
-  write under a single lock, and `cache_patch_entry` / `cache_forget_entry`
+  write under a single lock, and `cache_patch_entry` / `cache_forget_entry_id`
   are the only ways an entry changes. *Every* write path calls them — the live
   save, the bulk chunks, the delete, the queue drain — because the scrobbler's
   two anti-regression guards read this table as truth. Fed a stale copy, they
@@ -3009,7 +3033,12 @@ shape, and the question that follows them.
   a German feed would read half-translated. `listActivityVerb`, `relationBadgeKey`,
   `validatePost` and the twenty notification labels all return closed unions that
   a component maps through a literal switch, which is the shape `receiptText` in
-  `useListMutations` established.
+  `useListMutations` established. A key built from an enum (`format.${format}`,
+  `status.${type}.${status}`, `sort.${sort}`) is the other allowed shape, on
+  two conditions: its prefix is listed in `DYNAMIC_PREFIXES` in that test, or
+  the keys read as dead, and the call site closes the set before it builds the
+  key, as `formatLabel`'s `KNOWN` does, because AniList can add an enum value
+  and a missing key renders as the key.
 - **Two motion registers, and the default is the quiet one.** *Surface* motion —
   hover, focus, background and border — stays on `transition-surface` and the
   140ms `--ease-karasu`; `transition-colors`, `transition-all` and a bare
@@ -3174,9 +3203,13 @@ them away without re-measuring.
 - **`RecommendedSection` sorts `seedIds` before using them as a query key.**
   `pickSeeds` orders by score then `updatedAt`, so an unsorted array reshuffles
   on any save and mints a new key, defeating its own cache.
-- **`usePrimedLists` uses `setQueryData(..., { updatedAt: 0 })`.** The
-  backdating is what keeps the primed entry stale so the mounting `useQuery`
-  still refetches; without it the list stops updating for a whole `staleTime`.
+- **`usePrimedLists` dates the primed entry as Rust dates it:**
+  `setQueryData(..., { updatedAt: cached.fetchedAt * 1000 })`, never `0`. A
+  copy Rust would serve anyway is then not refetched for the sake of a stale
+  stamp, and the list still moves, because the hook listens for
+  `list-refreshed` and invalidates the list Rust refreshed behind it.
+  Backdating to `0` was the shape before the list had its fifteen-minute
+  window, and it costs a list read on every mount.
 - **`mediaList` invalidation is scoped to the media type that changed.** The
   `scrobble-done` listener reads that type from the store at fire time (not
   from a closure) and **must** keep its fallback to the broad key — otherwise an

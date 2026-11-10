@@ -13,7 +13,7 @@ Impeccable's `shape` may frame the UX question before the mockups, and its `crit
 
 ## The harness
 
-`scripts/screens.mjs` renders the real `App` — titlebar, sidebar or bottom bar, overlays — over a mocked backend (`scripts/screens/app.tsx`), in Chromium at `/opt/pw-browsers/chromium`. Real banners and covers for three titles are fetched from AniList into `scripts/screens/.cache/` on first use and are never committed; everything it writes goes to `scripts/screens/.out/`.
+`scripts/screens.mjs` renders the real `App` — titlebar, sidebar or bottom bar, overlays — over a mocked backend (`scripts/screens/app.tsx`), in Chromium at `/opt/pw-browsers/chromium`. Real banners and covers for five titles (`ART`) are fetched from AniList into `scripts/screens/.cache/` on first use and are never committed; everything it writes goes to `scripts/screens/.out/`.
 
 ```sh
 node scripts/screens.mjs shoot --only d3-detail,p3-editor --styles ,a,b,c --themes dark,light,hc-dark,hc-light
