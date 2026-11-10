@@ -247,6 +247,11 @@ export const commands = {
 	openBackupDir: () => typedError<null, string>(__TAURI_INVOKE("open_backup_dir")),
 	getMpvIpc: () => __TAURI_INVOKE<MpvIpcSettings>("get_mpv_ipc"),
 	setMpvIpc: (enabled: boolean, path: string, launchPath: string) => typedError<null, string>(__TAURI_INVOKE("set_mpv_ipc", { enabled, path, launchPath })),
+	listCustomPlayers: () => __TAURI_INVOKE<CustomPlayer[]>("list_custom_players"),
+	/**  The open windows no profile claims, for the user to pick a player from; empty where window titles are not read. */
+	listPlayerWindows: () => __TAURI_INVOKE<PlayerCandidate[]>("list_player_windows"),
+	addCustomPlayer: (process: string, suffix: string) => typedError<CustomPlayer[], string>(__TAURI_INVOKE("add_custom_player", { process, suffix })),
+	removeCustomPlayer: (process: string) => typedError<CustomPlayer[], string>(__TAURI_INVOKE("remove_custom_player", { process })),
 	listDetectionOverrides: () => __TAURI_INVOKE<DetectionOverride[]>("list_detection_overrides"),
 	/**  Stores a correction against the parse and applies it now, since the poll only rebuilds a match when the title changes. */
 	setDetectionOverride: (title: string, season: number | null, mediaType: string, mediaId: number, displayTitle: string, episodeOffset: number | null) => typedError<null, string>(__TAURI_INVOKE("set_detection_override", { title, season, mediaType, mediaId, displayTitle, episodeOffset })),
@@ -385,6 +390,14 @@ export type CloseToTray = {
 	enabled: boolean,
 	/**  Whether a tray icon was created at startup, so the screen can say why the setting reads as it does. */
 	tray: boolean,
+};
+
+/**  A player the user added from its own window: its process and what it appends to the file name in its title. */
+export type CustomPlayer = {
+	/**  Lower-case process name, as `WindowInfo` spells it. */
+	process: string,
+	/**  The title's ending, separator included, or empty when the player appends nothing. */
+	suffix: string,
 };
 
 /**  Enough about a database file to say how old it is and whether it looks used. */
@@ -684,6 +697,13 @@ export type PlatformInfo = {
 	storeUpdates: boolean,
 	/**  Whether the WebView can draw a View Transition; WebKitGTK without GPU compositing crashes on one. */
 	viewTransitions: boolean,
+};
+
+/**  An open window that could be added as a player, with the ending Karasu would cut from its title. */
+export type PlayerCandidate = {
+	process: string,
+	title: string,
+	suffix: string,
 };
 
 export type PortableStatus = {

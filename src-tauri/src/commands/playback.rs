@@ -554,6 +554,61 @@ pub async fn scrobble_cancel(app: tauri::AppHandle) -> Result<(), String> {
     crate::playback::scrobbler::confirm_pending(app, false).await
 }
 
+// --- The user's own players --------------------------------------------------
+
+use crate::playback::detection::profiles::{self, CustomPlayer, PlayerCandidate};
+
+/// The stored players, also handed to the detection sweep, which reads them without a database.
+fn stored_players(db: &Db) -> Vec<CustomPlayer> {
+    profiles::parse_custom_players(db.kv_get(profiles::CUSTOM_PLAYERS_KEY).as_deref())
+}
+
+fn store_players(db: &Db, players: Vec<CustomPlayer>) -> Result<Vec<CustomPlayer>, String> {
+    let raw = serde_json::to_string(&players).map_err(|e| e.to_string())?;
+    db.kv_set(profiles::CUSTOM_PLAYERS_KEY, &raw)?;
+    profiles::set_custom_players(players.clone());
+    Ok(players)
+}
+
+/// Hands the stored players to the sweep; called once at start.
+pub fn load_custom_players(db: &Db) {
+    profiles::set_custom_players(stored_players(db));
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn list_custom_players(db: State<'_, Db>) -> Vec<CustomPlayer> {
+    stored_players(&db)
+}
+
+/// The open windows no profile claims, for the user to pick a player from; empty where window titles are not read.
+#[tauri::command]
+#[specta::specta]
+pub fn list_player_windows(db: State<'_, Db>) -> Vec<PlayerCandidate> {
+    profiles::player_candidates(&crate::playback::detection::enumerate_windows(), &stored_players(&db))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn add_custom_player(db: State<'_, Db>, process: String, suffix: String) -> Result<Vec<CustomPlayer>, String> {
+    let process = process.trim().to_lowercase();
+    if process.is_empty() || process.len() > 260 || suffix.len() > 120 {
+        return Err("Not a player Karasu can remember".into());
+    }
+    let mut players = stored_players(&db);
+    players.retain(|p| p.process != process);
+    players.push(CustomPlayer { process, suffix });
+    store_players(&db, players)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn remove_custom_player(db: State<'_, Db>, process: String) -> Result<Vec<CustomPlayer>, String> {
+    let mut players = stored_players(&db);
+    players.retain(|p| p.process != process);
+    store_players(&db, players)
+}
+
 // --- Detection corrections ---------------------------------------------------
 
 #[tauri::command]

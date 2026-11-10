@@ -1909,6 +1909,16 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     mpvLaunchHint:
       "Pfad zur mpv-Programmdatei. Wenn gesetzt, starten die Abspielknöpfe der Bibliothek mpv mit der Pipe oben statt des Standardplayers — für Starts ist keine mpv.conf nötig. Leer behält den Standardplayer.",
     mpvLaunchPlaceholder: "z. B. C:\\mpv\\mpv.exe",
+    players: "Weitere Player",
+    playersHint:
+      "Karasu liest die Fenstertitel von mpv, VLC, MPC-HC und MPC-BE, PotPlayer und SMPlayer. Für einen anderen Player spielst du eine Episode darin ab und wählst hier sein Fenster aus; Karasu merkt sich das Programm und das, was es an den Titel anhängt.",
+    playersPick: "Aus offenen Fenstern wählen …",
+    playersWindows: "Offene Fenster, die Karasu noch nicht liest",
+    playersNoWindows: "Kein offenes Fenster, das Karasu nicht schon liest. Starte zuerst deinen Player.",
+    playersKeep: "Als Player lesen",
+    playersRemove: "Diesen Player nicht mehr lesen",
+    playersEnding: "Titel endet auf „{{ending}}“",
+    playersNoEnding: "Der Titel ist nur der Dateiname",
     corrections: "Erkennungs-Korrekturen",
     correctionsHint:
       "Titel, die du über die Wiedergabe-Karte korrigiert hast. Jede gilt für jede weitere Erkennung desselben Titels; entferne eine, damit die Zuordnung wieder selbst rät.",

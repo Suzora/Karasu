@@ -119,3 +119,18 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   and for any session with "Ask before updating" on. A drop is logged once per change of the tab titles, never per
   tick, and nothing is re-judged until a title changes, so a manga marked
   Reading while its tab is open is picked up at the next chapter.
+- **A player Karasu does not name is added from its own window, on Windows.**
+  The built-in list in `profiles.rs` (mpv, VLC, MPC-HC and MPC-BE, PotPlayer,
+  SMPlayer) needed a release for every other player. Since 2026-11-10 the
+  detection settings carry a "More players" card (DESIGN.md, the same day):
+  `list_player_windows` lists the open windows no profile claims
+  (`player_candidates`: no browser, no known player, not Karasu, once per
+  process), and picking one stores its process and `title_ending`, what
+  follows the title's last ` - `, en dash or em dash, in kv `custom_players`.
+  `match_player` reads that list after the built-in one through a
+  process-wide copy, since the sweep has no database, and the same gate as
+  for every player still applies: the rest must look like a video file or
+  carry an episode number. The card is drawn only where `platform_info`
+  says Windows, because `enumerate_windows` answers nothing elsewhere. The
+  enumeration and the card were not run on Windows when this was written;
+  the pure halves are tested on every platform.

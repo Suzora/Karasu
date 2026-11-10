@@ -1899,6 +1899,16 @@ export const en = {
     mpvLaunchHint:
       "Path to the mpv executable. When set, the library's play buttons start mpv with the pipe above instead of the default player — no mpv.conf needed for launches. Empty keeps the default player.",
     mpvLaunchPlaceholder: "e.g. C:\\mpv\\mpv.exe",
+    players: "More players",
+    playersHint:
+      "Karasu reads the window titles of mpv, VLC, MPC-HC and MPC-BE, PotPlayer and SMPlayer. To add another player, play an episode in it and pick its window here; Karasu keeps the program and what it appends to the title.",
+    playersPick: "Choose from open windows…",
+    playersWindows: "Open windows Karasu does not read yet",
+    playersNoWindows: "No open window that Karasu does not already read. Start your player first.",
+    playersKeep: "Read as a player",
+    playersRemove: "Stop reading this player",
+    playersEnding: "Title ends in “{{ending}}”",
+    playersNoEnding: "The title is the file name alone",
     corrections: "Detection corrections",
     correctionsHint:
       "Titles you've corrected from the now-playing card. Each one holds for every future detection of the same title; remove one to let matching guess again.",
