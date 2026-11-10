@@ -5,6 +5,8 @@
   "env": { "browser": true, "es2024": true },
   "ignorePatterns": ["dist/**", "site/**", "src-tauri/**", "src/lib/htmlEntities.data.ts", "src/api/bindings.ts", "scripts/virtual-rows-check/**"],
   "rules": {
+    "eslint/no-restricted-imports": ["error", { "paths": [{ "name": "@tauri-apps/api/core", "message": "Call a command through src/api/bindings.ts (and unwrap in api/tauri.ts); see CLAUDE.md, The bindings are generated." }] }],
+    "eslint/no-restricted-globals": ["error", { "name": "IntersectionObserver", "message": "Paging is a button, never a scroll: a fetch on scroll spends the shared AniList budget. See CLAUDE.md, Conventions." }],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     "import/no-cycle": "warn",

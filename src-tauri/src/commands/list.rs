@@ -277,6 +277,18 @@ async fn fetch_and_cache(
     Ok(lists)
 }
 
+/// Takes a list out of `REFRESHING` when dropped, so a refresh that panics does not leave its list unrefreshable.
+struct Refreshing(i64, &'static str);
+
+impl Drop for Refreshing {
+    fn drop(&mut self) {
+        REFRESHING
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .retain(|k| *k != (self.0, self.1));
+    }
+}
+
 /// Refreshes a stale list behind the answer already given; the frontend hears `list-refreshed` and re-reads the cache.
 fn spawn_list_refresh(app: &AppHandle, user_id: i64, media_type: &'static str) {
     {
@@ -286,16 +298,14 @@ fn spawn_list_refresh(app: &AppHandle, user_id: i64, media_type: &'static str) {
         }
         busy.push((user_id, media_type));
     }
+    let running = Refreshing(user_id, media_type);
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
         let db = app.state::<Db>();
         let api = app.state::<AniList>();
         let token = auth::load_token();
         let result = fetch_and_cache(&app, &db, &api, token.as_deref(), user_id, media_type).await;
-        REFRESHING
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .retain(|k| *k != (user_id, media_type));
+        drop(running);
         match result {
             Ok(_) => {
                 use tauri::Emitter;

@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.78.6"
+version = "1.78.7"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyu"]
 license = "AGPL-3.0-or-later"
@@ -20,6 +20,13 @@ edition = "2021"
 # caches. A crate-level `#![allow]` would need writing twice, in `lib.rs` and
 # `main.rs`, because it is evaluated per linked crate root.
 linker_messages = "allow"
+
+[lints.clippy]
+# A shipped build has no console, so a print reaches nobody; `logging` is the
+# channel. `clippy.toml` leaves tests alone, where the measurements print.
+dbg_macro = "deny"
+print_stderr = "deny"
+print_stdout = "deny"
 
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary

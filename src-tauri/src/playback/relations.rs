@@ -1,5 +1,6 @@
 //! Episode redirects from erengy/anime-relations, mapping a combined release's episode onto the right AniList entry.
 
+use crate::sync::RwLockExt;
 use std::sync::RwLock;
 
 const SOURCE_URL: &str =
@@ -130,7 +131,7 @@ pub fn spawn_loader(app: tauri::AppHandle) {
         // 1) Load the existing cache immediately
         if let Ok(text) = std::fs::read_to_string(&path) {
             let rules = parse_rules(&text);
-            *app.state::<Relations>().0.write().unwrap() = rules;
+            *app.state::<Relations>().0.write_guard() = rules;
         }
 
         // 2) Refetch when the cache is stale or missing
@@ -194,7 +195,7 @@ pub fn spawn_loader(app: tauri::AppHandle) {
                 format!("cannot cache {}: {e}", path.display()),
             );
         }
-        *app.state::<Relations>().0.write().unwrap() = rules;
+        *app.state::<Relations>().0.write_guard() = rules;
     });
 }
 

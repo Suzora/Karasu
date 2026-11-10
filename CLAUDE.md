@@ -1295,6 +1295,14 @@ clone whose `core.hooksPath` is not `.githooks`. Add a rule there when a "never"
 path can express; a deny pattern on a command is not a boundary, which is why
 the hook reads the same cases off the whole command.
 
+Three more "nevers" are the gate's, so they hold for a person and for CI as
+well: oxlint refuses an import of `@tauri-apps/api/core` (commands go through
+the bindings) and any use of `IntersectionObserver` (paging is a button), and
+clippy refuses `println!`, `eprintln!` and `dbg!` outside tests
+(`[lints.clippy]` in `Cargo.toml`, with `clippy.toml` leaving tests alone and
+`build.rs` allowed its cargo directives). Clippy runs in the push gate and on
+a pull request, not in the commit gate.
+
 ## The bindings are generated, never written
 
 `src/api/bindings.ts` is what tauri-specta emits from the Rust command
