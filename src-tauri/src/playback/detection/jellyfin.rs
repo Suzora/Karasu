@@ -568,7 +568,7 @@ pub fn parse_utc_seconds(s: &str) -> Option<i64> {
                 _ => return None,
             };
             let tz = rest[1..].replace(':', "");
-            if tz.len() != 4 {
+            if tz.len() != 4 || !tz.is_ascii() {
                 return None;
             }
             let h = tz[0..2].parse::<i64>().ok()?;
@@ -1582,7 +1582,7 @@ mod tests {
         assert_eq!(parse_utc_seconds("2026-09-11T12:12:13+02:00"), Some(plain));
         assert_eq!(parse_utc_seconds("2026-09-11T05:12:13-0500"), Some(plain));
         assert_eq!(parse_utc_seconds("2026-09-11T10:12:03Z"), Some(plain - 10));
-        for junk in ["", "yesterday", "2026-13-01T00:00:00Z", "2026-09-11", "2026-09-11T10:12:13+2"] {
+        for junk in ["", "yesterday", "2026-13-01T00:00:00Z", "2026-09-11", "2026-09-11T10:12:13+2", "2026-09-11T10:12:13+0é0"] {
             assert_eq!(parse_utc_seconds(junk), None, "{junk:?}");
         }
     }

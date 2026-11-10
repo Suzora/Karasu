@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 5b631fb -->
+<!-- generated-through: 1db8e12 -->
 
 ### Fixed
 
@@ -89,6 +89,7 @@ tag time is then optional rather than load-bearing.
 - A stack in the list's first row shows its layers whole, and the covers behind it fade back one by one.
 - What's new and the changelog under About show the changes made since 1.68.0 again.
 - A change made without a connection no longer overwrites a newer change to the same entry made on another device or on AniList in the meantime; Karasu tells you when it left one unsent.
+- A Jellyfin server that reports an unusual time zone in its session data no longer stops tracking.
 
 ### Changed
 

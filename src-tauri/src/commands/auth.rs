@@ -302,6 +302,7 @@ async fn passthrough(
     // A TTL only takes effect for an allowlisted source; anything else, and every mutation, fetches as before.
     let ttl = cache
         .as_ref()
+        .filter(|_| !is_mutation(&query))
         .and_then(|c| crate::anilist::query_cache::allowed_ttl(&source, c.ttl_sec));
     if let Some(ttl) = ttl {
         let viewer = crate::commands::viewer_id(db).unwrap_or(0);
