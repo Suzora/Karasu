@@ -28,7 +28,8 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: ./scripts/release/flatpak-manifest.ps1 -Tag "${{ inputs.tag }}" -OutDir flatpak-out
+          TAG: ${{ inputs.tag }}
+        run: ./scripts/release/flatpak-manifest.ps1 -Tag "$env:TAG" -OutDir flatpak-out
 
       # Flathub runs the same validator; a failure here is the review comment before the review.
       - name: Validate the metainfo

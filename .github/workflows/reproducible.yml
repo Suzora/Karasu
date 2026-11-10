@@ -57,7 +57,8 @@ jobs:
       - name: Fetch the release APK
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release download "${{ inputs.tag }}" --pattern "*_arm64.apk" --dir release-apk
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" --pattern "*_arm64.apk" --dir release-apk
 
       # A rebuild that verifies under the release's own signature is the proof the published APK is this source.
       - name: Compare

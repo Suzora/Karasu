@@ -2523,7 +2523,10 @@ rust-cache step names a `shared-key` per platform (`windows`, `linux`,
 never writes one. A PR that changes `Cargo.lock` therefore compiles on top of
 main's nearest cache and saves nothing, which is the intended price. Both
 workflows also ignore `*.md`, `assets/screenshots/**` and the issue forms, so a
-changelog-marker commit builds nothing; every job has a `timeout-minutes` and
+changelog-marker commit builds nothing, and `release.yml` also ignores
+`.claude/**`, `.githooks/**` and the screens harness, which no build reads
+(CI does not, since a test reads the agent settings); every job has a
+`timeout-minutes` and
 every artifact a `retention-days`; and every workflow but the three that build
 the app (`ci.yml`, `release.yml` and `reproducible.yml`, on `ubuntu-22.04`)
 pins `ubuntu-24.04` rather than ride `ubuntu-latest` into the 26.04 migration.

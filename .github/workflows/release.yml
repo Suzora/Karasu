@@ -12,6 +12,11 @@ on:
       - "*.md"
       - "assets/screenshots/**"
       - ".github/ISSUE_TEMPLATE/**"
+      # Agent settings, git hooks and the screens harness reach no build either.
+      - ".claude/**"
+      - ".githooks/**"
+      - "scripts/screens/**"
+      - "scripts/screens.mjs"
 
 # Keyed on the ref, not one slot: a branch push and its tag push arrive separately and must not cancel each other.
 concurrency:
