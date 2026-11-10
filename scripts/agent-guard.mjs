@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // The hooks `.claude/settings.json` runs: reads a hook's JSON on stdin, exits 2 with one line to refuse, 0 otherwise.
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { judgeCommand, keyMaterial, localOnly, secretRules } from "./agent-guard-core.mjs";
+import { guardFile, judgeCommand, keyMaterial, localOnly, secretRules, stopVerdict, treeState } from "./agent-guard-core.mjs";
+import { collectChanges, scope } from "./verify-scope.mjs";
 
 const refuse = (message) => {
   process.stderr.write(`agent-guard: ${message}\n`);
@@ -58,7 +59,77 @@ function bash(hook) {
   if (rules.length) refuse(`the change holds what looks like a credential (${rules.join(", ")}); take it out before committing`);
 }
 
-const MODES = { write, bash };
+/** The session's tree: its root, git there, a reader of its files, and the guard's per-clone notes. */
+function tree(hook) {
+  const root = gitIn(hook.cwd ?? process.cwd())(["rev-parse", "--show-toplevel"]).trim();
+  const git = (args, input) => execFileSync("git", args, { cwd: root, encoding: "utf8", input, maxBuffer: 64 * 1024 * 1024, stdio: ["pipe", "pipe", "ignore"] });
+  const read = (file) => {
+    try {
+      return readFileSync(path.join(root, file), "utf8");
+    } catch {
+      return null;
+    }
+  };
+  const json = (name) => {
+    try {
+      return JSON.parse(readFileSync(guardFile(git, name), "utf8"));
+    } catch {
+      return null;
+    }
+  };
+  return { root, git, read, json };
+}
+
+const SESSIONS = "karasu-agent-sessions.json";
+const cloud = process.env.CLAUDE_CODE_REMOTE === "true";
+
+function stop(hook) {
+  const { git, read, json } = tree(hook);
+  const sessions = json(SESSIONS) ?? {};
+  const mine = sessions[hook.session_id];
+  if (!mine) return;
+  const state = treeState(git, read);
+  const need = scope(collectChanges((args) => git(args), read)?.changes ?? []);
+  const why = stopVerdict({ state, baseline: mine.baseline, stamp: json("karasu-verified.json"), need, cloud, asked: mine.asked });
+  if (!why) return;
+  mine.asked.push(state);
+  writeFileSync(guardFile(git, SESSIONS), JSON.stringify(sessions));
+  refuse(why);
+}
+
+const LOCAL_FOLDERS = ["docs/superpowers/", ".impeccable/"];
+
+function session(hook) {
+  const { git, read, json } = tree(hook);
+  const sessions = json(SESSIONS) ?? {};
+  if (hook.session_id && !sessions[hook.session_id]) {
+    sessions[hook.session_id] = { baseline: treeState(git, read), asked: [] };
+    const kept = Object.fromEntries(Object.entries(sessions).slice(-20));
+    writeFileSync(guardFile(git, SESSIONS), JSON.stringify(kept));
+  }
+  const exclude = guardFile(git, "info/exclude");
+  const lines = existsSync(exclude) ? readFileSync(exclude, "utf8").split(/\r?\n/) : [];
+  const missing = LOCAL_FOLDERS.filter((folder) => !lines.includes(folder));
+  if (missing.length) {
+    mkdirSync(path.dirname(exclude), { recursive: true });
+    appendFileSync(exclude, `${lines.length && lines.at(-1) !== "" ? "\n" : ""}${missing.join("\n")}\n`);
+  }
+  const notes = [];
+  let hooksPath = "";
+  try {
+    hooksPath = git(["config", "core.hooksPath"]).trim();
+  } catch {
+    // Unset is git's exit 1, and the answer the note below is for.
+  }
+  if (hooksPath !== ".githooks" && !cloud) notes.push("The push gate is not wired on this clone: `git config core.hooksPath .githooks` runs `npm run verify:full` before a push.");
+  if (cloud) {
+    notes.push("Cloud session: run `npm ci` before the gate. `cargo test` and `npm run verify:full` cannot build here; CI checks them.");
+    notes.push("A changed Rust command signature cannot regenerate `src/api/bindings.ts` here: say so, never edit the file by hand.");
+  }
+  if (notes.length) process.stdout.write(`${notes.join("\n")}\n`);
+}
+
+const MODES = { write, bash, stop, session };
 
 // A guard that crashes must never lock a session out, so every failure of its own lets the tool call through.
 try {

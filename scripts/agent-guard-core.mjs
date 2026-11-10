@@ -1,4 +1,9 @@
-// What the agent guard decides, as pure functions: `agent-guard.mjs` feeds them a hook's input and acts on the answer.
+// What the agent guard decides, git and files handed in: `agent-guard.mjs` feeds it a hook's input and acts on the answer.
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { VERSION_PATTERNS } from "./version-patterns.mjs";
 
 const dashes = "-".repeat(5);
 
@@ -58,4 +63,51 @@ export function judgeCommand(command) {
     adds: ADD.test(text),
     dev: TAURI_DEV.test(text),
   };
+}
+
+/** Paths whose change never asks for a new run of the gate: the changelog the loop rewrites, and the website. */
+const outsideGate = (path) => path === "CHANGELOG.md" || path.startsWith("site/");
+const sha = (text) => createHash("sha256").update(text).digest("hex");
+
+/** A fingerprint of the tree's content that a commit, a version bump and the changelog amend all leave as it was. */
+export function treeState(git, read) {
+  const list = (...args) => git(args).split("\0").filter(Boolean);
+  const ids = new Map(list("ls-tree", "-r", "-z", "HEAD").map((row) => [row.slice(row.indexOf("\t") + 1), row.split(/\s/)[2]]));
+  const changed = [...list("diff", "--name-only", "--no-renames", "-z", "HEAD"), ...list("ls-files", "--others", "--exclude-standard", "-z")];
+  const present = changed.filter((p) => read(p) != null);
+  for (const p of changed) ids.delete(p);
+  const hashed = present.length ? git(["hash-object", "--stdin-paths"], present.join("\n")).split("\n") : [];
+  present.forEach((p, i) => ids.set(p, hashed[i]));
+  for (const [file, patterns] of Object.entries(VERSION_PATTERNS)) {
+    const text = read(file);
+    if (text != null) ids.set(file, `flat:${sha(patterns.reduce((t, re) => t.replace(re, "<version>"), text.replace(/\r\n/g, "\n")))}`);
+  }
+  const rows = [...ids].filter(([p]) => !outsideGate(p)).map(([p, id]) => `${id} ${p}`);
+  return sha(rows.sort().join("\n"));
+}
+
+/** Why a session may not stop yet, or null: its changes need a green gate run of this state, asked for once. */
+export function stopVerdict({ state, baseline, stamp, need, cloud, asked }) {
+  if (state === baseline || asked.includes(state)) return null;
+  const ran = stamp?.state === state ? stamp.ran : null;
+  const missing = [need.frontend && "vitest", need.rust && !cloud && "cargo test"].filter((s) => s && !ran?.includes(s));
+  if (ran && missing.length === 0) return null;
+  const what = ran ? `the last green run of this state left out ${missing.join(" and ")}` : "no green gate run vouches for this state";
+  return `${what}: run \`npm run verify\` bare and read its exit code, or say plainly that this state is unverified and which phases could not run here.`;
+}
+
+/** Where a per-clone file of the guard lives: inside the git directory, so a worktree keeps its own. */
+export const guardFile = (git, name) => git(["rev-parse", "--path-format=absolute", "--git-path", name]).trim();
+
+/** Records that the gate ran green on the tree as it stands, for the stop hook to read. */
+export function writeStamp(root, ran) {
+  const git = (args, input) => execFileSync("git", args, { cwd: root, encoding: "utf8", input, maxBuffer: 64 * 1024 * 1024, stdio: ["pipe", "pipe", "ignore"] });
+  const read = (p) => {
+    try {
+      return readFileSync(path.join(root, p), "utf8");
+    } catch {
+      return null;
+    }
+  };
+  writeFileSync(guardFile(git, "karasu-verified.json"), JSON.stringify({ state: treeState(git, read), ran }));
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { judgeCommand, keyMaterial, localOnly, secretRules } from "../../scripts/agent-guard-core.mjs";
+import { judgeCommand, keyMaterial, localOnly, secretRules, stopVerdict, treeState } from "../../scripts/agent-guard-core.mjs";
 
 /** The rules `.claude/settings.json` enforces for an agent session, without a session: the guard's pure half. */
 
@@ -92,6 +92,74 @@ describe("the paths a commit must not carry", () => {
   it("knows the folders that stay local", () => {
     for (const path of ["docs/superpowers/plans/a.md", ".impeccable/x.json", "audit/report.md"]) expect(localOnly(path), path).toBe(true);
     for (const path of ["docs.md", "src/lib/audit/x.ts", "scripts/comment-audit.mjs"]) expect(localOnly(path), path).toBe(false);
+  });
+});
+
+describe("treeState", () => {
+  /** A stand-in for git over a HEAD tree and a working copy, hashing a file by its text. */
+  const repo = (head: Record<string, string>, working: Record<string, string | null> = {}) => {
+    const now: Record<string, string | null> = { ...head, ...working };
+    const changed = Object.keys(working).filter((p) => p in head);
+    const untracked = Object.keys(working).filter((p) => !(p in head));
+    const git = (args: string[], input?: string) => {
+      const key = args.join(" ");
+      if (key === "ls-tree -r -z HEAD") return Object.entries(head).map(([p, t]) => `100644 blob id:${t}\t${p}\0`).join("");
+      if (key.startsWith("diff --name-only")) return changed.map((p) => `${p}\0`).join("");
+      if (key.startsWith("ls-files --others")) return untracked.map((p) => `${p}\0`).join("");
+      if (key === "hash-object --stdin-paths") return (input ?? "").split("\n").filter(Boolean).map((p) => `id:${now[p]}\n`).join("");
+      throw new Error(`no ${key}`);
+    };
+    return treeState(git, (p) => now[p] ?? null);
+  };
+  const pkg = (v: string) => `{\n  "version": "${v}"\n}\n`;
+  const head = { "src/a.ts": "one", "package.json": pkg("1.0.0"), "CHANGELOG.md": "old", "site/x.ts": "s" };
+
+  it("is the same before and after a change is committed", () => {
+    expect(repo(head, { "src/a.ts": "two", "src/new.ts": "n" })).toBe(repo({ ...head, "src/a.ts": "two", "src/new.ts": "n" }));
+  });
+
+  it("moves with an edit, a new file and a deletion", () => {
+    const base = repo(head);
+    expect(repo(head, { "src/a.ts": "two" })).not.toBe(base);
+    expect(repo(head, { "src/new.ts": "n" })).not.toBe(base);
+    expect(repo(head, { "src/a.ts": null })).not.toBe(base);
+  });
+
+  it("stays put through a version bump, the changelog and the site", () => {
+    const base = repo(head);
+    expect(repo(head, { "package.json": pkg("1.0.1"), "CHANGELOG.md": "new", "site/x.ts": "t" })).toBe(base);
+    expect(repo({ ...head, "package.json": pkg("2.0.0") })).toBe(base);
+  });
+
+  it("still sees a version file change that is more than its version", () => {
+    expect(repo(head, { "package.json": `${pkg("1.0.1")}extra` })).not.toBe(repo(head));
+  });
+});
+
+describe("stopVerdict", () => {
+  const need = { rust: false, frontend: true };
+  const base = { state: "b", baseline: "a", stamp: null, need, cloud: false, asked: [] };
+
+  it("lets a session that changed nothing stop", () => {
+    expect(stopVerdict({ ...base, state: "a" })).toBeNull();
+  });
+
+  it("asks once for a state no green run vouches for", () => {
+    expect(stopVerdict(base)).toMatch(/npm run verify/);
+    expect(stopVerdict({ ...base, asked: ["b"] })).toBeNull();
+    expect(stopVerdict({ ...base, stamp: { state: "a", ran: ["vitest"] } })).not.toBeNull();
+  });
+
+  it("takes a green run of this state that covered what the change reaches", () => {
+    expect(stopVerdict({ ...base, stamp: { state: "b", ran: ["typecheck", "vitest"] } })).toBeNull();
+    expect(stopVerdict({ ...base, stamp: { state: "b", ran: ["typecheck"] } })).toMatch(/vitest/);
+  });
+
+  it("wants cargo test for a crate change, except where the crate cannot build", () => {
+    const rust = { ...base, need: { rust: true, frontend: false }, stamp: { state: "b", ran: ["vitest"] } };
+    expect(stopVerdict(rust)).toMatch(/cargo test/);
+    expect(stopVerdict({ ...rust, cloud: true })).toBeNull();
+    expect(stopVerdict({ ...rust, stamp: { state: "b", ran: ["cargo test"] } })).toBeNull();
   });
 });
 

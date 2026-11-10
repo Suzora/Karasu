@@ -1275,7 +1275,18 @@ pipe, a forced push in any spelling, a push of a version tag, `tauri dev`
 without the `karasu.portable` marker, and a commit whose change holds a
 credential, key material by file name, or a path under `docs/superpowers/`,
 `.impeccable/` or `audit/`. A guard that fails by itself lets the call
-through. Add a rule there when a "never" in this file is one a command or a
+through. Two more hooks hold "tests before done". A green `npm run verify`
+(not `--rust`, not CI) writes a stamp into the git directory: a fingerprint of
+the tree's content that a commit, a version bump and the changelog amend leave
+unchanged (`treeState`), with the phases that ran. When a session wants to
+stop, the stop hook lets it when the tree is as the session found it, or when
+a stamp for this exact state covers the suites the change can reach (in a
+cloud session, where the crate cannot build, `cargo test` is not asked for);
+otherwise it sends the session back once per state, to run the gate or to say
+plainly that the state is unverified. It never runs a test itself. The
+session-start hook records that starting state, adds `docs/superpowers/` and
+`.impeccable/` to `.git/info/exclude`, and reports, without setting it, a
+clone whose `core.hooksPath` is not `.githooks`. Add a rule there when a "never" in this file is one a command or a
 path can express; a deny pattern on a command is not a boundary, which is why
 the hook reads the same cases off the whole command.
 

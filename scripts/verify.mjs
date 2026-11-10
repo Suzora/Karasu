@@ -170,6 +170,17 @@ function failureExcerpt(out) {
   return all.slice(start).join("\n");
 }
 
+/** Tells the agent guard's stop hook that this tree passed, loaded late and caught so the gate never depends on it. */
+async function stamp() {
+  if (ci || !wantFrontend || phases.some((p) => !p.ok)) return;
+  try {
+    const { writeStamp } = await import("./agent-guard-core.mjs");
+    writeStamp(ROOT, phases.filter((p) => !p.skipped).map((p) => p.name));
+  } catch {
+    // The stamp is a convenience for the hook; the gate's verdict stands without it.
+  }
+}
+
 function report() {
   const width = Math.max(...phases.map((p) => p.name.length));
   for (const p of phases) {
@@ -236,6 +247,7 @@ if (suites.cargo) {
   }
 }
 if (!full) {
+  await stamp();
   report();
   process.exit(0);
 }
@@ -265,4 +277,5 @@ await run("tauri build", node, [TAURI, "build"], summarizeBuild);
 await run("clean tree", "git", ["status", "--porcelain"], summarizeTree).then((p) => {
   if (p.summary !== "clean") p.ok = false;
 });
+await stamp();
 report();
