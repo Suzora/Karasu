@@ -134,17 +134,3 @@ export function parseAniListHtml(html: string, limit = 8000): MdInline[] {
   }
   return root;
 }
-
-/** The visible text, for a length check or a preview. */
-export function htmlToPlain(html: string): string {
-  const walk = (nodes: MdInline[]): string =>
-    nodes
-      .map((n) => {
-        if (n.type === "text") return n.text;
-        if (n.type === "br") return " ";
-        if ("children" in n) return walk(n.children);
-        return "";
-      })
-      .join("");
-  return walk(parseAniListHtml(html)).replace(/\s+/g, " ").trim();
-}

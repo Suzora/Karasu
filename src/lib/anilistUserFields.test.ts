@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   formToUpdateUserVars,
-  hasChanges,
   LIST_ACTIVITY_STATUSES,
   LOCAL_OVERRIDES,
   mergeListActivity,
@@ -66,14 +65,6 @@ describe("formToUpdateUserVars", () => {
       "scoreFormat",
       "titleLanguage",
     ]);
-  });
-});
-
-describe("hasChanges", () => {
-  it("is false for an untouched form and true once anything is set", () => {
-    expect(hasChanges({})).toBe(false);
-    expect(hasChanges({ about: "" })).toBe(true);
-    expect(hasChanges({ airingNotifications: false })).toBe(true);
   });
 });
 

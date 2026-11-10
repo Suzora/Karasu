@@ -415,6 +415,24 @@ impl RateState {
         }
     }
 
+    /// What a request about to go out must do: claim its place, or wait a slice for our own pacing or for AniList's deadline.
+    fn next_wait(&mut self, now: Instant) -> Wait {
+        match self.throttled_for(now) {
+            // A deadline the server set: a `Retry-After` outranks the local budget; one retry layer, never two.
+            Some(left) if self.sleeping_kind == Some("retryAfter") => Wait::Server(left.min(SLICE)),
+            // Another request's own pacing nap is ours too, so `MAX_PACE` bounds whoever waits behind it.
+            Some(left) => Wait::Local(left.min(SLICE)),
+            None if self.headroom(now) > RESERVE => {
+                self.claim();
+                Wait::Go
+            }
+            None => {
+                self.park(SLICE, "preflight");
+                Wait::Local(SLICE)
+            }
+        }
+    }
+
     /// How much longer this client will not send, or `None`; a deadline in the past is simply not a throttle.
     fn throttled_for(&self, now: Instant) -> Option<Duration> {
         self.sleeping_until
@@ -712,20 +730,7 @@ impl AniList {
         let started = Instant::now();
         loop {
             // Two different reasons to wait, and only one of them is ours.
-            let wait = {
-                let mut rate = self.rate.lock().await;
-                let now = Instant::now();
-                if let Some(left) = rate.throttled_for(now) {
-                    // A deadline the server set: a `Retry-After` outranks the local budget; one retry layer, never two.
-                    Wait::Server(left.min(SLICE))
-                } else if rate.headroom(now) > RESERVE {
-                    rate.claim();
-                    Wait::Go
-                } else {
-                    rate.park(SLICE, "preflight");
-                    Wait::Local(SLICE)
-                }
-            };
+            let wait = self.rate.lock().await.next_wait(Instant::now());
             let d = match wait {
                 Wait::Go => break,
                 // `MAX_PACE` bounds only our own pacing; a server deadline is not ours to shorten.
@@ -1144,6 +1149,19 @@ mod tests {
         let mut r = fresh();
         r.park(Duration::from_secs(60), "retryAfter");
         assert_eq!(r.throttled_for(now).and(r.sleeping_kind), Some("retryAfter"));
+    }
+
+    /// A request behind another one's pacing nap waits on our own clock, which `MAX_PACE` ends, never on AniList's.
+    #[test]
+    fn a_pacing_nap_is_never_taken_for_a_server_deadline() {
+        let now = Instant::now();
+        let mut r = fresh();
+        r.remaining = 0;
+        r.observed = Some(now);
+        assert!(matches!(r.next_wait(now), Wait::Local(_)), "the request that finds the budget spent parks");
+        assert!(matches!(r.next_wait(now), Wait::Local(_)), "and the one behind it waits the same bounded way");
+        r.park(Duration::from_secs(60), "retryAfter");
+        assert!(matches!(r.next_wait(now), Wait::Server(d) if d == SLICE));
     }
 
     /// The reserve has to leave room to act on; at a threshold of one the guard engages too late.

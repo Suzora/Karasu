@@ -40,6 +40,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     tokenRejected: "AniList hat die gespeicherte Anmeldung abgelehnt. Bitte erneut anmelden.",
   },
   sync: {
+    queueFailed: "Die wartenden Änderungen konnten nicht gesendet werden",
     button: "Jetzt synchronisieren",
     failed: "Synchronisierung fehlgeschlagen",
     now: "Sync: gerade",
@@ -807,6 +808,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     noUsers: "Kein Konto mit diesem Namen.",
     noUsersHint: "AniList sucht am Anfang eines Nutzernamens, nicht in der Mitte.",
     any: "Alle",
+    vocabularyFailed: "Genres und Tags konnten nicht geladen werden: {{reason}}",
     genreLabel: "Genre",
     tagLabel: "Tag",
     yearLabel: "Jahr",
@@ -1133,6 +1135,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
   library: {
     title: "Lokale Bibliothek",
     folderFailed: "Ordner konnte nicht gesetzt werden",
+    partFailed: "Ein Teil der Bibliothek konnte nicht geladen werden: {{reason}}",
     scanFailed: "Die Bibliothek konnte nicht durchsucht werden",
     readyToPlay: "Bereit — nächste ungesehene Datei",
     upToDate: "Aktuell — nichts Neues auf der Platte",

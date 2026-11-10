@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: e1f22dd -->
+<!-- generated-through: cd77538 -->
 
 ### Fixed
 
@@ -93,6 +93,7 @@ tag time is then optional rather than load-bearing.
 - A library rescan that fails now says so, the back gesture closes the season picker instead of leaving the page, and the Overview's page dots respect Reduce motion.
 - The entry editor opened from a right-click or a long press fades out like every other dialog, and an update download that stalls now gives up instead of waiting forever.
 - Changing the Jellyfin address to one that answers as a different server is refused while you are signed in, since your sign-in would otherwise be sent there.
+- The local library, the search filters and a sync of waiting edits now say when something could not be loaded or sent, where they used to look empty or stay silent.
 
 ### Changed
 

@@ -13,7 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 /** The log in the app, fetched on first expand; a failed read shows an error, never an empty list. */
 export function LogSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const [entries, setEntries] = useState<LogEntry[] | null>(null);
@@ -107,7 +107,7 @@ export function LogSection() {
                 {entries.map((e, i) => (
                   <div key={i} className="flex gap-2">
                     <span className="shrink-0 text-ink-600">
-                      {new Date(e.ms).toLocaleTimeString()}
+                      {new Date(e.ms).toLocaleTimeString(i18n.language)}
                     </span>
                     <span
                       className={cn(

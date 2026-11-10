@@ -490,7 +490,9 @@ the bindings) and any use of `IntersectionObserver` (paging is a button), and
 clippy refuses `println!`, `eprintln!` and `dbg!` outside tests
 (`[lints.clippy]` in `Cargo.toml`, with `clippy.toml` leaving tests alone and
 `build.rs` allowed its cargo directives). Clippy runs in the push gate and on
-a pull request, not in the commit gate.
+a pull request, not in the commit gate. The linter has no rule for a
+property, so a test holds the fourth: `clipboardUse.test.ts` fails when the
+browser's clipboard is named outside `lib/clipboard`.
 
 ## Comments: one line each
 

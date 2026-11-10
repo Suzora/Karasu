@@ -25,7 +25,10 @@ export function useManualSync() {
     if (!userId || !acquire()) return;
     try {
       // Drain first, so the lists fetched next already carry the queued edits; the order here is deliberate.
-      await flushQueue().catch(() => {});
+      const flush = await flushQueue().then(
+        () => null,
+        (e: unknown) => ({ error: e }),
+      );
       await Promise.all(
         (["ANIME", "MANGA"] as MediaType[]).map((type) =>
           qc.fetchQuery({
@@ -40,6 +43,8 @@ export function useManualSync() {
       await qc.invalidateQueries({
         predicate: (q) => q.queryKey[0] !== "mediaList",
       });
+      // Said only when the rest went through: a lost connection fails the fetches too, and their toast is the one to show.
+      if (flush) showToast({ kind: "error", text: t("sync.queueFailed"), detail: backendErrorText(flush.error, t) });
     } catch (e) {
       showToast({ kind: "error", text: t("sync.failed"), detail: backendErrorText(e, t) });
     } finally {

@@ -21,7 +21,7 @@ interface PortableStatus {
 }
 
 export function PortableSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const platform = usePlatform((s) => s.info);
   const [status, setStatus] = useState<PortableStatus | null>(null);
   const [restart, setRestart] = useState(false);
@@ -52,7 +52,7 @@ export function PortableSection() {
 
   const other = status.other;
   const otherWhen = other
-    ? new Date(other.modifiedMs).toLocaleDateString()
+    ? new Date(other.modifiedMs).toLocaleDateString(i18n.language)
     : "";
 
   return (

@@ -38,6 +38,7 @@ export const en = {
     tokenRejected: "AniList rejected the saved sign-in. Sign in again.",
   },
   sync: {
+    queueFailed: "The waiting edits could not be sent",
     button: "Sync now",
     failed: "Sync failed",
     now: "Synced just now",
@@ -806,6 +807,7 @@ export const en = {
     noUsers: "No account by that name.",
     noUsersHint: "AniList matches the start of a username, not the middle.",
     any: "Any",
+    vocabularyFailed: "Genres and tags could not be loaded: {{reason}}",
     genreLabel: "Genre",
     tagLabel: "Tag",
     yearLabel: "Year",
@@ -1132,6 +1134,7 @@ export const en = {
   library: {
     title: "Local library",
     folderFailed: "Couldn't set that folder",
+    partFailed: "Part of the library could not be loaded: {{reason}}",
     scanFailed: "The library could not be scanned",
     readyToPlay: "Ready to play — next unwatched file",
     upToDate: "Up to date — nothing new on disk",

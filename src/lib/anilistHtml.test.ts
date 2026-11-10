@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { htmlToPlain, parseAniListHtml } from "./anilistHtml";
+import { parseAniListHtml } from "./anilistHtml";
 import type { MdInline } from "./anilistMarkdown";
 
 const OK = new Set([
@@ -198,22 +198,5 @@ describe("spoilers", () => {
 
   it("leaves an unclosed spoiler marker as text", () => {
     expect(types(parseAniListHtml("~!never closed"))).not.toContain("spoiler");
-  });
-});
-
-describe("htmlToPlain", () => {
-  it("returns the visible words only", () => {
-    expect(htmlToPlain("<b>A</b> <i>synopsis</i>.<br>Second line.")).toBe(
-      "A synopsis. Second line.",
-    );
-  });
-
-  it("collapses whitespace and trims", () => {
-    expect(htmlToPlain("  a\n\n  b  ")).toBe("a b");
-  });
-
-  it("includes spoiler text, so callers must not use it for a preview", () => {
-    // Documented rather than asserted as safety: this flattens everything, and a preview is no place for a reveal.
-    expect(htmlToPlain("~!secret!~")).toBe("secret");
   });
 });

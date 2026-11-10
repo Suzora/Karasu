@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import type { ReactElement, ReactNode } from "react";
 import { useAuth } from "@/stores/auth";
 import type { Viewer } from "@/api/types";
+import { vi } from "vitest";
 
 /** The component-test wrapper; it imports Testing Library, so nothing in the node test project may import it. */
 
@@ -58,3 +59,6 @@ export function signOut(): void {
 export function useLocalProfile(): void {
   useAuth.setState({ viewer: null, mode: "local", loading: false });
 }
+
+/** Runs a fake clock forward, promises included, so "nothing was asked" is a statement about time, not a race with a sleep. */
+export const settle = (ms = 1000) => act(() => vi.advanceTimersByTimeAsync(ms));

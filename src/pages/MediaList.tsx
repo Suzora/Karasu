@@ -55,6 +55,8 @@ import { CLEAR_FILTERS } from "@/lib/listFilters";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { backendErrorText } from "@/lib/backendError";
+import { showToast } from "@/stores/toast";
 import { useListEntries } from "./mediaList/useListEntries";
 import { useListKeys } from "./mediaList/useListKeys";
 import { useListPresets } from "./mediaList/useListPresets";
@@ -494,7 +496,9 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
             size="sm"
             className="ml-auto text-gold"
             onClick={async () => {
-              await flushQueue().catch(() => {});
+              await flushQueue().catch((e: unknown) =>
+                showToast({ kind: "error", text: t("sync.queueFailed"), detail: backendErrorText(e, t) }),
+              );
               refetch();
             }}
           >

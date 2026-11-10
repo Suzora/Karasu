@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRef } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useNavigate, type NavigateFunction } from "react-router";
@@ -37,10 +37,14 @@ function scrollTo(name: string, top: number) {
   fireEvent.scroll(el);
 }
 
-// Several frames, so a restore that was going to happen has had its chance.
-const frames = () => act(() => new Promise((r) => setTimeout(r, 80)));
+// Several frames on the fake clock, so a restore that was going to happen has had its chance.
+const frames = () => act(() => vi.advanceTimersByTimeAsync(200));
 
-afterEach(forgetPlaces);
+beforeEach(() => void vi.useFakeTimers({ shouldAdvanceTime: true }));
+afterEach(() => {
+  vi.useRealTimers();
+  forgetPlaces();
+});
 
 describe("useScrollMemory", () => {
   it("brings a page back to where it was left when Back returns to it", async () => {
