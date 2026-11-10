@@ -121,6 +121,9 @@ pub fn copy_token_from_portable_file() -> Result<(), String> {
 #[cfg(mobile)]
 const MOBILE_TOKEN_FILE: &str = "anilist_token.dat";
 
+#[cfg(target_os = "android")]
+use crate::sync::LockExt;
+
 /// One read per process, not one JNI round-trip per detection tick; `None` = not yet looked, `Some(None)` = signed out.
 #[cfg(target_os = "android")]
 static TOKEN_CACHE: std::sync::Mutex<Option<Option<String>>> = std::sync::Mutex::new(None);

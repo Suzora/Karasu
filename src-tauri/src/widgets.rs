@@ -138,11 +138,11 @@ pub fn project(
 
 /// Re-projects and rewrites the file from the database; cheap enough for every hook, and a no-op off Android.
 pub fn refresh(app: &tauri::AppHandle) {
-    #[cfg(target_os = "android")]
     write_projection(app);
-    #[cfg(not(target_os = "android"))]
-    let _ = app;
 }
+
+#[cfg(not(target_os = "android"))]
+fn write_projection(_app: &tauri::AppHandle) {}
 
 #[cfg(target_os = "android")]
 fn write_projection(app: &tauri::AppHandle) {
@@ -232,11 +232,18 @@ fn poke_refresher() {
 
 /// Sign-out: the projection holds list titles, so the file must not outlive the account it describes.
 pub fn clear() {
-    #[cfg(target_os = "android")]
+    remove_projection();
+}
+
+#[cfg(target_os = "android")]
+fn remove_projection() {
     if let Some(path) = crate::portable::mobile_secret_file("widgets.json") {
         let _ = std::fs::remove_file(path);
     }
 }
+
+#[cfg(not(target_os = "android"))]
+fn remove_projection() {}
 
 #[cfg(test)]
 mod tests {

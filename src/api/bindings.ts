@@ -207,7 +207,7 @@ export const commands = {
 	/**  Every media session for the Settings diagnostic; a `Result`, because an empty list and an unreachable service differ. */
 	mediaSessions: () => typedError<MediaSession[], string>(__TAURI_INVOKE("media_sessions")),
 	getJellyfinSettings: () => __TAURI_INVOKE<JellyfinSettings>("get_jellyfin_settings"),
-	/**  Saves the settings outside sign-in; an external address answering as another server is refused, an unreachable one kept. */
+	/**  Saves the settings outside sign-in; an address answering as another server is refused, an unreachable one kept. */
 	setJellyfinSettings: (url: string, device: string, externalUrl: string) => typedError<null, string>(__TAURI_INVOKE("set_jellyfin_settings", { url, device, externalUrl })),
 	/**  Exchanges a username and password for an access token; signing in as a user scopes `/Sessions` to this account. */
 	jellyfinSignIn: (url: string, username: string, password: string) => typedError<JellyfinSettings, string>(__TAURI_INVOKE("jellyfin_sign_in", { url, username, password })),

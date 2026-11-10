@@ -553,6 +553,12 @@ intent: prefer one good line.
   never put `#[cfg(target_os = "linux")]` on a *statement*: it is stripped here,
   so nothing inside it is ever checked. Write a cfg'd pair of functions instead
   (`protect`/`unprotect`, `delete_portable_key`) so the call site still compiles.
+  From a Linux box the other two platforms are a cargo check away:
+  `scripts/windows-check.sh` (the whole crate on the GNU target, with MinGW)
+  and `scripts/android-check.sh` (aarch64 with the NDK), both phases of the
+  push gate where their toolchain is installed. On its first run, on
+  2026-11-10, the Android one found a lock trait imported for the desktop
+  only, in a tree the commit gate and both pull-request jobs had passed.
 - **`eprintln!` reaches nobody in a shipped build.** `main.rs` sets
   `windows_subsystem = "windows"`, so a release binary on Windows has no console
   and stderr is discarded; a Linux AppImage started from a desktop file is no

@@ -21,7 +21,7 @@
   },
   {
     "file": "scripts/windows-check.sh",
-    "startsWith": "Type-checks the Windows-only audio module",
+    "startsWith": "Type-checks the whole crate for Windows from Linux",
     "reason": "usage block: one invocation per line"
   },
   {

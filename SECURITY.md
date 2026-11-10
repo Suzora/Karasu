@@ -63,7 +63,9 @@ The Jellyfin settings take an optional **external address** for when the
 first one is out of reach. Before the access token ever travels to it, Karasu
 asks that address (anonymously, `/System/Info/Public`) for the server's id
 and uses it only if the id is the one learned at sign-in — an address that
-answers as some other server is refused outright. Plain `http` is accepted
+answers as some other server is refused outright. The first address is held
+to the same id once you are signed in: changing it to one that answers as a
+different server is refused, since the token goes wherever it points. Plain `http` is accepted
 there by the maintainer's choice; the settings pane says in so many words
 that the token would then cross the internet unencrypted, and the answer is
 `https`. Signing in also runs that probe first, so the password only ever goes

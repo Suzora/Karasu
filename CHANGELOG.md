@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 582d709 -->
+<!-- generated-through: 1959f94 -->
 
 ### Fixed
 
@@ -92,6 +92,7 @@ tag time is then optional rather than load-bearing.
 - A Jellyfin server that reports an unusual time zone in its session data no longer stops tracking.
 - A library rescan that fails now says so, the back gesture closes the season picker instead of leaving the page, and the Overview's page dots respect Reduce motion.
 - The entry editor opened from a right-click or a long press fades out like every other dialog, and an update download that stalls now gives up instead of waiting forever.
+- Changing the Jellyfin address to one that answers as a different server is refused while you are signed in, since your sign-in would otherwise be sent there.
 
 ### Changed
 

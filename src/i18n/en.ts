@@ -1987,6 +1987,8 @@ export const en = {
     jfErrNotJellyfin: "That address answers, but not like a Jellyfin server.",
     jfErrExternalOtherServer:
       "That address answers as a different Jellyfin server, so it was not saved.",
+    jfErrMainOtherServer:
+      "That address answers as a different Jellyfin server than the one you are signed in to, so it was not saved: your sign-in would be sent there. Sign out first to change servers.",
     jfErrExternalUnknownServer:
       "Karasu does not know this server's identity yet. Sign in again, or save while on the home network, then add the external address.",
     airingNotify: "New-episode notifications",

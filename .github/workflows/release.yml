@@ -241,6 +241,13 @@ jobs:
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
         run: npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
 
+      # Not blocking until it has run green on a few releases: nothing has started this exe on a runner before.
+      - name: Smoke-test the Windows build
+        shell: pwsh
+        continue-on-error: true
+        timeout-minutes: 5
+        run: ./scripts/release/smoke-windows.ps1
+
       - name: Rename installer to the full 4-part version
         id: installer
         shell: pwsh

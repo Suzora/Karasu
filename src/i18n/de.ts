@@ -1997,6 +1997,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     jfErrNotJellyfin: "Diese Adresse antwortet, aber nicht wie ein Jellyfin-Server.",
     jfErrExternalOtherServer:
       "Unter dieser Adresse antwortet ein anderer Jellyfin-Server, daher wurde sie nicht gespeichert.",
+    jfErrMainOtherServer:
+      "Unter dieser Adresse antwortet ein anderer Jellyfin-Server als der, bei dem du angemeldet bist. Sie wurde nicht gespeichert, weil deine Anmeldung sonst dorthin gesendet würde. Melde dich zuerst ab, um den Server zu wechseln.",
     jfErrExternalUnknownServer:
       "Karasu kennt die Identität dieses Servers noch nicht. Melde dich neu an oder speichere im Heimnetz, dann füge die externe Adresse hinzu.",
     airingNotify: "Benachrichtigung bei neuer Episode",

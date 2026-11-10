@@ -145,6 +145,15 @@ const summarizeCheck = (out) => {
   const warnings = lines(out).map(strip).filter((l) => /^warning: /.test(l) && !/generated \d+ warning/.test(l));
   return warnings.length ? `${warnings.length} compiler warning(s)` : "clean";
 };
+/** Whether a program of this name is on the PATH. */
+const onPath = (name) => (process.env.PATH ?? "").split(path.delimiter).some((dir) => dir && existsSync(path.join(dir, name)));
+/** Whether an NDK sits where `android-check.sh` looks for one. */
+const hasNdk = () => Boolean(process.env.NDK_HOME) || existsSync(path.join(process.env.ANDROID_HOME ?? "/opt/android-sdk", "ndk"));
+/** A cargo check for another platform: run where its toolchain is installed, a visible skip where it is not. */
+async function crossCheck(name, script, installed, why) {
+  if (installed) return run(name, "bash", [script], summarizeCheck);
+  phases.push({ name, ms: 0, ok: true, skipped: true, out: "", summary: `skipped — ${why}` });
+}
 /** The bundle build: how many bundles, plus every rustc warning, which `cargo test` cannot see (see CLAUDE.md). */
 const summarizeBuild = (out) => {
   const all = lines(out).map(strip);
@@ -266,11 +275,12 @@ await run("clippy", "cargo", ["clippy", ...MANIFEST, "--all-targets", "--", "-D"
 await run("cargo deny", "cargo", ["deny", ...MANIFEST, "check"], summarizeDeny, { optional: "cargo install cargo-deny" });
 await run("machete", "cargo", ["machete", "--with-metadata", "src-tauri"], summarizeMachete, { optional: "cargo install cargo-machete" });
 if (phases.some((p) => !p.ok)) report();
-// The two builds: a cargo check for aarch64 with the NDK exported (Windows only), then the desktop bundle.
+// The cross-checks, then the desktop bundle: each runs where its toolchain is, and says so where it is not.
 if (process.platform === "win32") {
   await run("android check", "powershell", ["-ExecutionPolicy", "Bypass", "-File", "scripts/android-check.ps1"], summarizeCheck);
 } else {
-  phases.push({ name: "android check", ms: 0, ok: true, skipped: true, out: "", summary: "skipped — scripts/android-check.ps1 is Windows only; CI's android job is the check elsewhere" });
+  await crossCheck("android check", "scripts/android-check.sh", hasNdk(), "no NDK here (ANDROID_HOME or /opt/android-sdk); CI's android job is the check");
+  await crossCheck("windows check", "scripts/windows-check.sh", onPath("x86_64-w64-mingw32-gcc"), "no MinGW here (apt install mingw-w64); CI's Windows job is the check");
 }
 await run("tauri build", node, [TAURI, "build"], summarizeBuild);
 // Last, so the builds above cannot have dirtied it: nothing uncommitted may ride along with a push.
