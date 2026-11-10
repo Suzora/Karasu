@@ -41,3 +41,8 @@ export function addEntries(file, entries, through) {
   const rest = file.slice(end);
   return file.slice(0, start) + (rest ? `${section.trimEnd()}\n\n` : section) + rest;
 }
+
+/** The commit to read on from: the marker's while HEAD descends from it, else the one that wrote that marker line. */
+export function resolveSince(marker, { isAncestor, introducedBy }) {
+  return isAncestor(marker) ? marker : introducedBy(marker);
+}

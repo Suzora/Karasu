@@ -33,7 +33,7 @@ So every line is read on its own, out of its commit's context, by someone using 
 
   Without a trailer the subject becomes the line, `(x.y.z.n)` version suffix included.
 - **`skip` is for commits a user would not notice:** refactors, tests, internal tooling.
-- **These drop out without a trailer:** docs-only, CI-only, scripts-only and `site/`-only commits. A commit touching only `.claude/` is not one of them, so it needs `Changelog: skip`.
+- **These drop out without a trailer:** docs-only, CI-only, scripts-only, `site/`-only, `.claude/`-only and `.githooks/`-only commits.
 
 ## Curating a Stable
 

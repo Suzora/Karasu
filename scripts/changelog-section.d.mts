@@ -10,3 +10,7 @@ export interface Entry {
 
 export function findSection(file: string): { start: number; end: number } | null;
 export function addEntries(file: string, entries: Entry[], through: string): string;
+export function resolveSince(
+  marker: string,
+  history: { isAncestor: (sha: string) => boolean; introducedBy: (sha: string) => string | null },
+): string | null;

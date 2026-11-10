@@ -5,13 +5,13 @@
  *   node scripts/changelog.mjs           # bring the section up to HEAD
  *   node scripts/changelog.mjs --check   # exit 1 if it would change anything
  *   node scripts/changelog.mjs --dry-run # print what it would add
- *   node scripts/changelog.mjs --marker-head # after folding it in with --amend
+ *   node scripts/changelog.mjs --marker-head # point the marker at HEAD when nothing in the history wrote it
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { addEntries, findSection, MARKER, UNRELEASED } from "./changelog-section.mjs";
+import { addEntries, findSection, MARKER, resolveSince, UNRELEASED } from "./changelog-section.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = path.join(ROOT, "CHANGELOG.md");
@@ -32,7 +32,7 @@ const VERSION_FILES = new Set([
 
 /** Paths whose change is real work but not work a user of the app can see. */
 const INTERNAL_ONLY =
-  /^(\.github\/|scripts\/|site\/|docs?\/|CLAUDE\.md|DESIGN\.md|ROADMAP\.md|CONTRIBUTING\.md|CHANGELOG\.md|README\.md|SECURITY\.md|THIRD-PARTY-NOTICES\.md|\.gitignore)/;
+  /^(\.github\/|\.githooks\/|\.claude\/|scripts\/|site\/|docs?\/|CLAUDE\.md|DESIGN\.md|ROADMAP\.md|CONTRIBUTING\.md|CHANGELOG\.md|README\.md|SECURITY\.md|THIRD-PARTY-NOTICES\.md|\.gitignore)/;
 
 const GROUPS = ["Added", "Changed", "Fixed", "Removed", "Security"];
 
@@ -104,7 +104,7 @@ function collect(since) {
 const args = new Set(process.argv.slice(2));
 const file = readFileSync(FILE, "utf8");
 
-/** `--marker-head` moves the marker to HEAD, because an --amend rewrites the sha the last run recorded. */
+/** `--marker-head` moves the marker to HEAD, for a marker that names nothing this history can resolve. */
 if (args.has("--marker-head")) {
   const head = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
     cwd: ROOT,
@@ -131,8 +131,8 @@ if (!bounds) {
 }
 const section = file.slice(bounds.start, bounds.end);
 
-const since = section.match(MARKER)?.[1];
-if (!since) {
+const marker = section.match(MARKER)?.[1];
+if (!marker) {
   console.error(
     "changelog: no '<!-- generated-through: <sha> -->' marker in the Unreleased\n" +
       "  section. Add one naming the last commit already described, so the first\n" +
@@ -141,16 +141,23 @@ if (!since) {
   process.exit(1);
 }
 
-// An amend or a rebase routinely rewrites the marker's commit, so explain that instead of dying on a raw git usage dump.
-try {
-  execFileSync("git", ["cat-file", "-e", `${since}^{commit}`], { cwd: ROOT, stdio: "ignore" });
-} catch {
+const quiet = (...a) => {
+  try {
+    return execFileSync("git", a, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return null;
+  }
+};
+// An amend or a squash erases the commit the marker names, and the commit that wrote the marker describes itself.
+const since = resolveSince(marker, {
+  isAncestor: (sha) => quiet("merge-base", "--is-ancestor", sha, "HEAD") !== null,
+  introducedBy: (sha) => quiet("log", "-1", "--format=%h", `-Sgenerated-through: ${sha} `, "--", "CHANGELOG.md") || null,
+});
+if (!since) {
   console.error(
-    `changelog: the marker names ${since}, which is not a commit in this repository.\n` +
-      "  An amend or a rebase rewrote it. Point the marker at a commit that still\n" +
-      "  exists and whose changes are already described — usually the one before\n" +
-      "  your current work:\n" +
-      "    <!-- generated-through: $(git rev-parse --short HEAD~1) -->",
+    `changelog: the marker names ${marker}, which is not in this history, and no commit\n` +
+      "  here wrote that marker. Point it at a commit whose changes are already\n" +
+      "  described: node scripts/changelog.mjs --marker-head",
   );
   process.exit(1);
 }

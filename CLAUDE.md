@@ -844,11 +844,10 @@ the whole Wrapped page cost none.
 
 ## The commit loop, and the push gate
 
-Six commands per commit, in this order, and one more before a push. Don't do
+Five commands per commit, in this order, and one more before a push. Don't do
 any of it by hand.
 
 ```sh
-node scripts/changelog.mjs --marker-head   # first: the committed marker names a commit an amend or a squash erased
 node scripts/bump-version.mjs patch   # minor for features, major for breaks
 npm run verify                        # typecheck, audits and lints, then vitest and cargo test side by side
 git commit                            # message ends with the Co-Authored-By trailer
@@ -969,24 +968,26 @@ its own jobs.
 
 **`scripts/changelog.mjs`** runs *after* the commit, because it reads it.
 Folding the generated entry back in with `--amend` rewrites the sha the marker
-just recorded, so the next run would offer the same entry a second time — and
-in a fresh clone, or after a squash merge, that sha is no commit at all and the
-script stops. `--marker-head` re-points the marker at HEAD and is the one-line
-answer. It is the loop's first step, not its last: it leaves CHANGELOG.md
-modified, and `verify:full`'s clean-tree phase fails on a modified file. Skip
-the amend and commit the changelog separately if you prefer — the marker stays
-correct either way. It
+just recorded, and in a fresh clone or after a squash merge that sha is no
+commit at all. So the script takes the marker's commit only while HEAD
+descends from it (`resolveSince`), and otherwise reads on from the commit
+that wrote that marker line into CHANGELOG.md, which is the last one
+described: the amended commit, or the squash. Whether the old commit still
+exists is not the test, since a clone keeps a pre-amend commit in its reflog
+and reading from it listed the entry twice. The committed marker is therefore
+a pre-amend sha by construction and needs no repair, and the tree is clean
+for `verify:full`; `--marker-head` remains for a marker nothing in the
+history wrote. Skip the amend and commit the changelog separately if you
+prefer. It
 appends to `CHANGELOG.md`'s `## Unreleased` section from every commit since the
 `generated-through` marker, so nobody writes that file by hand — the maintainer
 declined to, and a changelog kept by hand is one that silently goes stale. The
 commit subject is the changelog line; add a `Changelog: Fixed: …` trailer when
 the subject describes the change and the reader needs the effect, or
 `Changelog: skip` to leave a commit out. Version-only, docs-only, CI-only and
-scripts-only commits drop out without a trailer; a commit under `.claude/`
-does not, so it carries `Changelog: skip`. The marker that `--marker-head`
-re-points is committed with the change that follows it, and the gate's scope
-counts a marker-only change of CHANGELOG.md as bookkeeping, like a version
-bump, so it starts no suite.
+scripts-only commits drop out without a trailer, and so does one confined to
+`.claude/` or `.githooks/`. The gate's scope counts a marker-only change of
+CHANGELOG.md as bookkeeping, like a version bump, so it starts no suite.
 
 **The app shows that file, word for word and in English.** After an update
 Karasu opens What's new once over the first screen, and About's Changelog
@@ -2271,7 +2272,8 @@ page"). The `release` trigger stays for a release someone publishes by hand.
 ## The dependency graph is checked, not trusted
 
 `src-tauri/deny.toml` is what `cargo deny check` (`npm run deny`, and the
-Linux PR job without blocking) holds the Rust graph to: the RustSec
+Linux PR job, where it blocks a Dependabot PR, which merges itself on a green
+run, and only shows on a person's) holds the Rust graph to: the RustSec
 advisories, a licence allow-list that is the spread THIRD-PARTY-NOTICES.md
 describes — a crate under anything else fails here before it can ship
 unlisted — crates.io as the only source, and duplicates allowed because they

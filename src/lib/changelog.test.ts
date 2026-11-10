@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addEntries, findSection } from "../../scripts/changelog-section.mjs";
+import { addEntries, findSection, resolveSince } from "../../scripts/changelog-section.mjs";
 
 /** `scripts/changelog.mjs`'s edit to the Unreleased section, without git: the entries are what `collect` would hand it. */
 
@@ -57,5 +57,24 @@ describe("finding the Unreleased section", () => {
 
   it("finds none where the words only appear inside a sentence", () => {
     expect(findSection("# Changelog\n\n1. rename `## Unreleased\n\n### Fixed\n\n- One.\n")).toBeNull();
+  });
+});
+
+describe("resolving the marker to a commit to read from", () => {
+  const history = (ancestors: string[], introducedBy: Record<string, string>) => ({
+    isAncestor: (sha: string) => ancestors.includes(sha),
+    introducedBy: (sha: string) => introducedBy[sha] ?? null,
+  });
+
+  it("reads from the marker's own commit while it is part of the history", () => {
+    expect(resolveSince("aaa1111", history(["aaa1111"], { aaa1111: "bbb2222" }))).toBe("aaa1111");
+  });
+
+  it("reads from the commit that wrote the marker once an amend or a squash erased the one it names", () => {
+    expect(resolveSince("aaa1111", history([], { aaa1111: "bbb2222" }))).toBe("bbb2222");
+  });
+
+  it("gives up when nothing in the history wrote that marker", () => {
+    expect(resolveSince("aaa1111", history([], {}))).toBeNull();
   });
 });

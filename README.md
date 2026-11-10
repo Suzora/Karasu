@@ -457,8 +457,8 @@ Prerequisites: [Node.js](https://nodejs.org) 22 (what CI runs), [Rust](https://r
 (MSVC toolchain on Windows), VS Build Tools with the C++ workload, WebView2
 (included in Windows 11). On Ubuntu, install `libwebkit2gtk-4.1-dev`,
 `libgtk-3-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`,
-`libglib2.0-dev`, `libdbus-1-dev`, `patchelf` and `file` — the same list
-`.github/workflows/ci.yml` installs, so the two cannot drift. Android builds
+`libglib2.0-dev`, `libdbus-1-dev`, `patchelf` and `file` — what
+`.github/workflows/ci.yml` installs, which adds `rpm` to build the `.rpm`. Android builds
 additionally need JDK 17 (Temurin), the Android SDK (platform 36, build-tools
 36 and 35) and NDK 27.1.12297006.
 
