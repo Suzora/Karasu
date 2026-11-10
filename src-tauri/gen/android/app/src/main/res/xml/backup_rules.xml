@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What Auto Backup leaves on the device before Android 12: the sealed tokens, which no other device can open, and the log. -->
+<full-backup-content>
+    <exclude domain="root" path="anilist_token.dat" />
+    <exclude domain="root" path="jellyfin_token.dat" />
+    <exclude domain="root" path="karasu.log" />
+    <exclude domain="root" path="karasu.log.1" />
+</full-backup-content>

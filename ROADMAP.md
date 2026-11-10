@@ -67,12 +67,11 @@ it waits for:
   listed a real window, and no player added through the card has been
   tracked. Wants: play a file in a player Karasu does not know, add it from
   its window, and see the episode detected and scrobbled.
-- **Android's backup, on a device.** The manifest sets neither
-  `android:allowBackup` nor extraction rules, so Android's default applies.
-  Whether the database, the sealed token files and `karasu.log` are inside
-  what Auto Backup and a device transfer copy is unmeasured
-  (`adb shell bmgr backupnow dev.kyu.karasu`); the answer decides between
-  `allowBackup="false"` and rules that leave the log and the tokens out.
+- **Android's backup, on a device.** The manifest names backup rules that
+  leave the sealed token files and the log out of Auto Backup and of a
+  transfer to another device; the database stays in. The rules were built
+  into an APK and never exercised: `adb shell bmgr backupnow dev.kyu.karasu`
+  and a look at what the backup holds is the check.
 - **A finished rewatch, against a live entry.** The scrobbler sends
   `mediaId`, `progress` and `status` when a rewatch completes and never
   `repeat` or a completion date. Whether AniList adds both itself needs one

@@ -440,6 +440,19 @@ pub fn install_panic_hook() {
 mod tests {
     use super::*;
 
+    /// Android's backup rules leave the log and the sealed tokens on the device, under the names the code writes.
+    #[test]
+    fn the_backup_rules_name_what_stays_on_the_device() {
+        for rules in [
+            include_str!("../gen/android/app/src/main/res/xml/backup_rules.xml"),
+            include_str!("../gen/android/app/src/main/res/xml/data_extraction_rules.xml"),
+        ] {
+            for file in [LOG_FILE, ROTATED_FILE, "anilist_token.dat", "jellyfin_token.dat"] {
+                assert!(rules.contains(&format!("path=\"{file}\"")), "{file} is missing from a backup rule");
+            }
+        }
+    }
+
     /// The ring, the sink and the debug flag are process-global, so every test that touches them takes this lock.
     static GLOBAL_LOG_STATE: Mutex<()> = Mutex::new(());
 

@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 1959f94 -->
+<!-- generated-through: e1f22dd -->
 
 ### Fixed
 
@@ -126,6 +126,7 @@ tag time is then optional rather than load-bearing.
 - The bundled SQLite is updated to 3.54.1, which fixes a flaw where a crafted database and write-ahead log could return stale memory.
 - Images in profiles, posts and comments can no longer make Karasu send a request to your own network through a host name that resolves there.
 - Playback history that an early version of Karasu recorded is deleted from the database.
+- Signing in no longer leaves the address that carries your AniList sign-in in the browser's history, and Android's backup leaves your sign-in and the log on the device.
 
 ## 1.68.0 — 2026-10-25
 

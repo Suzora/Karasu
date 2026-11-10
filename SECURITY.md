@@ -21,7 +21,11 @@ attacker with code execution inside the app's sandbox can call the same
 sealing API the app does. It protects the bytes at rest, not against a
 compromised app. A token a pre-Keystore build wrote in plain text migrates
 into the sealed format on first read; a file that does not decrypt reads as
-signed out rather than as somebody's token. (iOS, which is neither compiled
+signed out rather than as somebody's token. Android's own backup and its
+transfer to a new device are told to leave those two files and the log where
+they are (`backup_rules.xml`, `data_extraction_rules.xml`); the database
+goes along, so a restore brings the lists back and asks for the sign-in
+again. (iOS, which is neither compiled
 nor shipped, would still use a plain file.)
 
 Neither token is ever handed to the WebView — the UI only ever learns
@@ -53,7 +57,11 @@ rather than only your own.
 Karasu contacts AniList, GitHub (update checks and downloads on every
 platform — on Android the APK for the device is downloaded into the app's
 cache, verified, and handed to the system installer only when you tap) and a
-localhost callback during login. On
+localhost callback during login. AniList
+hands the token to that callback in the address's fragment, the only way its
+implicit grant has; the callback page takes the fragment out of the address
+at once and passes the token on in a request of its own, so the browser's
+history keeps no address with the token in it from Karasu's side. On
 Android the callback server still runs on localhost; its success page hands
 control back to the app through the `karasu://` custom scheme. A Jellyfin
 server you configure yourself is contacted too; that is your machine, not

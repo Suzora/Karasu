@@ -126,6 +126,12 @@ src-tauri/src/
                      JNI-by-name like NotifScheduler, proguard keep
                      load-bearing; REQUEST_INSTALL_PACKAGES sits outside
                      the markers with the rest).
+                     and the two backup rule files under res/xml with their
+                     two `<application>` attributes (`dataExtractionRules`,
+                     `fullBackupContent`): the sealed tokens and the log
+                     stay out of Auto Backup and a device transfer, the
+                     database goes along, and a test in `logging.rs` holds
+                     the rules to the file names.
                      Re-apply all of it after any re-init. Also committed here: the bundled copy
                      of THIRD-PARTY-NOTICES.md under app assets — the APK
                      cannot read the repository root, so it carries its own
@@ -565,6 +571,14 @@ them away without re-measuring.
 - **`reqwest` enables `gzip` and deliberately not `brotli`.** AniList prefers
   `br` when offered both, and `br` measured *larger* than gzip on the list
   payload.
+- **The list cache stays one JSON blob per list, and the measurement says
+  why.** Every patch parses and rewrites the whole list, which reads as a
+  cost until it is timed: `db::tests::measure_the_cache_read`, in a release
+  build on 2026-11-10 in the cloud container, read 500 entries (120 KiB) in
+  1.7 ms, 2,000 (490 KiB) in 10.5 ms and 8,000 (1,982 KiB) in 63 ms. A row
+  per entry would buy single milliseconds on an ordinary list and cost a
+  migration of the table every write path owns; measure again before
+  proposing it.
 - **`matcher::prepare` preserves candidate and title order**, keeps the empty
   trigram-set guard (a NaN score pins `best` forever) and keeps the exact-match
   short circuit. `matcher.rs`'s equivalence test checks the optimized path

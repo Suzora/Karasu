@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The same exclusions from Android 12 on, for a cloud backup and for a transfer to another device alike. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="anilist_token.dat" />
+        <exclude domain="root" path="jellyfin_token.dat" />
+        <exclude domain="root" path="karasu.log" />
+        <exclude domain="root" path="karasu.log.1" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="anilist_token.dat" />
+        <exclude domain="root" path="jellyfin_token.dat" />
+        <exclude domain="root" path="karasu.log" />
+        <exclude domain="root" path="karasu.log.1" />
+    </device-transfer>
+</data-extraction-rules>
