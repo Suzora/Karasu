@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { moveTabFocus } from "@/components/ui/tab-focus";
 import { useTranslation } from "react-i18next";
 import { STATUS_ORDER, type MediaListStatus, type MediaType } from "@/api/types";
 import { Popover } from "@/components/ui/popover";
@@ -16,24 +16,6 @@ interface Props {
   onList: (name: string) => void;
 }
 
-/** Up and Down walk the column and wrap, Home and End jump to its ends; only a press switches the status. */
-function moveFocus(e: KeyboardEvent<HTMLButtonElement>) {
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  const tabs = [...(e.currentTarget.parentElement?.querySelectorAll<HTMLElement>('[role="tab"]') ?? [])];
-  const i = tabs.indexOf(e.currentTarget);
-  if (i < 0) return;
-  const last = tabs.length - 1;
-  const next =
-    e.key === "ArrowDown" ? (i === last ? 0 : i + 1)
-    : e.key === "ArrowUp" ? (i === 0 ? last : i - 1)
-    : e.key === "Home" ? 0
-    : e.key === "End" ? last
-    : null;
-  if (next === null) return;
-  e.preventDefault();
-  tabs[next].focus();
-}
-
 /** The statuses as a column of pills with colour and count, and the custom lists under them as filters. */
 export function StatusNav({ type, value, counts, onChange, lists, list, onList, onPicked }: Props & { onPicked?: () => void }) {
   const { t } = useTranslation();
@@ -47,7 +29,7 @@ export function StatusNav({ type, value, counts, onChange, lists, list, onList, 
             role="tab"
             aria-selected={s === value}
             tabIndex={s === value ? 0 : -1}
-            onKeyDown={moveFocus}
+            onKeyDown={moveTabFocus}
             onClick={() => {
               onChange(s);
               onPicked?.();

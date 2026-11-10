@@ -40,10 +40,18 @@ pub fn parse_asset(manifest: &Value, key: &str) -> Option<ApkAsset> {
     let url = leg.get("url")?.as_str()?.to_string();
     let sha256 = leg.get("sha256")?.as_str()?.to_ascii_lowercase();
     let size = leg.get("size")?.as_u64()?;
-    if sha256.len() != 64 || size == 0 {
+    if sha256.len() != 64 || size == 0 || !version_is_plain(&version) {
         return None;
     }
     Some(ApkAsset { version, url, sha256, size })
+}
+
+/// Whether a manifest version is digits, dots and one `+` only; it becomes a file name, so nothing else may ride in it.
+fn version_is_plain(version: &str) -> bool {
+    !version.is_empty()
+        && version.len() <= 40
+        && version.bytes().all(|b| b.is_ascii_digit() || b == b'.' || b == b'+')
+        && !version.contains("..")
 }
 
 /// What to do with a `.part` file left by an earlier run.
@@ -590,6 +598,21 @@ mod tests {
         assert_eq!(a.version, "1.11.0+630");
         assert_eq!(a.size, 23141036);
         assert_eq!(a.sha256, "ab".repeat(32));
+    }
+
+    /// The version names the downloaded file, so one that could leave the updates folder is no asset at all.
+    #[test]
+    fn a_version_that_is_not_a_plain_number_is_refused() {
+        for bad in ["../../evil", "1.0.0/x", "1..0", "", "1.0.0 beta", "1.0.0\\x"] {
+            let mut m = manifest();
+            m["version"] = json!(bad);
+            assert!(parse_asset(&m, "android-arm64").is_none(), "{bad:?}");
+        }
+        for good in ["1.11.0+630", "v1.11.0", "1.78.2.964"] {
+            let mut m = manifest();
+            m["version"] = json!(good);
+            assert!(parse_asset(&m, "android-arm64").is_some(), "{good:?}");
+        }
     }
 
     /// A manifest from before the Android legs, or one for an ABI without a build, must read as "nothing for this device".

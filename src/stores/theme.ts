@@ -240,7 +240,11 @@ export const useTheme = create<ThemeState>((set, get) => {
     field: K,
     value: ThemeState[K],
   ) => {
-    localStorage.setItem(key, String(value));
+    try {
+      localStorage.setItem(key, String(value));
+    } catch {
+      // A full or refused store loses the choice at the next start, never the one being made now.
+    }
     set({ [field]: value } as Pick<ThemeState, K>);
     flush();
   };

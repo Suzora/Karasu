@@ -254,6 +254,17 @@ describe("the real CHANGELOG.md", () => {
     expect(log.releases.length).toBeGreaterThan(0);
   });
 
+  it("opens with one Unreleased heading that carries the marker, and no bullet above it", () => {
+    const body = real.split(/\r?\n/);
+    const headings = body.filter((l) => l.trimEnd() === "## Unreleased");
+    expect(headings).toHaveLength(1);
+    const at = body.indexOf(headings[0]);
+    expect(body.findIndex((l) => l.startsWith("## "))).toBe(at);
+    expect(body.slice(0, at).filter((l) => /^- /.test(l))).toEqual([]);
+    const next = body.findIndex((l, i) => i > at && l.startsWith("## "));
+    expect(body.slice(at, next).filter((l) => l.includes("generated-through:"))).toHaveLength(1);
+  });
+
   it("finds every bullet the file holds", () => {
     const body = real.split(/\r?\n/);
     const first = body.findIndex((l) => l.startsWith("## "));

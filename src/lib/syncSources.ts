@@ -11,6 +11,8 @@ export function sourceLabel(source: string, t: (k: string) => string): string | 
       return t("syncPanel.src_delete");
     case "drain":
       return t("syncPanel.src_drain");
+    case "drainCheck":
+      return t("syncPanel.src_drainCheck");
     case "identify":
       return t("syncPanel.src_identify");
     case "save":

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import type { ActivityPage, BirthdayPerson } from "@/api/social";
-import { renderWithProviders, signIn, signOut, useLocalProfile } from "@/test/render";
+import { renderWithProviders, settle, signIn, signOut, useLocalProfile } from "@/test/render";
 import { nowPlaying } from "@/test/fixtures";
 import { useNowPlaying } from "@/stores/nowPlaying";
 
@@ -31,6 +31,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   useNowPlaying.setState({ current: null });
   signOut();
 });
@@ -78,18 +79,20 @@ describe("OverviewRail", () => {
   });
 
   it("asks for nothing in local mode and says the activity needs an account", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     useLocalProfile();
     renderWithProviders(<OverviewRail userId={0} anime={[]} manga={[]} settled beside ready />);
     expect(screen.getByText("dashboard.ownActivityNeedsAccount")).toBeInTheDocument();
-    await new Promise((r) => setTimeout(r, 20));
+    await settle();
     expect(activities).not.toHaveBeenCalled();
     expect(birthdays).not.toHaveBeenCalled();
   });
 
   it("holds the activity request until the lists have settled", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
     const { rerender } = renderWithProviders(<OverviewRail userId={1} anime={[]} manga={[]} settled={false} beside ready />);
-    await new Promise((r) => setTimeout(r, 20));
+    await settle();
     expect(activities).not.toHaveBeenCalled();
     rerender(<OverviewRail userId={1} anime={[]} manga={[]} settled beside ready />);
     await waitFor(() => expect(activities).toHaveBeenCalledWith({ userId: 1 }, 1, { source: "ownActivity" }));

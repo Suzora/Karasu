@@ -1,7 +1,7 @@
 //! The local library: scans a folder, matches files to AniList entries, and plays the next unwatched episode.
 
 use crate::db::Db;
-use crate::sync::LockExt;
+use crate::sync::{LockExt, RwLockExt};
 use crate::identify;
 use crate::playback::recognition::{matcher, parser};
 use crate::playback::relations;
@@ -401,7 +401,7 @@ pub async fn scan_library(app: AppHandle) -> Result<ScanSummary, String> {
         files: index_files(&files, &candidates, &overrides, &redirects),
         episode_counts: episode_counts(&candidates),
         // Snapshotted before the identify await; an `RwLock` guard must not live across one.
-        rules: app.state::<relations::Relations>().0.read().unwrap().clone(),
+        rules: app.state::<relations::Relations>().0.read_guard().clone(),
         ..Default::default()
     };
     data.reindex();

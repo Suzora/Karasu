@@ -41,24 +41,17 @@ pub fn host_is_local(host: &str) -> bool {
     if h == "localhost" || h.ends_with(".localhost") || h.ends_with(".local") {
         return true;
     }
-    let Ok(ip) = h.parse::<std::net::IpAddr>() else {
-        return false;
-    };
+    h.parse::<std::net::IpAddr>().is_ok_and(ip_is_local)
+}
+
+/// Whether an address is this machine's or its network's: loopback, private, link-local and the ranges beside them.
+pub fn ip_is_local(ip: std::net::IpAddr) -> bool {
     // Unwrap an IPv4-mapped address, never through `to_ipv4`, which also turns `::1` into `0.0.0.1` and passes every test.
     let ip = match ip {
-        std::net::IpAddr::V6(v6) => {
-            if v6.is_loopback()
-                || v6.is_unspecified()
-                || (v6.segments()[0] & 0xfe00) == 0xfc00
-                || (v6.segments()[0] & 0xffc0) == 0xfe80
-            {
-                return true;
-            }
-            match v6.to_ipv4_mapped() {
-                Some(v4) => std::net::IpAddr::V4(v4),
-                None => std::net::IpAddr::V6(v6),
-            }
-        }
+        std::net::IpAddr::V6(v6) => match v6.to_ipv4_mapped() {
+            Some(v4) => std::net::IpAddr::V4(v4),
+            None => std::net::IpAddr::V6(v6),
+        },
         v4 => v4,
     };
     match ip {
@@ -81,6 +74,31 @@ pub fn host_is_local(host: &str) -> bool {
                 || (v6.segments()[0] & 0xffc0) == 0xfe80
         }
     }
+}
+
+/// The addresses a name resolved to that lie on the public internet.
+fn public_addrs(found: impl Iterator<Item = std::net::SocketAddr>) -> Vec<std::net::SocketAddr> {
+    found.filter(|a| !ip_is_local(a.ip())).collect()
+}
+
+/// A resolver that answers with public addresses only, so no name can point a fetch at this machine or its network.
+struct PublicOnly;
+
+impl reqwest::dns::Resolve for PublicOnly {
+    fn resolve(&self, name: reqwest::dns::Name) -> reqwest::dns::Resolving {
+        Box::pin(async move {
+            let public = public_addrs(tokio::net::lookup_host((name.as_str(), 0)).await?);
+            if public.is_empty() {
+                return Err("no public address".into());
+            }
+            Ok(Box::new(public.into_iter()) as reqwest::dns::Addrs)
+        })
+    }
+}
+
+/// The builder for fetching a URL somebody else wrote: names are resolved here and local answers are dropped.
+pub fn public_client_builder() -> reqwest::ClientBuilder {
+    client_builder().dns_resolver(std::sync::Arc::new(PublicOnly))
 }
 
 /// Whether this is a URL worth fetching from the public internet.
@@ -151,6 +169,16 @@ mod tests {
         ] {
             assert!(!host_is_local(host), "{host} should be allowed");
         }
+    }
+
+    /// A public name may answer with any address, so the answer is judged as well as the name.
+    #[test]
+    fn a_name_that_resolves_inward_keeps_only_its_public_addresses() {
+        let addr = |s: &str| s.parse::<std::net::SocketAddr>().expect("parses");
+        let mixed = [addr("127.0.0.1:0"), addr("93.184.216.34:0"), addr("[::1]:0"), addr("192.168.1.10:0")];
+        assert_eq!(public_addrs(mixed.into_iter()), vec![addr("93.184.216.34:0")]);
+        let inward = [addr("10.0.0.5:0"), addr("[::ffff:127.0.0.1]:0"), addr("169.254.169.254:0"), addr("[fe80::1]:0")];
+        assert!(public_addrs(inward.into_iter()).is_empty());
     }
 
     #[test]

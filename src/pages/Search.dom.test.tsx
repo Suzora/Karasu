@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation, useNavigate, type NavigateFunction } from "react-router";
 import { useContentFilter } from "@/stores/contentFilter";
-import { renderWithProviders, signIn, signOut } from "@/test/render";
+import { renderWithProviders, settle, signIn, signOut } from "@/test/render";
 import { media } from "@/test/fixtures";
 import { useTheme } from "@/stores/theme";
 
@@ -51,6 +51,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   signOut();
   useContentFilter.setState({ level: "strict", ready: false, error: null });
 });
@@ -86,6 +87,7 @@ describe("Search in the URL", () => {
   });
 
   it("keeps a format it arrives with, in the URL and in every request", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     renderWithProviders(
       <>
         <Search />
@@ -94,7 +96,7 @@ describe("Search in the URL", () => {
       { route: "/search?scope=MANGA&q=frieren&format=NOVEL&status=FINISHED" },
     );
     await waitFor(() => expect(browse).toHaveBeenCalled());
-    await act(() => new Promise((r) => setTimeout(r, 50)));
+    await settle();
     expect(screen.getByTestId("url")).toHaveTextContent("format=NOVEL");
     expect(browse.mock.calls.every(([, f]) => (f as { format?: string }).format === "NOVEL")).toBe(true);
   });
@@ -147,28 +149,28 @@ describe("Search on the way back", () => {
   afterEach(() => vi.useRealTimers());
 
   it("shows the pages it had without asking again, however old they are", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     app();
     await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
     act(() => nav.go("/media/1"));
-    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 60 * 60 * 1000);
     act(() => nav.go(-1));
     await screen.findByRole("searchbox", { name: "search.placeholder" });
-    await act(() => new Promise((r) => setTimeout(r, 50)));
+    await settle();
     expect(browse).toHaveBeenCalledTimes(1);
   });
 
   it("shows the pages it had on Back to another entry of the page it is already on", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     app();
     await waitFor(() => expect(browse).toHaveBeenCalledTimes(1));
     // A link to the bare page keeps this component mounted and points its observer at another key.
     act(() => nav.go("/search"));
     await waitFor(() => expect(screen.getByRole("searchbox", { name: "search.placeholder" })).toHaveValue(""));
-    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 60 * 60 * 1000);
     act(() => nav.go(-1));
     await waitFor(() => expect(screen.getByRole("searchbox", { name: "search.placeholder" })).toHaveValue("frieren"));
-    await act(() => new Promise((r) => setTimeout(r, 50)));
+    await settle();
     expect(browse).toHaveBeenCalledTimes(1);
   });
 

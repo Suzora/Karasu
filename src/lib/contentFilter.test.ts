@@ -5,6 +5,7 @@ import {
   canLendArt,
   isBlocked,
   isBlockedGenre,
+  isBlockedTag,
   toLevel,
   shouldBlur,
 } from "./contentFilter";
@@ -168,5 +169,15 @@ describe("canLendArt", () => {
   it("survives a missing relative", () => {
     expect(canLendArt(null, plain, "off")).toBe(false);
     expect(canLendArt(undefined, plain, "off")).toBe(false);
+  });
+});
+
+describe("isBlockedTag", () => {
+  it("hides an adult tag at every level but off, and no other", () => {
+    expect(isBlockedTag({ isAdult: true }, "moderate")).toBe(true);
+    expect(isBlockedTag({ isAdult: true }, "strict")).toBe(true);
+    expect(isBlockedTag({ isAdult: true }, "off")).toBe(false);
+    expect(isBlockedTag({ isAdult: false }, "strict")).toBe(false);
+    expect(isBlockedTag({}, "strict")).toBe(false);
   });
 });

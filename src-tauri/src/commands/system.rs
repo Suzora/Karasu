@@ -100,17 +100,19 @@ pub fn set_ui_page(app: tauri::AppHandle, page: String) {
 #[tauri::command]
 #[specta::specta]
 pub fn get_text_scale() -> crate::commands::Real {
-    #[cfg(windows)]
-    {
-        use windows::UI::ViewManagement::UISettings;
-        if let Ok(settings) = UISettings::new() {
-            if let Ok(scale) = settings.TextScaleFactor() {
-                // Clamped so a bogus value cannot render the app unusable.
-                return crate::commands::Real(scale.clamp(1.0, 2.25));
-            }
-        }
-    }
-    crate::commands::Real(1.0)
+    // Clamped so a bogus value cannot render the app unusable.
+    crate::commands::Real(read_text_scale().map_or(1.0, |scale| scale.clamp(1.0, 2.25)))
+}
+
+#[cfg(windows)]
+fn read_text_scale() -> Option<f64> {
+    use windows::UI::ViewManagement::UISettings;
+    UISettings::new().ok()?.TextScaleFactor().ok()
+}
+
+#[cfg(not(windows))]
+fn read_text_scale() -> Option<f64> {
+    None
 }
 
 // --- System accent -----------------------------------------------------------

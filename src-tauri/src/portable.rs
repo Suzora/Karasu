@@ -23,14 +23,16 @@ fn base_dir(appimage: Option<&Path>, current_exe: Option<&Path>) -> Option<PathB
 }
 
 /// `$APPIMAGE` when it is worth believing; the gate sits where the environment is read so `base_dir` stays pure.
+#[cfg(target_os = "linux")]
 fn appimage_path() -> Option<PathBuf> {
-    #[cfg(target_os = "linux")]
-    {
-        std::env::var_os("APPIMAGE")
-            .map(PathBuf::from)
-            .filter(|p| plausible_appimage(p))
-    }
-    #[cfg(not(target_os = "linux"))]
+    std::env::var_os("APPIMAGE")
+        .map(PathBuf::from)
+        .filter(|p| plausible_appimage(p))
+}
+
+/// No AppImage exists off Linux, whatever the environment says.
+#[cfg(not(target_os = "linux"))]
+fn appimage_path() -> Option<PathBuf> {
     None
 }
 

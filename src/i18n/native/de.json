@@ -46,6 +46,8 @@
   "queueTitle": "Offline-Änderungen wurden nicht gespeichert",
   "queueBody_one": "AniList hat eine Offline-Änderung abgelehnt: {{reason}}",
   "queueBody_other": "AniList hat {{count}} Offline-Änderungen abgelehnt. Die erste: {{reason}}",
+  "queueOvertaken_one": "Eine Offline-Änderung wurde nicht gesendet, weil der Eintrag inzwischen auf AniList geändert wurde.",
+  "queueOvertaken_other": "{{count}} Offline-Änderungen wurden nicht gesendet, weil die Einträge inzwischen auf AniList geändert wurden.",
   "confirmAction": "Jetzt aktualisieren",
   "confirmEpisode": "Episode {{episode}} als gesehen markieren?",
   "confirmChapter": "Kapitel {{chapter}} als gelesen markieren?",

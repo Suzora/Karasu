@@ -18,6 +18,8 @@ pub const ERR_NOT_JELLYFIN: &str = "jellyfin.notJellyfin";
 pub const ERR_EXTERNAL_OTHER_SERVER: &str = "jellyfin.externalOtherServer";
 /// The server's own id is not known yet, so "the same server" cannot be checked and the external address is not stored.
 pub const ERR_EXTERNAL_UNKNOWN_SERVER: &str = "jellyfin.externalUnknownServer";
+/// The new main address answers as a different Jellyfin server than the one signed in to; not stored, the token follows it.
+pub const ERR_MAIN_OTHER_SERVER: &str = "jellyfin.mainOtherServer";
 
 /// The name in the `MediaBrowser` header, per platform so a `/Sessions` row can tell a desktop from a phone.
 #[cfg(not(target_os = "android"))]
@@ -568,7 +570,7 @@ pub fn parse_utc_seconds(s: &str) -> Option<i64> {
                 _ => return None,
             };
             let tz = rest[1..].replace(':', "");
-            if tz.len() != 4 {
+            if tz.len() != 4 || !tz.is_ascii() {
                 return None;
             }
             let h = tz[0..2].parse::<i64>().ok()?;
@@ -734,6 +736,12 @@ pub fn external_is_plain_http(base: &str) -> bool {
 pub fn external_accepted(info: &super::discovery::ServerInfo, server_id: &str) -> bool {
     let id = server_id.trim();
     !id.is_empty() && info.id.trim() == id
+}
+
+/// Whether a new main address must be refused: it answers as a server other than the one this sign-in belongs to.
+pub fn main_refused(info: &super::discovery::ServerInfo, server_id: &str) -> bool {
+    let id = server_id.trim();
+    !id.is_empty() && info.id.trim() != id
 }
 
 /// Which of the two addresses a request went to.
@@ -1122,6 +1130,7 @@ mod tests {
         assert_eq!(ERR_NOT_JELLYFIN, "jellyfin.notJellyfin");
         assert_eq!(ERR_EXTERNAL_OTHER_SERVER, "jellyfin.externalOtherServer");
         assert_eq!(ERR_EXTERNAL_UNKNOWN_SERVER, "jellyfin.externalUnknownServer");
+        assert_eq!(ERR_MAIN_OTHER_SERVER, "jellyfin.mainOtherServer");
     }
 
     use serde_json::json;
@@ -1582,7 +1591,7 @@ mod tests {
         assert_eq!(parse_utc_seconds("2026-09-11T12:12:13+02:00"), Some(plain));
         assert_eq!(parse_utc_seconds("2026-09-11T05:12:13-0500"), Some(plain));
         assert_eq!(parse_utc_seconds("2026-09-11T10:12:03Z"), Some(plain - 10));
-        for junk in ["", "yesterday", "2026-13-01T00:00:00Z", "2026-09-11", "2026-09-11T10:12:13+2"] {
+        for junk in ["", "yesterday", "2026-13-01T00:00:00Z", "2026-09-11", "2026-09-11T10:12:13+2", "2026-09-11T10:12:13+0é0"] {
             assert_eq!(parse_utc_seconds(junk), None, "{junk:?}");
         }
     }
@@ -1720,6 +1729,9 @@ mod tests {
         assert!(!external_accepted(&info("other"), "abc"));
         assert!(!external_accepted(&info("abc"), ""), "an unknown server is not the same server");
         assert!(!external_accepted(&info(""), ""));
+        assert!(main_refused(&info("other"), "abc"), "the token would follow the address to another server");
+        assert!(!main_refused(&info(" abc "), "abc"));
+        assert!(!main_refused(&info("other"), ""), "signed out, there is no token to follow it");
     }
 
     #[test]

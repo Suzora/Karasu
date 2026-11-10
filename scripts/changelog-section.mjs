@@ -5,8 +5,10 @@ export const UNRELEASED = "## Unreleased";
 
 /** The Unreleased section, from its heading to the next `## ` heading or the end; null without one. */
 export function findSection(file) {
-  const start = file.indexOf(`${UNRELEASED}\n`);
-  if (start === -1) return null;
+  const lead = `${UNRELEASED}\n`;
+  const at = file.startsWith(lead) ? 0 : file.indexOf(`\n${lead}`);
+  if (at === -1) return null;
+  const start = at === 0 ? 0 : at + 1;
   const after = file.indexOf("\n## ", start + 1);
   return { start, end: after === -1 ? file.length : after + 1 };
 }
@@ -38,4 +40,9 @@ export function addEntries(file, entries, through) {
   const section = insert(file.slice(start, end), entries, through);
   const rest = file.slice(end);
   return file.slice(0, start) + (rest ? `${section.trimEnd()}\n\n` : section) + rest;
+}
+
+/** The commit to read on from: the marker's while HEAD descends from it, else the one that wrote that marker line. */
+export function resolveSince(marker, { isAncestor, introducedBy }) {
+  return isAncestor(marker) ? marker : introducedBy(marker);
 }

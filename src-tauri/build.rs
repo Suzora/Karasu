@@ -1,3 +1,6 @@
+// The build script speaks to cargo through stdout, which is the one print the lints in Cargo.toml must let through.
+#![allow(clippy::print_stdout)]
+
 fn main() {
     tauri_build::build();
     // tests/bindings.rs links every command through the specta builder, and rfd's TaskDialogIndirect needs comctl v6.

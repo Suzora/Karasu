@@ -6,11 +6,19 @@ import { forgetPlaces } from "@/lib/scrollMemory";
 import { renderWithProviders, signIn, signOut } from "@/test/render";
 
 // `isTauri` stays false, so the library store and the status queries stand down and the page draws its empty state.
+const list = vi.hoisted(() => vi.fn());
 vi.mock("@/api/anilist", async (orig) => ({
   ...(await orig<typeof import("@/api/anilist")>()),
-  fetchMediaList: () => Promise.resolve({ lists: [] }),
+  fetchMediaList: list,
 }));
 
+const scan = vi.hoisted(() => vi.fn());
+vi.mock("@/api/library", async (orig) => ({
+  ...(await orig<typeof import("@/api/library")>()),
+  scanLibrary: scan,
+}));
+
+import { useToast } from "@/stores/toast";
 import LocalLibrary from "./LocalLibrary";
 
 const nav: { go: NavigateFunction } = { go: () => {} };
@@ -35,6 +43,7 @@ function Harness() {
 const scrollerOf = (el: HTMLElement) => el.closest<HTMLElement>(".overflow-y-auto")!;
 
 beforeEach(() => {
+  list.mockResolvedValue({ lists: [] });
   signIn();
 });
 
@@ -70,5 +79,27 @@ describe("Local library's column", () => {
     expect(within(column).getByRole("button", { name: /settings\.libraryScan/ })).toBeInTheDocument();
     expect(within(column).getByRole("button", { name: "library.change" })).toBeInTheDocument();
     expect(within(column).queryByRole("navigation")).toBeNull();
+  });
+
+  it("says so when a rescan fails, and stays quiet about a folder that was never set", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Harness />, { route: "/library" });
+    const button = await screen.findByRole("button", { name: /settings\.libraryScan/ });
+
+    scan.mockRejectedValueOnce("No library folder set");
+    await user.click(button);
+    await waitFor(() => expect(scan).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(useToast.getState().toast).toBeNull();
+
+    scan.mockRejectedValueOnce("Cannot read the library folder");
+    await user.click(button);
+    await waitFor(() => expect(useToast.getState().toast?.text).toBe("library.scanFailed"));
+  });
+
+  it("says that part of it failed to load, where a failed list read used to look like an empty library", async () => {
+    list.mockRejectedValue("AniList is unreachable");
+    renderWithProviders(<Harness />, { route: "/library" });
+    expect(await screen.findByRole("alert")).toHaveTextContent("library.partFailed");
   });
 });

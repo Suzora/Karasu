@@ -1,7 +1,7 @@
 //! The detection and scrobble loop: watch, parse, match, and write progress once the threshold has passed.
 
 use crate::db::Db;
-use crate::sync::LockExt;
+use crate::sync::{LockExt, RwLockExt};
 use crate::playback::detection;
 use crate::playback::recognition::{matcher, parser};
 use crate::playback::relations::{self, Relations};
@@ -1089,7 +1089,7 @@ pub fn requeue_match(app: &AppHandle) {
     let (picked, episode) = match picked {
         Some(mid) if media_type == "ANIME" => {
             let rules = app.state::<Relations>();
-            let rules = rules.0.read().unwrap();
+            let rules = rules.0.read_guard();
             match episode.and_then(|ep| relations::redirect(&rules, mid, ep)) {
                 Some((new_id, new_ep)) => (Some(new_id), Some(new_ep)),
                 None => (Some(mid), episode),
@@ -1334,7 +1334,7 @@ pub fn spawn(app: AppHandle) {
                 let now = {
                     let db = app.state::<Db>();
                     let rules = app.state::<Relations>();
-                    let rules = rules.0.read().unwrap().clone();
+                    let rules = rules.0.read_guard().clone();
                     now_from(&db, &rules, sweep)
                 };
                 *app.state::<PlaybackState>().0.guard() = now.clone();

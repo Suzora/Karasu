@@ -48,7 +48,7 @@ import { blockReason, isBlocked, type BlockReason } from "@/lib/contentFilter";
 import { FilteredNotice } from "@/components/FilteredNotice";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Presence } from "@/components/ui/presence";
-import { EmptyState, FolderStack } from "@/components/EmptyState";
+import { EmptyState, ErrorState, FolderStack } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { useTheme, type Density } from "@/stores/theme";
 import { Spinner } from "@/components/ui/spinner";
@@ -109,17 +109,19 @@ function LibraryView({ userId }: { userId: number }) {
     loadEntries();
   }, [loadEntries]);
 
-  const { data } = useQuery({
+  const listQuery = useQuery({
     queryKey: ["mediaList", "ANIME", userId],
     queryFn: () => fetchMediaList(userId, "ANIME"),
   });
+  const { data } = listQuery;
 
   // What the path row says, kept in the query cache so a rescan can invalidate it in one place.
-  const { data: status, refetch: refetchStatus } = useQuery({
+  const statusQuery = useQuery({
     queryKey: ["libraryStatus"],
     queryFn: getLibraryStatus,
     enabled: isTauri,
   });
+  const { data: status, refetch: refetchStatus } = statusQuery;
 
   // Filtered titles never enter this media_id → list entry map, so they cannot be listed here.
   const byMedia = useMemo(() => {
@@ -151,13 +153,14 @@ function LibraryView({ userId }: { userId: number }) {
   );
 
   // Keep `placeholderData`: a correction mints a new key, and the section would blank while it refetches.
-  const { data: fetched } = useQuery({
+  const offListQuery = useQuery({
     queryKey: ["libraryMedia", offList],
     queryFn: () => mediaByIds(offList),
     enabled: offList.length > 0,
     placeholderData: keepPreviousData,
     staleTime: 30 * 60 * 1000,
   });
+  const { data: fetched } = offListQuery;
 
   const byId = useMemo(
     () => new Map((fetched ?? []).map((m) => [m.id, m])),
@@ -212,11 +215,12 @@ function LibraryView({ userId }: { userId: number }) {
   }, [entries, byMedia, byId, level]);
 
   // Files the scanner could not place, cached beside the status so one rescan invalidates both.
-  const { data: unmatched, refetch: refetchUnmatched } = useQuery({
+  const unmatchedQuery = useQuery({
     queryKey: ["libraryUnmatched"],
     queryFn: getLibraryUnmatched,
     enabled: isTauri,
   });
+  const { data: unmatched, refetch: refetchUnmatched } = unmatchedQuery;
 
   // A suggested group has an answer to check and a bare one has none, so the two get separate sections.
   const suggested = useMemo(
@@ -229,13 +233,16 @@ function LibraryView({ userId }: { userId: number }) {
     () => missingIds(suggested.map((g) => g.suggestion!.mediaId), new Set()),
     [suggested],
   );
-  const { data: suggestedMedia } = useQuery({
+  const suggestedQuery = useQuery({
     queryKey: ["librarySuggestedMedia", suggestedIds],
     queryFn: () => mediaByIds(suggestedIds),
     enabled: suggestedIds.length > 0,
     placeholderData: keepPreviousData,
     staleTime: 30 * 60 * 1000,
   });
+  const { data: suggestedMedia } = suggestedQuery;
+  // A failed read here is not an empty library, so whichever of the five failed is said once and asked again together.
+  const failedReads = [listQuery, statusQuery, offListQuery, unmatchedQuery, suggestedQuery].filter((q) => q.isError);
   const suggestedById = useMemo(
     () => new Map((suggestedMedia ?? []).map((m) => [m.id, m])),
     [suggestedMedia],
@@ -398,8 +405,11 @@ function LibraryView({ userId }: { userId: number }) {
       await refresh();
       await refetchStatus();
       await refetchUnmatched();
-    } catch {
-      /* the folder may be unset — Settings owns that flow */
+    } catch (e) {
+      // An unset folder is Settings' flow and says so there; any other failure would otherwise look like a scan that ran.
+      if (!String(e).includes("No library folder set")) {
+        showToast({ kind: "error", text: t("library.scanFailed"), detail: backendErrorText(e, t) });
+      }
     } finally {
       setScanning(false);
     }
@@ -480,6 +490,15 @@ function LibraryView({ userId }: { userId: number }) {
 
       <div ref={scrollRef} className={cn("min-h-0 flex-1 overflow-y-auto pb-10 float-clear", phone ? "px-4 pt-4" : "pl-2 pr-8 pt-6")}>
         <FilteredNotice adult={hiddenAdult} suggestive={hiddenSuggestive} className="mb-2" />
+        {failedReads.length > 0 && (
+          <ErrorState
+            inline
+            className="mb-3"
+            error={failedReads[0].error}
+            title={(reason) => t("library.partFailed", { reason })}
+            onRetry={() => Promise.all(failedReads.map((q) => q.refetch()))}
+          />
+        )}
         {rows.length === 0 && !unmatched?.length ? (
           <EmptyState
             visual={<FolderStack />}

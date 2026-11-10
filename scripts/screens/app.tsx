@@ -936,6 +936,13 @@ mockIPC((cmd, args) => {
         { mediaId: REAL[2].id, title: REAL[2].title },
         { mediaId: 4242, title: "Kimi ni Todoke: From Me to You Season 3" },
       ];
+    case "list_custom_players":
+      return [{ process: "mpc-qt.exe", suffix: " - MPC-QT" }];
+    case "list_player_windows":
+      return [
+        { process: "celluloid.exe", title: "[Group] Sousou no Frieren - 05.mkv - Celluloid", suffix: " - Celluloid" },
+        { process: "notepad.exe", title: "Notizen.txt – Editor", suffix: " – Editor" },
+      ];
     case "list_detection_overrides":
       return [{ title: "Sousou no Frieren", season: 2, mediaType: "ANIME", mediaId: REAL[0].id, displayTitle: REAL[0].title, episodeOffset: 0 }];
     case "get_mpv_ipc":

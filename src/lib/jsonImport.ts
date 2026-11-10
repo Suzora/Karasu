@@ -1,4 +1,7 @@
-import type { FuzzyDate, Media, MediaListStatus, MediaType } from "@/api/types";
+import { displayTitle, type FuzzyDate, type Media, type MediaListStatus, type MediaType, type MediaTitle } from "@/api/types";
+
+/** Whether a backup row carries any spelling of its title at all. */
+const hasTitle = (title: MediaTitle) => [title.romaji, title.english, title.native].some((x) => !!x?.trim());
 
 /** Reads Karasu's own JSON export back in without a request, and counts every unusable row rather than dropping it. */
 
@@ -72,11 +75,11 @@ function rowsFrom(list: unknown, mediaType: MediaType, out: JsonImportResult) {
     }
     const title = (media.title as Record<string, unknown> | undefined) ?? {};
     const str = (v: unknown) => (typeof v === "string" ? v : null);
+    const spelt = { romaji: str(title.romaji), english: str(title.english), native: str(title.native) };
     out.rows.push({
       mediaId,
       mediaType,
-      title:
-        str(title.romaji) ?? str(title.english) ?? str(title.native) ?? `#${mediaId}`,
+      title: hasTitle(spelt) ? displayTitle(spelt) : `#${mediaId}`,
       media: {
         id: mediaId,
         type: mediaType,

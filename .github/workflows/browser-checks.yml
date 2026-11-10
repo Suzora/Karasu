@@ -1,0 +1,42 @@
+name: Browser checks
+
+# The three checks that need a real layout engine, weekly and by hand: nothing else in CI opens the app in a browser.
+on:
+  schedule:
+    - cron: "41 5 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # The runner image ships Chrome, and the scripts drive whatever this names through playwright-core.
+      CHROMIUM_PATH: /usr/bin/google-chrome
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Virtual rows mount and scroll
+        run: node scripts/virtual-rows-check.mjs
+
+      # Each step runs whatever the one before it found, so one red check does not hide the other two.
+      - name: Back returns each page to its place
+        if: ${{ !cancelled() }}
+        run: node scripts/back-place-check.mjs
+
+      - name: No screen scrolls sideways
+        if: ${{ !cancelled() }}
+        run: node scripts/screens.mjs overflow

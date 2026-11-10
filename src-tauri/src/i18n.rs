@@ -224,6 +224,8 @@ pub enum Msg<'a> {
     QueueTitle,
     QueueBodyOne { reason: &'a str },
     QueueBodyMany { count: usize, reason: &'a str },
+    /// Queued edits left unsent because AniList holds a newer change to the same entry.
+    QueueOvertaken { count: usize },
     /// The scrobble-confirm toast's button — its whole reason for existing.
     ConfirmAction,
     ConfirmEpisode { episode: u32 },
@@ -317,6 +319,7 @@ pub fn text(lang: Lang, msg: Msg<'_>) -> String {
         QueueTitle => ("queueTitle", None, vec![]),
         QueueBodyOne { reason } => ("queueBody", Some(1), vec![("reason", s(reason))]),
         QueueBodyMany { count, reason } => ("queueBody", Some(count as i64), vec![("reason", s(reason))]),
+        QueueOvertaken { count } => ("queueOvertaken", Some(count as i64), vec![]),
         ConfirmAction => ("confirmAction", None, vec![]),
         ConfirmEpisode { episode } => ("confirmEpisode", None, vec![("episode", episode.to_string())]),
         ConfirmChapter { chapter } => ("confirmChapter", None, vec![("chapter", chapter.to_string())]),

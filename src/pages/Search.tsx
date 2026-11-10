@@ -56,7 +56,7 @@ import { Button } from "@/components/ui/button";
 import { FilterSelect } from "@/components/ui/filter-select";
 import MediaCard from "@/components/media/MediaCard";
 import { isTauri } from "@/api/anilist";
-import { adultQueryArg, blockReason } from "@/lib/contentFilter";
+import { adultQueryArg, blockReason, isBlockedTag } from "@/lib/contentFilter";
 import { FilteredNotice } from "@/components/FilteredNotice";
 import { useContentFilter } from "@/stores/contentFilter";
 import { useAuth } from "@/stores/auth";
@@ -167,7 +167,7 @@ export default function Search() {
   const tags = useMemo(
     () =>
       (collections.data?.tags ?? [])
-        .filter((x) => level === "off" || x.isAdult !== true)
+        .filter((x) => !isBlockedTag(x, level))
         .map((x) => x.name)
         .sort(),
     [collections.data, level],
@@ -306,6 +306,14 @@ export default function Search() {
                 options={tags}
                 searchable
               />
+              {collections.isError && (
+                <ErrorState
+                  inline
+                  error={collections.error}
+                  title={(reason) => t("search.vocabularyFailed", { reason })}
+                  onRetry={() => collections.refetch()}
+                />
+              )}
               <FilterSelect
                 row={row}
                 label={t("search.yearLabel")}

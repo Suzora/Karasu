@@ -24,6 +24,7 @@ import {
 import { AppearanceSection } from "./settings/AppearancePane";
 import {
   ScrobbleSection,
+  PlayersSection,
   MediaSessionSection,
   MpvSection,
   JellyfinSection,
@@ -77,6 +78,7 @@ const PANES = [
     icon: Radar,
     sections: [
       ScrobbleSection,
+      PlayersSection,
       MediaSessionSection,
       MpvSection,
       JellyfinSection,

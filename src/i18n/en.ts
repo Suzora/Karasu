@@ -38,6 +38,7 @@ export const en = {
     tokenRejected: "AniList rejected the saved sign-in. Sign in again.",
   },
   sync: {
+    queueFailed: "The waiting edits could not be sent",
     button: "Sync now",
     failed: "Sync failed",
     now: "Synced just now",
@@ -88,6 +89,7 @@ export const en = {
     src_connect: "Sign-in",
     src_delete: "Entry removed",
     src_drain: "Waiting edits sent",
+    src_drainCheck: "Waiting edits checked against AniList",
     src_identify: "Library matching",
     src_save: "Entry saved",
     src_sequel: "Sequel announcements",
@@ -805,6 +807,7 @@ export const en = {
     noUsers: "No account by that name.",
     noUsersHint: "AniList matches the start of a username, not the middle.",
     any: "Any",
+    vocabularyFailed: "Genres and tags could not be loaded: {{reason}}",
     genreLabel: "Genre",
     tagLabel: "Tag",
     yearLabel: "Year",
@@ -1131,6 +1134,8 @@ export const en = {
   library: {
     title: "Local library",
     folderFailed: "Couldn't set that folder",
+    partFailed: "Part of the library could not be loaded: {{reason}}",
+    scanFailed: "The library could not be scanned",
     readyToPlay: "Ready to play — next unwatched file",
     upToDate: "Up to date — nothing new on disk",
     filesMatched: "{{files}} files · {{matched}} matched",
@@ -1897,6 +1902,16 @@ export const en = {
     mpvLaunchHint:
       "Path to the mpv executable. When set, the library's play buttons start mpv with the pipe above instead of the default player — no mpv.conf needed for launches. Empty keeps the default player.",
     mpvLaunchPlaceholder: "e.g. C:\\mpv\\mpv.exe",
+    players: "More players",
+    playersHint:
+      "Karasu reads the window titles of mpv, VLC, MPC-HC and MPC-BE, PotPlayer and SMPlayer. To add another player, play an episode in it and pick its window here; Karasu keeps the program and what it appends to the title.",
+    playersPick: "Choose from open windows…",
+    playersWindows: "Open windows Karasu does not read yet",
+    playersNoWindows: "No open window that Karasu does not already read. Start your player first.",
+    playersKeep: "Read as a player",
+    playersRemove: "Stop reading this player",
+    playersEnding: "Title ends in “{{ending}}”",
+    playersNoEnding: "The title is the file name alone",
     corrections: "Detection corrections",
     correctionsHint:
       "Titles you've corrected from the now-playing card. Each one holds for every future detection of the same title; remove one to let matching guess again.",
@@ -1975,6 +1990,8 @@ export const en = {
     jfErrNotJellyfin: "That address answers, but not like a Jellyfin server.",
     jfErrExternalOtherServer:
       "That address answers as a different Jellyfin server, so it was not saved.",
+    jfErrMainOtherServer:
+      "That address answers as a different Jellyfin server than the one you are signed in to, so it was not saved: your sign-in would be sent there. Sign out first to change servers.",
     jfErrExternalUnknownServer:
       "Karasu does not know this server's identity yet. Sign in again, or save while on the home network, then add the external address.",
     airingNotify: "New-episode notifications",

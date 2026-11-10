@@ -38,7 +38,11 @@ fn state_matches(expected: &str, given: &str) -> bool {
 
 const BRIDGE_HTML: &str = concat!(
     "<!doctype html><html><head><meta charset=\"utf-8\"><title>Karasu</title></head>",
-    "<body><script>location.replace(\"/token?\"+location.hash.slice(1));</script>",
+    "<body><script>var q=location.hash.slice(1);history.replaceState(null,\"\",\"/callback\");",
+    "fetch(\"/token?\"+q).then(function(r){return r.text()}).then(function(h){",
+    "document.open();document.write(h);document.close()})",
+    ".catch(function(){document.body.textContent=\"Karasu did not answer. Please start the login again from the app.\"});",
+    "</script>",
     "<noscript>JavaScript is required to complete the login.</noscript></body></html>",
 );
 
@@ -378,6 +382,8 @@ mod tests {
         let bridge = get(port, "/callback");
         assert!(bridge.contains("200 OK"), "bridge page: {bridge}");
         assert!(bridge.contains("/token?"), "bridge must hop to /token");
+        // The token reaches `/token` by a fetch, never as an address the browser would keep in its history.
+        assert!(bridge.contains("history.replaceState") && !bridge.contains("location.replace"));
 
         let missing = get(port, &format!("/token?token_type=Bearer&state={TEST_STATE}"));
         assert!(missing.contains("400"), "missing token: {missing}");

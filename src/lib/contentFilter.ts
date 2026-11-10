@@ -53,6 +53,11 @@ export function isBlockedGenre(
   return level === "strict" && SUGGESTIVE_GENRES.includes(g);
 }
 
+/** Whether a tag of AniList's collection is hidden: the adult ones are, at any level but off. */
+export function isBlockedTag(tag: { isAdult?: boolean | null }, level: ContentFilterLevel): boolean {
+  return level !== "off" && tag.isAdult === true;
+}
+
 /** Server-side `isAdult` argument for Page.media, when it can be applied. */
 export function adultQueryArg(level: ContentFilterLevel): boolean | undefined {
   return level === "off" ? undefined : false;

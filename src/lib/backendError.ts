@@ -23,6 +23,8 @@ export function backendErrorText(
       return t("settings.jfErrNotJellyfin");
     case "jellyfin.externalOtherServer":
       return t("settings.jfErrExternalOtherServer");
+    case "jellyfin.mainOtherServer":
+      return t("settings.jfErrMainOtherServer");
     case "jellyfin.externalUnknownServer":
       return t("settings.jfErrExternalUnknownServer");
     case "queue.busy":

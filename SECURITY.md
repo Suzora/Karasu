@@ -21,7 +21,11 @@ attacker with code execution inside the app's sandbox can call the same
 sealing API the app does. It protects the bytes at rest, not against a
 compromised app. A token a pre-Keystore build wrote in plain text migrates
 into the sealed format on first read; a file that does not decrypt reads as
-signed out rather than as somebody's token. (iOS, which is neither compiled
+signed out rather than as somebody's token. Android's own backup and its
+transfer to a new device are told to leave those two files and the log where
+they are (`backup_rules.xml`, `data_extraction_rules.xml`); the database
+goes along, so a restore brings the lists back and asks for the sign-in
+again. (iOS, which is neither compiled
 nor shipped, would still use a plain file.)
 
 Neither token is ever handed to the WebView — the UI only ever learns
@@ -53,7 +57,11 @@ rather than only your own.
 Karasu contacts AniList, GitHub (update checks and downloads on every
 platform — on Android the APK for the device is downloaded into the app's
 cache, verified, and handed to the system installer only when you tap) and a
-localhost callback during login. On
+localhost callback during login. AniList
+hands the token to that callback in the address's fragment, the only way its
+implicit grant has; the callback page takes the fragment out of the address
+at once and passes the token on in a request of its own, so the browser's
+history keeps no address with the token in it from Karasu's side. On
 Android the callback server still runs on localhost; its success page hands
 control back to the app through the `karasu://` custom scheme. A Jellyfin
 server you configure yourself is contacted too; that is your machine, not
@@ -63,7 +71,9 @@ The Jellyfin settings take an optional **external address** for when the
 first one is out of reach. Before the access token ever travels to it, Karasu
 asks that address (anonymously, `/System/Info/Public`) for the server's id
 and uses it only if the id is the one learned at sign-in — an address that
-answers as some other server is refused outright. Plain `http` is accepted
+answers as some other server is refused outright. The first address is held
+to the same id once you are signed in: changing it to one that answers as a
+different server is refused, since the token goes wherever it points. Plain `http` is accepted
 there by the maintainer's choice; the settings pane says in so many words
 that the token would then cross the internet unencrypted, and the answer is
 `https`. Signing in also runs that probe first, so the password only ever goes
@@ -74,8 +84,8 @@ they can see each other in `/Sessions` and only one of them writes an
 episode; that request carries nothing but the same token and device id every
 other request does.
 
-Two contacts that are neither AniList nor yours, and are worth naming because
-neither is obvious from the screen you are on:
+Three contacts that are neither AniList nor yours, and are worth naming because
+none is obvious from the screen you are on:
 
 - **Image hosts, when you open a profile.** AniList bios embed images from
   wherever their author chose — imgur, tumblr, catbox and a long tail of
@@ -84,10 +94,16 @@ neither is obvious from the screen you are on:
   size cap, the format decided by the bytes themselves (PNG, JPEG, GIF, WebP,
   AVIF or ICO — never SVG, whatever the host declares), a timeout, no cookies and
   no `Referer` on any hop, and local or private addresses refused on the URL
-  and on every redirect hop. Each image is fetched once per session.
+  and on every redirect hop, whether the host is spelled as one or only
+  resolves to one. Each image is fetched once per session.
   What that cannot hide is your IP address from the host, which is unavoidable
   in any design that displays the image at all. Anything that fails falls back
   to a plain chip.
+- **YouTube or Dailymotion, when a title has a trailer.** Its detail page
+  shows the trailer's still before you click anything, fetched through the
+  same image path as above (`i.ytimg.com` or `www.dailymotion.com`),
+  so that host sees your IP address on every such page. The player itself
+  loads only once you press play.
 - **`raw.githubusercontent.com`, for episode-redirect rules.** The
   anime-relations dataset (CC0) is fetched at most once a week and cached
   beside the database. It is what lets a detected "season 2, episode 1" reach

@@ -22,6 +22,8 @@ describe("backendErrorText", () => {
     expect(backendErrorText("jellyfin.externalUnknownServer", t)).toBe(
       "T:settings.jfErrExternalUnknownServer",
     );
+    // The main address: a different server than the sign-in belongs to, which the token must not follow.
+    expect(backendErrorText("jellyfin.mainOtherServer", t)).toBe("T:settings.jfErrMainOtherServer");
     // A bulk edit refused because a drain holds the queue lock cannot be queued itself, so it says why.
     expect(backendErrorText("queue.busy", t)).toBe("T:receipt.syncBusy");
     // AniList's own wording is "Invalid token": English and not actionable, so it gets a translation.

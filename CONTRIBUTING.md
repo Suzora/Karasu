@@ -43,7 +43,8 @@ Two hard limits shape almost everything else:
 
 ## The commit loop
 
-Four steps, in this order, for **every** commit. Not by hand.
+Five commands, in this order, for every commit that changes what a build
+contains, and one more before a push. Not by hand.
 
 ```bash
 node scripts/bump-version.mjs patch
@@ -54,7 +55,9 @@ the version in all five places at once — `package.json`,
 `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`, `COMMIT_NUMBER` in
 `src-tauri/src/commands/update.rs`, and `Cargo.lock` — and prints the resulting
 four-part version. It refuses to run when the working tree holds nothing but
-version files, because a bump with nothing to describe is a double-run.
+version files, because a bump with nothing to describe is a double-run. A
+commit no build reads (docs alone, `site/` alone, tooling alone) carries no
+bump.
 
 ```bash
 npm run verify
@@ -63,24 +66,13 @@ npm run verify
 Typecheck, then the one-line-comment audit (`scripts/comment-audit.mjs
 --check` — every comment in a code file is one physical line, see
 "Comments: one line each" in `CLAUDE.md`), the style audit against
-`DESIGN.md`'s vocabulary (`scripts/style-audit.mjs --check`) and the site
-tokens' freshness, then typos, taplo and oxlint, then the frontend tests and the
-Rust tests side by side, with a timing table at the end (`npm run
-verify:frontend` and `verify:rust` are the halves). This is the whole gate
-and exactly what CI runs, so the two cannot drift. **Run it bare and read the
-exit code** — piping it through `grep` reports *grep's* status and has let a
-type error sail through.
-
-```bash
-npm run verify:full
-```
-
-Before a push: the gate above, then knip, the version files, the site's
-typecheck, `npm audit`, the bundle budget, clippy, cargo-deny, cargo-machete, the
-Android cargo check and a real `tauri build`, ending with a clean-tree check so
-nothing uncommitted rides along. About a minute and a half, most of it the
-bundle. `git config core.hooksPath .githooks` once on your clone makes git run
-it on every push (`.githooks/pre-push`).
+`DESIGN.md`'s vocabulary (`scripts/style-audit.mjs --check`), the site
+tokens' and the native strings' freshness, then typos, taplo and oxlint, then
+the frontend tests and the Rust tests side by side, each only when the change
+can reach it, with a timing table at the end (`npm run verify:frontend` and
+`verify:rust` are the halves). This is the whole gate and what CI runs, so the
+two cannot drift. **Run it bare and read the exit code** — piping it through
+`grep` reports *grep's* status and has let a type error sail through.
 
 ```bash
 git commit
@@ -95,17 +87,29 @@ Co-Authored-By: <your name> <your email>
 
 ```bash
 node scripts/changelog.mjs
+git commit --amend --no-edit
 ```
 
-After the commit, because it reads it: appends the commit's line to
-`CHANGELOG.md`'s `## Unreleased` section. Nobody writes that file by hand.
-Fold the result in with `git commit --amend --no-edit`, then run
-`node scripts/changelog.mjs --marker-head` so the marker names the amended
-commit. The subject is the changelog line; a `Changelog: Fixed: …` trailer
-replaces it when the reader needs the effect rather than the change, and
-`Changelog: skip` leaves a commit out. Docs-, CI- and scripts-only commits
-drop out by themselves. The app shows these lines as written, after an update
-and under About, so write each one for someone using the app.
+After the commit, because it reads it: the first appends the commit's line to
+`CHANGELOG.md`'s `## Unreleased` section, the second folds it in. Nobody
+writes that file by hand. The subject is the changelog line; a
+`Changelog: Fixed: …` trailer replaces it when the reader needs the effect
+rather than the change, and `Changelog: skip` leaves a commit out. Docs-, CI-
+and scripts-only commits drop out by themselves. The app shows these lines as
+written, after an update and under About, so write each one for someone using
+the app.
+
+```bash
+npm run verify:full
+```
+
+Before a push, once everything is committed: the gate above, then knip, the
+version files, the site's typecheck, `npm audit`, the bundle budget, clippy,
+cargo-deny, cargo-machete, the Android cargo check and a real `tauri build`,
+ending with a clean-tree check so nothing uncommitted rides along. About a
+minute and a half, most of it the bundle. `git config core.hooksPath
+.githooks` once on your clone makes git run it on every push
+(`.githooks/pre-push`).
 
 One commit per feature. For anything touching dependencies,
 `tauri.conf.json`, or the bundle, also run `npm run tauri build` as a smoke
@@ -172,7 +176,8 @@ ones most likely to bite a first contribution.
 
 ## Running it
 
-Windows 11 or a Linux desktop, Node 22+, and a stable Rust toolchain. Linux also
+Windows 11 or a Linux desktop, Node 22+, and the Rust toolchain
+`rust-toolchain.toml` pins (rustup installs it by itself). Linux also
 needs the system packages listed in the README, which are the same ones
 `.github/workflows/ci.yml` installs.
 

@@ -119,9 +119,9 @@ jobs:
       - name: Verify (typecheck + frontend tests + Rust tests)
         run: npm run verify
 
-      # Advisories, licences, bans and sources against deny.toml; worth seeing on the PR without being able to block it.
+      # Advisories, licences, bans and sources against deny.toml: shown on a person's PR, blocking on one that merges itself.
       - name: cargo deny
-        continue-on-error: true
+        continue-on-error: ${{ github.actor != 'dependabot[bot]' }}
         uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
         with:
           manifest-path: src-tauri/Cargo.toml

@@ -155,8 +155,3 @@ export function formToUpdateUserVars(
 
   return vars;
 }
-
-/** Whether a form holds anything to send at all. */
-export function hasChanges(form: UserSettingsForm): boolean {
-  return Object.keys(formToUpdateUserVars(form)).length > 0;
-}

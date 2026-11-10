@@ -121,6 +121,9 @@ pub fn copy_token_from_portable_file() -> Result<(), String> {
 #[cfg(mobile)]
 const MOBILE_TOKEN_FILE: &str = "anilist_token.dat";
 
+#[cfg(target_os = "android")]
+use crate::sync::LockExt;
+
 /// One read per process, not one JNI round-trip per detection tick; `None` = not yet looked, `Some(None)` = signed out.
 #[cfg(target_os = "android")]
 static TOKEN_CACHE: std::sync::Mutex<Option<Option<String>>> = std::sync::Mutex::new(None);
@@ -135,14 +138,14 @@ pub fn save_token(token: &str) -> Result<(), String> {
     let sealed = crate::keystore::seal(token.as_bytes())?;
     std::fs::write(path, crate::keystore::frame(&sealed))
         .map_err(|e| format!("Could not save token: {e}"))?;
-    *TOKEN_CACHE.lock().unwrap() = Some(Some(token.to_string()));
+    *TOKEN_CACHE.guard() = Some(Some(token.to_string()));
     Ok(())
 }
 
 /// Reads the Keystore-sealed token; a plaintext token from an older build is re-wrapped in place on first read.
 #[cfg(target_os = "android")]
 pub fn load_token() -> Option<String> {
-    if let Some(cached) = TOKEN_CACHE.lock().unwrap().clone() {
+    if let Some(cached) = TOKEN_CACHE.guard().clone() {
         return cached;
     }
     // The data dir not being known yet is "could not look", never cached.
@@ -190,13 +193,13 @@ pub fn load_token() -> Option<String> {
         },
         Err(_) => None,
     };
-    *TOKEN_CACHE.lock().unwrap() = Some(token.clone());
+    *TOKEN_CACHE.guard() = Some(token.clone());
     token
 }
 
 #[cfg(target_os = "android")]
 pub fn delete_token() {
-    *TOKEN_CACHE.lock().unwrap() = Some(None);
+    *TOKEN_CACHE.guard() = Some(None);
     // The Keystore key alias stays: dropping it would orphan a sealed Jellyfin token sharing the same key.
     let Some(path) = crate::portable::mobile_secret_file(MOBILE_TOKEN_FILE) else {
         return;

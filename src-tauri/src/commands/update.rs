@@ -8,10 +8,10 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 963;
+pub const COMMIT_NUMBER: u32 = 977;
 
 /// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
-pub const FULL_VERSION: &str = "1.78.1.963";
+pub const FULL_VERSION: &str = "1.79.6.977";
 
 /// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {
@@ -189,6 +189,56 @@ fn check_due(last: Option<i64>, now: i64, throttle: i64) -> bool {
     }
 }
 
+/// Whether the manifest holds a newer build for this device; the APK leg the updater would fetch is kept in kv.
+#[cfg(target_os = "android")]
+fn newer_for_platform(db: &Db, body: &Value, latest: &str, current: &str) -> bool {
+    let key = crate::apk_update::abi_key(&crate::apk_update::device_abi().unwrap_or_default());
+    let asset = crate::apk_update::parse_asset(body, key).filter(|_| version_gt(latest, current));
+    match &asset {
+        Some(a) => {
+            let _ = db.kv_set(crate::apk_update::PENDING_KEY, &serde_json::to_string(a).unwrap_or_default());
+        }
+        None => db.kv_delete(crate::apk_update::PENDING_KEY),
+    }
+    asset.is_some()
+}
+
+/// Whether the manifest holds a newer build for this platform.
+#[cfg(not(target_os = "android"))]
+fn newer_for_platform(_db: &Db, body: &Value, latest: &str, current: &str) -> bool {
+    let platform_key = if cfg!(target_os = "linux") {
+        "linux-x86_64"
+    } else {
+        "windows-x86_64"
+    };
+    let has_platform = body
+        .pointer("/platforms")
+        .and_then(|p| p.get(platform_key))
+        .is_some();
+    has_platform && version_gt(latest, current)
+}
+
+/// Posts Android's bell row for an update the background check found, once per version; the frontend downloads it.
+#[cfg(target_os = "android")]
+fn announce_found(app: &tauri::AppHandle, db: &Db, latest: &str) {
+    if db.kv_get("last_notified_update_version").as_deref() == Some(latest) {
+        return;
+    }
+    let _ = db.kv_set("last_notified_update_version", latest);
+    let shown = display_version(latest);
+    crate::alerts::notify::notify(
+        app,
+        "update",
+        crate::i18n::Msg::UpdateTitle,
+        crate::i18n::Msg::UpdateBodyAndroid { version: &shown },
+        None,
+    );
+}
+
+/// Desktop announces an update once it is downloaded, so finding one says nothing here.
+#[cfg(not(target_os = "android"))]
+fn announce_found(_app: &tauri::AppHandle, _db: &Db, _latest: &str) {}
+
 /// Compares the running version against the selected channel's manifest; `force: false` respects the daily throttle.
 #[tauri::command]
 #[specta::specta]
@@ -197,9 +247,6 @@ pub async fn check_for_updates(
     db: State<'_, Db>,
     force: bool,
 ) -> Result<UpdateInfo, String> {
-    // Desktop never reads `app` on this path — the notify below is Android's.
-    #[cfg(not(target_os = "android"))]
-    let _ = &app;
     // The full four-part version, so a commit-only bump still registers as an update.
     let current = app_version_string();
     let channel = stored_channel(&db);
@@ -256,46 +303,9 @@ pub async fn check_for_updates(
         .ok_or("Update manifest has no version")?
         .trim_start_matches('v')
         .to_string();
-    // Both need their platform in the manifest; on Android the leg is the APK the updater will fetch, kept in kv.
-    #[cfg(target_os = "android")]
-    let is_newer = {
-        let key = crate::apk_update::abi_key(&crate::apk_update::device_abi().unwrap_or_default());
-        let asset = crate::apk_update::parse_asset(&body, key).filter(|_| version_gt(&latest, &current));
-        match &asset {
-            Some(a) => {
-                let _ = db.kv_set(crate::apk_update::PENDING_KEY, &serde_json::to_string(a).unwrap_or_default());
-            }
-            None => db.kv_delete(crate::apk_update::PENDING_KEY),
-        }
-        asset.is_some()
-    };
-    #[cfg(not(target_os = "android"))]
-    let is_newer = {
-        let platform_key = if cfg!(target_os = "linux") {
-            "linux-x86_64"
-        } else {
-            "windows-x86_64"
-        };
-        let has_platform = body
-            .pointer("/platforms")
-            .and_then(|p| p.get(platform_key))
-            .is_some();
-        has_platform && version_gt(&latest, &current)
-    };
-
-    // Android posts its own bell row on the background path, once per version; the download follows from the frontend.
-    #[cfg(target_os = "android")]
-    if !force && is_newer && db.kv_get("last_notified_update_version").as_deref() != Some(&latest)
-    {
-        let _ = db.kv_set("last_notified_update_version", &latest);
-        let shown = display_version(&latest);
-        crate::alerts::notify::notify(
-            &app,
-            "update",
-            crate::i18n::Msg::UpdateTitle,
-            crate::i18n::Msg::UpdateBodyAndroid { version: &shown },
-            None,
-        );
+    let is_newer = newer_for_platform(&db, &body, &latest, &current);
+    if !force && is_newer {
+        announce_found(&app, &db, &latest);
     }
 
     Ok(UpdateInfo {
@@ -600,6 +610,9 @@ pub struct DownloadedUpdate {
     pub notes: Option<String>,
 }
 
+/// The whole of one update request, download included: long enough for a slow line, short enough to end a dead one.
+const UPDATE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15 * 60);
+
 /// Checks the selected channel's manifest, downloads a newer build into the stash and notifies once it is there.
 #[tauri::command]
 #[specta::specta]
@@ -638,6 +651,8 @@ pub async fn download_pending_update(
         .updater_builder()
         .endpoints(vec![endpoint])
         .map_err(|e| e.to_string())?
+        // Bounds the check and the download alike, so a stalled connection ends in an error the next check retries.
+        .timeout(UPDATE_TIMEOUT)
         // Keep this comparator: the plugin's own current version has no commit number, so every install re-downloads itself.
         .version_comparator(|current, release| {
             remote_is_newer(

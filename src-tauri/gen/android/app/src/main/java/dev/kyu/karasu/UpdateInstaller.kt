@@ -72,7 +72,9 @@ object UpdateInstaller {
         pm.getPackageArchiveInfo(path, PackageManager.GET_SIGNATURES)
       } ?: return "unreadable"
       val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) archive.longVersionCode else @Suppress("DEPRECATION") archive.versionCode.toLong()
-      val same = archive.packageName == context.packageName && certs(archive) == certs(installed(context))
+      val signers = certs(archive)
+      // An archive whose certificates cannot be read is never the same signer, even when ours cannot be read either.
+      val same = archive.packageName == context.packageName && signers.isNotEmpty() && signers == certs(installed(context))
       "$code|" + if (same) "same" else "different"
     } catch (t: Throwable) {
       Log.w(TAG, "inspect failed", t)
@@ -87,15 +89,16 @@ object UpdateInstaller {
     context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
   }
 
-  /** The signing certificates as a sorted set of hashes, so rotation history and order cannot make equal keys differ. */
-  private fun certs(info: android.content.pm.PackageInfo): Set<Int> {
+  /** The signing certificates as a set of SHA-256 digests, so rotation history and order cannot make equal keys differ. */
+  private fun certs(info: android.content.pm.PackageInfo): Set<String> {
     val sigs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       val s = info.signingInfo ?: return emptySet()
       if (s.hasMultipleSigners()) s.apkContentsSigners else s.signingCertificateHistory
     } else {
       @Suppress("DEPRECATION") info.signatures
     } ?: return emptySet()
-    return sigs.map { it.hashCode() }.toSet()
+    val sha = java.security.MessageDigest.getInstance("SHA-256")
+    return sigs.map { sig -> sha.digest(sig.toByteArray()).joinToString("") { "%02x".format(it) } }.toSet()
   }
 
   /** Hands the verified file to the system installer; the user's tap on its dialog is the install. */

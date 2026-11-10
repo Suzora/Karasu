@@ -1,18 +1,11 @@
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate, useNavigationType, useSearchParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { CheckSquare, CloudOff, RefreshCw } from "lucide-react";
 import { useAuth } from "@/stores/auth";
 import { useContentFilter } from "@/stores/contentFilter";
-import { blockReason, shouldBlur } from "@/lib/contentFilter";
+import { shouldBlur } from "@/lib/contentFilter";
 import { FilteredNotice } from "@/components/FilteredNotice";
 import { fetchMediaList, flushQueue } from "@/api/anilist";
 import {
@@ -26,9 +19,6 @@ import { useListMutations } from "@/hooks/useListMutations";
 import EntryDialog from "@/components/media/LazyEntryDialog";
 import { CoverGridSkeleton } from "@/components/Skeleton";
 import ConfirmDialog from "@/components/overlays/ConfirmDialog";
-import { isTyping } from "@/components/shell/KeyboardSheet";
-import { nextFocus, ownsKeyboard, restingSurfaces, type Move } from "@/lib/roving";
-import { nextFocusGrouped } from "@/lib/formatGroups";
 import { groupEntries, type EntryGroup, type GroupBy } from "@/lib/listGroups";
 import { GroupedList } from "@/components/list/GroupedList";
 import { TagColourDot } from "@/components/list/TagChip";
@@ -39,12 +29,7 @@ import { collapseStacks, dissolveStack, makeStack, moveMember, removeMember, ren
 import { useStacks, useTypeStacks } from "@/stores/stacks";
 import RandomPickModal from "@/components/overlays/RandomPickModal";
 import PresetModal from "@/components/overlays/PresetModal";
-import { loadPresets, savePresets, type Preset } from "@/lib/presets";
 import { formatLabel, ORIGINS, originLabel } from "@/lib/format";
-import { customListNames } from "@/lib/customLists";
-import { collectTags, tagsOf } from "@/lib/tags";
-import { searchTitles } from "@/lib/search";
-import { fuzzyScore, prepareDoc, prepareQuery, type FuzzyDoc } from "@/lib/fuzzy";
 import { Button, buttonClass } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusNav, StatusPicker } from "@/components/list/StatusNav";
@@ -63,27 +48,19 @@ import { useRowTier } from "@/hooks/useRowTier";
 import { loadViewMode, saveViewMode, type ViewMode } from "@/lib/viewMode";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { BulkBar } from "@/components/list/BulkBar";
-import { canIncrement } from "@/components/list/shared";
 import { COMPLETION_CONFIRM_REQUESTS, splitBulkPatch } from "@/lib/completion";
 import { adjacentTab } from "@/lib/navSwipe";
 import { useTabSwipe } from "@/hooks/useTabSwipe";
-import { useSettledWrite } from "@/hooks/useUrlState";
-import {
-  CLEAR_FILTERS,
-  mergeView,
-  parseListView,
-  SORT_DEFAULT_DIR,
-  tagSet,
-  writeViewParams,
-  type SortKey,
-  type ViewPatch,
-} from "@/lib/listFilters";
+import { CLEAR_FILTERS } from "@/lib/listFilters";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-
-// One collator, since localeCompare builds a fresh one per call; default options keep the ordering it gave.
-const COLLATOR = new Intl.Collator();
+import { backendErrorText } from "@/lib/backendError";
+import { showToast } from "@/stores/toast";
+import { useListEntries } from "./mediaList/useListEntries";
+import { useListKeys } from "./mediaList/useListKeys";
+import { useListPresets } from "./mediaList/useListPresets";
+import { useListView } from "./mediaList/useListView";
 
 export default function MediaList({ type }: { type: MediaType }) {
   const { t } = useTranslation();
@@ -112,16 +89,7 @@ export default function MediaList({ type }: { type: MediaType }) {
 
 function ListView({ userId, type }: { userId: number; type: MediaType }) {
   const { t } = useTranslation();
-  // The view lives in the URL, so back from a detail page restores it and a sidebar click starts clean.
-  const [params, setParams] = useSearchParams();
-  // Read by the debounce at fire time, since its closure holds the params of the render that armed it.
-  const paramsRef = useRef(params);
-  paramsRef.current = params;
-  // What an open panel has chosen but not yet written: the list draws it now, the URL gets it on close.
-  const [draft, setDraft] = useState<ViewPatch>({});
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
-  const view = useMemo(() => mergeView(parseListView(params, type), draft), [params, type, draft]);
+  const { view, filter, setFilter, setView, editDraft, commitDraft, flushQuery } = useListView(type);
   const {
     tab,
     sort,
@@ -131,16 +99,6 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     country: countryFilter,
     list: listFilter,
   } = view;
-  // The text filter alone keeps local state and mirrors into ?q= on a debounce, not a replaceState per keystroke.
-  const [filter, setFilter] = useState(() => params.get("q") ?? "");
-  // A link to the open list, or Back to another of its entries, brings that entry's text; the page's own replaces do not.
-  const { key: entryKey } = useLocation();
-  const navigation = useNavigationType();
-  const [shownEntry, setShownEntry] = useState(entryKey);
-  if (shownEntry !== entryKey) {
-    setShownEntry(entryKey);
-    if (navigation !== "REPLACE") setFilter(params.get("q") ?? "");
-  }
   // Remembered per media type, since the screen remounts on every navigation; all three exist on the phone too.
   const [layout, setLayout] = useState<ViewMode>(() => loadViewMode(type));
   /** The table's fixed tracks overflow a phone, so the two row views draw `PhoneRow` there instead. */
@@ -157,7 +115,6 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   );
   const [editing, setEditing] = useState<MediaListEntry | null>(null);
   const [showRandom, setShowRandom] = useState(false);
-  const [presets, setPresets] = useState<Preset[]>(() => loadPresets(type));
   const [showPresetSave, setShowPresetSave] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -193,90 +150,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
     });
   }, []);
 
-  // Patches waiting for the overlays' history entries to unwind, merged in call order into one write.
-  const queued = useRef<{ patch: ViewPatch; draft: boolean } | null>(null);
-  const schedule = useSettledWrite();
-
-  /** The one writer for the URL view; it waits out any overlay's entry, which a `replace` would overwrite. */
-  const setView = useCallback(
-    (patch: ViewPatch, fromDraft = false) => {
-      queued.current = queued.current
-        ? { patch: { ...queued.current.patch, ...patch }, draft: queued.current.draft || fromDraft }
-        : { patch, draft: fromDraft };
-      schedule(() => {
-        const next = queued.current;
-        queued.current = null;
-        if (!next) return;
-        setParams((prev) => writeViewParams(prev, next.patch), { replace: true });
-        // In the same batch as the write, so the list never draws the old URL between draft and commit.
-        if (next.draft) setDraft({});
-      });
-    },
-    [setParams, schedule],
-  );
-
-  const editDraft = useCallback((patch: ViewPatch) => setDraft((d) => ({ ...d, ...patch })), []);
-  const commitDraft = useCallback(() => {
-    if (Object.keys(draftRef.current).length > 0) setView(draftRef.current, true);
-  }, [setView]);
-
-  // Read at fire time: the writer follows every navigation, and a timer must not be re-armed by one.
-  const setViewRef = useRef(setView);
-  setViewRef.current = setView;
-  const flushQuery = useCallback(() => {
-    if (filter.trim() !== (paramsRef.current.get("q") ?? "")) setViewRef.current({ q: filter });
-  }, [filter]);
-
-  // Mirror the text filter into ?q= on the same debounce the other searches use, one write when typing settles.
-  useEffect(() => {
-    const timer = setTimeout(flushQuery, 500);
-    return () => clearTimeout(timer);
-  }, [flushQuery]);
-
-  const applyPreset = (name: string) => {
-    const p = presets.find((x) => x.name === name);
-    if (!p) return;
-    setFilter(p.filter);
-    // `?? ""` on the newer fields: presets saved before they existed must clear the filters they never captured.
-    setView({
-      tab: p.tab as MediaListStatus,
-      q: p.filter,
-      sort: p.sort as SortKey,
-      dir: p.dir === "asc" || p.dir === "desc" ? p.dir : "",
-      tag: p.tagFilter ?? "",
-      format: p.format ?? "",
-      country: p.country ?? "",
-      list: p.list ?? "",
-      group: p.group === "tag" || p.group === "list" ? p.group : "",
-    });
-  };
-
-  const addPreset = (name: string) => {
-    const next = [
-      ...presets.filter((p) => p.name !== name),
-      {
-        name,
-        tab,
-        filter,
-        sort,
-        // The raw param, so a preset saved on the default direction keeps following the key's default.
-        dir: view.rawDir,
-        tagFilter,
-        format: formatFilter,
-        country: countryFilter,
-        list: listFilter,
-        group: view.group,
-      },
-    ];
-    setPresets(next);
-    savePresets(type, next);
-  };
-
-  const deletePreset = (name: string) => {
-    const next = presets.filter((p) => p.name !== name);
-    setPresets(next);
-    savePresets(type, next);
-  };
+  const { presets, applyPreset, addPreset, deletePreset } = useListPresets(type, view, filter, setFilter, setView);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["mediaList", type, userId],
@@ -306,39 +180,8 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   // Read here, not in the memoized rows: a store subscription there would re-render every card on any store move.
   const blurAdult = useContentFilter((s) => s.blurAdult);
 
-  // Filtered here, not in the cache the scrobbler and matcher read, so every byStatus consumer shares one check.
-  const { byStatus, hiddenAdult, hiddenSuggestive } = useMemo(() => {
-    const map = new Map<MediaListStatus, MediaListEntry[]>();
-    let adult = 0;
-    let suggestive = 0;
-    for (const status of STATUS_ORDER) map.set(status, []);
-    for (const group of data?.lists ?? []) {
-      if (group.isCustomList) continue;
-      for (const entry of group.entries) {
-        // Counted by reason in the pass that drops them, so the disclosure line and the list can never disagree.
-        const reason = blockReason(entry.media, level);
-        if (reason) {
-          if (reason === "adult") adult++;
-          else suggestive++;
-          continue;
-        }
-        map.get(entry.status)?.push(entry);
-      }
-    }
-    return { byStatus: map, hiddenAdult: adult, hiddenSuggestive: suggestive };
-  }, [data, level]);
-
-  // Union of tags across the whole list, for the filter + editor autocomplete.
-  const allTags = useMemo(
-    () =>
-      collectTags(
-        [...byStatus.values()].flat().map((e) => e.notes),
-      ),
-    [byStatus],
-  );
-
-  // Custom list names from the entries' membership maps, never the groups' display name; lib/customLists says why.
-  const listNames = useMemo(() => customListNames(data?.lists ?? []), [data]);
+  const { byStatus, hiddenAdult, hiddenSuggestive, allTags, listNames, searchKeys, deferredFilter, entries } =
+    useListEntries(data, view, filter, level);
 
   // A chosen tag that no longer exists anywhere drops out alone, so it cannot keep the list empty.
   useEffect(() => {
@@ -352,84 +195,6 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
   useEffect(() => {
     if (data && listFilter && !listNames.includes(listFilter)) setView({ list: "" });
   }, [data, listNames, listFilter, setView]);
-
-  /** Search and sort keys, derived once per list change instead of once per entry per keystroke. */
-  const searchKeys = useMemo(() => {
-    const map = new Map<
-      number,
-      { doc: FuzzyDoc; tags: string[]; title: string }
-    >();
-    for (const list of byStatus.values()) {
-      for (const e of list) {
-        map.set(e.id, {
-          doc: prepareDoc(searchTitles(e.media)),
-          tags: tagsOf(e.notes).map((x) => x.toLowerCase()),
-          title: displayTitle(e.media.title),
-        });
-      }
-    }
-    return map;
-  }, [byStatus]);
-
-  // Keeps the text field responsive: the filtered list renders at a lower priority than the keystroke echo.
-  const deferredFilter = useDeferredValue(filter);
-
-  const entries = useMemo(() => {
-    let list = byStatus.get(tab) ?? [];
-    const q = deferredFilter.trim();
-    // While a query is set, relevance owns the order; the chosen sort survives as the tiebreak.
-    let scores: Map<number, number> | null = null;
-    if (q) {
-      const pq = prepareQuery(q);
-      const found = new Map<number, number>();
-      list = list.filter((e) => {
-        const doc = searchKeys.get(e.id)?.doc;
-        const s = doc ? fuzzyScore(doc, pq) : 0;
-        if (s > 0) found.set(e.id, s);
-        return s > 0;
-      });
-      scores = found;
-    }
-    if (tagFilter) {
-      // Any chosen tag will do: tags are personal labels, and asking for all of them at once empties a list.
-      const wanted = new Set(tagSet(tagFilter));
-      list = list.filter((e) => searchKeys.get(e.id)?.tags.some((x) => wanted.has(x)));
-    }
-    if (formatFilter) {
-      list = list.filter((e) => e.media.format === formatFilter);
-    }
-    if (countryFilter) {
-      // Blobs cached before the field existed read undefined and must not pass a country the entry never claimed.
-      list = list.filter((e) => e.media.countryOfOrigin === countryFilter);
-    }
-    if (listFilter) {
-      list = list.filter((e) => e.customLists?.[listFilter] === true);
-    }
-    // Each comparator returns its key's default order; a flipped direction negates it wholesale.
-    const flip = dir === SORT_DEFAULT_DIR[sort] ? 1 : -1;
-    return [...list].sort((a, b) => {
-      if (scores) {
-        const d = (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0);
-        if (d !== 0) return d;
-      }
-      const cmp = (() => {
-        switch (sort) {
-          case "title":
-            return COLLATOR.compare(
-              searchKeys.get(a.id)?.title ?? "",
-              searchKeys.get(b.id)?.title ?? "",
-            );
-          case "score":
-            return b.score - a.score;
-          case "progress":
-            return b.progress - a.progress;
-          default:
-            return b.updatedAt - a.updatedAt;
-        }
-      })();
-      return cmp * flip;
-    });
-  }, [byStatus, tab, deferredFilter, tagFilter, formatFilter, countryFilter, listFilter, sort, dir, searchKeys]);
 
   // Hooks stay above the early returns; mutate is the stable reference, the mutation object it hangs off is not.
   const { mutate: saveMutate } = save;
@@ -531,116 +296,27 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
 
   const { mutate: removeMutate } = remove;
 
-  /** The list's key group: a roving index rather than DOM focus, since a virtualized row unmounts when it scrolls away. */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Anything modal owns the keyboard while it is up, and a field owns it while the caret is in one.
-      if (isTyping() || document.querySelector("[data-overlay]")) return;
-      // Any other focused control owns it too; keep this above the arrow branch, a focused select reads arrows as well.
-      if (!ownsKeyboard(document.activeElement, restingSurfaces(scrollRef.current))) return;
-      if (editing || removing || showRandom || showPresetSave || openStack || renaming) return;
-      if (e.altKey) return;
-      if (nav.length === 0) return;
-
-      const entry = focus === null ? undefined : nav[focus];
-
-      const move = (direction: Move) => {
-        e.preventDefault();
-        const next = groups && drawn
-          ? nextFocusGrouped(focus, direction, columns, drawn.sizes)
-          : nextFocus(focus, direction, columns, nav.length);
-        if (next === null) return;
-        setFocus(next);
-        // Shift extends the selection one step at a time, which is what a range select is from a held anchor.
-        if (e.shiftKey) {
-          setSelectMode(true);
-          setSelected((prev) => new Set(prev).add(nav[next].mediaId));
-        }
-      };
-
-      switch (e.key) {
-        case "ArrowRight":
-          return move("right");
-        case "ArrowLeft":
-          return move("left");
-        case "ArrowDown":
-          return move("down");
-        case "ArrowUp":
-          return move("up");
-      }
-
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key.toLowerCase() === "a") {
-          e.preventDefault();
-          setSelectMode(true);
-          setSelected(new Set(nav.map((x) => x.mediaId)));
-        }
-        return;
-      }
-
-      if (e.key === "Escape") {
-        if (selectMode) exitSelect();
-        else setFocus(null);
-        return;
-      }
-
-      // Everything below acts on the focused entry, so there has to be one.
-      if (focus === null || !entry) return;
-
-      switch (e.key) {
-        case "Enter": {
-          e.preventDefault();
-          const stacked = memberStack.get(entry.mediaId);
-          if (stacked) setOpenStack(stacked.stack.id);
-          else navigate(`/media/${entry.media.id}`);
-          break;
-        }
-        case " ":
-          // Without this the page scrolls a screen down under the grid.
-          e.preventDefault();
-          // A stack takes the +1 on its front member, the one its cover shows.
-          const front = memberStack.get(entry.mediaId)?.members[0] ?? entry;
-          if (selectMode) toggleSelect(front.mediaId);
-          else if (canIncrement(front)) plusOne(front);
-          break;
-        case "e":
-          e.preventDefault();
-          startEdit(entry);
-          break;
-        case "c":
-          e.preventDefault();
-          complete(entry);
-          break;
-        case "s":
-          e.preventDefault();
-          if (selectMode) exitSelect();
-          else setSelectMode(true);
-          break;
-        case "Delete":
-          e.preventDefault();
-          setRemoving(entry);
-          break;
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // Deliberately no dependency array: a missed entry would leave the keys acting on a stale list, and a rebind is cheap.
+  useListKeys({
+    scrollRef,
+    searchRef,
+    busy: Boolean(editing || removing || showRandom || showPresetSave || openStack || renaming),
+    nav,
+    sizes: groups && drawn ? drawn.sizes : null,
+    columns,
+    focus,
+    setFocus,
+    selectMode,
+    setSelectMode,
+    setSelected,
+    toggleSelect,
+    exitSelect,
+    memberStack,
+    openStack: setOpenStack,
+    plusOne,
+    complete,
+    startEdit,
+    startRemove: setRemoving,
   });
-
-  // Ctrl+F finds in this list rather than the page; bound apart from the key group, which stands down on an empty list.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== "f") return;
-      if (document.querySelector("[data-overlay]")) return;
-      const field = searchRef.current;
-      if (!field) return;
-      e.preventDefault();
-      field.focus();
-      field.select();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   // A filter or tab change re-pools the entries, so an old index would name a different title.
   useEffect(
@@ -820,7 +496,9 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
             size="sm"
             className="ml-auto text-gold"
             onClick={async () => {
-              await flushQueue().catch(() => {});
+              await flushQueue().catch((e: unknown) =>
+                showToast({ kind: "error", text: t("sync.queueFailed"), detail: backendErrorText(e, t) }),
+              );
               refetch();
             }}
           >

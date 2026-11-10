@@ -18,6 +18,7 @@ permissions:
 jobs:
   site-check:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: site

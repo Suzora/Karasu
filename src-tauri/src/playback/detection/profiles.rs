@@ -249,14 +249,86 @@ pub(crate) fn names_manga_site(title: &str) -> bool {
     strip_manga_site(title).is_some()
 }
 
+/// A player the user added from its own window: its process and what it appends to the file name in its title.
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct CustomPlayer {
+    /// Lower-case process name, as `WindowInfo` spells it.
+    pub process: String,
+    /// The title's ending, separator included, or empty when the player appends nothing.
+    pub suffix: String,
+}
+
+/// An open window that could be added as a player, with the ending Karasu would cut from its title.
+#[derive(Debug, Clone, PartialEq, serde::Serialize, specta::Type)]
+pub struct PlayerCandidate {
+    pub process: String,
+    pub title: String,
+    pub suffix: String,
+}
+
+/// The user's own players, mirrored from kv so the detection sweep reads them without a database.
+static CUSTOM_PLAYERS: std::sync::RwLock<Vec<CustomPlayer>> = std::sync::RwLock::new(Vec::new());
+
+/// kv: the user's own players as a JSON array.
+pub const CUSTOM_PLAYERS_KEY: &str = "custom_players";
+
+/// Replaces the players the sweep reads; called at start and after every change.
+pub fn set_custom_players(players: Vec<CustomPlayer>) {
+    *CUSTOM_PLAYERS.write().unwrap_or_else(|e| e.into_inner()) = players;
+}
+
+/// The stored players, or none when the row is missing or does not parse.
+pub fn parse_custom_players(raw: Option<&str>) -> Vec<CustomPlayer> {
+    raw.and_then(|r| serde_json::from_str(r).ok()).unwrap_or_default()
+}
+
+/// What a title ends in after its last ` - `, en dash or em dash, separator included; empty without one.
+pub fn title_ending(title: &str) -> String {
+    [" - ", " – ", " — "]
+        .iter()
+        .filter_map(|sep| title.rfind(sep))
+        .max()
+        .map(|at| title[at..].to_string())
+        .unwrap_or_default()
+}
+
+/// The open windows no profile claims yet, each once per process, for the user to pick a player from.
+pub fn player_candidates(windows: &[super::WindowInfo], custom: &[CustomPlayer]) -> Vec<PlayerCandidate> {
+    let mut seen: Vec<&str> = Vec::new();
+    windows
+        .iter()
+        .filter(|w| !w.title.trim().is_empty() && !w.process.starts_with("karasu"))
+        .filter(|w| !is_browser(&w.process) && !PLAYERS.iter().any(|(procs, _)| procs.contains(&w.process.as_str())))
+        .filter(|w| !custom.iter().any(|c| c.process == w.process))
+        .filter(|w| {
+            let fresh = !seen.contains(&w.process.as_str());
+            seen.push(&w.process);
+            fresh
+        })
+        .map(|w| PlayerCandidate { process: w.process.clone(), title: w.title.clone(), suffix: title_ending(&w.title) })
+        .collect()
+}
+
 /// Extracts the file name from a known player's window when the title looks like a video file.
 pub fn match_player(process: &str, title: &str) -> Option<String> {
-    let (_, suffixes) = PLAYERS
-        .iter()
-        .find(|(procs, _)| procs.contains(&process))?;
+    let custom = CUSTOM_PLAYERS.read().unwrap_or_else(|e| e.into_inner());
+    match_player_among(process, title, &custom)
+}
+
+/// `match_player` over a given list of the user's players; the built-in ones come first.
+fn match_player_among(process: &str, title: &str, custom: &[CustomPlayer]) -> Option<String> {
+    let own: Vec<&str>;
+    let suffixes: &[&str] = match PLAYERS.iter().find(|(procs, _)| procs.contains(&process)) {
+        Some((_, suffixes)) => suffixes,
+        None => {
+            let player = custom.iter().find(|c| c.process == process)?;
+            own = if player.suffix.is_empty() { Vec::new() } else { vec![player.suffix.as_str()] };
+            &own
+        }
+    };
 
     let mut media = title.to_string();
-    for suffix in *suffixes {
+    for suffix in suffixes {
         if let Some(stripped) = media.strip_suffix(suffix) {
             media = stripped.to_string();
             break;
@@ -317,6 +389,53 @@ pub fn match_manga(process: &str, title: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn window(process: &str, title: &str) -> crate::playback::detection::WindowInfo {
+        crate::playback::detection::WindowInfo { process: process.into(), title: title.into() }
+    }
+
+    #[test]
+    fn a_player_the_user_added_is_read_like_a_built_in_one() {
+        let custom = [CustomPlayer { process: "celluloid".into(), suffix: " - Celluloid".into() }];
+        let title = "[Group] Sousou no Frieren - 05.mkv - Celluloid";
+        assert_eq!(match_player_among("celluloid", title, &custom).as_deref(), Some("[Group] Sousou no Frieren - 05.mkv"));
+        assert_eq!(match_player_among("celluloid", title, &[]), None);
+        assert_eq!(match_player_among("celluloid", "Einstellungen - Celluloid", &custom), None);
+        let bare = [CustomPlayer { process: "player".into(), suffix: String::new() }];
+        assert_eq!(match_player_among("player", "Show - 03.mkv", &bare).as_deref(), Some("Show - 03.mkv"));
+    }
+
+    #[test]
+    fn a_title_ending_is_what_follows_its_last_separator() {
+        assert_eq!(title_ending("[Group] Show - 05.mkv - Celluloid"), " - Celluloid");
+        assert_eq!(title_ending("Dungeon Meshi S01E12 – Haruna"), " – Haruna");
+        assert_eq!(title_ending("Show 05.mkv"), "");
+    }
+
+    #[test]
+    fn candidates_leave_out_what_a_profile_already_claims() {
+        let windows = [
+            window("mpv.exe", "a.mkv - mpv"),
+            window("firefox.exe", "Tab — Mozilla Firefox"),
+            window("karasu.exe", "Karasu"),
+            window("celluloid", "a.mkv - Celluloid"),
+            window("celluloid", "b.mkv - Celluloid"),
+            window("haruna", "c.mkv – Haruna"),
+            window("shell", "  "),
+        ];
+        let custom = [CustomPlayer { process: "haruna".into(), suffix: " – Haruna".into() }];
+        let found = player_candidates(&windows, &custom);
+        assert_eq!(found.len(), 1);
+        assert_eq!(found[0], PlayerCandidate { process: "celluloid".into(), title: "a.mkv - Celluloid".into(), suffix: " - Celluloid".into() });
+    }
+
+    #[test]
+    fn stored_players_that_do_not_parse_are_none() {
+        assert!(parse_custom_players(None).is_empty());
+        assert!(parse_custom_players(Some("not json")).is_empty());
+        let raw = r#"[{"process":"celluloid","suffix":" - Celluloid"}]"#;
+        assert_eq!(parse_custom_players(Some(raw)), vec![CustomPlayer { process: "celluloid".into(), suffix: " - Celluloid".into() }]);
+    }
 
     #[test]
     fn player_mpv_with_suffix() {

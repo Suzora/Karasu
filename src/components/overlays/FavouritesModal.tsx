@@ -21,6 +21,7 @@ import { Busy, Shimmer } from "@/components/Skeleton";
 import { showToast } from "@/stores/toast";
 import { cn } from "@/lib/utils";
 import { useContentFilter } from "@/stores/contentFilter";
+import { shouldBlur } from "@/lib/contentFilter";
 import { ErrorState } from "@/components/EmptyState";
 
 /** Reorders and removes favourites per kind; a truncated read refuses the save so a reorder never mass-unfavourites. */
@@ -112,8 +113,9 @@ export function FavouritesModal({
     );
   }, [q.data]);
 
-  // `shouldBlur` spelled out, since `Row` kept only `isAdult`; rows are veiled, never filtered out (see `Row.adult`).
+  // Rows are veiled, never filtered out (see `Row.adult`), so the level only reaches `shouldBlur`.
   const blurAdult = useContentFilter((s) => s.blurAdult);
+  const level = useContentFilter((s) => s.level);
   const rows = useMemo(() => drafts?.[kind] ?? [], [drafts, kind]);
   const dirty =
     baseline !== null &&
@@ -232,7 +234,7 @@ export function FavouritesModal({
                         loading="lazy"
                         className={cn(
                           "size-full object-cover",
-                          row.adult && blurAdult && "blur-[5px]",
+                          shouldBlur({ isAdult: row.adult }, level, blurAdult) && "blur-[5px]",
                         )}
                       />
                     )}

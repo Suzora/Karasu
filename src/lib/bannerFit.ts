@@ -1,8 +1,5 @@
 /** Where a banner shown whole sits in its frame, and what has to fill the rest without drawing a hard edge. */
 
-/** AniList's banner shape; nearly every banner is exactly 1900 × 400, and CLAUDE.md has the count. */
-export const BANNER_RATIO = 1900 / 400;
-
 export interface Rect {
   left: number;
   top: number;

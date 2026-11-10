@@ -1298,3 +1298,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   name and says, under it, which ones are machine-translated. Right-to-left
   languages (Arabic, Hebrew, Persian, Urdu) wait for a step of their own,
   since every screen would have to mirror.
+- **2026-11-10:** A player Karasu does not know is added from its own window.
+  The list of players whose window titles are read was compiled in, so
+  another player needed a release. Three boards were shown for a "More
+  players" card in the detection settings: two fields typed by hand, one row
+  of chips, and a choice from the windows that are open. The maintainer chose
+  the windows: play an episode, press the button, pick the window, and Karasu
+  keeps the program and what it appends to the title, with nothing to type
+  and nothing to mistype. The card sits above "Media sessions" and is
+  Windows only, since window titles are read nowhere else.

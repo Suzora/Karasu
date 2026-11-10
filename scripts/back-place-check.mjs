@@ -121,7 +121,7 @@ const probe = (page) =>
   page.evaluate(() => {
     const main = document.getElementById("main");
     const el = [main, ...main.querySelectorAll("*")].find(
-      (e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
+      (e) => !e.closest("aside") && /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
     );
     const field = document.querySelector("[data-page-search]");
     return {
@@ -137,25 +137,25 @@ async function scrollTo(page, px) {
   await page.evaluate((px) => {
     const main = document.getElementById("main");
     const el = [main, ...main.querySelectorAll("*")].find(
-      (e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
+      (e) => !e.closest("aside") && /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
     );
     if (el) el.scrollTop = Math.min(px, el.scrollHeight - el.clientHeight);
   }, px);
   await page.waitForTimeout(400);
 }
 
-// A DOM click on a link the scroller shows whole: a pointer click would first scroll it into view and move the place.
+// A DOM click on a link the scroller shows any part of: a pointer click would scroll it into view and move the place.
 async function openLink(page) {
   return page.evaluate(() => {
     const main = document.getElementById("main");
     const el = [main, ...main.querySelectorAll("*")].find(
-      (e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
+      (e) => !e.closest("aside") && /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4,
     );
     const box = (el ?? main).getBoundingClientRect();
     const links = [...document.querySelectorAll('#main a[href^="#/media/"], #main a[href^="#/thread/"]')];
     const a = links.find((l) => {
       const r = l.getBoundingClientRect();
-      return r.width > 0 && r.height > 0 && r.top >= box.top + 4 && r.bottom <= box.bottom - 4;
+      return r.width > 0 && r.height > 0 && r.bottom > box.top + 4 && r.top < box.bottom - 4;
     });
     if (!a) return null;
     a.click();
@@ -192,13 +192,13 @@ async function roundTrip(name, opts, prepare) {
 await roundTrip("list, rows", { route: "/list", view: { ANIME: "rows" } }, (p) => scrollTo(p, 700));
 await roundTrip("list, cover grid", { route: "/list", h: 560 }, (p) => scrollTo(p, 420));
 await roundTrip("list, phone", { route: "/list", phone: true }, (p) => scrollTo(p, 1400));
-await roundTrip("search", { route: "/search", h: 520 }, async (p) => {
+await roundTrip("search", { route: "/search", w: 900, h: 330 }, async (p) => {
   await p.getByRole("searchbox").fill("Frieren");
   await p.waitForTimeout(1500);
   await scrollTo(p, 500);
 });
 // Typed, then a genre, then a status: the order the address is built in is the one Back has to find again.
-await roundTrip("search, genre then status", { route: "/search", h: 520 }, async (p) => {
+await roundTrip("search, genre then status", { route: "/search", w: 900, h: 330 }, async (p) => {
   await p.getByRole("searchbox").fill("Frieren");
   await p.waitForTimeout(1500);
   await p.getByRole("button", { name: "Genre", exact: true }).click();
@@ -209,8 +209,8 @@ await roundTrip("search, genre then status", { route: "/search", h: 520 }, async
   await p.waitForTimeout(1500);
   await scrollTo(p, 500);
 });
-await roundTrip("seasonal, a past season", { route: "/seasonal", h: 700 }, async (p) => {
-  await p.getByRole("button", { name: "Vorherige Saison" }).click();
+await roundTrip("seasonal, an earlier year", { route: "/seasonal", h: 700 }, async (p) => {
+  await p.getByRole("button", { name: "Voriges Jahr" }).click();
   await p.waitForTimeout(1500);
   await scrollTo(p, 500);
 });
@@ -222,7 +222,7 @@ await roundTrip("forum", { route: "/forum", h: 600 }, (p) => scrollTo(p, 400));
 // Two entries of one open page: a link to it starts it at the top, and Back brings the first entry's season and place.
 {
   const { context, page } = await open("/seasonal", { h: 700 });
-  await page.getByRole("button", { name: "Vorherige Saison" }).click();
+  await page.getByRole("button", { name: "Voriges Jahr" }).click();
   await page.waitForTimeout(1500);
   await scrollTo(page, 500);
   const before = await probe(page);

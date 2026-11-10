@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import type { ActivityPage } from "@/api/social";
-import { renderWithProviders } from "@/test/render";
+import { renderWithProviders, settle } from "@/test/render";
 
 vi.mock("@/api/anilist", async (orig) => ({
   ...(await orig<typeof import("@/api/anilist")>()),
@@ -24,15 +24,18 @@ const page = (ids: number[], hasNextPage: boolean): ActivityPage => ({
   activities: ids.map(text),
 });
 
+afterEach(() => void vi.useRealTimers());
+
 /** The feed the Overview's rail reuses: it may wait for the lists, names its request, and can draw plain rows. */
 describe("ActivityFeed options", () => {
   it("does not request until enabled", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     fetchPage.mockReset();
     fetchPage.mockResolvedValue(page([1], false));
     const { rerender } = renderWithProviders(
       <ActivityFeed queryKey={["own", 1]} source={{ userId: 1 }} enabled={false} emptyTitle="none" />,
     );
-    await new Promise((r) => setTimeout(r, 20));
+    await settle();
     expect(fetchPage).not.toHaveBeenCalled();
     rerender(<ActivityFeed queryKey={["own", 1]} source={{ userId: 1 }} enabled emptyTitle="none" />);
     await waitFor(() => expect(fetchPage).toHaveBeenCalledTimes(1));

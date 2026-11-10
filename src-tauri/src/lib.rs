@@ -392,6 +392,7 @@ pub fn run() {
                     }
                 }
             };
+            commands::load_custom_players(&db);
             app.manage(db);
             app.manage(hotkey::HotkeyStatusState(std::sync::Mutex::new(hotkey::HotkeyStatus::new(
                 hotkey::HotkeyBackend::Grab,
@@ -587,6 +588,10 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::open_backup_dir,
             commands::get_mpv_ipc,
             commands::set_mpv_ipc,
+            commands::list_custom_players,
+            commands::list_player_windows,
+            commands::add_custom_player,
+            commands::remove_custom_player,
             commands::list_detection_overrides,
             commands::set_detection_override,
             commands::clear_detection_override,

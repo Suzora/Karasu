@@ -57,3 +57,30 @@ maintainer's. Each says which, so none of them reads as unstarted work.
   August 2026; sideload is the model, and since 1.11 the app fetches its
   own APK from the GitHub release — see "The Android updater" in
   CLAUDE.md).
+
+### Needs testing
+
+Written and checked by the gate, never run where it matters. Each names what
+it waits for:
+
+- **The "More players" card, on Windows.** `list_player_windows` has never
+  listed a real window, and no player added through the card has been
+  tracked. Wants: play a file in a player Karasu does not know, add it from
+  its window, and see the episode detected and scrobbled.
+- **Android's backup, on a device.** The manifest names backup rules that
+  leave the sealed token files and the log out of Auto Backup and of a
+  transfer to another device; the database stays in. The rules were built
+  into an APK and never exercised: `adb shell bmgr backupnow dev.kyu.karasu`
+  and a look at what the backup holds is the check.
+- **A finished rewatch, against a live entry.** The scrobbler sends
+  `mediaId`, `progress` and `status` when a rewatch completes and never
+  `repeat` or a completion date. Whether AniList adds both itself needs one
+  write to a throwaway entry; only if it does not, send them.
+
+### Considered
+
+Looked at and left for now, not rejected:
+
+- **Narrowing the "More players" window list to titles that look like a
+  video.** The list shows every window no profile claims. The maintainer
+  left it wide on 2026-11-10: not yet.

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { BANNER_RATIO, edgeBands, featherMask, fitBanner } from "./bannerFit";
+import { edgeBands, featherMask, fitBanner } from "./bannerFit";
+
+/** AniList's banner shape: nearly every banner is exactly 1900 × 400. */
+const BANNER_RATIO = 1900 / 400;
 
 describe("fitBanner", () => {
   /** The phone case: a standard banner is far wider than the header, so it fills the width and leaves bands above and below. */

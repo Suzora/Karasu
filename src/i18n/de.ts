@@ -40,6 +40,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     tokenRejected: "AniList hat die gespeicherte Anmeldung abgelehnt. Bitte erneut anmelden.",
   },
   sync: {
+    queueFailed: "Die wartenden Änderungen konnten nicht gesendet werden",
     button: "Jetzt synchronisieren",
     failed: "Synchronisierung fehlgeschlagen",
     now: "Sync: gerade",
@@ -90,6 +91,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     src_connect: "Anmeldung",
     src_delete: "Eintrag entfernt",
     src_drain: "Wartende Änderungen gesendet",
+    src_drainCheck: "Wartende Änderungen mit AniList abgeglichen",
     src_identify: "Bibliothek zuordnen",
     src_save: "Eintrag gespeichert",
     src_sequel: "Angekündigte Fortsetzungen",
@@ -806,6 +808,7 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     noUsers: "Kein Konto mit diesem Namen.",
     noUsersHint: "AniList sucht am Anfang eines Nutzernamens, nicht in der Mitte.",
     any: "Alle",
+    vocabularyFailed: "Genres und Tags konnten nicht geladen werden: {{reason}}",
     genreLabel: "Genre",
     tagLabel: "Tag",
     yearLabel: "Jahr",
@@ -1132,6 +1135,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
   library: {
     title: "Lokale Bibliothek",
     folderFailed: "Ordner konnte nicht gesetzt werden",
+    partFailed: "Ein Teil der Bibliothek konnte nicht geladen werden: {{reason}}",
+    scanFailed: "Die Bibliothek konnte nicht durchsucht werden",
     readyToPlay: "Bereit — nächste ungesehene Datei",
     upToDate: "Aktuell — nichts Neues auf der Platte",
     filesMatched: "{{files}} Dateien · {{matched}} zugeordnet",
@@ -1907,6 +1912,16 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     mpvLaunchHint:
       "Pfad zur mpv-Programmdatei. Wenn gesetzt, starten die Abspielknöpfe der Bibliothek mpv mit der Pipe oben statt des Standardplayers — für Starts ist keine mpv.conf nötig. Leer behält den Standardplayer.",
     mpvLaunchPlaceholder: "z. B. C:\\mpv\\mpv.exe",
+    players: "Weitere Player",
+    playersHint:
+      "Karasu liest die Fenstertitel von mpv, VLC, MPC-HC und MPC-BE, PotPlayer und SMPlayer. Für einen anderen Player spielst du eine Episode darin ab und wählst hier sein Fenster aus; Karasu merkt sich das Programm und das, was es an den Titel anhängt.",
+    playersPick: "Aus offenen Fenstern wählen …",
+    playersWindows: "Offene Fenster, die Karasu noch nicht liest",
+    playersNoWindows: "Kein offenes Fenster, das Karasu nicht schon liest. Starte zuerst deinen Player.",
+    playersKeep: "Als Player lesen",
+    playersRemove: "Diesen Player nicht mehr lesen",
+    playersEnding: "Titel endet auf „{{ending}}“",
+    playersNoEnding: "Der Titel ist nur der Dateiname",
     corrections: "Erkennungs-Korrekturen",
     correctionsHint:
       "Titel, die du über die Wiedergabe-Karte korrigiert hast. Jede gilt für jede weitere Erkennung desselben Titels; entferne eine, damit die Zuordnung wieder selbst rät.",
@@ -1985,6 +2000,8 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     jfErrNotJellyfin: "Diese Adresse antwortet, aber nicht wie ein Jellyfin-Server.",
     jfErrExternalOtherServer:
       "Unter dieser Adresse antwortet ein anderer Jellyfin-Server, daher wurde sie nicht gespeichert.",
+    jfErrMainOtherServer:
+      "Unter dieser Adresse antwortet ein anderer Jellyfin-Server als der, bei dem du angemeldet bist. Sie wurde nicht gespeichert, weil deine Anmeldung sonst dorthin gesendet würde. Melde dich zuerst ab, um den Server zu wechseln.",
     jfErrExternalUnknownServer:
       "Karasu kennt die Identität dieses Servers noch nicht. Melde dich neu an oder speichere im Heimnetz, dann füge die externe Adresse hinzu.",
     airingNotify: "Benachrichtigung bei neuer Episode",

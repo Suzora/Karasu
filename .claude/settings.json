@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(git push *--force)",
+      "Bash(git push *--force *)",
+      "Bash(git push -f *)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push *--mirror*)",
+      "Bash(git push *--tags*)",
+      "Bash(git push *--follow-tags*)",
+      "Bash(git push *--no-verify*)",
+      "Bash(git add -f *)",
+      "Bash(git add --force *)",
+      "Bash(git add * -f)",
+      "Bash(git add * -f *)",
+      "Bash(git add * --force)",
+      "Bash(git add * --force *)",
+      "Bash(gh repo create *)",
+      "Bash(gh repo fork *)",
+      "Bash(gh repo rename *)",
+      "Bash(gh repo delete *)",
+      "Bash(gh release create *)",
+      "Bash(gh release edit *)",
+      "Bash(gh release delete *)",
+      "Bash(gh release upload *)",
+      "mcp__github__create_repository",
+      "mcp__github__fork_repository",
+      "mcp__github__push_files",
+      "mcp__github__create_or_update_file",
+      "mcp__github__delete_file",
+      "Edit(/src/api/bindings.ts)",
+      "Edit(/src/lib/htmlEntities.data.ts)",
+      "Edit(/site/src/styles/tokens.generated.css)",
+      "Edit(/src-tauri/gen/android/app/src/main/res/**/strings_widgets.xml)",
+      "Edit(/src-tauri/src/snapshots/**)",
+      "Edit(/src/lib/__snapshots__/**)",
+      "Edit(/src-tauri/proptest-regressions/**)",
+      "Edit(/src-tauri/Cargo.lock)",
+      "Edit(/package-lock.json)",
+      "Edit(/site/package-lock.json)",
+      "Read(/**/key.properties)",
+      "Read(/**/keystore.properties)",
+      "Read(/**/*.jks)",
+      "Read(/**/*.keystore)",
+      "Read(/**/.env)",
+      "Read(/**/.env.*)",
+      "Read(~/.tauri/**)",
+      "Edit(~/AppData/Roaming/dev.kyu.karasu/**)",
+      "Edit(~/AppData/Local/dev.kyu.karasu/**)",
+      "Edit(~/.local/share/dev.kyu.karasu/**)",
+      "Edit(~/.var/app/io.github.Suzora.Karasu/**)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/agent-guard.mjs",
+              "session"
+            ],
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/agent-guard.mjs",
+              "stop"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/agent-guard.mjs",
+              "write"
+            ],
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/agent-guard.mjs",
+              "bash"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
