@@ -74,8 +74,8 @@ they can see each other in `/Sessions` and only one of them writes an
 episode; that request carries nothing but the same token and device id every
 other request does.
 
-Two contacts that are neither AniList nor yours, and are worth naming because
-neither is obvious from the screen you are on:
+Three contacts that are neither AniList nor yours, and are worth naming because
+none is obvious from the screen you are on:
 
 - **Image hosts, when you open a profile.** AniList bios embed images from
   wherever their author chose — imgur, tumblr, catbox and a long tail of
@@ -88,6 +88,11 @@ neither is obvious from the screen you are on:
   What that cannot hide is your IP address from the host, which is unavoidable
   in any design that displays the image at all. Anything that fails falls back
   to a plain chip.
+- **YouTube or Dailymotion, when a title has a trailer.** Its detail page
+  shows the trailer's still before you click anything, fetched through the
+  same image path as above (`i.ytimg.com` or `www.dailymotion.com`),
+  so that host sees your IP address on every such page. The player itself
+  loads only once you press play.
 - **`raw.githubusercontent.com`, for episode-redirect rules.** The
   anime-relations dataset (CC0) is fetched at most once a week and cached
   beside the database. It is what lets a detected "season 2, episode 1" reach
