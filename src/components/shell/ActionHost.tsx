@@ -300,26 +300,32 @@ export default function ActionHost() {
         }
       </Presence>
 
-      {open && editing && overlay === "edit" && (
-        <EntryDialog
-          media={{ ...editing.media, type: open.mediaType }}
-          entry={editing}
-          tagSuggestions={suggestions}
-          onWrite={save}
-          onDelete={remove}
-          onClose={closeAll}
-        />
-      )}
+      <Presence value={open && editing && overlay === "edit" ? { entry: editing, mediaType: open.mediaType } : null}>
+        {(shown, leaving) => (
+          <EntryDialog
+            leaving={leaving}
+            media={{ ...shown.entry.media, type: shown.mediaType }}
+            entry={shown.entry}
+            tagSuggestions={suggestions}
+            onWrite={save}
+            onDelete={remove}
+            onClose={closeAll}
+          />
+        )}
+      </Presence>
 
-      {open && editing && overlay === "confirmRemove" && (
-        <ConfirmDialog
-          title={t("common.confirmRemove")}
-          names={[displayTitle(editing.media.title)]}
-          confirmLabel={t("common.remove")}
-          onConfirm={remove}
-          onCancel={closeAll}
-        />
-      )}
+      <Presence value={overlay === "confirmRemove" ? editing : null}>
+        {(shown, leaving) => (
+          <ConfirmDialog
+            leaving={leaving}
+            title={t("common.confirmRemove")}
+            names={[displayTitle(shown.media.title)]}
+            confirmLabel={t("common.remove")}
+            onConfirm={remove}
+            onCancel={closeAll}
+          />
+        )}
+      </Presence>
     </>
   );
 }

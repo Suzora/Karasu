@@ -8,10 +8,10 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 972;
+pub const COMMIT_NUMBER: u32 = 973;
 
 /// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
-pub const FULL_VERSION: &str = "1.79.1.972";
+pub const FULL_VERSION: &str = "1.79.2.973";
 
 /// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {
@@ -600,6 +600,9 @@ pub struct DownloadedUpdate {
     pub notes: Option<String>,
 }
 
+/// The whole of one update request, download included: long enough for a slow line, short enough to end a dead one.
+const UPDATE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15 * 60);
+
 /// Checks the selected channel's manifest, downloads a newer build into the stash and notifies once it is there.
 #[tauri::command]
 #[specta::specta]
@@ -638,6 +641,8 @@ pub async fn download_pending_update(
         .updater_builder()
         .endpoints(vec![endpoint])
         .map_err(|e| e.to_string())?
+        // Bounds the check and the download alike, so a stalled connection ends in an error the next check retries.
+        .timeout(UPDATE_TIMEOUT)
         // Keep this comparator: the plugin's own current version has no commit number, so every install re-downloads itself.
         .version_comparator(|current, release| {
             remote_is_newer(

@@ -333,4 +333,15 @@ describe("ActionHost overlay exclusivity", () => {
     fireEvent.contextMenu(card("2", "Trigun"), { clientX: 60, clientY: 60 });
     expect(screen.queryByRole("menu", { name: "ctx.menuLabel" })).toBeNull();
   });
+
+  it("keeps the editor on screen for its exit, then takes it away", async () => {
+    mount();
+    openEditorByRightClick();
+    await screen.findByRole("dialog", { name: "Cowboy Bebop" });
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("dialog", { name: "Cowboy Bebop" })).toBeInTheDocument();
+    act(() => void vi.advanceTimersByTime(300));
+    expect(screen.queryByRole("dialog", { name: "Cowboy Bebop" })).toBeNull();
+  });
 });

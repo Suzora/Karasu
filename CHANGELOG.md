@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 031c99d -->
+<!-- generated-through: 582d709 -->
 
 ### Fixed
 
@@ -91,6 +91,7 @@ tag time is then optional rather than load-bearing.
 - A change made without a connection no longer overwrites a newer change to the same entry made on another device or on AniList in the meantime; Karasu tells you when it left one unsent.
 - A Jellyfin server that reports an unusual time zone in its session data no longer stops tracking.
 - A library rescan that fails now says so, the back gesture closes the season picker instead of leaving the page, and the Overview's page dots respect Reduce motion.
+- The entry editor opened from a right-click or a long press fades out like every other dialog, and an update download that stalls now gives up instead of waiting forever.
 
 ### Changed
 
