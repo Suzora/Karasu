@@ -484,7 +484,7 @@ clone whose `core.hooksPath` is not `.githooks`. Add a rule there when a "never"
 path can express; a deny pattern on a command is not a boundary, which is why
 the hook reads the same cases off the whole command.
 
-Three more "nevers" are the gate's, so they hold for a person and for CI as
+Three more of these rules are the gate's, so they hold for a person and for CI as
 well: oxlint refuses an import of `@tauri-apps/api/core` (commands go through
 the bindings) and any use of `IntersectionObserver` (paging is a button), and
 clippy refuses `println!`, `eprintln!` and `dbg!` outside tests
