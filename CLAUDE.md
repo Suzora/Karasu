@@ -537,7 +537,7 @@ of AniList's own list fields, it costs nothing to carry, and the local list has
 stored it since schema v7. The rejected idea is tracking **purchases**, which
 would need price data the app has no source for.
 
-The schema is at **v21**. `library_match` (v8) holds the scanner's per-title
+The schema is at **v22**. `library_match` (v8) holds the scanner's per-title
 match confidence, which is what the local library's `exact` / `close` column
 reads. v9 adds `library_override` — the user's corrections, keyed on the parsed
 `(title, season)` with `season = -1` for a release name that carried none, and
@@ -644,6 +644,12 @@ Nightly only on the Nightly channel, and `set_whats_new_seen`, which writes
 `FULL_VERSION` itself and refuses anything but at most a thousand line ids). Never write a second
 `FULL_VERSION: &str = "…"` text into `commands/update.rs`: F-Droid's
 `UpdateCheckData` reads the first one by regex.
+
+v22 empties `history`, the table of a playback-history feature that was
+removed: an early build wrote rows there, nothing has read them since, and
+they sat in the database and its daily backups, which is the record the
+rejection above refuses. The table itself stays, so the older steps still
+find it.
 
 **AniList has two name spaces for a custom list, and only one is writable.**
 `MediaListCollection.lists[].name` is a *display* value: it upper-cases the

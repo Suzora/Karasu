@@ -246,6 +246,12 @@ fn migration_v21_fresh() -> String {
     )
 }
 
+/// Schema v22: empties `history`, whose rows an early build wrote for a feature that is gone and nothing reads.
+const MIGRATION_V22: &str = "
+DELETE FROM history;
+PRAGMA user_version = 22;
+";
+
 /// One detection correction: what was detected, and what it really is.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -471,6 +477,9 @@ impl Db {
             } else {
                 apply(&conn, 21, MIGRATION_V21)?;
             }
+        }
+        if version < 22 {
+            apply(&conn, 22, MIGRATION_V22)?;
         }
         Ok(Db(Mutex::new(conn)))
     }
@@ -1654,6 +1663,21 @@ pub(crate) mod tests {
         assert_eq!(db.kv_get("update_channel").as_deref(), Some("stable"));
     }
 
+    /// A playback row an early build left behind is gone after the upgrade, and the table stays for older schemas' sake.
+    #[test]
+    fn v22_empties_the_history_a_removed_feature_left() {
+        let db = mem_db();
+        let conn = db.0.lock().unwrap();
+        conn.execute(
+            "INSERT INTO history (media_id, media_type, title, episode, started_ms, ended_ms, seconds) VALUES (1, 'ANIME', 'x', 1, 0, 1, 1)",
+            [],
+        )
+        .unwrap();
+        conn.execute_batch(MIGRATION_V22).unwrap();
+        let rows: i64 = conn.query_row("SELECT COUNT(*) FROM history", [], |r| r.get(0)).unwrap();
+        assert_eq!(rows, 0);
+    }
+
     /// Proves `open` marks a new file as having seen this build and leaves a file that arrived at v20 with nothing seen.
     #[test]
     fn v21_decides_by_the_version_the_file_arrived_with() {
@@ -1682,7 +1706,7 @@ pub(crate) mod tests {
         }
         let upgraded = Db::open(dir.clone()).unwrap();
         assert_eq!(upgraded.kv_get("whats_new_version"), None);
-        assert_eq!(upgraded.schema_version(), 21);
+        assert_eq!(upgraded.schema_version(), 22);
         drop(upgraded);
 
         // A database that did not exist until this open: nothing is new to it.
@@ -1692,7 +1716,7 @@ pub(crate) mod tests {
             fresh.kv_get("whats_new_version").as_deref(),
             Some(crate::commands::FULL_VERSION)
         );
-        assert_eq!(fresh.schema_version(), 21);
+        assert_eq!(fresh.schema_version(), 22);
         fresh.kv_set("whats_new_version", "1.0.0.1").unwrap();
         drop(fresh);
 
@@ -1921,7 +1945,7 @@ pub(crate) mod tests {
         let version: i64 = conn
             .query_row("PRAGMA user_version", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(version, 21, "and must end up fully migrated");
+        assert_eq!(version, 22, "and must end up fully migrated");
         drop(conn);
 
         // Every other `ALTER TABLE ADD COLUMN` step needs the same proof: the column present, the version behind.
@@ -1945,7 +1969,7 @@ pub(crate) mod tests {
             let version: i64 = conn
                 .query_row("PRAGMA user_version", [], |r| r.get(0))
                 .unwrap();
-            assert_eq!(version, 21);
+            assert_eq!(version, 22);
         }
 
         let _ = std::fs::remove_dir_all(&dir);
