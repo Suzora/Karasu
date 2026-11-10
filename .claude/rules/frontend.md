@@ -106,7 +106,11 @@ src/
   pages/             one per route; settings/ holds the pane files — the seven
                      pane ids live in `lib/settingsPanes.ts` (the account pane
                      holds the AniList one's sections too), and the desktop
-                     and data panes are sections exported from AdvancedPane
+                     and data panes are sections exported from AdvancedPane;
+                     it and DetectionPane re-export one file per section
+                     under settings/advanced/ and settings/detection/.
+                     mediaList/ holds the list page's hooks: its URL view,
+                     its saved views, the entries it draws and its keys
   stores/            Zustand stores (auth, theme, library, nowPlaying,
                      overviewRail, stacks, tagColours, airingMutes, …)
   assets/            karasu-mark.svg, the one asset the bundle inlines
