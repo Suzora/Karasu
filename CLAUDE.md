@@ -262,6 +262,15 @@ silently, and has no other way to learn the new address. GitHub Pages does not
 redirect at all — `kyusetzu.github.io/Karasu/` answered 404 the same day —
 which is why the site, the README and both store listings moved with the code.
 
+**The author is "Kyusetzu" since 2026-11-10, where every file said "Kyu".**
+Two things kept their old spelling on purpose: the Discord server is still
+called "Kyu's Cozy Corner", and the package name is still `dev.kyu.karasu`,
+because on Android it is the app's identity and a new one would be a second
+app. The Windows publisher did move, and `src-tauri/windows/hooks.nsh` is
+what lets an update find an install made under the old name. Never remove
+that file or unpin `@tauri-apps/cli` without reading "The Windows installer
+carries the old publisher name over" in `.claude/rules/release-and-packaging.md`.
+
 ## The request budget
 
 One ~30/min pool serves every screen, the scrobbler and the alert passes, so
@@ -605,7 +614,7 @@ task is about its subject and no matching path has been opened yet.
 - **`.claude/rules/anilist-api.md`** — What AniList's API does, as measured: Notes that have cost real time.
 - **`.claude/rules/detection.md`** — Detection: what browsers and streaming sites publish: Notes that have cost real time.
 - **`.claude/rules/gate-and-tests.md`** — The gate, the test suites, the scripts and CI: Layout: `scripts/`; The gate in detail; The test suites; Notes that have cost real time; The dependency graph is checked, not trusted; The dev loop has eyes; Three Cargo tools that answer questions, run by hand; Links are checked weekly, not trusted; The Actions cache is 10 GB, and a PR must not spend it; Dependabot merges itself.
-- **`.claude/rules/release-and-packaging.md`** — The AppImage, Flatpak, F-Droid and the release workflows: The AppImage; Packaging beyond the release page.
+- **`.claude/rules/release-and-packaging.md`** — The AppImage, Flatpak, F-Droid and the release workflows: The AppImage; Packaging beyond the release page; The Windows installer carries the old publisher name over.
 - **`.claude/rules/site.md`** — The website: The website.
 
 ## Invariants the release audit established

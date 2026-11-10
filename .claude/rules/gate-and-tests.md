@@ -494,7 +494,7 @@ server, private addresses (the Settings hint's example Jellyfin URL), and 429 as
 an accepted answer because GitHub throttles a burst of HEADs. The first run on
 2026-09-20 found 84 links alive and 10 redirecting for good reasons
 (`releases/latest`, the issue-form links that bounce through login), so a
-redirect is not a finding here; a failed run is, and it lands in Kyu's inbox as
+redirect is not a finding here; a failed run is, and it lands in Kyusetzu's inbox as
 the workflow's own notification. `cargo install lychee` and `lychee --config
 lychee.toml -- '*.md'` reproduce it locally.
 

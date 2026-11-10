@@ -1412,14 +1412,14 @@ mod tests {
         let body = json!({
             "AccessToken": "tok-123",
             "ServerId": "srv",
-            "User": { "Id": ME, "Name": "Kyu" }
+            "User": { "Id": ME, "Name": "Kyusetzu" }
         });
         assert_eq!(
             parse_auth_result(&body).unwrap(),
             AuthSession {
                 token: "tok-123".into(),
                 user_id: ME.into(),
-                user_name: "Kyu".into(),
+                user_name: "Kyusetzu".into(),
             }
         );
     }
@@ -1429,12 +1429,12 @@ mod tests {
     fn auth_result_is_read_from_a_camel_case_body() {
         let body = json!({
             "accessToken": "tok-123",
-            "user": { "id": ME, "name": "Kyu" }
+            "user": { "id": ME, "name": "Kyusetzu" }
         });
         let s = parse_auth_result(&body).unwrap();
         assert_eq!(s.token, "tok-123");
         assert_eq!(s.user_id, ME);
-        assert_eq!(s.user_name, "Kyu");
+        assert_eq!(s.user_name, "Kyusetzu");
     }
 
     #[test]

@@ -133,7 +133,7 @@ export default {
     security: "Drošības politika",
     contributing: "Kā piedalīties",
     license: "AGPL-3.0 licence",
-    copyright: "Licencēts ar AGPL-3.0 · © 2026 Kyu un Karasu līdzautori",
+    copyright: "Licencēts ar AGPL-3.0 · © 2026 Kyusetzu un Karasu līdzautori",
     disclaimer:
       "Karasu ir neatkarīgs projekts, un tas nav saistīts ar AniList vai tā apstiprināts. SN Pro tiek izmantots saskaņā ar SIL Open Font License 1.1.",
     language: "Valoda",

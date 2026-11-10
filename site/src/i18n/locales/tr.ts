@@ -133,7 +133,7 @@ export default {
     security: "Güvenlik politikası",
     contributing: "Katkıda bulunma",
     license: "AGPL-3.0 lisansı",
-    copyright: "AGPL-3.0 lisanslı · © 2026 Kyu ve Karasu katkıda bulunanları",
+    copyright: "AGPL-3.0 lisanslı · © 2026 Kyusetzu ve Karasu katkıda bulunanları",
     disclaimer:
       "Karasu bağımsız bir projedir; AniList ile bağlantılı değildir ve AniList tarafından onaylanmamıştır. SN Pro, SIL Open Font License 1.1 kapsamında kullanılmaktadır.",
     language: "Dil",

@@ -32,7 +32,7 @@ const VERSION_FILES = new Set([
 
 /** Paths whose change is real work but not work a user of the app can see. */
 const INTERNAL_ONLY =
-  /^(\.github\/|\.githooks\/|\.claude\/|scripts\/|site\/|docs?\/|CLAUDE\.md|DESIGN\.md|ROADMAP\.md|CONTRIBUTING\.md|CHANGELOG\.md|README\.md|SECURITY\.md|THIRD-PARTY-NOTICES\.md|\.gitignore)/;
+  /^(\.github\/|\.githooks\/|\.claude\/|scripts\/|site\/|docs?\/|CLAUDE\.md|DESIGN\.md|ROADMAP\.md|CONTRIBUTING\.md|CHANGELOG\.md|README\.md|SECURITY\.md|THIRD-PARTY-NOTICES\.md|\.gitignore|_typos\.toml|taplo\.toml|lychee\.toml|knip\.json|\.oxlintrc\.json)/;
 
 const GROUPS = ["Added", "Changed", "Fixed", "Removed", "Security"];
 

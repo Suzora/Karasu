@@ -8,6 +8,8 @@ export const RAW_READ_GLOBS = [
   "/src/api/queries.ts",
   "/index.html",
   "/src-tauri/tauri.conf.json",
+  "/src-tauri/windows/hooks.nsh",
+  "/package.json",
   "/.claude/settings.json",
   "/scripts/agent-guard.mjs",
   "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",

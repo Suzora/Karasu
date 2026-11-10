@@ -60,7 +60,7 @@ export function headFor(page: "home" | "404", lang: Lang, t: Messages): string {
       downloadUrl: LINKS.latest,
       license: LINKS.license,
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-      author: { "@type": "Person", name: "Kyu" },
+      author: { "@type": "Person", name: "Kyusetzu" },
       image,
     };
     lines.push(

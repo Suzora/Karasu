@@ -133,7 +133,7 @@ export default {
     security: "Política de seguridad",
     contributing: "Contribuir",
     license: "Licencia AGPL-3.0",
-    copyright: "Licenciado bajo AGPL-3.0 · © 2026 Kyu y los colaboradores de Karasu",
+    copyright: "Licenciado bajo AGPL-3.0 · © 2026 Kyusetzu y los colaboradores de Karasu",
     disclaimer:
       "Karasu es un proyecto independiente y no está afiliado a AniList ni cuenta con su respaldo. SN Pro se usa bajo la SIL Open Font License 1.1.",
     language: "Idioma",

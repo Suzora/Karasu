@@ -77,6 +77,12 @@ it waits for:
   `repeat` or a completion date. Whether AniList adds both itself needs one
   write to a throwaway entry; only if it does not, send them.
 
+- **The publisher migration, on Windows itself.** An update from an install
+  made under the old publisher name was run under Wine, passive and silent,
+  and landed where it should. Not seen: the same update through the app's
+  own updater on a real Windows, and the folder page of an installer started
+  by hand over such an install, which should show the old folder.
+
 ### Considered
 
 Looked at and left for now, not rejected:
