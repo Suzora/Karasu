@@ -8,6 +8,8 @@ export const RAW_READ_GLOBS = [
   "/src/api/queries.ts",
   "/index.html",
   "/src-tauri/tauri.conf.json",
+  "/.claude/settings.json",
+  "/scripts/agent-guard.mjs",
   "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
   "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
   "/THIRD-PARTY-NOTICES.md",

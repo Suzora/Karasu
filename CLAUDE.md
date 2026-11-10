@@ -1254,6 +1254,31 @@ The detector runs on its own: `impeccable detect --json <dir-or-url>` over
 or over `npm --prefix site run preview`. Its findings are leads, checked
 against the style audit and DESIGN.md before anything changes.
 
+## Enforced by `.claude/settings.json`
+
+A rule in this file is context an agent can misread; the few that must never
+break are also settings Claude Code enforces itself, in every session of this
+repository, cloud ones included. The permissions deny a forced push, a push
+of tags, a push past the hook, `git add -f`, creating, forking or renaming a
+repository, a release made by hand, a write to the remote that skips git, a
+hand edit of a generated file (the bindings, the site tokens, the widget
+strings, the entity table, snapshots, proptest regressions, the lockfiles),
+reading key material and editing the installed app's data. They ask before a
+ratchet or the gate's own configuration changes (the budget, the style
+baseline, the allowlists, `deny.toml`, `.oxlintrc.json`, `verify.mjs`, the
+hooks, the settings themselves), and before a merge, a workflow dispatch,
+`git clean` or `tauri android init`. Two hooks run `scripts/agent-guard.mjs`
+(its decisions are `agent-guard-core.mjs`, tested by `agentGuard.test.ts`):
+before a file is written it refuses text shaped like a credential, naming the
+rule and never the match; before a command runs it refuses the gate in a
+pipe, a forced push in any spelling, a push of a version tag, `tauri dev`
+without the `karasu.portable` marker, and a commit whose change holds a
+credential, key material by file name, or a path under `docs/superpowers/`,
+`.impeccable/` or `audit/`. A guard that fails by itself lets the call
+through. Add a rule there when a "never" in this file is one a command or a
+path can express; a deny pattern on a command is not a boundary, which is why
+the hook reads the same cases off the whole command.
+
 ## The bindings are generated, never written
 
 `src/api/bindings.ts` is what tauri-specta emits from the Rust command
