@@ -20,7 +20,9 @@ src/
   app/               App.tsx, main.tsx, index.css — the entry — plus lazyRoute.tsx,
                      the pages one click away that load on idle
   api/               AniList GraphQL client, queries, types, franchise, library,
-                     social (the whole profile/follow/forum surface);
+                     social (the whole profile/follow/forum surface: `social.ts`
+                     re-exports the eight files under `social/`, one per
+                     subject, so every import still names `@/api/social`);
                      bindings.ts is GENERATED from the Rust command signatures
                      and tauri.ts is `unwrap`, the one seam over it — see
                      "The bindings are generated"
