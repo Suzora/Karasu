@@ -468,6 +468,18 @@ test), and six pointed at real gaps that got tests the same day: `season_key`'s
 `-1`, `detection_override`'s three-part key, `cached_user_id` and
 `candidates_from_cache`. Read the misses as questions, not as a score to push.
 
+## The browser checks run weekly, not on a push
+
+`.github/workflows/browser-checks.yml` runs the three checks that need a real
+layout engine every Wednesday and by hand: `virtual-rows-check.mjs`,
+`back-place-check.mjs` and `screens.mjs overflow`, on the runner's own Chrome
+through `CHROMIUM_PATH`. Until 2026-11-10 nothing in CI opened the app in a
+browser, so a sideways scroll or a lost scroll position reached a Nightly
+unseen. It gates nothing: a red run is the workflow's own notification. Each
+step runs whatever the one before it found. The Windows build is still
+started nowhere in CI before it ships; the AppImage is the only artifact with
+a smoke test.
+
 ## Links are checked weekly, not trusted
 
 `.github/workflows/links.yml` runs lychee every Monday (and by hand) over the
