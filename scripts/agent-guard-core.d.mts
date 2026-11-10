@@ -23,7 +23,6 @@ export function stopVerdict(input: {
   baseline: string;
   stamp: Stamp | null;
   need: { rust: boolean; frontend: boolean };
-  cloud: boolean;
   asked: string[];
 }): string | null;
 export function guardFile(git: (args: string[]) => string, name: string): string;

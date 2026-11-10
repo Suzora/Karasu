@@ -87,10 +87,10 @@ export function treeState(git, read) {
 }
 
 /** Why a session may not stop yet, or null: its changes need a green gate run of this state, asked for once. */
-export function stopVerdict({ state, baseline, stamp, need, cloud, asked }) {
+export function stopVerdict({ state, baseline, stamp, need, asked }) {
   if (state === baseline || asked.includes(state)) return null;
   const ran = stamp?.state === state ? stamp.ran : null;
-  const missing = [need.frontend && "vitest", need.rust && !cloud && "cargo test"].filter((s) => s && !ran?.includes(s));
+  const missing = [need.frontend && "vitest", need.rust && "cargo test"].filter((s) => s && !ran?.includes(s));
   if (ran && missing.length === 0) return null;
   const what = ran ? `the last green run of this state left out ${missing.join(" and ")}` : "no green gate run vouches for this state";
   return `${what}: run \`npm run verify\` bare and read its exit code, or say plainly that this state is unverified and which phases could not run here.`;

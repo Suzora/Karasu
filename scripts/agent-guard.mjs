@@ -90,7 +90,7 @@ function stop(hook) {
   if (!mine) return;
   const state = treeState(git, read);
   const need = scope(collectChanges((args) => git(args), read)?.changes ?? []);
-  const why = stopVerdict({ state, baseline: mine.baseline, stamp: json("karasu-verified.json"), need, cloud, asked: mine.asked });
+  const why = stopVerdict({ state, baseline: mine.baseline, stamp: json("karasu-verified.json"), need, asked: mine.asked });
   if (!why) return;
   mine.asked.push(state);
   writeFileSync(guardFile(git, SESSIONS), JSON.stringify(sessions));
@@ -123,8 +123,8 @@ function session(hook) {
   }
   if (hooksPath !== ".githooks" && !cloud) notes.push("The push gate is not wired on this clone: `git config core.hooksPath .githooks` runs `npm run verify:full` before a push.");
   if (cloud) {
-    notes.push("Cloud session: run `npm ci` before the gate. `cargo test` and `npm run verify:full` cannot build here; CI checks them.");
-    notes.push("A changed Rust command signature cannot regenerate `src/api/bindings.ts` here: say so, never edit the file by hand.");
+    notes.push("Cloud session: the gate needs `npm ci`, and `cargo test` needs the Linux build packages `.github/workflows/ci.yml` installs.");
+    notes.push("If `cargo test` cannot build here, say so plainly: never edit `src/api/bindings.ts` by hand, and never call Rust verified.");
   }
   if (notes.length) process.stdout.write(`${notes.join("\n")}\n`);
 }

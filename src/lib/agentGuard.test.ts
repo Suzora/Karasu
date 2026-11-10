@@ -138,7 +138,7 @@ describe("treeState", () => {
 
 describe("stopVerdict", () => {
   const need = { rust: false, frontend: true };
-  const base = { state: "b", baseline: "a", stamp: null, need, cloud: false, asked: [] };
+  const base = { state: "b", baseline: "a", stamp: null, need, asked: [] };
 
   it("lets a session that changed nothing stop", () => {
     expect(stopVerdict({ ...base, state: "a" })).toBeNull();
@@ -155,10 +155,9 @@ describe("stopVerdict", () => {
     expect(stopVerdict({ ...base, stamp: { state: "b", ran: ["typecheck"] } })).toMatch(/vitest/);
   });
 
-  it("wants cargo test for a crate change, except where the crate cannot build", () => {
+  it("wants cargo test for a crate change, wherever the session runs", () => {
     const rust = { ...base, need: { rust: true, frontend: false }, stamp: { state: "b", ran: ["vitest"] } };
     expect(stopVerdict(rust)).toMatch(/cargo test/);
-    expect(stopVerdict({ ...rust, cloud: true })).toBeNull();
     expect(stopVerdict({ ...rust, stamp: { state: "b", ran: ["cargo test"] } })).toBeNull();
   });
 });

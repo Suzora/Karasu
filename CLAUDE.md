@@ -1285,8 +1285,10 @@ through. Two more hooks hold "tests before done". A green `npm run verify`
 the tree's content that a commit, a version bump and the changelog amend leave
 unchanged (`treeState`), with the phases that ran. When a session wants to
 stop, the stop hook lets it when the tree is as the session found it, or when
-a stamp for this exact state covers the suites the change can reach (in a
-cloud session, where the crate cannot build, `cargo test` is not asked for);
+a stamp for this exact state covers the suites the change can reach, in a
+cloud session as anywhere (the crate builds there once the Linux packages
+`ci.yml` installs are present, measured on 2026-11-10 in an Ubuntu 24.04
+container, and the cloud environment's setup script installs them);
 otherwise it sends the session back once per state, to run the gate or to say
 plainly that the state is unverified. It never runs a test itself. The
 session-start hook records that starting state, adds `docs/superpowers/` and
