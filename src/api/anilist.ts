@@ -345,6 +345,18 @@ export const systemAccent = () => commands.systemAccent();
 export const paintSystemBars = (bars: { status: string; navigation: string; light: boolean }) =>
   void unwrap(commands.setSystemBars(bars.status, bars.navigation, bars.light)).catch(() => {});
 
+/** The app's accent for the home-screen widgets, which cannot read the theme store; a failure costs the tint. */
+export const mirrorWidgetAccent = (hex: string) => void unwrap(commands.setWidgetAccent(hex)).catch(() => {});
+
+/** The widgets on Android's home screen right now; empty everywhere else. */
+export const placedWidgets = () => commands.placedWidgets();
+
+/** One placed widget's settings, the defaults for one nobody configured. */
+export const widgetConfig = (id: number) => commands.widgetConfig(id);
+
+/** Stores one placed widget's settings; Rust redraws the widgets from them. */
+export const setWidgetConfig = (id: number, config: WidgetConfig) => unwrap(commands.setWidgetConfig(id, config));
+
 /** Windows' Accessibility text-size multiplier, which WebView2 ignores, so App applies it to the root element. */
 export const getTextScale = () => commands.getTextScale();
 
@@ -354,7 +366,8 @@ export const getAiringNotify = () => commands.getAiringNotify();
 export const setAiringNotify = (enabled: boolean) =>
   unwrap(commands.setAiringNotify(enabled));
 
-export type { AiringMute } from "./bindings";
+export type { AiringMute, PlacedWidget, WidgetConfig } from "./bindings";
+import type { WidgetConfig } from "./bindings";
 export const listAiringMutes = () => commands.listAiringMutes();
 export const setAiringMute = (mediaId: number, title: string, muted: boolean) =>
   unwrap(commands.setAiringMute(mediaId, title, muted));

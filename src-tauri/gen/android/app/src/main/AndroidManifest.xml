@@ -161,7 +161,7 @@
             android:value="Keeps the Jellyfin playback poll running while an episode plays elsewhere, so watch progress reaches AniList; opt-in, sideloaded, no store listing." />
         </service>
 
-        <!-- Hand-added: the four home-screen widgets. See Widgets.kt. -->
+        <!-- Hand-added: the seven home-screen widgets. See Widgets.kt. -->
         <receiver
           android:name=".Widgets$AiringToday"
           android:label="@string/widget_airing_label"
@@ -206,5 +206,106 @@
             android:name="android.appwidget.provider"
             android:resource="@xml/widget_week" />
         </receiver>
+        <receiver
+          android:name=".Widgets$Figures"
+          android:label="@string/widget_figures_label"
+          android:exported="false">
+          <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+          </intent-filter>
+          <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/widget_figures" />
+        </receiver>
+        <receiver
+          android:name=".Widgets$Ring"
+          android:label="@string/widget_ring_label"
+          android:exported="false">
+          <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+          </intent-filter>
+          <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/widget_ring" />
+        </receiver>
+        <receiver
+          android:name=".Widgets$Year"
+          android:label="@string/widget_year_label"
+          android:exported="false">
+          <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+          </intent-filter>
+          <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/widget_year" />
+        </receiver>
+        <!-- Hand-added: the launcher's configure target for every widget; it answers and opens Karasu. See Widgets.kt. -->
+        <activity
+          android:name=".WidgetConfigActivity"
+          android:exported="true"
+          android:excludeFromRecents="true"
+          android:label="@string/widget_configure"
+          android:theme="@android:style/Theme.NoDisplay">
+          <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+          </intent-filter>
+            <!-- DEEP LINK PLUGIN. AUTO-GENERATED. DO NOT REMOVE. -->
+            <intent-filter android:autoVerify="true" >
+                <action android:name="android.intent.action.VIEW" />
+                <!-- ChromeOS ARC++ uses a different action for deep links -->
+                <action android:name="org.chromium.arc.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="anilist.co" />
+                
+                
+                <data android:pathPrefix="/anime" />
+                <data android:pathPrefix="/manga" />
+                <data android:pathPrefix="/user" />
+                <data android:pathPrefix="/forum/thread" />
+                <data android:pathPrefix="/character" />
+                <data android:pathPrefix="/staff" />
+                <data android:pathPrefix="/studio" />
+                <data android:pathPrefix="/activity" />
+                
+            </intent-filter>
+            <intent-filter android:autoVerify="true" >
+                <action android:name="android.intent.action.VIEW" />
+                <!-- ChromeOS ARC++ uses a different action for deep links -->
+                <action android:name="org.chromium.arc.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="www.anilist.co" />
+                
+                
+                <data android:pathPrefix="/anime" />
+                <data android:pathPrefix="/manga" />
+                <data android:pathPrefix="/user" />
+                <data android:pathPrefix="/forum/thread" />
+                <data android:pathPrefix="/character" />
+                <data android:pathPrefix="/staff" />
+                <data android:pathPrefix="/studio" />
+                <data android:pathPrefix="/activity" />
+                
+            </intent-filter>
+            <intent-filter >
+                <action android:name="android.intent.action.VIEW" />
+                <!-- ChromeOS ARC++ uses a different action for deep links -->
+                <action android:name="org.chromium.arc.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="karasu" />
+                
+                
+                
+                
+                
+            </intent-filter>
+            <!-- DEEP LINK PLUGIN. AUTO-GENERATED. DO NOT REMOVE. -->
+        </activity>
     </application>
 </manifest>

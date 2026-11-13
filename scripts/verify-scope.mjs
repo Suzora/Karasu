@@ -12,7 +12,7 @@ export const RAW_READ_GLOBS = [
   "/package.json",
   "/.claude/settings.json",
   "/scripts/agent-guard.mjs",
-  "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
+  "/src-tauri/gen/android/app/src/main/res/values/colors_widgets.xml",
   "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
   "/THIRD-PARTY-NOTICES.md",
   "/CHANGELOG.md",

@@ -30,6 +30,7 @@ import { usePhoneShell } from "@/hooks/usePhoneShell";
 import { useFloatInset } from "@/hooks/useFloatInset";
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { internalRoute } from "@/lib/anilistUrl";
+import { widgetRoute } from "@/lib/widgets";
 import SessionExpired from "@/components/shell/SessionExpired";
 import Toast from "@/components/shell/Toast";
 import CommandPalette from "@/components/shell/CommandPalette";
@@ -138,7 +139,7 @@ export default function App() {
       const url = urls[0] ?? "";
       if (last && last.url === url && Date.now() - last.at < 2000) return;
       last = { url, at: Date.now() };
-      const to = urls.map(internalRoute).find((r) => r !== null);
+      const to = urls.map((u) => internalRoute(u) ?? widgetRoute(u)).find((r) => r !== null);
       if (to) navigateRef.current(to);
     };
     const un = onOpenUrl(route);

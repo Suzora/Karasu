@@ -1307,3 +1307,15 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   keeps the program and what it appends to the title, with nothing to type
   and nothing to mistype. The card sits above "Media sessions" and is
   Windows only, since window titles are read nowhere else.
+- **2026-11-13:** The Android home-screen widgets are reworked, chosen from
+  three boards (cover rows, a cover shelf, focus). Airing today and the
+  two continue widgets take the focus arrangement: one title large with its
+  cover beside the text, never under it, and up to three more as small rows
+  below. The week keeps a shelf, seven day columns of covers with the hour
+  under each, because focus would show the other days as counts alone. Statistics
+  arrive as three widgets, the figures, the status ring and the year's
+  completions by month, all read from the list cache with no request. Each
+  placed widget is configured by itself on a sheet inside Karasu that the
+  launcher's reconfigure opens: content, density, accent and opacity. Below
+  full opacity the muted text rises to ink-300, since ink-600 falls under
+  4.5 : 1 over a light wallpaper.

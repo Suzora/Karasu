@@ -91,7 +91,7 @@ describe("scope", () => {
       "CHANGELOG.md",
       "index.html",
       "src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/MainActivity.kt",
-      "src-tauri/gen/android/app/src/main/res/layout/karasu_widget.xml",
+      "src-tauri/gen/android/app/src/main/res/values/colors_widgets.xml",
       "packaging/fdroid/dev.kyu.karasu.yml",
       "vite.config.ts",
     ]) {

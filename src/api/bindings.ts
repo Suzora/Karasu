@@ -228,6 +228,14 @@ export const commands = {
 	trailerPage: (site: string, id: string) => typedError<string, string>(__TAURI_INVOKE("trailer_page", { site, id })),
 	/**  The desktop's or the phone's accent colour as `#rrggbb`, or nothing where the platform does not publish one. */
 	systemAccent: () => __TAURI_INVOKE<string | null>("system_accent"),
+	/**  The widgets on the home screen right now; off Android there are none. Settings of removed widgets go with the read. */
+	placedWidgets: () => __TAURI_INVOKE<PlacedWidget[]>("placed_widgets"),
+	/**  One widget's settings, or the defaults for a widget nobody has configured. */
+	widgetConfig: (id: number) => __TAURI_INVOKE<WidgetConfig>("widget_config", { id }),
+	/**  Stores one widget's settings and redraws the widgets from them. */
+	setWidgetConfig: (id: number, config: WidgetConfig) => typedError<null, string>(__TAURI_INVOKE("set_widget_config", { id, config })),
+	/**  Mirrors the app's accent into kv, because a widget set to follow the app cannot read the theme store. */
+	setWidgetAccent: (hex: string) => typedError<null, string>(__TAURI_INVOKE("set_widget_accent", { hex })),
 	/**  Paints Android's status and navigation strips in the theme's colours; the desktop's frame is its own, so nothing there. */
 	setSystemBars: (status: string, navigation: string, light: boolean) => typedError<null, string>(__TAURI_INVOKE("set_system_bars", { status, navigation, light })),
 	getCloseToTray: () => __TAURI_INVOKE<CloseToTray>("get_close_to_tray"),
@@ -682,6 +690,12 @@ export type Overflow_Serialize = {
 	hint?: SplitHint | null,
 };
 
+/**  One placed widget as Android names it: its id and which of the seven kinds it is. */
+export type PlacedWidget = {
+	id: number,
+	kind: string,
+};
+
 /**  Which kind of Karasu a `/Sessions` row is; ordered, because a desktop outranks a phone and that order is the rule. */
 export type Platform = "mobile" | "desktop";
 
@@ -903,6 +917,22 @@ export type WhatsNewSeen = {
 	lines: string[] | null,
 	/**  The update channel, `stable` or `prerelease`: a Stable build reads as a Nightly only to a Nightly user. */
 	channel: string,
+};
+
+/**  What one placed widget shows; Widgets.kt reads the same field names out of the projection. */
+export type WidgetConfig = {
+	/**  `current` or `planning`, for the two continue widgets. */
+	list?: string,
+	/**  `anime` or `manga`, for the statistics widgets. */
+	media?: string,
+	/**  Leaves the small rows under the large title out. */
+	compact?: boolean,
+	/**  `app` follows Karasu's accent, `system` Android's. */
+	accent?: string,
+	/**  The background's opacity in percent. */
+	opacity?: number,
+	/**  `title` opens the tapped title, `list` the list it is on. */
+	tap?: string,
 };
 
 /* Tauri Specta runtime */

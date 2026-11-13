@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: cd77538 -->
+<!-- generated-through: d44a860 -->
 
 ### Fixed
 
@@ -121,6 +121,7 @@ tag time is then optional rather than load-bearing.
 - Entries of one list can be stacked by hand (Select → Stack); a stack shows as one cover in the grid and opens as a sheet with its members ([#110](https://github.com/Suzora/Karasu/issues/110)).
 - Karasu speaks 38 more languages besides English and German, machine-translated, from French and Polish to Japanese, Chinese and Hindi; pick one in Settings → Appearance → Language.
 - On Windows, a video player Karasu does not know can be added in Settings by picking its open window, so its episodes are tracked like those of mpv or VLC.
+- The Android home-screen widgets show covers and progress, three new widgets show your statistics, and every widget has its own settings for what it shows, its accent and its opacity.
 
 ### Security
 

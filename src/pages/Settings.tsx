@@ -47,6 +47,7 @@ import {
 import { DangerNote, GroupLabel } from "./settings/shared";
 import { useAuth } from "@/stores/auth";
 import { usePhoneShell } from "@/hooks/usePhoneShell";
+import { WidgetsSection } from "@/pages/settings/WidgetsSection";
 import { isAndroid, usePlatform } from "@/stores/platform";
 import { CardHeadingLevel } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -72,7 +73,7 @@ const PANES = [
     ],
   },
   // Content joins Appearance instead of its own pane; it answers the same question, what do I see.
-  { id: "appearance", icon: Palette, sections: [AppearanceSection, ContentSection] },
+  { id: "appearance", icon: Palette, sections: [AppearanceSection, ContentSection, WidgetsSection] },
   {
     id: "detection",
     icon: Radar,

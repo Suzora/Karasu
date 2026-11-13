@@ -324,6 +324,16 @@ pub fn system_accent() -> Result<String, String> {
     })
 }
 
+/// The placed widgets as the JSON list `WidgetRefresher.placed` writes: each one's id and kind.
+pub fn placed_widgets() -> Result<String, String> {
+    with_app_class("dev.kyu.karasu.WidgetRefresher", |env, activity, class| {
+        let answer = env
+            .call_static_method(class, "placed", "(Landroid/content/Context;)Ljava/lang/String;", &[JValue::Object(activity)])?
+            .l()?;
+        answer_text(env, answer)
+    })
+}
+
 /// Hands the theme's strip colours to `SystemBars.apply`, which paints them and keeps them for a cold start.
 pub fn set_system_bars(status: &str, navigation: &str, light: bool) -> Result<(), String> {
     with_app_class("dev.kyu.karasu.SystemBars", |env, activity, class| {

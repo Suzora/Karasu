@@ -17,7 +17,7 @@ const OUTSIDE = {
   >),
   ...(import.meta.glob(
     [
-      "/src-tauri/gen/android/app/src/main/res/{drawable/karasu_widget_bg,layout/karasu_widget,values/styles_widgets}.xml",
+      "/src-tauri/gen/android/app/src/main/res/values/colors_widgets.xml",
       "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu/{MainActivity,SystemBars}.kt",
     ],
     { query: "?raw", import: "default", eager: true },
@@ -335,11 +335,16 @@ describe("the frame around the stylesheet", () => {
   it("paints the Android activity and the home-screen widgets in the dark tokens, which they cannot read at runtime", () => {
     const res = "/src-tauri/gen/android/app/src/main/res";
     const hexes = (file: string) => [...file.matchAll(/#[0-9a-f]{6}\b/gi)].map((m) => m[0].toLowerCase());
-    const bg = hexes(OUTSIDE[`${res}/drawable/karasu_widget_bg.xml`]);
-    expect(bg).toEqual([colour("dark", "surface-950"), colour("dark", "surface-800")]);
-    expect(hexes(OUTSIDE[`${res}/values/styles_widgets.xml`])).toEqual([colour("dark", "ink-100")]);
+    // Every widget colour is a named resource, so layouts, drawables and Widgets.kt can only use what is listed here.
+    const named = Object.fromEntries(
+      [...OUTSIDE[`${res}/values/colors_widgets.xml`].matchAll(/name="kw_([a-z0-9_]+)">(#[0-9a-f]{6})</g)].map((m) => [m[1], m[2]]),
+    );
     const { a400 } = accentShades(DEFAULT_ACCENT);
-    expect(hexes(OUTSIDE[`${res}/layout/karasu_widget.xml`])).toEqual([a400.toLowerCase(), colour("dark", "ink-600")]);
+    expect(Object.keys(named).length).toBe(15);
+    for (const [name, hex] of Object.entries(named)) {
+      const token = name.replace(/_/g, "-");
+      expect(hex, name).toBe(name === "accent" ? a400.toLowerCase() : colour("dark", token));
+    }
     const kotlin = "/src-tauri/gen/android/app/src/main/java/dev/kyu/karasu";
     // The activity names no colour of its own; the strips' first-start colours live in SystemBars alone.
     expect(hexes(OUTSIDE[`${kotlin}/MainActivity.kt`])).toEqual([]);

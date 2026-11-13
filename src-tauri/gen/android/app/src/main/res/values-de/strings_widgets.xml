@@ -14,4 +14,12 @@
     <string name="widget_reading_title">Weiterlesen</string>
     <string name="widget_week_title">Diese Woche</string>
     <string name="widget_open">Karasu öffnen</string>
+    <string name="widget_figures_label">Karasu · Kennzahlen</string>
+    <string name="widget_figures_desc">Deine Liste in vier Zahlen und nach Status</string>
+    <string name="widget_ring_label">Karasu · Statusring</string>
+    <string name="widget_ring_desc">Deine Liste nach Status als Ring</string>
+    <string name="widget_year_label">Karasu · Dein Jahr</string>
+    <string name="widget_year_desc">Was du dieses Jahr abgeschlossen hast, Monat für Monat</string>
+    <string name="widget_stats_title">Statistik</string>
+    <string name="widget_configure">Widget-Einstellungen</string>
 </resources>

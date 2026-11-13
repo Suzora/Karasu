@@ -1,17 +1,21 @@
 ---
 source: src/widgets.rs
-expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::En,\nTitleLanguage::English, now)"
+expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::En,\nTitleLanguage::English, now, &Extras::default())"
 ---
 {
+  "accent": null,
   "airing": [
     {
       "airingAtMs": 1000003600000,
       "episode": 5,
+      "id": 0,
       "title": "Soon"
     }
   ],
+  "config": {},
   "continueReading": [
     {
+      "id": 0,
       "progress": 31,
       "title": "Pages",
       "total": null
@@ -19,11 +23,13 @@ expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::En,\nTitl
   ],
   "continueWatching": [
     {
+      "id": 0,
       "progress": 4,
       "title": "Soon",
       "total": 12
     },
     {
+      "id": 0,
       "progress": 9,
       "title": "Again",
       "total": 12
@@ -40,12 +46,88 @@ expression: "project(Some(&anime), Some(&manga), \"off\", false, Lang::En,\nTitl
   ],
   "generatedAtMs": 1000000000000,
   "labels": {
+    "aired": "aired",
     "airingToday": "Airing today",
+    "chapter": "Ch",
+    "chapters": "Chapters",
+    "completed": "Completed",
+    "completedInYear": "completed in {{year}}",
     "continueReading": "Continue reading",
     "continueWatching": "Continue watching",
+    "current": "Current",
+    "days": "Days watched",
+    "dropped": "Dropped",
     "empty": "Nothing here right now",
     "episode": "Ep",
+    "episodes": "Episodes",
+    "latest": "Latest",
+    "meanScore": "Mean score",
+    "paused": "Paused",
+    "planning": "Planning",
     "stale": "Open Karasu to refresh",
+    "stats": "Statistics",
+    "statsAnime": "Anime",
+    "statsManga": "Manga",
+    "titles": "Titles",
+    "upNext": "Up next",
     "week": "This week"
+  },
+  "planReading": [],
+  "planWatching": [],
+  "stats": {
+    "anime": {
+      "completed": 0,
+      "current": 2,
+      "dropped": 0,
+      "lastYear": 0,
+      "meanScore": null,
+      "minutes": 0,
+      "months": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "paused": 0,
+      "planning": 0,
+      "total": 2,
+      "units": 13,
+      "year": 2001
+    },
+    "manga": {
+      "completed": 0,
+      "current": 1,
+      "dropped": 0,
+      "lastYear": 0,
+      "meanScore": null,
+      "minutes": 0,
+      "months": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "paused": 0,
+      "planning": 0,
+      "total": 1,
+      "units": 31,
+      "year": 2001
+    }
   }
 }

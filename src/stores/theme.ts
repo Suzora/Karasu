@@ -69,6 +69,14 @@ export const setSystemBarsSink = (fn: (bars: SystemBars) => void) => {
   paintedBars = "";
 };
 
+/** Who tells the home-screen widgets the accent; main.tsx plugs the Tauri command in. */
+let widgetAccentSink: (hex: string) => void = () => {};
+let sentWidgetAccent = "";
+export const setWidgetAccentSink = (fn: (hex: string) => void) => {
+  widgetAccentSink = fn;
+  sentWidgetAccent = "";
+};
+
 /** The colour the ramp is derived from: the system's while that source is chosen and known, the user's otherwise. */
 export const effectiveAccent = (source: AccentSource, accent: string, systemAccent: string | null): string =>
   source === "system" && systemAccent ? systemAccent : accent;
@@ -115,6 +123,12 @@ function apply(
     light: !dark,
     contrast,
   });
+  // The widgets are dark whatever the app's theme is, so they take the accent's dark text shade.
+  const forWidgets = accentShades(base, { light: false, contrast: "standard" }).a400;
+  if (forWidgets !== sentWidgetAccent) {
+    sentWidgetAccent = forWidgets;
+    widgetAccentSink(forWidgets);
+  }
   const root = html.style;
   root.setProperty("--color-accent-400", a400);
   root.setProperty("--color-accent-500", a500);

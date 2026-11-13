@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { reportError } from "@/api/diagnostics";
-import { isTauri, isTokenRejected, paintSystemBars, setIdentityChangedHandler, systemAccent } from "@/api/anilist";
+import { isTauri, isTokenRejected, mirrorWidgetAccent, paintSystemBars, setIdentityChangedHandler, systemAccent } from "@/api/anilist";
 import { isNotFound, isRateLimited } from "@/lib/apiError";
-import { setSystemAccentProvider, setSystemBarsSink, useTheme } from "@/stores/theme";
+import { setSystemAccentProvider, setSystemBarsSink, setWidgetAccentSink, useTheme } from "@/stores/theme";
 import { useTitleLanguage } from "@/stores/titleLanguage";
 import i18n from "i18next";
 import { initLanguage } from "@/i18n";
@@ -18,6 +18,7 @@ import "./index.css";
 if (isTauri) {
   setSystemAccentProvider(systemAccent);
   setSystemBarsSink(paintSystemBars);
+  setWidgetAccentSink(mirrorWidgetAccent);
 }
 useTheme.getState().init();
 useTitleLanguage.getState().init();

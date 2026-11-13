@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-written (restore from git after a wiped re-init). -->
+<resources>
+    <color name="kw_surface_950">#0b0d12</color>
+    <color name="kw_surface_900">#12141a</color>
+    <color name="kw_surface_800">#1f232b</color>
+    <color name="kw_surface_700">#2a2f39</color>
+    <color name="kw_surface_600">#353b47</color>
+    <color name="kw_ink_100">#f0f2f5</color>
+    <color name="kw_ink_300">#c8ccd6</color>
+    <color name="kw_ink_500">#9da3af</color>
+    <color name="kw_ink_600">#868c99</color>
+    <color name="kw_accent">#8077d7</color>
+    <color name="kw_status_current">#2f9e47</color>
+    <color name="kw_status_completed">#4b8dd6</color>
+    <color name="kw_status_planning">#6b7280</color>
+    <color name="kw_status_paused">#b87a14</color>
+    <color name="kw_status_dropped">#d1495b</color>
+</resources>

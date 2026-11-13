@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-written (restore from git after a wiped re-init). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_day"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:layout_marginStart="1dp"
+    android:layout_marginEnd="1dp"
+    android:orientation="vertical"
+    android:paddingStart="3dp"
+    android:paddingEnd="3dp"
+    android:paddingTop="3dp">
+
+    <TextView
+        android:id="@+id/w_day_name"
+        style="@style/KarasuWidgetMuted"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/w_day_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:orientation="vertical" />
+</LinearLayout>

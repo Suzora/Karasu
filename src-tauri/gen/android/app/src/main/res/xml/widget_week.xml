@@ -3,8 +3,12 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
     android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/karasu_widget"
+    android:initialLayout="@layout/karasu_widget_week"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
+    android:configure="dev.kyu.karasu.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
     android:description="@string/widget_week_desc" />

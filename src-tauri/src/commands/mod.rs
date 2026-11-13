@@ -7,6 +7,7 @@ mod playback;
 mod prefs;
 mod system;
 mod update;
+mod widgets;
 
 pub use auth::*;
 pub use images::*;
@@ -15,6 +16,7 @@ pub use playback::*;
 pub use prefs::*;
 pub use system::*;
 pub use update::*;
+pub use widgets::*;
 
 /// A 64-bit integer crossing the IPC as a TypeScript `number`; specta refuses a bare i64 and AniList ids are i64 here.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]

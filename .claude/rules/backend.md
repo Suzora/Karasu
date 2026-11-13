@@ -92,14 +92,20 @@ src-tauri/src/
                      deep-link markers because that is where the generator
                      leaves it - all sit OUTSIDE those markers, which are
                      rewritten on every build),
-                     and Widgets.kt plus its res/ family (karasu_widget
-                     layout, widget_bg drawable, styles_widgets,
-                     strings_widgets - written per language from
-                     `src/i18n/native/<code>.json` by
-                     `scripts/i18n-native.mjs`, never by hand -, four
+                     and Widgets.kt plus its res/ family (the
+                     karasu_widget_* layouts, the widget_bg, tile and today
+                     drawables, colors_widgets, which holds every widget
+                     colour and which `tokens.test.ts` holds to the tokens,
+                     styles_widgets, strings_widgets - written per language
+                     from `src/i18n/native/<code>.json` by
+                     `scripts/i18n-native.mjs`, never by hand -, seven
                      xml/widget_* metadata) -
-                     the four home-screen widgets, fed by widgets.rs's
-                     projection file, with WidgetRefresher's proguard keep
+                     the seven home-screen widgets, fed by widgets.rs's
+                     projection file and its cover cache under the app's
+                     cache directory, each configured by itself through
+                     WidgetConfigActivity, which answers the launcher and
+                     opens Karasu on that widget's sheet, with
+                     WidgetRefresher's proguard keep
                      load-bearing the same way NotifScheduler's is;
                      and TrackingService.kt (the opt-in foreground service
                      that keeps Jellyfin tracking alive with the screen off,
