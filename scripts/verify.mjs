@@ -29,6 +29,7 @@ const TSC = path.join(ROOT, "node_modules", "typescript", "bin", "tsc");
 const VITEST = path.join(ROOT, "node_modules", "vitest", "vitest.mjs");
 const OXLINT = path.join(ROOT, "node_modules", "oxlint", "bin", "oxlint");
 const KNIP = path.join(ROOT, "node_modules", "knip", "bin", "knip.js");
+const MDLINT = path.join(ROOT, "node_modules", "markdownlint-cli2", "markdownlint-cli2-bin.mjs");
 const TAURI = path.join(ROOT, "node_modules", "@tauri-apps", "cli", "tauri.js");
 const SITE_TSC = path.join(ROOT, "site", "node_modules", "typescript", "bin", "tsc");
 const MANIFEST = ["--manifest-path", "src-tauri/Cargo.toml"];
@@ -222,6 +223,7 @@ if (wantFrontend) {
   if (!(await run("native strings", node, ["scripts/i18n-native.mjs", "--check"], summarizeSite)).ok) report();
   if (!(await run("typos", "typos", ["--format", "brief"], summarizeTypos, { optional: "cargo install typos-cli" })).ok) report();
   if (!(await run("toml", node, ["scripts/toml-check.mjs"], summarizeToml)).ok) report();
+  if (!(await run("markdown", node, [MDLINT], (out) => lines(strip(out)).find((l) => /^Summary: /.test(l))?.replace("Summary: ", "") ?? "clean")).ok) report();
   if (!(await run("oxlint", node, [OXLINT, "--deny-warnings"], summarizeLint)).ok) report();
 }
 

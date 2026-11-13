@@ -1,0 +1,28 @@
+{
+  // The reader-facing docs; CHANGELOG.md has its own reader and THIRD-PARTY-NOTICES.md its own test.
+  "globs": [
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "ROADMAP.md",
+    "CODE_OF_CONDUCT.md",
+    "PRODUCT.md",
+    "site/README.md",
+    "packaging/*/SUBMISSION.md",
+    "src-tauri/installer/README.md",
+    ".claude/skills/**/*.md"
+  ],
+  "gitignore": true,
+  "config": {
+    // Prose is wrapped by hand, and badge rows and tables cannot be.
+    "MD013": false,
+    // The README opens with its centred logo, not a heading.
+    "MD041": false,
+    // A code span that shows a prefix such as a bullet or a heading marker needs its trailing space.
+    "MD038": false,
+    // The centred header, the screenshot tables, the folds and the key caps need these elements and no others.
+    "MD033": {
+      "allowed_elements": ["p", "img", "a", "h1", "b", "br", "sub", "kbd", "details", "summary", "table", "tr", "td", "picture", "source"]
+    }
+  }
+}
