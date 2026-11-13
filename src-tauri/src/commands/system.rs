@@ -235,24 +235,28 @@ pub(crate) fn webkit_composites(dmabuf_off: Option<&OsStr>, compositing_off: Opt
 pub(crate) const GPU_MARKER: &str = "gpu-compositing";
 
 /// The identifier Tauri names the data folder after, repeated here because the start reads it before the app exists.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) const APP_IDENTIFIER: &str = "dev.kyu.karasu";
 
 /// Whether the user's own environment set the DMA-BUF switch at start, which the setting then cannot overrule.
 static GPU_ENV_FORCED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 
 /// Records at start whether the environment had already chosen the renderer.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) fn remember_gpu_env(forced: bool) {
     let _ = GPU_ENV_FORCED.set(forced);
 }
 
 /// What the start writes into WebKit's DMA-BUF switch: nothing when the user's environment or the setting decides.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) fn dmabuf_default(user_env: Option<&OsStr>, wants_gpu: bool) -> Option<&'static str> {
     (user_env.is_none() && !wants_gpu).then_some("1")
 }
 
 /// Where Tauri keeps the app's data on Linux, worked out by hand: the XDG data home, then the identifier.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) fn linux_data_dir(xdg: Option<&OsStr>, home: Option<&OsStr>) -> Option<std::path::PathBuf> {
-    let base = match xdg.map(std::path::PathBuf::from).filter(|p| p.is_absolute()) {
+    let base = match xdg.map(std::path::PathBuf::from).filter(|p| p.has_root()) {
         Some(dir) => dir,
         None => std::path::PathBuf::from(home?).join(".local/share"),
     };
@@ -260,6 +264,7 @@ pub(crate) fn linux_data_dir(xdg: Option<&OsStr>, home: Option<&OsStr>) -> Optio
 }
 
 /// The marker's path as the start can know it, before Tauri has resolved anything.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) fn gpu_marker_at_start() -> Option<std::path::PathBuf> {
     let fallback = linux_data_dir(std::env::var_os("XDG_DATA_HOME").as_deref(), std::env::var_os("HOME").as_deref())?;
     Some(crate::portable::data_dir(fallback).join(GPU_MARKER))
