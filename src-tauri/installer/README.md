@@ -10,13 +10,13 @@ that change roughly never is a toolchain nobody would remember to keep working.
 | `header.bmp` | 150 × 57 | The strip at the top of every wizard page |
 | `sidebar.bmp` | 164 × 314 | The panel on the Welcome and Finish pages only |
 
-`header.bmp` is set twice — as `headerImage` *and* `uninstallerHeaderImage`.
+`header.bmp` is set twice - as `headerImage` *and* `uninstallerHeaderImage`.
 Setting only the first still enables `MUI_HEADERIMAGE` globally, so the
 uninstaller's pages would carry MUI's stock bitmap next to Karasu's own.
 
 **Both are 24-bit BMP, and that is not negotiable.** NSIS rejects PNG outright,
 and a 32-bit BMP's alpha channel fringes black against the installer's own
-background — which is why the mark is flattened onto a solid colour here rather
+background - which is why the mark is flattened onto a solid colour here rather
 than left transparent.
 
 The colour is `#0b0d12`, which is both `--color-surface-950` and the app's
@@ -25,7 +25,7 @@ open.
 
 The sidebar image is only ever seen on the Welcome and Finish pages, and passive
 mode (`/P`) skips both. It will therefore never appear during an auto-update, by
-construction — the in-app updater passes `/P /R /UPDATE`.
+construction - the in-app updater passes `/P /R /UPDATE`.
 
 ## Regenerating
 

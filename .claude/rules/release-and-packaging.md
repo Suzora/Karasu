@@ -29,15 +29,15 @@ libraries after the build, repacks with a digest-pinned `appimagetool` over
 the runtime cut from Tauri's own file, and re-signs with the updater key,
 because the `.sig` covers the file's bytes. The rule behind the list, measured
 on 2026-09-25: a bundled soname goes when Fedora 44's Mesa 26.2 (`libEGL_mesa`,
-`libGLX_mesa`, `libgallium`, `libgbm`, `gbm/`, `dri/`) links it — `libXau`,
+`libGLX_mesa`, `libgallium`, `libgbm`, `gbm/`, `dri/`) links it - `libXau`,
 `libXext`, `libelf`, `libffi`, `liblzma`, `libxcb-randr`, `libxcb-shm`,
-`libzstd` — or it is one of the X11/Wayland siblings tauri-apps/tauri#15976
-found on real Fedora 44 hardware — `libwayland-{client,cursor,egl}`,
-`libxkbcommon`, `libxcb-render`, `libXdmcp` — **and** every one of Fedora 44,
+`libzstd` - or it is one of the X11/Wayland siblings tauri-apps/tauri#15976
+found on real Fedora 44 hardware - `libwayland-{client,cursor,egl}`,
+`libxkbcommon`, `libxcb-render`, `libXdmcp` - **and** every one of Fedora 44,
 Arch, Ubuntu 22.04/24.04/26.04 and Debian 12 with gtk3 and Mesa installed
 carries it. Two fail that test and stay bundled: `libwayland-server` (the
 bundled WebKit links it, Mesa ≥ 25.2 no longer does, and Ubuntu 24.04/26.04
-lack it — removing it gave `libwayland-server.so.0: cannot open shared object
+lack it - removing it gave `libwayland-server.so.0: cannot open shared object
 file` on WSL) and `libxml2.so.2` (Mesa links it, but Arch and Ubuntu 26.04
 ship only `.so.16`). Every pattern must match or the script throws, so a
 linuxdeploy that stops bundling one fails the build instead of leaving a stale
@@ -72,9 +72,9 @@ the `.rpm` carry a hidden `dev.kyu.karasu.desktop` (`packaging/linux/`),
 registered before any other portal call on that connection (it carries no
 `StartupWMClass`, so `Karasu.desktop` alone claims the window); a bare AppImage
 has none and reports `noAppId`, a Flatpak takes its id from the sandbox. Short
-of a refusal, every failure — a missing portal (wlroots, COSMIC, an older
+of a refusal, every failure - a missing portal (wlroots, COSMIC, an older
 GNOME, or no portal service at all, which only the first call reveals), no
-app id, a failed bind — falls back to the X11 grab with a hint. A refusal
+app id, a failed bind - falls back to the X11 grab with a hint. A refusal
 (any non-success answer, since GNOME reports a cancel as "other", or a reply
 without the shortcut) is remembered in kv `global_hotkey_declined`, so a
 launch does not put the dialog up again; setting a key clears it, and Enter
@@ -181,12 +181,12 @@ metainfo with `appstreamcli --pedantic`, lints the manifest and the built
 repository with `flatpak-builder-lint`, and builds the bundle in the GNOME 51
 builder image, pinned since 2026-11-10 to the digest its `gnome-51` tag named
 that day because the job runs privileged; nothing moves the pin, so a newer
-image is a deliberate edit of `flatpak.yml`. The `finish-args` are each a feature — StatusNotifier for the
+image is a deliberate edit of `flatpak.yml`. The `finish-args` are each a feature - StatusNotifier for the
 tray, `org.mpris.MediaPlayer2.*` for the media-session pass,
 `org.freedesktop.secrets` for the token, `org.freedesktop.Notifications` for
 the toasts, Discord's IPC socket (native and Flatpak) for rich presence, the
 videos folder read-only for the library, network for AniList and the OAuth
-callback — and the settings portal is left out because a portal needs no
+callback - and the settings portal is left out because a portal needs no
 name. The sandbox changes four things in the code, each keyed on
 `portable::flatpak_id`: the single-instance bus name takes the Flatpak id (a
 sandbox may own names under its own id only, and the plugin starts a second
@@ -290,7 +290,7 @@ that signature onto the second APK), keeping the rebuild as an artifact for a
 diff. Its first run in that shape, on v1.32.0 the same day, verified: the
 GitHub APK is the tag's source, byte for byte. Reproducibility rests on what the tree fixes: `rust-toolchain.toml`
 pins the exact version (and `src/lib/toolchain.test.ts` fails the gate when a
-workflow's `dtolnay/rust-toolchain` step or the recipe names another — CI
+workflow's `dtolnay/rust-toolchain` step or the recipe names another - CI
 passes the pin as `toolchain:` because the action does not read the file, and
 rustup's auto-install would otherwise leave the Android targets on the wrong
 toolchain), and the Android job remaps `RUSTFLAGS --remap-path-prefix` for

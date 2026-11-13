@@ -12,7 +12,7 @@ over each other; a user who switches uninstalls first.
 
 ## What the repository provides
 
-- `dev.kyu.karasu.yml` — the fdroiddata recipe, with `Builds:` doing what the
+- `dev.kyu.karasu.yml` - the fdroiddata recipe, with `Builds:` doing what the
   release job does: the pinned Rust (`rust-toolchain.toml`, checked against
   every workflow by `src/lib/toolchain.test.ts`), NDK r27b (27.1.12297006 in
   CI), `npm ci`, `npx tauri android build --apk --target aarch64
@@ -25,7 +25,7 @@ over each other; a user who switches uninstalls first.
   checks nor installs) and `KARASU_UNSIGNED` (`build.gradle.kts` emits an
   unsigned release APK instead of falling back to debug signing, which F-Droid
   then signs).
-- `fastlane/metadata/android/{en-US,de-DE}` — the store listing: title, short
+- `fastlane/metadata/android/{en-US,de-DE}` - the store listing: title, short
   and full description in both, and the icon and three phone screenshots under
   `en-US` only, which F-Droid reads from the repository at the tagged commit.
 - The `Reproducible` workflow (dispatch, input `tag`) is not F-Droid's check

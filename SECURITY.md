@@ -2,7 +2,7 @@
 
 ## Scope
 
-Karasu is a local app (desktop and Android) with **no hosted backend** — it
+Karasu is a local app (desktop and Android) with **no hosted backend** - it
 talks directly to the AniList GraphQL API from your device. There's no server
 of ours to compromise; the realistic attack surface is the app itself and the
 secrets it holds:
@@ -14,7 +14,7 @@ On desktop both live in your OS credential store (Windows Credential Manager,
 or the Secret Service on Linux). On Android they are files in the app-private
 data directory, sealed with AES-256-GCM under a key held by the **Android
 Keystore** (`TokenCipher.kt`; the file is `KRSA1 || iv || ciphertext`). The
-key never leaves the Keystore — it is hardware-backed where the device offers
+key never leaves the Keystore - it is hardware-backed where the device offers
 that and not extractable, so the ciphertext is useless copied off the device.
 What the Keystore does *not* give is worth stating just as plainly: an
 attacker with code execution inside the app's sandbox can call the same
@@ -28,18 +28,18 @@ goes along, so a restore brings the lists back and asks for the sign-in
 again. (iOS, which is neither compiled
 nor shipped, would still use a plain file.)
 
-Neither token is ever handed to the WebView — the UI only ever learns
+Neither token is ever handed to the WebView - the UI only ever learns
 *whether* one is stored.
 
 In the default desktop layout the credential store is the only place either
 token is persisted. Two layouts keep tokens in files instead, each encrypted at
 rest in its own way. **Portable mode** keeps the AniList token in a file beside
-the executable so the folder travels — DPAPI on Windows, XChaCha20-Poly1305
+the executable so the folder travels - DPAPI on Windows, XChaCha20-Poly1305
 under a Secret Service-held key on Linux (the `KRSU1` format). Both bind the
 file to that machine and user account, so a portable folder copied elsewhere
 does not carry a usable sign-in. **Android** is the Keystore-sealed file
 described above, bound to the device the same way. Signing out clears the
-file, the credential store entry and the encryption key — whichever of those
+file, the credential store entry and the encryption key - whichever of those
 exist on the platform.
 
 The Jellyfin token is additionally held in memory by the Rust process while the
@@ -47,7 +47,7 @@ app runs, so that the detection poll does not reach for the credential store
 every five seconds; it is dropped on exit and cleared on sign-out.
 
 Signing in to Jellyfin sends your username and password to your own server
-once, in exchange for that access token (`/Users/AuthenticateByName` — Jellyfin
+once, in exchange for that access token (`/Users/AuthenticateByName` - Jellyfin
 has no OAuth, so this is how every third-party client authenticates). **The
 password is never written to disk and never kept in memory beyond the request.**
 An ordinary account is enough; Karasu deliberately does not use an admin API
@@ -55,7 +55,7 @@ key, because an API key makes Jellyfin report every session on the server
 rather than only your own.
 
 Karasu contacts AniList, GitHub (update checks and downloads on every
-platform — on Android the APK for the device is downloaded into the app's
+platform - on Android the APK for the device is downloaded into the app's
 cache, verified, and handed to the system installer only when you tap) and a
 localhost callback during login. AniList
 hands the token to that callback in the address's fragment, the only way its
@@ -70,7 +70,7 @@ ours, and the "no hosted backend" guarantee is unaffected.
 The Jellyfin settings take an optional **external address** for when the
 first one is out of reach. Before the access token ever travels to it, Karasu
 asks that address (anonymously, `/System/Info/Public`) for the server's id
-and uses it only if the id is the one learned at sign-in — an address that
+and uses it only if the id is the one learned at sign-in - an address that
 answers as some other server is refused outright. The first address is held
 to the same id once you are signed in: changing it to one that answers as a
 different server is refused, since the token goes wherever it points. Plain `http` is accepted
@@ -88,11 +88,11 @@ Three contacts that are neither AniList nor yours, and are worth naming because
 none is obvious from the screen you are on:
 
 - **Image hosts, when you open a profile.** AniList bios embed images from
-  wherever their author chose — imgur, tumblr, catbox and a long tail of
+  wherever their author chose - imgur, tumblr, catbox and a long tail of
   others. Karasu fetches those in Rust rather than from the page, so the
   WebView never talks to them and the CSP is not widened: one request, with a
   size cap, the format decided by the bytes themselves (PNG, JPEG, GIF, WebP,
-  AVIF or ICO — never SVG, whatever the host declares), a timeout, no cookies and
+  AVIF or ICO - never SVG, whatever the host declares), a timeout, no cookies and
   no `Referer` on any hop, and local or private addresses refused on the URL
   and on every redirect hop, whether the host is spelled as one or only
   resolves to one. Each image is fetched once per session.
@@ -112,12 +112,12 @@ none is obvious from the screen you are on:
 Things worth reporting: the app mishandling or leaking either secret, a way to
 execute arbitrary code via a malicious media title/filename/response, or a
 flaw in either update mechanism. On desktop Karasu verifies every downloaded
-update against its own minisign key — a way to bypass that would be serious.
+update against its own minisign key - a way to bypass that would be serious.
 On Android the manifest carries no minisign signature; the downloaded APK is
 checked against the manifest's sha256, and then its signing certificates must
 equal the installed app's and its `versionCode` must be higher before the
 installer is ever opened (`src-tauri/src/apk_update.rs`, `UpdateInstaller.kt`).
-The trust anchor there is the Android signing key — CI signs release APKs from
+The trust anchor there is the Android signing key - CI signs release APKs from
 repository secrets, and Android itself refuses to install over an APK whose
 signature does not match. The download runs only in a release build, only
 while the app is in front, and only on an unmetered network unless you switch
@@ -133,14 +133,14 @@ means titles and file paths.
 
 Credentials never reach it. Both tokens, the Jellyfin password and the sealed
 portable key are replaced with a labelled `<CREDENTIAL_…>` placeholder at the
-moment a line is written — not when it is read — so the file on disk is safe and
+moment a line is written - not when it is read - so the file on disk is safe and
 no command can read one back out through it. Anything else secret-shaped that
 matches no specific rule is replaced too, so an unforeseen leak fails closed.
 
 It is local and stays local: nothing is uploaded, and there is nowhere to upload
 it to. **About → Copy diagnostics** and **Save report** redact your home
 directory by default, but with verbose logging on the log itself can name what
-you have been watching — worth a glance before attaching it to a public issue.
+you have been watching - worth a glance before attaching it to a public issue.
 
 ## The update signing key
 
@@ -150,7 +150,7 @@ is what makes the update mechanism worth trusting, and it has a consequence
 worth stating plainly rather than discovering later:
 
 **If the private key is lost, every installed copy of Karasu becomes permanently
-un-updatable.** Not "until we publish a new one" — an install only trusts the
+un-updatable.** Not "until we publish a new one" - an install only trusts the
 key it was built with, so a new key can only reach users through a manual
 reinstall. There is no recovery path that does not involve every user
 downloading an installer by hand.
@@ -158,8 +158,8 @@ downloading an installer by hand.
 The private half lives in the `TAURI_SIGNING_PRIVATE_KEY` repository secret,
 which GitHub cannot show you again once set. It must therefore also exist
 somewhere the maintainer controls and can still read after a laptop dies. That
-backup is deliberately not described here — naming its location in a public file
-would be the other way to lose it — but it exists, it is offline, and it is
+backup is deliberately not described here - naming its location in a public file
+would be the other way to lose it - but it exists, it is offline, and it is
 checked when the key is rotated.
 
 If you are forking Karasu: generate your own key
@@ -182,7 +182,7 @@ Karasu's public dependency alerts include advisories against the **GTK stack**
 leaving to look ignored.
 
 That stack is **not in the published Windows build**. `cargo tree -i glib
---target x86_64-pc-windows-msvc` finds nothing — the crates only enter the graph
+--target x86_64-pc-windows-msvc` finds nothing - the crates only enter the graph
 for Linux targets, so the NSIS installer never contains this code.
 
 It **does** ship in the Linux AppImage, which is published alongside it. This
@@ -199,17 +199,17 @@ runtime) use the engine of the system they are installed on, so they get its
 fixes on the system's schedule. If that matters to you, prefer those.
 
 It is also not fixable here. The versions are pinned upstream by Tauri's Linux
-backend — `glib` ← `atk` ← `gtk 0.18` ← `tao`/`tray-icon` ← `tauri` — and
+backend - `glib` ← `atk` ← `gtk 0.18` ← `tao`/`tray-icon` ← `tauri` - and
 `gtk 0.18` requires `glib ^0.18`, so a newer `glib` is out of range no matter
 what this repo does. It resolves when Tauri moves to a newer gtk-rs, and we
 pick that up with the next Tauri release.
 
-Advisories against anything else that ships — the Rust crates compiled into
-either binary, or the frontend dependencies bundled into both — are treated as
+Advisories against anything else that ships - the Rust crates compiled into
+either binary, or the frontend dependencies bundled into both - are treated as
 real and acted on.
 
 ## Reporting a vulnerability
 
 Please **don't** open a public issue for anything security-sensitive. Email
-**contact@kyusetzu.de** instead, with enough detail to reproduce. You should
+**<contact@kyusetzu.de>** instead, with enough detail to reproduce. You should
 get a response within a few days.

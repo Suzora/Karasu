@@ -8,16 +8,16 @@ counter that moves on every commit (see `CONTRIBUTING.md`).
 
 **Cutting a release reads this file.** `scripts/release/release-notes.ps1`
 slices the section between `## <version>` and the next `## `, and *throws* if
-there isn't one — a release published with an empty body is not something
+there isn't one - a release published with an empty body is not something
 GitHub complains about, so the script does. So before pushing a `v*` tag:
 
-1. rename `## Unreleased` to `## <version>` (a trailing ` — <date>` is fine,
+1. rename `## Unreleased` to `## <version>` (a trailing ` - <date>` is fine,
    the match only needs the version to come first; brackets around it or a
    fourth dotted segment break the match and the tag build throws),
 2. open a fresh empty `## Unreleased` above it, carrying a
    `<!-- generated-through: <sha> -->` marker so the generator knows where to
    resume,
-3. make sure `package.json` already says the same version — the workflow
+3. make sure `package.json` already says the same version - the workflow
    refuses a tag whose version disagrees with the commit it points at,
 4. and, in the same commit, write F-Droid's
    `fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt`
@@ -33,7 +33,7 @@ has to make sense on its own.
 **How this file is maintained: by `scripts/changelog.mjs`, not by hand.**
 Keeping two records of the same work in step by hand is the kind of chore that
 gets skipped under pressure, and skipping it silently is worse than not doing
-it — a half-updated changelog reads as complete. So the `Unreleased` section is
+it - a half-updated changelog reads as complete. So the `Unreleased` section is
 generated from the commits.
 
     node scripts/changelog.mjs           # bring it up to HEAD
@@ -42,7 +42,7 @@ generated from the commits.
 The `<!-- generated-through: <sha> -->` marker in that section records how far
 it has read; the script only ever appends past that point, so anything already
 written by hand survives and a second run is a no-op. What makes the output
-readable is that commit subjects here are prose, written to be read — a
+readable is that commit subjects here are prose, written to be read - a
 conventional-commits parser would have had nothing to work with. A commit that
 deserves a better line than its subject says so in a trailer:
 
@@ -55,7 +55,7 @@ without needing the trailer.
 It is kept rather than deleted for two concrete reasons:
 
 1. **`scripts/release/release-notes.ps1` throws without it.** No `## <version>`
-   section, or an empty one, and the tag build fails by design — a release
+   section, or an empty one, and the tag build fails by design - a release
    published with an empty body is not something GitHub complains about, so the
    script does. The file is load-bearing at tag time whether or not it is
    pleasant to maintain.
@@ -65,7 +65,7 @@ It is kept rather than deleted for two concrete reasons:
    *them*.
 
 So the policy is: the section is generated, and the writing that matters
-happens in the commit subject — or in a `Changelog:` trailer when the subject
+happens in the commit subject - or in a `Changelog:` trailer when the subject
 is about the change and the reader needs to hear about the effect. Curating at
 tag time is then optional rather than load-bearing.
 
@@ -129,7 +129,7 @@ tag time is then optional rather than load-bearing.
 - Playback history that an early version of Karasu recorded is deleted from the database.
 - Signing in no longer leaves the address that carries your AniList sign-in in the browser's history, and Android's backup leaves your sign-in and the log on the device.
 
-## 1.68.0 — 2026-10-25
+## 1.68.0 - 2026-10-25
 
 The third Stable release since 1.0.0 brings everything the Nightly gained in
 the two weeks after 1.44.0. Karasu has a new look: it is calmer, with rounder
@@ -184,7 +184,7 @@ the new adult options, mutual follows and removing a follower.
 
 - The certificate checks no longer accept the emSign intermediates whose private keys became public (RUSTSEC-2026-0381, -0382, -0383), the TLS library is updated, and an unused archive library is no longer included.
 
-## 1.44.0 — 2026-10-12
+## 1.44.0 - 2026-10-12
 
 The second Stable release since 1.0.0, and what the Nightly gained in the
 nine days after 1.32.0: titles in the language you choose everywhere Karasu
@@ -202,7 +202,7 @@ from source for Flathub.
 
 ### Added
 
-- Settings → Appearance has a title language — English, Romaji or the original — for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included ([#50](https://github.com/Suzora/Karasu/issues/50), [#51](https://github.com/Suzora/Karasu/issues/51)).
+- Settings → Appearance has a title language - English, Romaji or the original - for every title Karasu shows, notifications, the tray, the Android widgets and the Discord status included ([#50](https://github.com/Suzora/Karasu/issues/50), [#51](https://github.com/Suzora/Karasu/issues/51)).
 - Notifications about an activity or a forum comment say which one: the list entry with its cover, the post or the comment, with spoilers hidden and nothing past your content filter. The system notification names the newest one (who did what, never what anyone wrote) instead of only counting them.
 - Mute new-episode notifications for a single show from its context menu; Settings lists the muted shows.
 - A Compare tab on other users' profiles shows how much your scores agree, where you disagree most and what they rated that you have not seen.
@@ -249,7 +249,7 @@ from source for Flathub.
 - The sidebar no longer says "synced" while AniList is holding requests back or cannot be reached.
 - The titlebar names the player (mpv) instead of its file, Side Story is translated in German, and the last row of a list can scroll clear of the detection window.
 
-## 1.32.0 — 2026-10-03
+## 1.32.0 - 2026-10-03
 
 The first Stable release since 1.0.0, and everything the Nightly gained in the
 four weeks between: a new way to act on any title (long press, right-click,
@@ -276,12 +276,12 @@ its own updates.
 - Swiping up from the phone's bottom bar opens the command palette, which opens on what you used lately beside the main shortcuts.
 - The now-playing card is a small floating window over every screen, expanded or compact, with the cover, season and episode, the episode's name and the AniList details; its update, skip and fix-match buttons sit in its header, and on desktop it can be dragged anywhere and resized, and remembers both.
 - Android downloads a new version by itself over Wi-Fi and installs it from About, the bell, or once at start; the update channel can be chosen there too.
-- On Android, Jellyfin tracking can keep running with the screen off — a switch under Detection → Jellyfin starts a quiet permanent notification that stops Android from freezing the app, a button excludes Karasu from battery optimisation (which also keeps the notification check on schedule), and the tracking settings are no longer greyed out there.
+- On Android, Jellyfin tracking can keep running with the screen off - a switch under Detection → Jellyfin starts a quiet permanent notification that stops Android from freezing the app, a button excludes Karasu from battery optimisation (which also keeps the notification check on schedule), and the tracking settings are no longer greyed out there.
 - Settings → Detection → Jellyfin can find the servers on your network by name, and signing in checks the address is a Jellyfin server before your password is sent.
-- Jellyfin settings take an optional external address for when the server is not reachable at the first one — Karasu switches over by itself, checks it is the same server before sending anything, and Test connection says which address answered.
+- Jellyfin settings take an optional external address for when the server is not reachable at the first one - Karasu switches over by itself, checks it is the same server before sending anything, and Test connection says which address answered.
 - The bell has a titlebar glance at the newest three, a notifications page with a filter for Karasu's own and AniList's, and a sheet of its own on the phone.
-- A formatting toolbar in every place you write on AniList — activities, replies, threads, comments, reviews and your bio — with shortcuts for bold, italic, strikethrough and spoiler.
-- An "Interface size" setting under Appearance zooms the whole window (75–200 %), for 4K displays and TVs across the room; Ctrl+plus, Ctrl+minus and Ctrl+0 change it like in a browser, and the size sticks.
+- A formatting toolbar in every place you write on AniList - activities, replies, threads, comments, reviews and your bio - with shortcuts for bold, italic, strikethrough and spoiler.
+- An "Interface size" setting under Appearance zooms the whole window (75-200 %), for 4K displays and TVs across the room; Ctrl+plus, Ctrl+minus and Ctrl+0 change it like in a browser, and the size sticks.
 - A contrast setting under Appearance: System, Standard or High, where High lifts text, the accent and every border to at least 7:1 in both themes.
 - Appearance can follow the system's accent colour on Windows, GNOME/KDE and Android 12+, with your own colour kept for when you switch back.
 - The calendar has three views (week grid, tiles, agenda) and never scrolls sideways; "My shows" keeps the episodes that already aired, dimmed; a Density setting under Appearance sizes the calendar, the local library and the digests.
@@ -321,14 +321,14 @@ its own updates.
 
 ### Fixed
 
-- With Karasu on both the PC and the phone watching the same Jellyfin account, an episode reaches AniList once — the desktop goes first, the phone waits three minutes and checks, and every instance asks AniList for the current progress before it writes.
+- With Karasu on both the PC and the phone watching the same Jellyfin account, an episode reaches AniList once - the desktop goes first, the phone waits three minutes and checks, and every instance asks AniList for the current progress before it writes.
 - Find servers reaches the Jellyfin server on a PC with a virtual network switch (Hyper-V, VirtualBox).
 - The Linux AppImage no longer opens a black window or crashes shortly after opening on Fedora 44, Ubuntu 26.04 and other systems with Mesa 26, and it starts under firejail --appimage and anywhere else it is mounted as root.
 - Karasu exits cleanly when Windows ends the session instead of logging a crash.
 - Pinning an activity no longer signs you out; a refusal shows AniList's reason, and the pin control is only offered on accounts that can pin.
 - Spoilers that wrap several paragraphs, lists or images hide as one block, and comment previews no longer reveal spoiler text.
-- Images in bios and forum posts that showed as a link now render — linked badges, <img> tags, URLs with parentheses, and hosts that mislabel the file — and each is fetched once.
-- Bios and posts render as anilist.co does where they did not — a favicon-style ICO image loads inline, every HTML entity a browser knows is decoded, a heading written as #Title without the space is a heading, ~~~centred~~~ text inside a heading keeps its spoiler, <hr> draws a rule, and a one-line centred row starting with a dash is no longer a bulleted list.
+- Images in bios and forum posts that showed as a link now render - linked badges, <img> tags, URLs with parentheses, and hosts that mislabel the file - and each is fetched once.
+- Bios and posts render as anilist.co does where they did not - a favicon-style ICO image loads inline, every HTML entity a browser knows is decoded, a heading written as #Title without the space is a heading, ~~~centred~~~ text inside a heading keeps its spoiler, <hr> draws a rule, and a one-line centred row starting with a dash is no longer a bulleted list.
 - A link with a target Karasu refuses (javascript:, data:, AniList's layout blob) shows in the accent colour like on anilist.co, instead of as plain text.
 - New-episode and sequel checks keep working through an AniList outage that refuses anonymous requests, by signing them with your account while you are signed in.
 - Restarting Karasu right after it spent its AniList budget no longer fires a burst of requests into the limit, and the twice-daily sequel check spreads its requests out.
@@ -348,7 +348,7 @@ its own updates.
 - The status editor and the list's panels stay inside a short window instead of running off its bottom.
 - High contrast marks the focused text field, and Escape in a dialog's search empties it before closing anything.
 - The floating detection window is readable in the light theme again, and the shell's banners animate in and out.
-- Grid covers show the keyboard focus ring again, keep the complete button when it fits, never clip a quick action — in the lists, search and the season pages — and the selection box no longer draws a second focus ring; the list view's score header is no longer cut off in German.
+- Grid covers show the keyboard focus ring again, keep the complete button when it fits, never clip a quick action - in the lists, search and the season pages - and the selection box no longer draws a second focus ring; the list view's score header is no longer cut off in German.
 - The score label over the chosen bar, the overview's banner, the score badges, the 18+ badge, the complete button and the reveal label stay readable in the light theme and in high contrast, and the tag field shows keyboard focus.
 - In high contrast and Windows' contrast themes the chosen status and chip stand out by more than colour, and a tapped +1 no longer stays highlighted on a phone.
 - The overview no longer jumps while it loads, keeps airing soon full width on a quiet week, and shows the keyboard ring on its panel rows.
@@ -369,12 +369,12 @@ its own updates.
 
 - The franchise graph no longer folds its branches.
 
-## 1.0.0 — 2026-09-05
+## 1.0.0 - 2026-09-05
 
 Karasu 1.0.0 is the first tagged release: a desktop and Android tracker built
 exclusively for AniList, in the spirit of Taiga. It watches what you play or
-read — the system's media sessions on Windows and Linux, player and browser
-windows on Windows, and a Jellyfin server anywhere — parses the release name,
+read - the system's media sessions on Windows and Linux, player and browser
+windows on Windows, and a Jellyfin server anywhere - parses the release name,
 matches it against your list and scrobbles the progress, asking first when it
 is not sure. Around that sit the list itself with offline editing and a sync
 queue, a local library scanner that knows which episode you have on disk,
@@ -392,30 +392,30 @@ the commit log.
 ### Fixed
 
 - **Account-free mode no longer wipes an entry when you edit one field of it.**
-  Every quick control — `+1`, the status dropdown, the score select, the bulk
-  bar, the detail editor — sends only the field you changed, and the local list
+  Every quick control - `+1`, the status dropdown, the score select, the bulk
+  bar, the detail editor - sends only the field you changed, and the local list
   was filling in the rest with defaults: a `+1` reset the status to Planning and
   zeroed the score, repeat count, volume count, notes and tags. Absent now means
   "leave it alone" for every field, as it always has for AniList.
 - **The sign-in merge no longer deletes local rows it never pushed.** A local
   entry that agreed with AniList on status, progress and score was cleared
-  without being sent — so notes, tags, rewatch count, volume count, privacy and
+  without being sent - so notes, tags, rewatch count, volume count, privacy and
   both dates that existed only locally were lost, and the merge reported
   success. It now pushes whatever the AniList row is missing before clearing,
   and never overwrites a value AniList already has.
 - **A library scan can no longer wipe the index because the drive was offline.**
   An unreachable folder produced zero files, and zero files were written down as
-  the truth across all three library tables — reported as a successful scan, and
+  the truth across all three library tables - reported as a successful scan, and
   surviving a restart. The folder is checked before anything is replaced, and
   finding nothing where something was indexed before keeps the index and says so.
 - **Queued offline edits can no longer land on a different account.** Signing out
   left them in the database with no record of who made them, so the next account
   to sign in drained them onto its own list. Each queued edit is now stamped with
-  the account that made it and is only ever replayed for that account — so
+  the account that made it and is only ever replayed for that account - so
   signing back in still syncs what you were waiting on, and nobody else's client
   ever sees it.
 - **The JSON backup carries every list field again.** It dropped advanced
-  scores, custom-list membership and hidden-from-status-lists — the three that
+  scores, custom-list membership and hidden-from-status-lists - the three that
   AniList writes wholesale with no undo, and so the three a backup is most
   needed for.
 - **Undo is no longer offered for a save it cannot reverse.** It covered six
@@ -423,7 +423,7 @@ the commit log.
   hidden-from-status-lists too, and declines outright when a save touched custom
   lists or advanced scores.
 - **The score rescale reads the list as it is now**, not as it was when you
-  opened Settings — it could claim there was no list at all, and otherwise
+  opened Settings - it could claim there was no list at all, and otherwise
   planned real score writes from a stale snapshot.
 - A daily backup that was truncated (a full disk, a process killed mid-write) is
   checked and rewritten instead of occupying a retained slot unusably.
@@ -432,13 +432,13 @@ the commit log.
   the box's padding, or another chip's text removed the first tag silently.
 - **The list view's keyboard shortcuts no longer fire against the wrong entry.**
   After one arrow press, Enter/Space/e/c/s acted on the highlighted row whatever
-  else had focus — Space on a focused button wrote a `+1` to your real list for a
+  else had focus - Space on a focused button wrote a `+1` to your real list for a
   title you weren't looking at, and cancelled the button you actually pressed.
 - Ctrl+K no longer opens the command palette behind an open editor and discards
   what you were typing; the season picker no longer lets `/` and Ctrl+1/2/3 fire
   underneath it.
 - **The Stable update channel no longer claims you are up to date.** No stable
-  release has ever been published, so its manifest 404s — and a manual check
+  release has ever been published, so its manifest 404s - and a manual check
   answered that with a green tick. It now says the channel has no release yet.
 - An update check that fails no longer burns the once-a-day throttle, and the
   request has a timeout like every other one in the app.
@@ -452,7 +452,7 @@ the commit log.
   control back and say what went wrong.
 - The bell no longer answers a failed read with "You're all caught up."
 - The media-session diagnostic distinguishes "no player is reporting anything"
-  from "the system service could not be reached" — on Linux the second means
+  from "the system service could not be reached" - on Linux the second means
   detection is down, and it used to send you to debug your player.
 - Turning airing notifications off no longer arms them: re-enabling months later
   used to replay every episode that had aired in between.
@@ -460,13 +460,13 @@ the commit log.
   reminder.
 - **"No such user" is no longer what a dropped connection looks like.** Profiles,
   threads and character/staff pages rendered every failure as "this does not
-  exist" — a definite claim about someone else's account, made because the
+  exist" - a definite claim about someone else's account, made because the
   network was down. A real not-found still reads as one; everything else says
   what failed and offers a retry.
 - Relative timestamps ("3m", "5h", "2d") are translated. They were hardcoded
   English sitting directly beside a translated "now"; German now reads 3 Min. /
   3 h / 3 T.
-- The franchise graph's status legend uses the right vocabulary — it said
+- The franchise graph's status legend uses the right vocabulary - it said
   "Watching" over a manga graph whose own cards said "Reading".
 - Jellyfin's sign-in errors are translated. "Wrong username or password" was
   composed in Rust and printed verbatim, so a German UI showed it in English.
@@ -482,13 +482,13 @@ the commit log.
   ~30/min budget.
 - Portable mode's "replace the database that's already there" works. It called
   a copy that refuses an existing file, so it could only ever print a raw SQLite
-  error — the only route to a portable copy was deleting the old file by hand.
+  error - the only route to a portable copy was deleting the old file by hand.
 - Two list screens opening at once no longer each send the whole offline queue,
   and a queued edit AniList refuses outright now says so instead of vanishing.
 - The trailer card and the streaming-episode tiles no longer render as broken
   images. Their thumbnails live on hosts the content-security policy does not
   allow, and widening it to cover them would hand those hosts your IP and what
-  you are looking at — so the cards are drawn instead, and still open the same
+  you are looking at - so the cards are drawn instead, and still open the same
   link.
 - The command palette's keyboard cursor follows the list. Twelve navigation
   items do not fit its box, so the last one was unreachable: arrowing down moved
@@ -510,7 +510,7 @@ the commit log.
 - The review composer's body label no longer points at a field that isn't there
   in preview mode.
 - An offline edit is no longer deleted when AniList answers with something
-  recoverable — an expired token, a rate limit, a server fault. Only a payload
+  recoverable - an expired token, a rate limit, a server fault. Only a payload
   AniList rejects on its own terms is dropped, and when one is, it says so.
 - Repeated offline edits to the same entry collapse instead of replaying as one
   request each into a ~30/min budget.
@@ -552,7 +552,7 @@ the commit log.
   and playing that title recreated the row.
 - **A paused player stops the clock.** Detection reads the audio session, so an
   episode left paused mid-watch is no longer eventually written as watched.
-  Windows only — the other detection sources already reported their own play
+  Windows only - the other detection sources already reported their own play
   state.
 - **A database that will not open falls back to the newest daily backup**
   rather than blocking the app whose only recovery path runs through it.
@@ -575,8 +575,8 @@ the commit log.
 ### Added
 
 - Arrow keys move a cursor across the Seasonal and Search grids, and Enter opens
-  the highlighted title — the same movement the list view has had.
-- A clear button in the search and filter boxes — Search, the list filter, the
+  the highlighted title - the same movement the list view has had.
+- A clear button in the search and filter boxes - Search, the list filter, the
   forum search, the unplaced-titles filter and the filter dropdowns.
 - The sidebar collapses to icons, and remembers it. The button sits below the
   navigation; collapsed, every icon keeps its name as a tooltip, the group
@@ -586,11 +586,11 @@ the commit log.
   and behave as they always have.
 - Detection corrections: tell Karasu which entry a detected title really is, and
   which episode number that season starts at.
-- Position-aware scrobbling — Jellyfin's playback position and a direct mpv IPC
+- Position-aware scrobbling - Jellyfin's playback position and a direct mpv IPC
   probe, so progress is written where you actually are in the episode.
 - Reviews on the detail page, with a composer that knows AniList's rules.
 - AniList's own notifications in the bell, merged with Karasu's into one
-  stream (the grouping is presentation only — `lib/notifGroups`).
+  stream (the grouping is presentation only - `lib/notifGroups`).
 - Export: MAL XML per medium and Karasu's own JSON; MAL import into the local
   list; a daily local database backup.
 - A global hotkey, a real tray menu, and a working button on the scrobble
@@ -606,8 +606,8 @@ the commit log.
 ### Changed
 
 - An aired episode no longer arrives twice. When your AniList account raises its
-  own airing notification, Karasu still shows the desktop notification — the one
-  thing the website cannot do while Karasu sits in the tray — and leaves the bell
+  own airing notification, Karasu still shows the desktop notification - the one
+  thing the website cannot do while Karasu sits in the tray - and leaves the bell
   row to the AniList tab, where it opens the entry. Turn AniList's off and Karasu
   writes that row itself, as before. Both settings say so, on both screens.
 - The Social tab is now called Activities.

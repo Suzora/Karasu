@@ -12,7 +12,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
 ## The website
 
 The public site lives in `site/` and deploys to
-https://suzora.github.io/Karasu/ through `.github/workflows/pages.yml` — on
+https://suzora.github.io/Karasu/ through `.github/workflows/pages.yml` - on
 a push to `main` that touches `site/**`, `src/app/index.css` or `CHANGELOG.md`
 (the page's "What changed" card reads it at build time), on a dispatch, or on
 a release published by hand. It is its own npm project with its own
@@ -39,7 +39,7 @@ page"). The `release` trigger stays for a release someone publishes by hand.
   the app half.
 - **A site commit must not build a Nightly.** `release.yml` and `ci.yml`
   carry `paths-ignore: ["site/**", ".github/workflows/pages.yml"]`; keep it
-  that way. Push `pages.yml` and the `site/` folder together — the workflow
+  that way. Push `pages.yml` and the `site/` folder together - the workflow
   runs `npm ci` in `site/` and fails on a tree without it.
 - **The app's Tailwind build must not see the site.** `src/app/index.css`
   carries `@source not "../../site";` under the import, measured on
@@ -59,7 +59,7 @@ page"). The `release` trigger stays for a release someone publishes by hand.
   is written by `node site/scripts/sync-tokens.mjs` from the `@theme`,
   `@keyframes`, `@utility`, `:root` and `[data-theme]` blocks of
   `src/app/index.css`, plus the default accent evaluated through
-  `src/lib/contrast.ts` — the `@theme` fallbacks are not the colours a user
+  `src/lib/contrast.ts` - the `@theme` fallbacks are not the colours a user
   sees. The app's high-contrast rules, keyed on `data-contrast="more"`, come
   across as `@media (prefers-contrast: more)`, nested ones included, and a
   selector list the rewrite cannot keep exact stops the sync. The site may add
@@ -73,7 +73,7 @@ page"). The `release` trigger stays for a release someone publishes by hand.
   break the deploy. `sync-tokens.mjs --report-copies` shows the drift and
   enforces nothing.
 - **Every claim on the site has a row in `site/CONTENT-AUDIT.md`** naming the
-  file or test that makes it true. No row, no sentence — the site advertises
+  file or test that makes it true. No row, no sentence - the site advertises
   the app that exists, not the one that is planned.
 - **A site pull request is checked by `site-ci.yml`, not `ci.yml`.** CI ignores
   `site/**`; the Site workflow runs the site's `check` and `build` on a PR that

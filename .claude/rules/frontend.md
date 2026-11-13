@@ -17,20 +17,20 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
 
 ```
 src/
-  app/               App.tsx, main.tsx, index.css — the entry — plus lazyRoute.tsx,
+  app/               App.tsx, main.tsx, index.css - the entry - plus lazyRoute.tsx,
                      the pages one click away that load on idle
   api/               AniList GraphQL client, queries, types, franchise, library,
                      social (the whole profile/follow/forum surface: `social.ts`
                      re-exports the eight files under `social/`, one per
                      subject, so every import still names `@/api/social`);
                      bindings.ts is GENERATED from the Rust command signatures
-                     and tauri.ts is `unwrap`, the one seam over it — see
+                     and tauri.ts is `unwrap`, the one seam over it - see
                      "The bindings are generated"
   components/
     ui/              primitives with no app knowledge (kebab-case files);
                      popover is the anchored dropdown / phone sheet the list
                      toolbar's panels open in
-    shell/           the window frame and global machinery — titlebar, sidebar,
+    shell/           the window frame and global machinery - titlebar, sidebar,
                      bottom bar, back button, the account button (the
                      titlebar's avatar and name, the desktop's one way to the
                      own profile), bell (the titlebar's glance, the
@@ -56,30 +56,30 @@ src/
     list/            the parts MediaList draws (StatusNav, the status column
                      and the phone's StatusPicker, the ListToolbar and
                      the phone's ListMoreMenu, virtual grid, rows, bulk bar)
-                     plus VirtualRows, the flat-list twin of VirtualGrid — the
+                     plus VirtualRows, the flat-list twin of VirtualGrid - the
                      local library runs several of them in one scroller, so
                      each measures its own `scrollMargin`
-    stats/           the parts Statistics draws — panels, ranked list, Charts
+    stats/           the parts Statistics draws - panels, ranked list, Charts
                      (the sunburst), the insight cards and `CardPack`
                      (insights), AreaChart, DotPlot, GradientBars,
                      Heatmap
-    dashboard/       the parts the Overview draws — banner with search and
+    dashboard/       the parts the Overview draws - banner with search and
                      48-hour strip, list shelves, catch-up row (aired episodes
                      not yet watched), continue row, coming up
                      (the week as a grid is the calendar's), the right rail (detection, figures, own
                      activity, birthdays) and the phone's two-page pager;
                      every decision is `lib/overview`
-    social/          the parts UserProfile, Social and Thread draw — the
+    social/          the parts UserProfile, Social and Thread draw - the
                      markdown renderer, follow button, user and activity and
                      thread rows, and the two composers
-    season/          the season page's column — the year with its arrows,
+    season/          the season page's column - the year with its arrows,
                      the four seasons as one choice, the formats with their
                      counts and the two switches, and the phone's format
                      field; the filters live in the URL (`lib/seasonView`)
-    search/          the parts Search draws with nothing typed — the browse
+    search/          the parts Search draws with nothing typed - the browse
                      sections, the ranked top list and the portrait cards
     EmptyState · Skeleton · KarasuMark · FilteredNotice · ErrorBoundary ·
-    RichText — cross-cutting, belong to no group; FilteredNotice is the
+    RichText - cross-cutting, belong to no group; FilteredNotice is the
     content filter's one disclosure line, so the three surfaces that show it
     cannot drift apart
   hooks/             shared hooks (useListMutations, usePrimedLists,
@@ -102,8 +102,8 @@ src/
                      key parity across the two files. locales/ holds the 38
                      machine-translated languages and native/ the flat
                      catalogs Rust and the Android widgets read
-  lib/               pure logic + its *.test.ts — the place testable code goes
-  pages/             one per route; settings/ holds the pane files — the seven
+  lib/               pure logic + its *.test.ts - the place testable code goes
+  pages/             one per route; settings/ holds the pane files - the seven
                      pane ids live in `lib/settingsPanes.ts` (the account pane
                      holds the AniList one's sections too), and the desktop
                      and data panes are sections exported from AdvancedPane;
@@ -114,7 +114,7 @@ src/
   stores/            Zustand stores (auth, theme, library, nowPlaying,
                      overviewRail, stacks, tagColours, airingMutes, …)
   assets/            karasu-mark.svg, the one asset the bundle inlines
-  test/              render.tsx — the provider wrapper and sign-in helpers for
+  test/              render.tsx - the provider wrapper and sign-in helpers for
                      the jsdom project, and nothing in the node project imports it
 ```
 
@@ -127,34 +127,34 @@ src/
 - **Never point Tailwind's scanner at a hand-written `@source` list without
   diffing the emitted CSS.** `@import "tailwindcss" source(none);` plus explicit
   globs made the build ~30× faster and emitted **6,560 bytes instead of
-  62,178** — every utility silently gone, no error, no warning. Nothing else was
+  62,178** - every utility silently gone, no error, no warning. Nothing else was
   learned for free either: the default scan is not the bottleneck. Vite's
   `[PLUGIN_TIMINGS]` blames `@tailwindcss/vite:generate:build`, but the walk only
   ever sees 285 tracked files (155 scannable, ~50 ms); the ~8 s is *generation*.
-  The one real hazard there is the walk's reliance on `.gitignore` — the root one
+  The one real hazard there is the walk's reliance on `.gitignore` - the root one
   did not mention `src-tauri/target/`, so ~100 GB across ~195k files was kept out
   by the nested ignore file alone. It is listed in both now.
 - **The CSP needs `img-src data:`, and dropping it makes the bird disappear.**
   `assets/karasu-mark.svg` is 2,966 bytes, under Vite's 4,096-byte
   `assetsInlineLimit`, so the build inlines it as
-  `data:image/svg+xml,%3c?xml…` — verified by grepping `dist/`, not by reasoning
+  `data:image/svg+xml,%3c?xml…` - verified by grepping `dist/`, not by reasoning
   about it. Without `data:` the mark vanishes from the titlebar, About, first
   run, the Wrapped footer and several empty states, and nothing else breaks, so
   it looks like a styling regression rather than a policy one.
 - **`csp` and `devCsp` are separate, and dev genuinely needs the looser one.**
   Vite injects `<style>` elements at runtime and serves HMR over a websocket;
   the production bundle does neither. A single strict `csp` therefore breaks
-  `tauri dev` while the shipped app is fine — which is the worst way round to
+  `tauri dev` while the shipped app is fine - which is the worst way round to
   find out.
 - **Tauri rewrites the CSP at compile time**, parsing the frontend assets and
   injecting nonce and hash sources into `script-src` and `style-src`
-  (`dangerousDisableAssetCspModification` turns that off — don't). Two
+  (`dangerousDisableAssetCspModification` turns that off - don't). Two
   consequences: never add `'unsafe-eval'` or `'unsafe-inline'` to `script-src`
   in production, because Tauri's nonce is what makes it work; and
   `'unsafe-inline'` in `style-src` is *inert* whenever a hash is present, since
   CSP tells browsers to ignore it then. It is kept only as a fallback for the
   case where Tauri injects nothing.
-- **A CSP cannot be checked from the Vite dev server** — it applies to the Tauri
+- **A CSP cannot be checked from the Vite dev server** - it applies to the Tauri
   webview, so the browser-pane tooling is blind to it. Only a real
   `tauri dev`/`tauri build` run proves it.
 - **A trailer plays in a loopback page, because YouTube refuses a `tauri://` referrer.** Measured on
@@ -169,13 +169,13 @@ src/
   day; Dailymotion and Android were not tried.
 - **Bio images are proxied through Rust, and `img-src` is still not widened.**
   Across 89 real bios holding 350 images, **6 (2%) were on `*.anilist.co`**; the
-  rest were imgur (147), tumblr (57), pinimg, postimg, catbox and discord — so no
+  rest were imgur (147), tumblr (57), pinimg, postimg, catbox and discord - so no
   allowlist covers that tail without handing an unbounded set of third parties
   the user's IP and which profile they opened, *from the page, on every render*.
   `commands::fetch_bio_image` makes one bounded request in Rust instead and
   returns a `data:` URI, which the existing `img-src 'self' data:` already
   permits: size cap, the format sniffed from the bytes (png/jpeg/gif/webp/avif/ico
-  — never SVG, it is a scripting context — and the declared `Content-Type` is
+  - never SVG, it is a scripting context - and the declared `Content-Type` is
   not consulted, because hosts send `octet-stream`, nothing, or the wrong
   one), timeout, no cookies, no `Referer` on any hop (`referer(false)`;
   reqwest's default sets one on redirects), and local/private hosts refused on
@@ -188,7 +188,7 @@ src/
   host still learns the user's IP; that is unavoidable in any design that shows
   the image, and it is the residue rather than the part that was solved. Anything
   that fails falls back to the chip. **Do not "simplify" this into a CSP
-  change** — that is the thing the measurement rejected.
+  change** - that is the thing the measurement rejected.
 
 ## Design language
 
@@ -265,7 +265,7 @@ shape, and the question that follows them.
   use `text-accent-ink` on accent-filled controls rather than hard-coded
   `text-white`. The accent has two sources: the user's hex (`karasu-accent`)
   and the OS's, chosen by `karasu-accent-source` and read through
-  `system_accent` in `commands/system.rs` — `UISettings::GetColorValue(Accent)`
+  `system_accent` in `commands/system.rs` - `UISettings::GetColorValue(Accent)`
   on Windows, the settings portal's `org.freedesktop.appearance accent-color`
   on Linux (GNOME 47+, KDE; older portals answer an error, so `None`), and
   `android.R.color.system_accent1_500` through `SystemAccent.kt` on Android
@@ -280,7 +280,7 @@ shape, and the question that follows them.
   standard, high; `lib/contrast` `resolveContrast`): high sets
   `data-contrast="more"`, which swaps the palette in `index.css`, and passes
   `contrast: "high"` to `accentShades`, which lifts the accent to 7:1. Never
-  key a high-contrast rule on `@media (prefers-contrast)` in the app — that
+  key a high-contrast rule on `@media (prefers-contrast)` in the app - that
   would override a user who chose Standard; the site, which has no setting,
   gets the media query from the token sync.
 - **Overlays carry `data-overlay`.** Screen-level key handlers check for it and
@@ -289,12 +289,12 @@ shape, and the question that follows them.
 - **Overlays also register with `useBackClose`**, so the Android back gesture
   (and the browser back button) closes them instead of leaving the page.
   `ui/modal.tsx` does it once for every dialog; an overlay that rolls its own
-  chrome adds the one line. The protocol — one same-URL history entry per
+  chrome adds the one line. The protocol - one same-URL history entry per
   overlay, a single popstate listener, a one-shot swallow when closing by
-  other means — is `lib/backStack`, pure and tested; Escape and backdrop
+  other means - is `lib/backStack`, pure and tested; Escape and backdrop
   closing must keep working on their own, because the back path is additive
   and the tests assume net-zero history entries either way. **A URL `replace`
-  must never land while an overlay's entry is current** — React Router
+  must never land while an overlay's entry is current** - React Router
   overwrites the marker, the stack no longer recognises it, and the next back
   press undoes the write. `afterBackSettles` (the stack's `whenSettled`) runs a
   callback once no overlay holds an entry and no unwind is due; `MediaList`'s
@@ -347,8 +347,8 @@ shape, and the question that follows them.
   everywhere are `ui/number-input`: an emptied field reports 0 and a stored 0 shows as the placeholder.
 - **A title is spelt in the user's title language, and two functions spell
   it.** `displayTitle` (`api/types`, over `lib/titleLanguage`'s `pickTitle`)
-  reads the active choice — English, Romaji or Native, set in Appearance and
-  kept per device under `karasu-title-language` — and `titles::pick` /
+  reads the active choice - English, Romaji or Native, set in Appearance and
+  kept per device under `karasu-title-language` - and `titles::pick` /
   `pick_json` in Rust read the copy `stores/titleLanguage` mirrors into kv
   `title_language`, so notifications, bell rows, the tray, the widgets,
   Discord and the now-playing card spell a title the way the lists do. Each
@@ -366,7 +366,7 @@ shape, and the question that follows them.
   their language: notification rows, the label of a detection correction
   whose entry is off the list, and the title a new-episode mute was made
   under once its entry has left the list. Never write `title.english ?? title.romaji` by
-  hand again — that is how the detection path came to show romaji while every
+  hand again - that is how the detection path came to show romaji while every
   other screen showed English, and how the AniList pane's note came to promise
   a setting nobody had built (#50).
 - **A settings deep link lands on the row, not just the pane.**
@@ -379,7 +379,7 @@ shape, and the question that follows them.
   real Settings page for each one and fails when a note points at a row its
   pane does not render.
 - **Local text matching goes through `lib/fuzzy`.** Exact > substring >
-  word-prefix > trigram containment, scored per title — per-title docs are
+  word-prefix > trigram containment, scored per title - per-title docs are
   what make a query structurally unable to match across two adjacent names
   (the straddle bug the old NUL-joined haystack guarded by construction).
   Don't reintroduce a bare `.includes` filter or a joined haystack; the
@@ -388,22 +388,22 @@ shape, and the question that follows them.
 - **Content-filter rules live only in `lib/contentFilter`.** `blockReason`
   names *why* a title is hidden (adult wins over suggestive, so nothing
   counts twice), `isBlocked` is its boolean face, and `FilteredNotice` is the
-  one disclosure line every surface renders — the settings pane's vocabulary,
+  one disclosure line every surface renders - the settings pane's vocabulary,
   linking to `/settings?pane=appearance`. On search the adult bucket is 0 by
   construction (the server strips adult before it arrives); the split is
   carried anyway so the sentence stays honest.
 - **The bell is one stream, and its grouping is presentation only.**
   `lib/notifGroups` unifies Karasu rows (milliseconds) with AniList rows
   (seconds), collapses runs by actor or by media in a 48h window, and is
-  recomputed over the loaded set — nothing persists, which is what keeps it
+  recomputed over the loaded set - nothing persists, which is what keeps it
   inside the no-local-activity-store line. The one cross-source group
   (airing) leans on `alerts/airing.rs` never writing a local row AniList
   already covers; site unread is a snapshot of the count taken before the
   page-1 mark-seen reset, an honest approximation and labelled as one. An
   activity row's press opens the activity; the actor's name is its own link.
-  `useNotifications` holds all of it once for the three surfaces — the
+  `useNotifications` holds all of it once for the three surfaces - the
   titlebar's dropdown (the newest three), the phone's tall sheet and
-  `/notifications` — and today/earlier (`sectionByDay`) is presentation too.
+  `/notifications` - and today/earlier (`sectionByDay`) is presentation too.
   A row that navigates goes through the surface's `leave`, so an overlay's
   back entry has unwound before the destination's is pushed.
   The notifications page narrows the loaded set by source and by kind
@@ -425,14 +425,14 @@ shape, and the question that follows them.
   and its subject arrive together. `subjectOf` reads the activity by the
   row's `activityId`; one the answer lacks names nothing and keeps the row,
   and a failed subjects request leaves the page's rows without subjects
-  rather than failing them — page 1 has already spent AniList's count — and
+  rather than failing them - page 1 has already spent AniList's count - and
   is never retried. So does one that has not answered within
   `SUBJECTS_WAIT_MS`, because the limiter can pace a request or sit out a
   `Retry-After` far longer than rows already in hand should wait; a late
   answer is dropped. Within one group, `groupSubjects` takes an activity's
   subject from whichever row has it, since each page asks for its own. `MESSAGE` is absent from that `type_in` and the request
   has no `MessageActivity` fragment, so a reply on private mail names
-  nothing — the exclusion's fourth guard. A page with an activity row costs
+  nothing - the exclusion's fourth guard. A page with an activity row costs
   two requests, three when the detailed answer is refused, "Load more"
   included; the trim to one retained page on close keeps a reopen at two.
   The subject's title lives only in `subject.media`, never in `row.media`,
@@ -440,8 +440,8 @@ shape, and the question that follows them.
   filtered title takes the subject away and never the row, whose unread dot
   is positional, and the viewer's own name is never written in front of the
   viewer's own activity. When AniList refuses the detailed answer for any
-  reason but the token, the budget or the connection — a comment that
-  errors is the case it guards — `siteNotifications` asks once more with
+  reason but the token, the budget or the connection - a comment that
+  errors is the case it guards - `siteNotifications` asks once more with
   `SITE_NOTIFICATIONS_PLAIN_QUERY` under its own source, `siteNotifsPlain`,
   so "Requests by source" says how often; the plain answer still carries
   `activityId`, so it loses the comments alone. That fallback is the
@@ -449,8 +449,8 @@ shape, and the question that follows them.
   three sources is ever added to `CACHEABLE`.
 - **The system notification names the newest AniList notification and never
   quotes anyone.** `alerts/site.rs` asks, for the newest row only, for the
-  names that word it — the actor, a thread's title, a title with its filter
-  fields — and never for `text`, `comment`, `context` or `reason`, because a
+  names that word it - the actor, a thread's title, a title with its filter
+  fields - and never for `text`, `comment`, `context` or `reason`, because a
   lock screen shows the toast to anyone; a test pins every query to that. A
   like or a reply carries `activityId` and its activity's `__typename` alone,
   since nested there a list activity's `media` resolves null (see the notes);
@@ -477,20 +477,20 @@ shape, and the question that follows them.
   Android's job both ask for the caption's activity the same way and both
   end in `announcement`, so the two cannot word it differently, and the job
   reads each raw answer through `job_verdict`. A refused detailed answer
-  earns one plain retry under the source `sitePlain` — never for a token, a
-  rate limit or a lost connection — and the job writes a 429's `Retry-After`
+  earns one plain retry under the source `sitePlain` - never for a token, a
+  rate limit or a lost connection - and the job writes a 429's `Retry-After`
   into `rate_state` (`retry_after_secs`), so the live app's limiter waits it
   out at its next start instead of spending the next request into the wall.
   A check therefore costs one request, two when the newest is a due like or
   reply on a list entry or the detailed answer is refused, and never three:
   the plain answer carries no `activityId`. `siteSubject` stays out of `CACHEABLE` like every activity.
 - **A thread can land on one comment.** `/thread/:id?comment=<id>` rides the
-  same uncapped `ThreadComment(id:)` tree route as the newest-jump — one
+  same uncapped `ThreadComment(id:)` tree route as the newest-jump - one
   request at any thread size, including comments past the 5,000-entry paging
   cap. `ThreadTarget` in `lib/threadJump` is the whole state machine, the
   param is cleared with `replace` by every way of leaving the view so it
   cannot outlive it, and `visibleAnchor` in `lib/comments` returns
-  `{ id, exact }` — a pure function that says whether its own answer is the
+  `{ id, exact }` - a pure function that says whether its own answer is the
   clicked comment or its nearest drawable ancestor, so the highlight can
   degrade honestly instead of pointing at the wrong row.
 - **Back returns to the page as it was left, per history entry.** `<main
@@ -498,19 +498,19 @@ shape, and the question that follows them.
   (`useUrlState` where the state must act live under an open popover, a plain
   `replace` otherwise) and where it was scrolled lives in `lib/scrollMemory`,
   keyed by `location.key`. A page that scrolls its own `overflow-y-auto` div
-  calls `useScrollMemory` once on that div — `MainPlace` in `App` covers
-  `<main>` — and never once per virtualized child; a virtualized list passes a
+  calls `useScrollMemory` once on that div - `MainPlace` in `App` covers
+  `<main>` - and never once per virtualized child; a virtualized list passes a
   `PlaceReader` that stores the entry at the top and how far into its row,
   because rows above it are estimates again on return. A URL write that can
-  run while an overlay is open — MediaList's view, Search, Seasonal, Forum's
-  query — goes through `useSettledWrite`, which waits out the overlay's entry
+  run while an overlay is open - MediaList's view, Search, Seasonal, Forum's
+  query - goes through `useSettledWrite`, which waits out the overlay's entry
   and drops a write once the browser has moved to an entry the page has not
   rendered; Calendar's week and lens are written only from its own buttons. A
   page never replaces its URL on arrival, since a replace ends a running
   restore: `writeSearchView` writes its keys in one order, so writing a URL
   again changes nothing, and Forum writes `?q=` only when the term moved. A
   link to the page that is already open starts it over (the sidebar), so a key
-  meant to refine it — "/" on Search — focuses the field instead of
+  meant to refine it - "/" on Search - focuses the field instead of
   navigating. An overlay's history entry carries the router state of the entry
   it covers (`lib/backStack`); without it a stale one reads as the app's first
   entry, key `default`. Search's infinite queries refetch on return only when
@@ -518,19 +518,19 @@ shape, and the question that follows them.
   because a stale refetch asks again for every page they had loaded. A
   discovery card (`MediaCard`) reads the viewer's cached list first, then
   what this session's own adds and removals said (`lib/sessionEntries`), and
-  the response's stub last — never a title's absence from the list as a
+  the response's stub last - never a title's absence from the list as a
   removal, since an entry hidden from the status lists is absent too.
-- **Paging is a button, never a scroll.** Every paginated list — followers,
-  following, user search, activities, threads, comments — uses
+- **Paging is a button, never a scroll.** Every paginated list - followers,
+  following, user search, activities, threads, comments - uses
   `useInfiniteQuery` with `fetchNextPage` on a click and no `IntersectionObserver`
   anywhere. The reason is the limiter in `anilist/client.rs`: it is a ~30/min
   brake shared with the scrobbler and the four alert passes, and it reads its
   budget then drops the lock *before* any response header lands, so it cannot see
   a burst it has not sent. A feed that fetches because the user scrolled spends
   that budget with nobody asking. Two further traps, worth knowing before
-  touching an infinite query: `refetch()` refetches **every** retained page —
+  touching an infinite query: `refetch()` refetches **every** retained page -
   six loaded pages are six requests, which is why `UserList` keeps a long
-  `staleTime` and never calls it — and `maxPages` evicts from the far end, so
+  `staleTime` and never calls it - and `maxPages` evicts from the far end, so
   the pages being read are the ones that vanish.
 - **The season page is the one list that pages by itself, and it is
   bounded.** Its sections count each format, so the counts are the season's
@@ -553,10 +553,10 @@ shape, and the question that follows them.
   the page's one in a `useInfiniteQuery` paged by a button, sources
   `staffRoles`, `characterMedia` and `studioMedia`, each allowlisted for a
   day. Measured on 2026-10-20: all three connections serve 25 a page
-  whatever `perPage` asks, and `pageInfo.total` is not a count — a prolific
+  whatever `perPage` asks, and `pageInfo.total` is not a count - a prolific
   actor's (staff 105071) read 500 on page 1, 475 on page 20 and 329 on
   page 14, the real last page, and a character's (40) and a studio's (11)
-  both read 500 on page 1 — so the count is never shown while
+  both read 500 on page 1 - so the count is never shown while
   `hasNextPage` holds and the button is the countless one. The sort is the
   title's start date, not when the person joined, so a long-running series
   files under its first year, as on the website. The grouping dedupes by
@@ -579,8 +579,8 @@ shape, and the question that follows them.
   wide grid such as the day heatmap stays outside it as a block, because a
   grid or column track grows to its widest child's min-content and scrolled
   the phone's Years tab sideways by 99 px. The screens harness's
-  `stats-rich` mock (72 entries over eight years) is what the `d105`–`d108`
-  and `p76`–`p79` rows shoot.
+  `stats-rich` mock (72 entries over eight years) is what the `d105`-`d108`
+  and `p76`-`p79` rows shoot.
 - **Search with nothing typed browses, in one cached request per scope.**
   `lib/browseSections` is the table: each medium's sections in AniList's own
   order, each an alias of one aliased-`Page` query (`ANIME_BROWSE_QUERY`,
@@ -615,7 +615,7 @@ shape, and the question that follows them.
   bounds of the range are exclusive. Anime keep `seasonYear`.
 - **A pure function returns an i18n *key*, never a sentence.**
   `src/lib/i18nKeys.test.ts` only sees literal `t("…")` calls, so
-  `` t(`social.verb${v}`) `` is invisible to it — and AniList makes this matter
+  `` t(`social.verb${v}`) `` is invisible to it - and AniList makes this matter
   rather than academic: it composes activity sentences itself, in English only, so
   a German feed would read half-translated. `listActivityVerb`, `relationBadgeKey`,
   `validatePost` and the twenty notification labels all return closed unions that
@@ -626,8 +626,8 @@ shape, and the question that follows them.
   the keys read as dead, and the call site closes the set before it builds the
   key, as `formatLabel`'s `KNOWN` does, because AniList can add an enum value
   and a missing key renders as the key.
-- **Two motion registers, and the default is the quiet one.** *Surface* motion —
-  hover, focus, background and border — stays on `transition-surface` and the
+- **Two motion registers, and the default is the quiet one.** *Surface* motion -
+  hover, focus, background and border - stays on `transition-surface` and the
   140ms `--ease-karasu`; `transition-colors`, `transition-all` and a bare
   `transition` fail the style audit. *Feature* motion, for the few moments
   worth noticing (a dialog arriving, a scrobble landing, a chart drawing), may
@@ -642,14 +642,14 @@ shape, and the question that follows them.
   `data-closed` / `data-ending-style`, and the toast through `usePresentValue`.
 - **Motion that CSS cannot see must ask `lib/motion.ts`.** The reduce-motion
   rules in `index.css` are `!important` overrides on animation and transition
-  properties — they do nothing to a View Transition, a scroll handler, a WAAPI
+  properties - they do nothing to a View Transition, a scroll handler, a WAAPI
   call or a `setTimeout`. Those read `prefersReducedMotion()` /
   `motionDuration()` themselves. Staggers use `staggerDelay`, which also zeroes
   the *delay*: collapsing only the duration turns a stagger into a staggered
   wait.
 - **Scores live in the account's `scoreFormat`, end to end.** Reads pass
-  `$scoreFormat` (never a pinned `POINT_10`), writes go through `scoreRaw` —
-  the format-independent 0–100 int — because a bare `score: Float` is
+  `$scoreFormat` (never a pinned `POINT_10`), writes go through `scoreRaw` -
+  the format-independent 0-100 int - because a bare `score: Float` is
   interpreted in the account's format and silently corrupted non-ten-point
   accounts for years. `lib/scoreFormat.ts` is the one vocabulary
   (`toRaw`/`fromRaw`/`formatScore`/`scoreScale`); local mode stays ten-point.
@@ -666,25 +666,25 @@ them away without re-measuring.
 
 - **`@font-face` is hand-written in `index.css`.** Importing the `@fontsource`
   stylesheets instead pulls a woff fallback neither WebView2 nor WebKitGTK will
-  ever use — the Kosugi Maru woff is 1,876,732 B (1.79 MiB), carried by the
+  ever use - the Kosugi Maru woff is 1,876,732 B (1.79 MiB), carried by the
   installer and every auto-update on top of the 1.44 MB woff2 that is actually
   used. Not the `400.css` variant either: 121 unicode-range subsets, ~4.37 MB
   of woff2 if all of them ship. (The 7.9 MB figure this note used to give is the
-  size of the whole `files/` directory — every weight and both formats — not of
+  size of the whole `files/` directory - every weight and both formats - not of
   anything a build would emit. The decision was always right; the arithmetic
   was not.)
 - **The 1.44 MB Japanese subset cannot be trimmed.** It backs `font-brand-jp`,
   which renders arbitrary `title.native` in `TitleLockup` (itself used by five
   call sites, including every virtualized row), `AnimeDetail`, `Franchise` and
   `CommandPalette`. A fixed-glyph subset would fall back to Yu Gothic UI per
-  missing glyph — mixed typefaces inside one title, which is worse than either
+  missing glyph - mixed typefaces inside one title, which is worse than either
   whole font.
 - **The status tabs never wrap.** `status-tabs.tsx` is one row that scrolls
   sideways (hidden scrollbar, an edge fade only while it overflows, the wheel
   mapped to `scrollLeft`), and the underline is measured against that inner
   `w-max` row, not the page. The wrapping version needed a `+14` offset
   calibrated to the consumer's bottom padding and correct on the last row
-  only — it struck through the second row's labels — and it cost the phone two
+  only - it struck through the second row's labels - and it cost the phone two
   header rows. Do not bring the wrap back; a narrow window scrolls the strip,
   and the active tab is scrolled into view on every change, a swipe's included.
   The underline takes the active tab's `color` (a colour the consumer passes,
@@ -720,11 +720,11 @@ them away without re-measuring.
   column is `min-w-0`, and its label goes through `compactCount`.** A grid
   with no column template is one implicit `auto` track, which grows to its
   widest item's min-content, and `min-w-0` on flex items does not lower a flex
-  row's min-content — so the community chart's ten raw counts pushed its card
+  row's min-content - so the community chart's ten raw counts pushed its card
   past the column. Measured with `screens.mjs overflow` on 2026-10-04: Attack
   on Titan's counts (3180 … 196515) scrolled `<main>` 25 px at 360 px and
   65 px at 320, and a bannerless title's unclipped `scale-110` wash 20 px at
-  405 — the `@container` wrapper's containment does not stop it. Afterwards
+  405 - the `@container` wrapper's containment does not stop it. Afterwards
   0 of 104 screens. German `Intl` compact notation leaves thousands alone
   ("106.581"), which is why the label has its own formatter; the exact count
   stays in the column's `title`. The harness's fixture carries those counts,
@@ -745,7 +745,7 @@ them away without re-measuring.
   legend also fixed phones under ~394 px, where "Abgeschlossen" was cut at 360
   and 320, and the statistics page at 320. The 320 px phone's counts stay
   2.8 px apart; the maintainer chose stacking over thinning them (DESIGN.md,
-  2026-10-04). `d64`–`d66` shoot the section at 768, 1000 and 1232. The fixture
+  2026-10-04). `d64`-`d66` shoot the section at 768, 1000 and 1232. The fixture
   carries the title's real status counts, because without them the score card
   stood alone and no shot ever showed the legend.
 - **Every cover is one width, `--cover-w`, and the grid fills by it.**
@@ -757,12 +757,12 @@ them away without re-measuring.
   same count squeezed, which was the search page's crowded score and button
   (decided by the maintainer on 2026-10-18). The setting is one token written
   by the theme store, defaulting by platform at first run (10 desktop, 4
-  Android — UA-keyed, since the store boots before `platform_info` answers)
+  Android - UA-keyed, since the store boots before `platform_info` answers)
   with a one-time migration from the old s/m/l keys. Two shapes died here and
   should stay dead: fixed-size tracks (could not tell medium from large on a
   phone) and an unlayered phone override of them (silently beat the utility
   layer and killed the setting). `VirtualGrid`'s `watch={coverCols}`
-  re-measure is load-bearing — a setting change moves `--cover-w` and
+  re-measure is load-bearing - a setting change moves `--cover-w` and
   re-flows the tracks without resizing the probe, which the ResizeObserver
   cannot see. The Overview's shelves and continue row keep their own measured
   counts, and the people grids on Search their portrait cards. A cover's one
@@ -770,17 +770,17 @@ them away without re-measuring.
   `@cover-corner` (8.5rem), where the score and it fit side by side.
 - **The list view's columns are fixed tracks, sized in `components/list/columns.ts`.**
   `VirtualGrid` makes every visual row its own grid container, so `subgrid` is
-  unavailable and an `auto`/`fr` track resolves differently per row — only
+  unavailable and an `auto`/`fr` track resolves differently per row - only
   identical fixed tracks line up down the page. A fixed track also overflows
   rather than shrinking, which is why the column *set* changes with the measured
   container width (`useRowTier`) instead of a `2xl:` breakpoint. Never put a
   width on a list cell at the call site: a fixed width nobody checked against
   its worst case is what clipped every `★ 10` score and every `500 / 500`
-  progress, and `columns.test.ts` is what keeps the widths honest — including two
+  progress, and `columns.test.ts` is what keeps the widths honest - including two
   assertions that the *old* widths still do not fit, so a green suite cannot mean
   the measurement drifted.
 - **The list and grid queries must not ask for `coverImage.extraLarge` or
-  `bannerImage`** — nothing renders them there. They belong to `DETAIL_QUERY`,
+  `bannerImage`** - nothing renders them there. They belong to `DETAIL_QUERY`,
   and to the Overview hero's ten titles, which draw them and their relatives'.
   **`synonyms` must stay**: local mode re-serves the stored media object and
   `MediaList` spreads it.
@@ -796,9 +796,9 @@ them away without re-measuring.
   window, and it costs a list read on every mount.
 - **`mediaList` invalidation is scoped to the media type that changed.** The
   `scrobble-done` listener reads that type from the store at fire time (not
-  from a closure) and **must** keep its fallback to the broad key — otherwise an
+  from a closure) and **must** keep its fallback to the broad key - otherwise an
   absent type leaves one list silently never refreshing.
-- **The Wrapped poster is laid out in `em` and measured twice** — once at
+- **The Wrapped poster is laid out in `em` and measured twice** - once at
   `em = 1` for its natural height, then drawn at the size that fills the
   preset's crop. `drawMark` places the mark by its **centre**: corner anchoring
   is what once left 52% of the bird outside the page.

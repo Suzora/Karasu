@@ -188,7 +188,7 @@ names (`rounded`, `rounded-lg` …).
 | `rounded-hero` | 28 px | the Overview's banner |
 | `rounded-cover` | 12 px | cover art |
 | `rounded-mark` | 2 px | a data mark: a chart bar's end, a heatmap cell, a legend swatch |
-| `rounded-full` | — | avatars, dots, round icon buttons |
+| `rounded-full` | - | avatars, dots, round icon buttons |
 
 ### Icons
 
@@ -296,7 +296,7 @@ preset and for extreme custom accents:
 | `accent-ink` on `accent-500` | 4.5 : 1 | 7 : 1 |
 | `accent-500` against a panel (non-text) | 3 : 1 | 3 : 1 |
 | the focus ring against what it touches | 3 : 1 | 3 : 1 |
-| a control's border against its surface | — | 3 : 1 |
+| a control's border against its surface | - | 3 : 1 |
 
 Every default status colour reaches 3 : 1 against the page and the panel in
 all four themes, which `tokens.test.ts` asserts. A colour the user picks that
@@ -348,7 +348,7 @@ Windows' forced colours stay separate: the OS replaces the palette, and
 
 The website stays dark. The token sync rewrites the dark high-contrast
 blocks into `@media (prefers-contrast: more)`, so the site answers the OS
-request directly — the top-level blocks and the rules nested inside a
+request directly - the top-level blocks and the rules nested inside a
 utility alike. The site's own light (its washes, the feathers, the hero
 stage's glow and the screenshot shadows) goes under the same query.
 
@@ -669,13 +669,13 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   A third round asked for the figures to be more compact: the glyph beside
   the number put each unit off centre on the phone, where two columns hold
   labels of different widths, so the maintainer kept the glyph above and
-  took the tightest stack that still reads — a smaller glyph circle, the
-  number one step down, and closer spacing — on both shells.
+  took the tightest stack that still reads - a smaller glyph circle, the
+  number one step down, and closer spacing - on both shells.
 - **2026-09-26:** The hero reads the same in every theme. Its frame is the
   cover near-black, since the art's feathered edges faded into the light
   theme's white page as a grey band; the kicker is a neutral near-black
   plate the art shows through a little, with only its text lifted toward
-  the accent (`tint-label-on-cover`) — a first, fully tinted plate was
+  the accent (`tint-label-on-cover`) - a first, fully tinted plate was
   judged too coloured; and the score over cover art, there and on every
   cover's badge, is one bright gold in every theme (`on-cover-gold`),
   where the light theme's text gold went dark on dark; the 18+ mark, the
@@ -685,11 +685,11 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   panel colour, which had left the carousel's white dots on white.
 - **2026-09-26:** The calendar's week moved into a bar of its own, chosen
   from three mockups (two rows, a week bar, one compact row) after the
-  phone header broke — the Japanese subtitle stood one glyph per line. The
+  phone header broke - the Japanese subtitle stood one glyph per line. The
   bar sits beside the lens and view switches on a desktop and takes the
   full width on a phone, where the subtitle is dropped; the export moved
   up beside the title. In the stacked views (tiles, agenda) a run of days
-  with nothing airing folds into one muted line ("Monday – Friday ·
+  with nothing airing folds into one muted line ("Monday - Friday ·
   Nothing airs"), today always standing alone; the week grid keeps its
   seven columns, because there the position is the date. The maintainer
   asked for the choice to hold for every view, not only the agenda.
@@ -697,8 +697,8 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   moves under a second press; the phone leaves it out, at the
   maintainer's word, and steps back with the arrow.
 - **2026-09-26:** Settings, chosen from three mockups each. Appearance is
-  three cards by what a setting changes — colour, size and density,
-  language and motion — with the theme as three miniatures of the window
+  three cards by what a setting changes - colour, size and density,
+  language and motion - with the theme as three miniatures of the window
   (the system one split corner to corner) over native radios, and the
   contrast as a segmented switch beneath them. On the phone the pane list
   is one card of rows, each an accent-tinted glyph, the pane's name and a
@@ -756,10 +756,10 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   stays.
 - **2026-10-04:** A title without an AniList banner no longer shows a blurred
   copy of its cover (A of three mockups, over B, a colour wash alone, and C, no
-  wide frame at all). It borrows the nearest relative's banner — prequel first,
+  wide frame at all). It borrows the nearest relative's banner - prequel first,
   then parent, sequel, side story and spin-off, then compilation, summary,
   contains and alternative, then source and adaptation, never a character or
-  other relation — shown whole like its own, under its own veil and never past
+  other relation - shown whole like its own, under its own veil and never past
   the content filter. With nothing to borrow it wears `cover-wash` in its
   cover's colour. The phone surfaced it: of the Fall 2026 top 50, 31 had no
   banner a week into the season, and 20 of those had a relative to borrow from.

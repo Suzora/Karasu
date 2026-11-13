@@ -21,9 +21,9 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   rejected.** `attach_mobile` in `lib.rs` (a cfg pair on `target_os =
   "android"`, with the crates in the Android dependency table so no desktop
   build compiles them) registers `tauri-plugin-haptics` and
-  `tauri-plugin-sharekit`, and `capabilities/mobile.json` — `platforms:
+  `tauri-plugin-sharekit`, and `capabilities/mobile.json` - `platforms:
   ["android"]`, because a desktop build refuses a capability naming a
-  permission it cannot resolve — grants exactly `haptics:allow-selection-
+  permission it cannot resolve - grants exactly `haptics:allow-selection-
   feedback` and `sharekit:allow-share-text`. `lib/haptics.ts` `tick()` is the
   one vibration, fired when the long-press sheet opens and when a pull arms,
   and a no-op off Android. The `share` action (`lib/actions`, group `link`,
@@ -47,19 +47,19 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   the NDK toolchain exported) and the real `tauri android build`. Treat it
   exactly like the Linux rule below: `npm run verify` proves nothing about it.
 - **The Gradle daemon caches SDK-package resolution.** Installing an SDK
-  package after a failed build does nothing until `gradlew --stop` — the
+  package after a failed build does nothing until `gradlew --stop` - the
   daemon keeps answering "not installed" from memory. Four rebuilds were lost
   to a licence error that was already fixed.
 - **`sdkmanager.bat --licenses` accepts only via cmd file redirection**
   (`< yes.txt`); both pipe forms feed it EOF and it exits silently having
   accepted nothing. Never run an installer with its output discarded.
 - **`tauri android build` rewrites `app/build.gradle.kts` on every run**, so a
-  hand edit there — an `applicationIdSuffix` for a side-by-side debug install,
-  say — is gone before the APK exists. Put such a local-only change in
+  hand edit there - an `applicationIdSuffix` for a side-by-side debug install,
+  say - is gone before the APK exists. Put such a local-only change in
   `~/.gradle/init.d/*.gradle` instead (an init script sees the `android`
   block of every project it builds); a debug APK under `dev.kyu.karasu.debug`
   installs beside the release app, keeps its own data, and is what the
-  device test of 2026-09-19 ran on. Its WebView is debuggable — `adb forward
+  device test of 2026-09-19 ran on. Its WebView is debuggable - `adb forward
   tcp:9223 localabstract:webview_devtools_remote_<pid>` plus Playwright's
   `connectOverCDP` reads the DOM, and `adb shell run-as dev.kyu.karasu.debug`
   reads its `karasu.log`. Neither works on the release package.
@@ -76,7 +76,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   `updater_available()` stays false on mobile: that is the desktop plugin,
   which cannot install an APK. Android's own path, built deliberately on
   2026-09-14: `latest.json` carries `platforms.android-arm64` and
-  `android-universal` (`url`, `sha256`, `size` and an empty `signature` — the
+  `android-universal` (`url`, `sha256`, `size` and an empty `signature` - the
   desktop plugin parses every platform entry as `{url, signature}` and
   rejects the whole manifest when the key is missing, which is what the
   `the_desktop_updater_still_reads_a_manifest_with_android_legs` test
@@ -89,7 +89,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   app's signing certificates and a higher `versionCode`) and renames it
   into place; `apk_install` opens the system installer through the
   FileProvider Tauri already ships (`cache-path "."`). It runs only in a
-  release build (`cfg!(debug_assertions)` — a debug build is signed
+  release build (`cfg!(debug_assertions)` - a debug build is signed
   differently and the install would fail after the download), only while the
   activity is in front, only on an unmetered network unless kv
   `apk_download_metered` says otherwise (a nightly is 23 MB, several a
@@ -102,7 +102,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   install the first by hand, watch it fetch and install the second. Done on
   2026-10-31 on the NX809J: 1.68.2.928 offered, fetched and installed
   1.68.9.935 through the system installer.
-- **Android keeps `usesCleartextTraffic` in release** deliberately — a LAN
+- **Android keeps `usesCleartextTraffic` in release** deliberately - a LAN
   Jellyfin over plain HTTP is a supported setup, and (see `net.rs`) on Android
   a *self-signed* Jellyfin needs plain HTTP anyway.
 - **Jellyfin sessions need a heartbeat, and the Android tracking service
@@ -118,7 +118,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   activity services` kept showing `TrackingService … isForeground=true
   types=0x40000000` (that is `specialUse`) while `dumpsys activity
   processes` said `isFrozen=true` and the events log had `am_freeze` 37 s
-  after the screen lock — with the process at `prcp F/A/FGS`, adj 200,
+  after the screen lock - with the process at `prcp F/A/FGS`, adj 200,
   far under AOSP's `freezer_cutoff_adj=900`, so it is the ROM
   (`OomAdjusterZteHook`), not Android. The phone's own log showed the
   five-minute poll line simply missing until the unlock, and the Jellyfin
@@ -129,7 +129,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   45-minute locked run logged `20 polls in the last 5 min` on every line
   (the 15 s hidden cadence), no `am_freeze`, the desktop wrote at its due
   point and the phone logged `due, yielding to Karasu on KYU-PC for
-  180 s` ten seconds later. It wrote once the grace was spent — and that
+  180 s` ten seconds later. It wrote once the grace was spent - and that
   was right, not a duplicate: the maintainer had reset the entry to 2 by
   hand in between, the live check in `perform_update` read that 2, and a
   due episode 3 against a list at 2 is a scrobble. Read the live-check
@@ -139,7 +139,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   notification job being absent from `dumpsys jobscheduler` while the
   interval setting is 0 is not a failure. And
   Windows sends a limited broadcast from a wildcard UDP socket out of one
-  interface of its own choosing — with a Hyper-V switch present, that one —
+  interface of its own choosing - with a Hyper-V switch present, that one -
   which is why `discovery::broadcast` also binds to the default route's
   address (measured on the maintainer's PC: the wildcard socket heard
   nothing, the Ethernet-bound one heard the server twice).
@@ -153,10 +153,10 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   The job's Rust log lines never reach `karasu.log` (no `logging::init` in
   that process); logcat tag `KarasuNotifJob` is the only channel. A forced run
   posts nothing unless the interval is on, the last check is older than it,
-  and a seen-id baseline already exists — the first run only arms.
+  and a seen-id baseline already exists - the first run only arms.
 - **The Android sign-in is slow at the network, not at the Keystore.**
   Measured on the phone on 2026-09-05 with verbose logging:
-  `connect timings: viewer 5237ms, kv 6ms, token save 27ms` — and the
+  `connect timings: viewer 5237ms, kv 6ms, token save 27ms` - and the
   viewer figure included AniList answering the first fetch with HTTP 502
   and `connect_with_token`'s one bounded retry (1.5 s sleep) covering it.
   The hardware-key generation everyone suspected costs 27 ms. Do not move

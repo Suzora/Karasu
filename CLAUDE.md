@@ -22,9 +22,9 @@ and in the browser and scrobbles your AniList progress automatically.
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS v4
 - **State:** TanStack Query (server), Zustand (client), i18next (i18n)
 - **Charts:** drawn by hand in SVG/JSX; `d3-array`, `d3-scale` and `d3-shape`
-  supply the maths only — there is no chart library and the renderer stays ours
+  supply the maths only - there is no chart library and the renderer stays ours
 - **Rendering:** `@tanstack/react-virtual` virtualizes the media lists. Rows are
-  chunked by hand, so anything that renders one needs a column count — take it
+  chunked by hand, so anything that renders one needs a column count - take it
   from `useColumnCount`, which reads the browser's resolved
   `grid-template-columns` rather than recomputing the CSS in JS
 - **Storage:** SQLite via rusqlite (bundled); tokens in the OS credential store
@@ -33,15 +33,15 @@ and in the browser and scrobbles your AniList progress automatically.
   optional Jellyfin `/Sessions` source + an opt-in mpv JSON IPC socket (the
   real file path and a live position), with a custom release-name parser
 - **Platforms:** Windows and Linux (x86_64), plus Android (sideloaded APK;
-  arm64 is the one that matters). Window-title detection is Windows only —
-  there is no X11/Wayland enumerator and Wayland forbids one — so on Linux the
+  arm64 is the one that matters). Window-title detection is Windows only -
+  there is no X11/Wayland enumerator and Wayland forbids one - so on Linux the
   media-session pass and Jellyfin are the whole of detection, and browser *tab*
   titles are only seen where the browser publishes MPRIS. On Android detection
   is Jellyfin alone, decided in the first device round: the desktop detection
   machinery is greyed out in Settings under a "desktop only" badge, never
   hidden. Two different keys, and they must not swap: the *shell shape* is
-  width-keyed (`usePhoneShell`, 767px), while *capability* gating — the badge,
-  the hidden Library/Desktop panes, the bottom bar's missing library — is
+  width-keyed (`usePhoneShell`, 767px), while *capability* gating - the badge,
+  the hidden Library/Desktop panes, the bottom bar's missing library - is
   platform-keyed (`isAndroid` over `platform_info`), because a narrowed
   desktop window still has SMTC and a filesystem, and an Android tablet at
   desktop width still has neither.
@@ -50,7 +50,7 @@ and in the browser and scrobbles your AniList progress automatically.
 
 
 **Where things go.** `lib/` is pure logic with tests beside it; `hooks/` is
-React glue; a component's folder is its answer to "what am I" — a `ui/`
+React glue; a component's folder is its answer to "what am I" - a `ui/`
 primitive knows nothing about Karasu, `shell/` is the frame around every screen,
 `media/` renders titles, `overlays/` opens over things. On the Rust side a
 folder exists only when it holds more than one file, and a command's file is
@@ -84,9 +84,9 @@ its subject, not its age.
 - **AniList rate limit (~30 req/min).** Batch requests (`Page.media(id_in:)`,
   ≤50 ids) and bound BFS/traversal work; never fan out unboundedly. The
   budget is one shared pool, so every request names its spender and the
-  cheap answer is the cached one — see "The request budget" below.
+  cheap answer is the cached one - see "The request budget" below.
 
-### Explicitly rejected — never implement (or propose)
+### Explicitly rejected - never implement (or propose)
 
 Activity/playback-history expansion, **manga cost tracking** (what a collection
 was worth or what it was bought for), settings cloud-sync, and anything that
@@ -97,7 +97,7 @@ Two more, decided by the maintainer in August 2026:
 
 - **Plex and Emby integration.** The maintainer uses Jellyfin (free, open
   source) and has no use for supporting a paid product he doesn't run.
-  Revisit only if actual users ask for it — do not propose it unprompted.
+  Revisit only if actual users ask for it - do not propose it unprompted.
 - **Windows code signing through SignPath, and a winget manifest.** Both were
   on the tooling backlog and were struck by the maintainer on 2026-09-20 for
   good: the installer stays unsigned (the README, the release notes and the
@@ -124,7 +124,7 @@ Two more, decided by the maintainer in August 2026:
   `[Other-Group]` beside it), never a real group's name.
 - **A browser extension or a native-messaging host for detection.** Also
   decided on 2026-10-07: Karasu reads only what the system and the browser
-  already publish — media sessions, window titles and, opt-in, the browser's
+  already publish - media sessions, window titles and, opt-in, the browser's
   own session file. Every tracker that knows the playing tab otherwise
   (PreMiD, MAL-Sync, WebNowPlaying, KDE's browser integration) ships an
   extension; Taiga's UI Automation reader is the one exception, and it wakes
@@ -148,12 +148,12 @@ Two more, decided by the maintainer in August 2026:
   bio link, status update or video about Karasu goes onto anilist.co, and
   no agent drafts one. The rule governs what is shared on the site, not the
   API: the app keeps talking to AniList as before, and whether AniList
-  ever acts on API clients is unknown — the built-in client id is the
+  ever acts on API clients is unknown - the built-in client id is the
   residual risk. Do not propose posting there unless the maintainer
   reopens it.
 
 **The log is a deliberate exception to the first of those, decided by the
-maintainer.** With verbose logging on, `karasu.log` records what detection saw —
+maintainer.** With verbose logging on, `karasu.log` records what detection saw -
 window and session titles, the parsed release name, the matched id and score,
 each redirect, and every scrobble phase change. That is a playback history by
 construction. It was raised as a conflict and kept on purpose: an unreportable
@@ -163,7 +163,7 @@ the diagnostics report true.
 
 What is *not* carved out: no history UI, nothing queryable, nothing that
 survives log rotation (~1 MB, one kept generation), and nothing uploaded
-anywhere. And the volume is bounded on purpose — the detection poll runs every
+anywhere. And the volume is bounded on purpose - the detection poll runs every
 5 s, so the per-tick lines go through `logging::debug_changed`, which records a
 line only when it differs from the last one under the same key. A plain `debug`
 in `detect_playback` or `media_session::detect` is 17,280 lines a day and
@@ -171,7 +171,7 @@ rotates the interesting part off disk; that is a bug, not a style preference.
 
 **The AniList social surface is the second deliberate exception, also decided by
 the maintainer.** Karasu reads AniList's own activity feed on `/social` and on
-every profile — list activities, text activities, replies and likes — and can
+every profile - list activities, text activities, replies and likes - and can
 post a status update through `SaveTextActivity`. That is activity expansion by
 construction. It was raised as a conflict with the line above, the narrower
 read-only option was offered and declined, and the whole surface was kept on
@@ -179,8 +179,8 @@ purpose: this is AniList's data rendered by an AniList client, and a tracker tha
 can read a friend's list but cannot show that they finished the show is a worse
 client than the website it replaces. **Do not delete the feed, the composer or
 the activity queries on the strength of the line above.** `/activity/:id`
-renders one activity through the same fragments and normalizer as the feed —
-the bell's activity notifications land there, names go to profiles — and
+renders one activity through the same fragments and normalizer as the feed -
+the bell's activity notifications land there, names go to profiles - and
 `MessageActivity` stays excluded on that page the same three ways.
 
 What is *not* carved out, and these are the load-bearing half of the exception:
@@ -193,7 +193,7 @@ What is *not* carved out, and these are the load-bearing half of the exception:
   of what detection saw, and nothing correlates the two. A "what did I watch
   last month" screen built from either is the thing being refused.
 - **`MessageActivity` is never rendered.** It is private mail between two users,
-  and it is excluded three ways — absent from `type_in`, given no inline
+  and it is excluded three ways - absent from `type_in`, given no inline
   fragment, and normalised to null with a test that says so. The bell's and
   the toast's requests for activities by id repeat all three: no `MESSAGE` in
   their `type_in`, no fragment, and a reader (`subjectOf`, `caption`) that
@@ -203,7 +203,7 @@ What is *not* carved out, and these are the load-bearing half of the exception:
   asking it to, and the limiter cannot see a burst it has not sent. Every page
   past the first is a button; see the Conventions note.
 
-Read *volumes* (`progressVolumes`) is not on this list and never was — it is one
+Read *volumes* (`progressVolumes`) is not on this list and never was - it is one
 of AniList's own list fields, it costs nothing to carry, and the local list has
 stored it since schema v7. The rejected idea is tracking **purchases**, which
 would need price data the app has no source for.
@@ -212,10 +212,10 @@ would need price data the app has no source for.
 
 Four-part scheme **`MAJOR.MINOR.PATCH.COMMIT#`**:
 
-- **MAJOR** — breaking changes
-- **MINOR** — new backward-compatible features
-- **PATCH** — bug fixes / patches
-- **COMMIT#** — a monotonically increasing commit counter (`+1` on every
+- **MAJOR** - breaking changes
+- **MINOR** - new backward-compatible features
+- **PATCH** - bug fixes / patches
+- **COMMIT#** - a monotonically increasing commit counter (`+1` on every
   commit that changes what a build contains)
 
 The three manifests (`package.json`, `src-tauri/Cargo.toml`,
@@ -226,7 +226,7 @@ update check, which can match one string but cannot add two numbers (a test
 holds it to the crate version and the counter, and `bump-version --check` to
 the files); `app_version()` returns that full `MAJOR.MINOR.PATCH.COMMIT#` string, which the
 About window always displays. **Bump the appropriate segment and the
-`COMMIT_NUMBER` on every commit that changes what a build contains** — via
+`COMMIT_NUMBER` on every commit that changes what a build contains** - via
 `scripts/bump-version.mjs`, which also keeps `Cargo.lock` in step; see "The
 commit loop" below. A commit no build reads carries no bump: docs alone,
 `site/` alone, tooling alone (the screens harness, `.claude/`), and the
@@ -235,15 +235,15 @@ COMMIT# included, so two builds of one semver core still register as an
 update; the script always moves a segment and the counter together.
 
 **`latest.json` spells the commit number as semver build metadata**
-(`0.23.2+90`), not as a fourth dotted segment — see
+(`0.23.2+90`), not as a fourth dotted segment - see
 `scripts/release/generate-update-manifest.ps1`. `tauri-plugin-updater` parses
 that field with `semver::Version::from_str`, which rejects `0.23.2.90` outright and makes
 every install fail with *"unexpected character '.' after patch version number"*.
 
 That fix alone isn't enough, so `download_pending_update` also supplies an
 explicit `version_comparator`. The plugin's default compares the manifest
-against `package_info().version` — which comes from `Cargo.toml` and therefore
-has **no commit number** — so the running `0.23.2.90` reaches it as a bare
+against `package_info().version` - which comes from `Cargo.toml` and therefore
+has **no commit number** - so the running `0.23.2.90` reaches it as a bare
 `0.23.2`, and the manifest for that same build (`0.23.2+90`) sorts above it:
 the app would download and reinstall itself on a loop. The comparator supplies
 `COMMIT_NUMBER` as the running commit number instead. `version_parts` in
@@ -253,13 +253,13 @@ the app would download and reinstall itself on a loop. The comparator supplies
 **The repository is `Suzora/Karasu`; it was `Kyusetzu/Karasu` until September
 2026, and every build before 1.30.8.760 still asks the old address for its
 updates** (`update_channel_manifest_url`, compiled in). They reach the new one
-only through GitHub's rename redirect — measured on 2026-09-30: both manifest
+only through GitHub's rename redirect - measured on 2026-09-30: both manifest
 URLs answer 301 to `Suzora`, then 200. That redirect holds only while no
 repository named `Karasu` exists under the `Kyusetzu` account, so **never
 create one there, and never fork `Suzora/Karasu` into that account** (a fork
 takes the name by default): every older install would stop finding updates,
 silently, and has no other way to learn the new address. GitHub Pages does not
-redirect at all — `kyusetzu.github.io/Karasu/` answered 404 the same day —
+redirect at all - `kyusetzu.github.io/Karasu/` answered 404 the same day -
 which is why the site, the README and both store listings moved with the code.
 
 **The author is "Kyusetzu" since 2026-11-10, where every file said "Kyu".**
@@ -290,9 +290,9 @@ the rule is: **name the spender, cache the answer, wake for a reason.**
   it the SQLite copy answers with no request; past it the copy answers at
   once and one background fetch refreshes it, emitting `list-refreshed` so
   the frontend re-reads the fresh copy for nothing. `force` (the sync button,
-  the merge) always fetches. `fetched_at` is stamped only by `cache_list` —
+  the merge) always fetches. `fetched_at` is stamped only by `cache_list` -
   a patch is our own edit, not a fetch, so `edit_cached_list` must never
-  touch it — and a first add, which no patch can invent, calls
+  touch it - and a first add, which no patch can invent, calls
   `cache_mark_stale` so the next read fetches.
 - **The passthrough caches allowlisted answers** (schema v20, above).
 - **The airing watcher wakes for the next episode** (`plan_next_wake`),
@@ -323,12 +323,12 @@ any of it by hand.
 node scripts/bump-version.mjs patch   # minor for features, major for breaks
 npm run verify                        # typecheck, audits and lints, then vitest and cargo test side by side
 git commit                            # message ends with the Co-Authored-By trailer
-node scripts/changelog.mjs            # after the commit — it reads the commit
+node scripts/changelog.mjs            # after the commit - it reads the commit
 git commit --amend --no-edit          # fold the changelog in
 npm run verify:full                   # before a push: every check the repository owns, once
 ```
 
-**`scripts/bump-version.mjs`** moves the version in all five places at once —
+**`scripts/bump-version.mjs`** moves the version in all five places at once -
 the three manifests, `COMMIT_NUMBER`, and `Cargo.lock`. It prints the resulting
 four-part version on stdout (so a commit subject can be filled without a second
 grep) and refuses to run when the tree holds nothing but version files, since a
@@ -349,7 +349,7 @@ for `verify:full`; `--marker-head` remains for a marker nothing in the
 history wrote. Skip the amend and commit the changelog separately if you
 prefer. It
 appends to `CHANGELOG.md`'s `## Unreleased` section from every commit since the
-`generated-through` marker, so nobody writes that file by hand — the maintainer
+`generated-through` marker, so nobody writes that file by hand - the maintainer
 declined to, and a changelog kept by hand is one that silently goes stale. The
 commit subject is the changelog line; add a `Changelog: Fixed: …` trailer when
 the subject describes the change and the reader needs the effect, or
@@ -506,17 +506,17 @@ browser's clipboard is named outside `lib/clipboard`.
 ## Comments: one line each
 
 Decided by the maintainer on 2026-09-12 and applied to the whole tree the same
-weekend: **every comment in a code file is one physical line** — `//`, `///`,
+weekend: **every comment in a code file is one physical line** - `//`, `///`,
 `//!`, `#`, `/* */`, JSDoc, KDoc, a `{/* */}` in JSX, all of them. One sentence
 that says what the code does, or the one reason it is this way; when both will
 not fit, keep the why. Numbers, dates, sizes, timings, rejected alternatives and
-bug history stay out of comments — this file is where a measurement lives.
+bug history stay out of comments - this file is where a measurement lives.
 Adjacent comment-only lines are one block, so stacking one-liners is not a way
 around the rule; a trailing comment on a code line is never a block. Hard limit
 120 characters of comment text, aim for 100. No comment may point at another
 comment ("see the note above"); point at a function, a test or this file. The
 only allowed multi-line shape is a script header's list of example invocations,
-and each of those sits in `scripts/comment-allowlist.json` with its reason —
+and each of those sits in `scripts/comment-allowlist.json` with its reason -
 an entry nothing matches fails the check, so the list cannot go stale.
 
 Three scripts hold the rule, and `npm run verify` runs the first:
@@ -531,7 +531,7 @@ node scripts/comment-strip-check.mjs --base HEAD # proves a change touched only 
 `comment-lexer.mjs` is the shared scanner (strings, regexes, raw strings,
 templates, heredocs and YAML block scalars are all understood, and a file that
 ends inside one is reported as a desync rather than passed). The strip check
-compares base and working copy with every comment removed — the proof a
+compares base and working copy with every comment removed - the proof a
 comment-only commit needs, and the only proof available for the Windows-only
 and Linux-only Rust arms and the Kotlin, which do not compile here. A rewrite
 that deletes a comment outright is legal under the rule but against the
@@ -553,12 +553,12 @@ intent: prefer one good line.
   and read the exit code.
 - **PRs merge by squash.** The repo refuses merge commits server-side;
   `gh pr merge N --squash`. A local `git pull --no-rebase` afterwards may
-  still create a local merge commit — that is fine, the restriction is
+  still create a local merge commit - that is fine, the restriction is
   GitHub's. A lockfile conflict resolves by taking the merged `package.json`
   and regenerating with `npm install`, never by rebasing twelve version bumps.
 - **Linux-only code does not compile on Windows**, so `cargo test` here proves
-  nothing about it. Either let CI's `linux-build` job be the check, or — for a
-  pure-Rust dependency like zbus or chacha20poly1305 — paste the module into a
+  nothing about it. Either let CI's `linux-build` job be the check, or - for a
+  pure-Rust dependency like zbus or chacha20poly1305 - paste the module into a
   throwaway crate and `cargo check` it locally. That caught two real errors in
   the MPRIS backend that would otherwise have gone to CI. For the same reason,
   never put `#[cfg(target_os = "linux")]` on a *statement*: it is stripped here,
@@ -573,7 +573,7 @@ intent: prefer one good line.
 - **`eprintln!` reaches nobody in a shipped build.** `main.rs` sets
   `windows_subsystem = "windows"`, so a release binary on Windows has no console
   and stderr is discarded; a Linux AppImage started from a desktop file is no
-  better. Use `logging::{error,warn,info,debug}` — and never log a command
+  better. Use `logging::{error,warn,info,debug}` - and never log a command
   argument, a request header or a response body: `anilist_connect` takes the raw
   token and `jellyfin_sign_in` takes a plaintext password. `logging::scrub`
   replaces credentials with a labelled `<CREDENTIAL_…>` on write, and has a
@@ -588,12 +588,12 @@ intent: prefer one good line.
   `karasu.portable` marker beside `src-tauri/target/debug/karasu.exe` and
   `portable::data_dir` sends all three to `target/debug/data/` instead. The
   marker is inside the ignored `target/`, so it is invisible in git and
-  `cargo clean` deletes it — recreate it before trusting a dev run. A debug
+  `cargo clean` deletes it - recreate it before trusting a dev run. A debug
   build also starts hidden in the tray (`hide_window_in_dev`); relaunching the
   exe shows the running one through the single-instance callback.
 - **Never round-trip source text through `encode("utf-8").decode("unicode_escape")`.**
   A script inserting i18n keys did, over text Python had already decoded, and
-  every em-dash, arrow and umlaut came back a byte at a time as latin-1 —
+  every em-dash, arrow and umlaut came back a byte at a time as latin-1 -
   `Kontoänderungen` became `KontoÃ¤nderungen` in seven strings across both files.
   Worse, `grep` reported the files clean because the console codepage hid it. If
   non-ASCII is ever in question, compare **codepoints** (`hex(ord(c))`), not
@@ -608,14 +608,14 @@ that edits a chart. A comment in the code that says "see CLAUDE.md" may mean a
 section that now lives there; this is the map. Read the file yourself when a
 task is about its subject and no matching path has been opened yet.
 
-- **`.claude/rules/frontend.md`** — The frontend: layout, design language, conventions and measured invariants: Layout: `src/`; Notes that have cost real time; Design language; Conventions; Performance invariants.
-- **`.claude/rules/backend.md`** — The Rust backend: layout, the bindings, the data model and its notes: Layout: `src-tauri/src/`; The data model, and the decisions inside it; The bindings are generated, never written; Notes that have cost real time; Performance invariants.
-- **`.claude/rules/android.md`** — Android: the build, the updater, the tracking service and the device measurements: Notes that have cost real time.
-- **`.claude/rules/anilist-api.md`** — What AniList's API does, as measured: Notes that have cost real time.
-- **`.claude/rules/detection.md`** — Detection: what browsers and streaming sites publish: Notes that have cost real time.
-- **`.claude/rules/gate-and-tests.md`** — The gate, the test suites, the scripts and CI: Layout: `scripts/`; The gate in detail; The test suites; Notes that have cost real time; The dependency graph is checked, not trusted; The dev loop has eyes; Three Cargo tools that answer questions, run by hand; Links are checked weekly, not trusted; The Actions cache is 10 GB, and a PR must not spend it; Dependabot merges itself.
-- **`.claude/rules/release-and-packaging.md`** — The AppImage, Flatpak, F-Droid and the release workflows: The AppImage; Packaging beyond the release page; The Windows installer carries the old publisher name over.
-- **`.claude/rules/site.md`** — The website: The website.
+- **`.claude/rules/frontend.md`** - The frontend: layout, design language, conventions and measured invariants: Layout: `src/`; Notes that have cost real time; Design language; Conventions; Performance invariants.
+- **`.claude/rules/backend.md`** - The Rust backend: layout, the bindings, the data model and its notes: Layout: `src-tauri/src/`; The data model, and the decisions inside it; The bindings are generated, never written; Notes that have cost real time; Performance invariants.
+- **`.claude/rules/android.md`** - Android: the build, the updater, the tracking service and the device measurements: Notes that have cost real time.
+- **`.claude/rules/anilist-api.md`** - What AniList's API does, as measured: Notes that have cost real time.
+- **`.claude/rules/detection.md`** - Detection: what browsers and streaming sites publish: Notes that have cost real time.
+- **`.claude/rules/gate-and-tests.md`** - The gate, the test suites, the scripts and CI: Layout: `scripts/`; The gate in detail; The test suites; Notes that have cost real time; The dependency graph is checked, not trusted; The dev loop has eyes; Three Cargo tools that answer questions, run by hand; Links are checked weekly, not trusted; The Actions cache is 10 GB, and a PR must not spend it; Dependabot merges itself.
+- **`.claude/rules/release-and-packaging.md`** - The AppImage, Flatpak, F-Droid and the release workflows: The AppImage; Packaging beyond the release page; The Windows installer carries the old publisher name over.
+- **`.claude/rules/site.md`** - The website: The website.
 
 ## Invariants the release audit established
 
@@ -626,8 +626,8 @@ four or five places, made by careful code, because nothing said it once.
 
 - **`list_cache` has one owner.** `db::edit_cached_list` does read, edit and
   write under a single lock, and `cache_patch_entry` / `cache_forget_entry_id`
-  are the only ways an entry changes. *Every* write path calls them — the live
-  save, the bulk chunks, the delete, the queue drain — because the scrobbler's
+  are the only ways an entry changes. *Every* write path calls them - the live
+  save, the bulk chunks, the delete, the queue drain - because the scrobbler's
   two anti-regression guards read this table as truth. Fed a stale copy, they
   let a scrobble overwrite the user's own newer edit, and a deleted entry stayed
   a scrobble candidate that `SaveMediaListEntry(mediaId:)` then recreated.
@@ -654,12 +654,12 @@ four or five places, made by careful code, because nothing said it once.
   credential. The order is the point: a failure then leaves "this account, no
   credential", where the drain finds nothing, rather than "new credential, old
   identity", which sends one account's queued edits under another's bearer.
-  `refresh_viewer` is deliberately outside it — same account, fresher data.
+  `refresh_viewer` is deliberately outside it - same account, fresher data.
 - **The tick re-reads what the tick decides on.** `settings.enabled`, the gap
   grace and play state are read at the due point, not at session creation. A
   session survives `EMPTY_TICK_GRACE` empty polls, because on any source that
   reports only playing sessions a pause is indistinguishable from a stop. No
-  phase carrying a write in flight may arm — that invariant is what makes
+  phase carrying a write in flight may arm - that invariant is what makes
   spawning the write safe, and it has a test of its own.
 - **Validate by parsing, never by spelling.** `net::host_is_local` canonicalises
   to an `IpAddr` before any range test. Three spellings of loopback walked
@@ -671,7 +671,7 @@ four or five places, made by careful code, because nothing said it once.
   without re-implementing the classification in TypeScript.
 - **A partial result is a value, not an absence.** A failed list query is not an
   empty list, and a query in the error state has `isLoading === false` with no
-  data — so destructure `isError` wherever `data` is used, or the screen states
+  data - so destructure `isError` wherever `data` is used, or the screen states
   the opposite of the truth as settled fact.
 - **The five version files must agree.** `node scripts/bump-version.mjs --check`
   proves it and the release workflow runs it before building. A mismatch between
@@ -684,7 +684,7 @@ four or five places, made by careful code, because nothing said it once.
   scoped. Commit messages end with the `Co-Authored-By:` trailer.
 - **Validate AniList queries live** before wiring new fields (introspection /
   a throwaway Node script), since the schema is the source of truth. A *mutation*
-  cannot be validated by running it — that means editing real entries — so use
+  cannot be validated by running it - that means editing real entries - so use
   schema introspection (`__type(name: "Mutation")`) for its argument list
   instead; that is how `UpdateMediaListEntries` was widened past status/score.
   Scalars on `LIST_QUERY` (`startedAt`, `completedAt`, `private`) are cheap and
@@ -692,14 +692,14 @@ four or five places, made by careful code, because nothing said it once.
 - **DB changes go through a new `MIGRATION_V*`** guarded by PRAGMA
   `user_version`; add a `mem_db()` test. Run it through `apply`, which wraps the
   step in a transaction so the schema change and its `user_version` bump land
-  together — `execute_batch` alone commits each statement separately, and a
+  together - `execute_batch` alone commits each statement separately, and a
   crash in between leaves a database that is migrated but not labelled as such.
   Prefer `CREATE TABLE IF NOT EXISTS` so a step is re-runnable anyway; `ALTER
   TABLE ADD COLUMN` is not, which is why v7 has to ask whether the column is
   already there.
 - **Platform-specific Rust is `#[cfg(...)]`-gated**, and both Windows and Linux
   are real implementations rather than one plus a stub. Keep the pure decisions
-  out of the gated modules — `media_session/mod.rs` is the pattern: the backends
+  out of the gated modules - `media_session/mod.rs` is the pattern: the backends
   supply data, the shared module decides, and its tests then run on both
   platforms instead of only in the Linux CI job. macOS is deliberately *not*
   covered: the keyring dependency is declared for `cfg(windows)` and

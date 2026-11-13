@@ -37,7 +37,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   still matches. ADN
   appends its dub list (`… : Teufelsblut - streaming - DF, OmdU, … - ADN`),
   which the profile cuts. A site is named by an affix that strips, never by a
-  word inside the title — "ADN" sits inside "MADNESS".
+  word inside the title - "ADN" sits inside "MADNESS".
 - **Firefox and its forks tell the desktop less than the tab shows, and the
   verbose log says what was dropped.** Read from Mozilla's source on
   2026-10-07: the browser publishes one media session, for the tab that last
@@ -47,7 +47,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   private windows). A site that sets its own metadata often names only the
   episode there, while its tab names the series. So with verbose logging on
   the `verdict` line names every playing session that is not a known music
-  player — rejected ones included, which is what detection saw — and the
+  player - rejected ones included, which is what detection saw - and the
   `browser_tabs` line, written when nothing was recognised, counts the
   browser windows and names only those whose title holds the session's own,
   compared word for word in the matcher's form (`browser::relation`), never
@@ -65,7 +65,7 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   would otherwise take the official path, which never asks. Any other tab
   goes to `browser::chapter_tab`, which reads the tab each browser window
   shows when its title spells a chapter with its word (`parser::spelled_chapter`: "Ch.
-  45", "Chapter", "Kapitel" — never a bare or `#` number) and is not a page
+  45", "Chapter", "Kapitel" - never a bare or `#` number) and is not a page
   about chapters (`off_topic`): no off-topic word in English or German
   (discussion, wiki, review, spoilers, Diskussion …), no phrase like
   "release date" or "where to read", no search engine or video site as a

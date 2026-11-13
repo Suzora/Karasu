@@ -1,6 +1,6 @@
 # Roadmap
 
-**The complete list of what stands between the tree and the next milestone —
+**The complete list of what stands between the tree and the next milestone -
 and nothing else.** This file is maintained by deletion: an item that ships
 is removed, not annotated, and history lives where history already lives
 (commit subjects, and CHANGELOG.md's tag-time curation). Settled decisions
@@ -13,7 +13,7 @@ there truncates a published release body. Open work goes here; shipped work
 goes there, at tag time.
 
 For what will *never* be built, see the "Explicitly rejected" section of
-`CLAUDE.md` — activity and playback-history expansion, manga cost tracking,
+`CLAUDE.md` - activity and playback-history expansion, manga cost tracking,
 settings cloud-sync, Plex and Emby, RSS/torrent release feeds, and anything
 needing a hosted backend.
 
@@ -44,18 +44,18 @@ Everything it found at P1 and P2 is fixed, as is every P3 with a behavioural
 consequence. What is left is recorded here rather than in a deleted folder:
 
 Everything still listed here is blocked on something no amount of work in the
-repository supplies — a device, a live API, or a decision that is the
+repository supplies - a device, a live API, or a decision that is the
 maintainer's. Each says which, so none of them reads as unstarted work.
 
 **Needs a user, or a decision already made:**
 
-- **User-installed CAs on Android** — the webpki-roots trade documented in
+- **User-installed CAs on Android** - the webpki-roots trade documented in
   `net.rs`. Revisit only if a user with such a setup actually asks.
-- **`MediaSessionManager` detection on Android** — moot while the app is
+- **`MediaSessionManager` detection on Android** - moot while the app is
   sideloaded: the notification-listener permission is a Play policy
   question, and Play distribution is itself not planned (maintainer,
   August 2026; sideload is the model, and since 1.11 the app fetches its
-  own APK from the GitHub release — see "The Android updater" in
+  own APK from the GitHub release - see "The Android updater" in
   CLAUDE.md).
 
 ### Needs testing

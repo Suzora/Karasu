@@ -31,7 +31,7 @@ so nobody keeps it by hand and `pages.yml` redeploys on a changelog push.
 | `npm run lighthouse` | Lighthouse, mobile and desktop, against `dist/client` in headless Edge; fails under 95 in any category |
 | `node scripts/snap.mjs <url> …` | Review screenshots at 390/768/1280/1440/2560 into `captures/review/`; `--full` stitches the whole page in tiles, `--contrast` emulates `prefers-contrast: more` |
 | `node scripts/capture-desktop.mjs …` | Drives the portable release exe over CDP for the 2× desktop screenshots (`launch`, `go`, `shot`, `quit`, …) |
-| `node scripts/screens.mjs site` (from the repository root) | Renders the website's twenty-two shots with the screens harness — the real app over a mocked backend with AniList's own titles and art — into `captures/` |
+| `node scripts/screens.mjs site` (from the repository root) | Renders the website's twenty-two shots with the screens harness - the real app over a mocked backend with AniList's own titles and art - into `captures/` |
 | `node scripts/process-screenshots.mjs` | Turns `captures/` into the AVIF/WebP/JPEG sets under `src/assets/screenshots/` and rewrites `src/content/screenshots.ts` from `shots.config.mjs` |
 | `node scripts/og-image.mjs` | Renders `public/og.png` from the site's own tokens and font |
 | `node scripts/icons.mjs` | Regenerate the favicon set from `src-tauri/icons/app-icon.svg` |
@@ -46,12 +46,12 @@ of gzipped JavaScript (react-dom 19.3 alone moved the figure from 94.8 to
 
 ## Layout
 
-```
+```text
 src/
   entry-client.tsx  entry-server.tsx  App.tsx  NotFound.tsx  head.ts
   site.config.ts        every URL and the nav, in one place
   styles/               index.css (site layer), tokens.generated.css, fonts.css
-  components/ui/        button, card, pill — copies of the app's, on purpose
+  components/ui/        button, card, pill - copies of the app's, on purpose
   components/           KarasuMark and the site's own pieces
   sections/             one file per section of the page
   i18n/                 the languages, the English catalog, locales/ with the rest
