@@ -378,6 +378,9 @@ Each group in full:
   hides the window - on a Wayland desktop through the desktop's own shortcut
   portal (GNOME 48 and later, KDE Plasma, Hyprland), which may ask you to
   confirm the key
+- On Linux, an optional **hardware acceleration** switch draws with the
+  graphics card and brings the page transitions back; it is off by default,
+  because WebKitGTK shows a blank window on some drivers
 - **Daily local backups** of the database (one per day, the newest kept) -
   what the app restores from by itself when the file will not open
 - **40 languages** with automatic system-language detection - English and

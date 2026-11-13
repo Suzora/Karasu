@@ -2186,6 +2186,11 @@ export const en = {
     closeToTray: "Closing hides to the tray",
     closeToTrayHint:
       "Karasu keeps running and detecting. Quit from the tray menu.",
+    gpu: "Hardware acceleration",
+    gpuHint:
+      "Draw with the graphics card, which also brings the page transitions back. If the window stays blank afterwards, start Karasu once with WEBKIT_DISABLE_DMABUF_RENDERER=1 and turn this off.",
+    gpuRestart: "Applies the next time Karasu starts.",
+    gpuForced: "Set by WEBKIT_DISABLE_DMABUF_RENDERER in your environment, which decides before this setting.",
     closeToTrayNoTray:
       "Your desktop has no tray icon, so closing quits — otherwise the window would have no way back.",
     hotkey: "Global hotkey",

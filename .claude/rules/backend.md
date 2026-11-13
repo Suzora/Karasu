@@ -489,7 +489,21 @@ the rig.
   Plasma Wayland with an RTX 5090 beside an AMD iGPU and
   `WEBKIT_DISABLE_DMABUF_RENDERER=0`: the diagnostics read GPU compositing
   yes, the window drew, and a dozen fast sidebar transitions ran without a
-  crash. One machine is not #54's, so the default stays until more do.
+  crash. One machine is not #54's, so the default stays until more do. Since
+  2026-11-13 the default has a switch: Settings, Desktop, Hardware
+  acceleration writes the marker file `gpu-compositing` into the data folder
+  (`set_gpu_compositing`), and `avoid_blank_webkit_window` reads it at the
+  very start (`gpu_marker_at_start`), where it leaves the DMA-BUF switch
+  unset when the marker is there. A file and not a kv row, because WebKit
+  picks its renderer once per process and the database opens later, in
+  setup; for the same reason the data folder is worked out by hand there
+  (`linux_data_dir`: the XDG data home, then the identifier, which a test
+  holds to `tauri.conf.json`). A variable the user set still wins, and the
+  row is then locked and says so. The row's hint names the way back for a
+  window that stays blank: one start with `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
+  When this was written the switch had not been run in a real session: the
+  path is pinned by tests, and what an unset switch does is the measurement
+  of 2026-10-31.
 - **A command never waits on a dialog, because on Linux that dialog is never
   drawn.** A plain `#[tauri::command] fn` runs on the main thread, and
   tauri-plugin-dialog's `blocking_*` calls park the calling thread on a

@@ -19,6 +19,7 @@ vi.mock("@/api/tauri", async (orig) => {
       ...real.commands,
       getAutostart: () => Promise.resolve(false),
       getCloseToTray: () => Promise.resolve(null),
+      getGpuCompositing: () => Promise.resolve({ supported: true, wanted: false, active: false, forced: false }),
       getGlobalHotkey: () => Promise.resolve(null),
       globalHotkeyStatus: () => Promise.resolve({ backend: "grab", state: "off", trigger: null, configurable: false }),
       getPortableStatus: () => Promise.resolve({ portable: false, dir: "/data", other: null }),

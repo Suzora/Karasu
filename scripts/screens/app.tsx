@@ -805,6 +805,9 @@ mockIPC((cmd, args) => {
       return signedOut ? "none" : "anilist";
     case "platform_info":
       return { os: android ? "android" : "windows", appImage: false, flatpak: false, storeUpdates: false, viewTransitions: true };
+    case "get_gpu_compositing":
+      // The Linux desktop of the portal screen has the switch; the Windows-shaped default does not.
+      return { supported: mock === "hotkey-portal", wanted: false, active: false, forced: false };
     case "fetch_media_list":
     case "local_fetch_list":
     case "cached_media_list":

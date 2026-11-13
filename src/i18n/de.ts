@@ -2196,6 +2196,11 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
     closeToTray: "Schließen minimiert in den Infobereich",
     closeToTrayHint:
       "Karasu läuft weiter und erkennt weiter. Beenden über das Tray-Menü.",
+    gpu: "Hardwarebeschleunigung",
+    gpuHint:
+      "Mit der Grafikkarte zeichnen, was auch die Seitenübergänge zurückbringt. Bleibt das Fenster danach leer, starte Karasu einmal mit WEBKIT_DISABLE_DMABUF_RENDERER=1 und schalte dies wieder aus.",
+    gpuRestart: "Gilt ab dem nächsten Start von Karasu.",
+    gpuForced: "Durch WEBKIT_DISABLE_DMABUF_RENDERER in deiner Umgebung festgelegt; die Variable entscheidet vor dieser Einstellung.",
     closeToTrayNoTray:
       "Deine Arbeitsumgebung hat kein Tray-Symbol, deshalb beendet Schließen die App — sonst gäbe es keinen Weg zurück zum Fenster.",
     hotkey: "Globales Tastenkürzel",

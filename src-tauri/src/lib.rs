@@ -336,11 +336,14 @@ fn build_tray(app: &tauri::App) -> tauri::Result<()> {
     Ok(())
 }
 
-/// WebKitGTK's DMA-BUF renderer paints a blank window on many driver combinations; set only when the user has not chosen.
+/// WebKitGTK's DMA-BUF renderer paints a blank window on some drivers, so it is off unless the user or the setting chose.
 #[cfg(target_os = "linux")]
 fn avoid_blank_webkit_window() {
-    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    let user = std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER");
+    commands::remember_gpu_env(user.is_some());
+    let wants_gpu = commands::gpu_marker_at_start().is_some_and(|marker| marker.exists());
+    if let Some(value) = commands::dmabuf_default(user.as_deref(), wants_gpu) {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", value);
     }
 }
 
@@ -582,6 +585,8 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::set_system_bars,
             commands::get_close_to_tray,
             commands::set_close_to_tray,
+            commands::get_gpu_compositing,
+            commands::set_gpu_compositing,
             commands::get_global_hotkey,
             commands::set_global_hotkey,
             commands::global_hotkey_status,

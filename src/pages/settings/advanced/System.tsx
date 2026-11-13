@@ -8,7 +8,7 @@ import { backendErrorText } from "@/lib/backendError";
 import { usePlatform } from "@/stores/platform";
 import { Row, Toggle } from "../shared";
 import { listen } from "@tauri-apps/api/event";
-import type { HotkeyStatus } from "@/api/bindings";
+import type { GpuCompositing, HotkeyStatus } from "@/api/bindings";
 import { hotkeyHintKey, hotkeyRetryable, hotkeyStatusKey, type HotkeyStatusKey } from "@/lib/hotkeyStatus";
 import type { TFunction } from "i18next";
 import { commands, unwrap } from "@/api/tauri";
@@ -44,6 +44,7 @@ export function SystemSection() {
   const platform = usePlatform((s) => s.info);
   const [autostart, setAutostart] = useState<boolean | null>(null);
   const [closeTray, setCloseTray] = useState<CloseToTray | null>(null);
+  const [gpu, setGpu] = useState<GpuCompositing | null>(null);
   const [hotkey, setHotkey] = useState<string | null>(null);
   const [hotkeyDraft, setHotkeyDraft] = useState("");
   const [hotkeyStatus, setHotkeyStatus] = useState<HotkeyStatus | null>(null);
@@ -53,6 +54,7 @@ export function SystemSection() {
     if (!api.isTauri) return;
     commands.getAutostart().then(setAutostart);
     commands.getCloseToTray().then(setCloseTray);
+    commands.getGpuCompositing().then(setGpu);
     // Listening before reading, so a status announced in between is not lost; the desktop answers after its own dialog.
     const un = listen<HotkeyStatus>("hotkey-status", (e) => setHotkeyStatus(e.payload));
     void Promise.all([commands.getGlobalHotkey(), commands.globalHotkeyStatus()]).then(([v, status]) => {
@@ -87,6 +89,17 @@ export function SystemSection() {
     }
   };
 
+  const toggleGpu = async (enabled: boolean) => {
+    setGpu((prev) => (prev ? { ...prev, wanted: enabled } : prev));
+    setError(null);
+    try {
+      await unwrap(commands.setGpuCompositing(enabled));
+    } catch (e) {
+      setGpu((prev) => (prev ? { ...prev, wanted: !enabled } : prev));
+      setError(backendErrorText(e, t));
+    }
+  };
+
   // Same rollback idiom: the OS can refuse an accelerator, and Rust registers before it stores one.
   const applyHotkey = async (askAgain = false) => {
     const next = hotkeyDraft.trim();
@@ -115,6 +128,24 @@ export function SystemSection() {
             onChange={toggleAutostart}
             label={t("settings.autostart")}
             hint={t("settings.autostartHint")}
+          />
+        )}
+
+        {/* Linux alone: WebKitGTK picks its renderer once per start, so the row says when a change is still waiting. */}
+        {gpu?.supported && (
+          <Toggle
+            checked={gpu.forced ? gpu.active : gpu.wanted}
+            onChange={toggleGpu}
+            disabled={gpu.forced}
+            setting="gpu"
+            label={t("settings.gpu")}
+            hint={
+              gpu.forced
+                ? t("settings.gpuForced")
+                : gpu.wanted !== gpu.active
+                  ? `${t("settings.gpuHint")} ${t("settings.gpuRestart")}`
+                  : t("settings.gpuHint")
+            }
           />
         )}
 

@@ -240,6 +240,9 @@ export const commands = {
 	setSystemBars: (status: string, navigation: string, light: boolean) => typedError<null, string>(__TAURI_INVOKE("set_system_bars", { status, navigation, light })),
 	getCloseToTray: () => __TAURI_INVOKE<CloseToTray>("get_close_to_tray"),
 	setCloseToTray: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_close_to_tray", { enabled })),
+	getGpuCompositing: () => __TAURI_INVOKE<GpuCompositing>("get_gpu_compositing"),
+	/**  Writes or removes the marker; the renderer is chosen once per process, so the change shows at the next start. */
+	setGpuCompositing: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_gpu_compositing", { enabled })),
 	getGlobalHotkey: () => __TAURI_INVOKE<string | null>("get_global_hotkey"),
 	/**  Registers (or on Wayland validates) before it stores, so a rejected key never returns at every startup. */
 	setGlobalHotkey: (accelerator: string | null) => typedError<null, string>(__TAURI_INVOKE("set_global_hotkey", { accelerator })),
@@ -451,6 +454,16 @@ export type DiscoveredServer = {
 export type DownloadedUpdate = {
 	version: string,
 	notes: string | null,
+};
+
+/**  The hardware acceleration setting as Settings draws it; `active` is what this run got, `wanted` what the next one will. */
+export type GpuCompositing = {
+	/**  Only WebKitGTK has the switch, so the row exists on Linux alone. */
+	supported: boolean,
+	wanted: boolean,
+	active: boolean,
+	/**  The environment set the switch itself, so the setting has no say in this run. */
+	forced: boolean,
 };
 
 /**  Which mechanism holds the summon hotkey in this session. */

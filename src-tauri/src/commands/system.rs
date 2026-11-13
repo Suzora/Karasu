@@ -231,6 +231,85 @@ pub(crate) fn webkit_composites(dmabuf_off: Option<&OsStr>, compositing_off: Opt
     !set(dmabuf_off) && !set(compositing_off)
 }
 
+/// The marker in the data folder whose presence asks WebKitGTK to composite on the GPU from the next start.
+pub(crate) const GPU_MARKER: &str = "gpu-compositing";
+
+/// The identifier Tauri names the data folder after, repeated here because the start reads it before the app exists.
+pub(crate) const APP_IDENTIFIER: &str = "dev.kyu.karasu";
+
+/// Whether the user's own environment set the DMA-BUF switch at start, which the setting then cannot overrule.
+static GPU_ENV_FORCED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
+/// Records at start whether the environment had already chosen the renderer.
+pub(crate) fn remember_gpu_env(forced: bool) {
+    let _ = GPU_ENV_FORCED.set(forced);
+}
+
+/// What the start writes into WebKit's DMA-BUF switch: nothing when the user's environment or the setting decides.
+pub(crate) fn dmabuf_default(user_env: Option<&OsStr>, wants_gpu: bool) -> Option<&'static str> {
+    (user_env.is_none() && !wants_gpu).then_some("1")
+}
+
+/// Where Tauri keeps the app's data on Linux, worked out by hand: the XDG data home, then the identifier.
+pub(crate) fn linux_data_dir(xdg: Option<&OsStr>, home: Option<&OsStr>) -> Option<std::path::PathBuf> {
+    let base = match xdg.map(std::path::PathBuf::from).filter(|p| p.is_absolute()) {
+        Some(dir) => dir,
+        None => std::path::PathBuf::from(home?).join(".local/share"),
+    };
+    Some(base.join(APP_IDENTIFIER))
+}
+
+/// The marker's path as the start can know it, before Tauri has resolved anything.
+pub(crate) fn gpu_marker_at_start() -> Option<std::path::PathBuf> {
+    let fallback = linux_data_dir(std::env::var_os("XDG_DATA_HOME").as_deref(), std::env::var_os("HOME").as_deref())?;
+    Some(crate::portable::data_dir(fallback).join(GPU_MARKER))
+}
+
+/// The hardware acceleration setting as Settings draws it; `active` is what this run got, `wanted` what the next one will.
+#[derive(serde::Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct GpuCompositing {
+    /// Only WebKitGTK has the switch, so the row exists on Linux alone.
+    pub supported: bool,
+    pub wanted: bool,
+    pub active: bool,
+    /// The environment set the switch itself, so the setting has no say in this run.
+    pub forced: bool,
+}
+
+fn gpu_marker(app: &AppHandle) -> Result<std::path::PathBuf, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    Ok(crate::portable::data_dir(dir).join(GPU_MARKER))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_gpu_compositing(app: AppHandle) -> GpuCompositing {
+    GpuCompositing {
+        supported: cfg!(target_os = "linux"),
+        wanted: gpu_marker(&app).is_ok_and(|p| p.exists()),
+        active: webkit_composites(
+            std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").as_deref(),
+            std::env::var_os("WEBKIT_DISABLE_COMPOSITING_MODE").as_deref(),
+        ),
+        forced: GPU_ENV_FORCED.get().copied().unwrap_or(false),
+    }
+}
+
+/// Writes or removes the marker; the renderer is chosen once per process, so the change shows at the next start.
+#[tauri::command]
+#[specta::specta]
+pub fn set_gpu_compositing(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let marker = gpu_marker(&app)?;
+    if enabled {
+        return std::fs::write(&marker, b"").map_err(|e| format!("Could not save the setting: {e}"));
+    }
+    match std::fs::remove_file(&marker) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(format!("Could not save the setting: {e}")),
+        _ => Ok(()),
+    }
+}
+
 /// The loopback URL a trailer's frame loads, since the video hosts refuse a `tauri://` referrer.
 #[tauri::command]
 #[specta::specta]
@@ -856,7 +935,8 @@ pub fn mark_all_notifications_read(app: AppHandle, db: State<'_, Db>) -> Result<
 mod tests {
     use super::{
         close_hides_window, describe_database, hex_from_rgb, hex_from_unit, is_hex6, normalize_ui_zoom,
-        set_system_bars, webkit_composites, UI_ZOOM_DEFAULT, UI_ZOOM_MAX, UI_ZOOM_MIN,
+        dmabuf_default, linux_data_dir, set_system_bars, webkit_composites, APP_IDENTIFIER, UI_ZOOM_DEFAULT, UI_ZOOM_MAX,
+        UI_ZOOM_MIN,
     };
     use std::ffi::OsStr;
 
@@ -899,6 +979,31 @@ mod tests {
     }
 
     /// WebKit turns compositing off for any value but `0`, the empty string included; the transition gate must agree.
+    #[test]
+    fn the_start_sets_the_switch_only_when_nobody_chose() {
+        let v = |s: &'static str| Some(OsStr::new(s));
+        assert_eq!(dmabuf_default(None, false), Some("1"));
+        assert_eq!(dmabuf_default(None, true), None);
+        assert_eq!(dmabuf_default(v("0"), false), None);
+        assert_eq!(dmabuf_default(v("1"), true), None);
+    }
+
+    #[test]
+    fn the_data_folder_is_found_as_tauri_finds_it() {
+        let v = |s: &'static str| Some(OsStr::new(s));
+        let home = std::path::Path::new("/home/u/.local/share").join(APP_IDENTIFIER);
+        assert_eq!(linux_data_dir(None, v("/home/u")), Some(home.clone()));
+        assert_eq!(linux_data_dir(v("relative"), v("/home/u")), Some(home));
+        assert_eq!(linux_data_dir(v("/data"), None), Some(std::path::Path::new("/data").join(APP_IDENTIFIER)));
+        assert_eq!(linux_data_dir(None, None), None);
+    }
+
+    #[test]
+    fn the_identifier_is_the_one_tauri_is_configured_with() {
+        let conf: serde_json::Value = serde_json::from_str(include_str!("../../tauri.conf.json")).unwrap();
+        assert_eq!(conf["identifier"], APP_IDENTIFIER);
+    }
+
     #[test]
     fn webkit_composites_unless_a_switch_is_set_to_anything_but_zero() {
         let v = |s: &'static str| Some(OsStr::new(s));
