@@ -578,7 +578,18 @@ them away without re-measuring.
   1.7 ms, 2,000 (490 KiB) in 10.5 ms and 8,000 (1,982 KiB) in 63 ms. A row
   per entry would buy single milliseconds on an ordinary list and cost a
   migration of the table every write path owns; measure again before
-  proposing it.
+  proposing it. Measured again on 2026-11-13, on the maintainer's Linux
+  machine, at the size of a real entry: his own anime list holds 681 entries
+  of about 970 bytes each, four times the fixture's. A temporary test built
+  entries of 1,130 bytes with every field `LIST_QUERY` carries and timed one
+  `cache_patch_entry`, the whole read, parse, edit, serialise and write, as
+  the median of seven against an in-memory database: 4.4 ms at 700 entries
+  (771 KiB), 11.9 ms at 2,000 (2,214 KiB) and 68.7 ms at 8,000 (8,892 KiB),
+  with the bare read at 0.05, 0.14 and 1.0 ms. A file on disk adds its write.
+  So the blob stays, and the question "would more Rust make the app faster"
+  has the same answer: the local search scores 5,000 titles in 2 to 10 ms in
+  TypeScript, and what a user waits for is the network and the WebView's
+  drawing, neither of which a port moves.
 - **`matcher::prepare` preserves candidate and title order**, keeps the empty
   trigram-set guard (a NaN score pins `best` forever) and keeps the exact-match
   short circuit. `matcher.rs`'s equivalence test checks the optimized path

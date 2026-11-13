@@ -804,3 +804,12 @@ them away without re-measuring.
   `em = 1` for its natural height, then drawn at the size that fills the
   preset's crop. `drawMark` places the mark by its **centre**: corner anchoring
   is what once left 52% of the bird outside the page.
+- **The list crosses the bridge whole, and the poster is encoded in the
+  WebView; both were timed on 2026-11-13 and neither is worth moving.**
+  `JSON.parse` of a list at the real entry size took 1.8 ms for 700 entries
+  (761 KiB), 4.9 ms for 2,000 and 19.7 ms for 8,000 in Node. `canvas.toBlob`
+  in Chromium took, for the page preset (1080 x 1720), 26, 94 and 210 ms as
+  PNG at 1x, 2x and 3x and 10, 35 and 83 ms as JPEG, over a synthetic canvas
+  with six noisy tiles in place of covers. WebKitGTK was not measured, and a
+  phone is several times slower, which leaves both in the range of one frame
+  to a fraction of a second on a click.
