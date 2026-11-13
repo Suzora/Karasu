@@ -161,3 +161,26 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   and `connect_with_token`'s one bounded retry (1.5 s sleep) covering it.
   The hardware-key generation everyone suspected costs 27 ms. Do not move
   `save_token` off the sign-in path on the strength of the old guess.
+- **The phone was read over adb on 2026-11-13, and everything the release build shows from outside held.**
+  NX809J, Android 16, the release APK 1.79.7.978, nothing installed or wiped. A cold start after `am kill`
+  took 110 ms to the first frame with no abort, in line with the 77 to 118 ms of 2026-10-31; `am kill` only
+  ends a cached process, so a second cold start in a row needs a wait of minutes or a force-stop, and four
+  further starts were hot (32 to 64 ms). The crash buffer and the dropbox held no entry for the package before
+  or after. The process sat cached and not frozen after four and a half hours in the background, in standby
+  bucket 5 and on the Doze whitelist. Job 46231 (`NotifJobService`) was registered, the four widget providers
+  were registered, and POST_NOTIFICATIONS, the battery exemption and the install-packages app-op were all
+  granted. A `SEND` intent carrying an anilist.co anime link opened that title's detail page. Not covered,
+  because nothing was playing: the tracking service and its freeze behaviour, which still rest on the run of
+  2026-09-12. Not covered at all: a first start that creates the database, the updater's download and the
+  widgets' drawing, which need a wipe, a newer build or a look at the home screen. The touch-feedback switch
+  still read 0.
+- **The tracking service held through six locked minutes on 2026-11-13, on USB power.** Same phone and build,
+  the service already in the foreground (`isForeground=true types=0x40000000`, started with the app). The
+  screen was put to sleep with `input keyevent KEYCODE_SLEEP` and the process sampled every 30 s for six
+  minutes: `isFrozen=false` and `curProcState=4` on all thirteen samples, the service still in the foreground,
+  no `am_freeze` event for the package, and the process's CPU time rose from 14.51 to 14.67 s, so it kept
+  running. The freeze of 2026-09-12 came 37 s after the lock. Two limits: the phone was charging over the adb
+  cable, so Doze stayed `ACTIVE` and a vendor freezer may treat a charging phone more kindly, and a release
+  build's Rust log does not reach logcat, so whether each poll reached Jellyfin is only in a diagnostics
+  export (About, Save report), which reads polls per five minutes. A run on battery over wireless adb is the
+  measurement this one does not replace.

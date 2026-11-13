@@ -166,7 +166,9 @@ src/
   names `http://127.0.0.1:*` and the two hosts. Before the click only the video's still loads, through the bio-image proxy
   (`fetchBioImage`), so the host sees the IP on every detail page with a trailer, which the maintainer chose
   on 2026-11-01 for the preview; the card carries an "Open on YouTube" link beside it. Played in a release build on KDE Plasma Wayland the same
-  day; Dailymotion and Android were not tried.
+  day. On Android it played on 2026-11-13: the release APK 1.79.7.978 on the NX809J (Android 16, WebView
+  156) showed the still, and a tap started a YouTube trailer inside the card, two different frames five seconds
+  apart and no error 153. Dailymotion was not tried.
 - **Bio images are proxied through Rust, and `img-src` is still not widened.**
   Across 89 real bios holding 350 images, **6 (2%) were on `*.anilist.co`**; the
   rest were imgur (147), tumblr (57), pinimg, postimg, catbox and discord - so no

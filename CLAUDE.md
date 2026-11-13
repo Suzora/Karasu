@@ -613,7 +613,7 @@ task is about its subject and no matching path has been opened yet.
 - **`.claude/rules/android.md`** - Android: the build, the updater, the tracking service and the device measurements: Notes that have cost real time.
 - **`.claude/rules/anilist-api.md`** - What AniList's API does, as measured: Notes that have cost real time.
 - **`.claude/rules/detection.md`** - Detection: what browsers and streaming sites publish: Notes that have cost real time.
-- **`.claude/rules/gate-and-tests.md`** - The gate, the test suites, the scripts and CI: Layout: `scripts/`; The gate in detail; The test suites; Notes that have cost real time; The dependency graph is checked, not trusted; The dev loop has eyes; Three Cargo tools that answer questions, run by hand; Links are checked weekly, not trusted; The Actions cache is 10 GB, and a PR must not spend it; Dependabot merges itself.
+- **`.claude/rules/gate-and-tests.md`** - The gate, the test suites, the scripts and CI: Layout: `scripts/`; The gate in detail; The test suites; Notes that have cost real time; The dependency graph is checked, not trusted; The dev loop has eyes; Three Cargo tools that answer questions, run by hand; Links are checked weekly, not trusted; The Actions cache is 10 GB, and a PR must not spend it; Dependabot merges itself; The workflows are linted, and the release files are attested; The reader-facing docs are linted, and the README has a shape.
 - **`.claude/rules/release-and-packaging.md`** - The AppImage, Flatpak, F-Droid and the release workflows: The AppImage; Packaging beyond the release page; The Windows installer carries the old publisher name over.
 - **`.claude/rules/site.md`** - The website: The website.
 

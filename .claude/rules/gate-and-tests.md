@@ -553,3 +553,67 @@ npm ignores `@tauri-apps/*` minors, cargo ignores `tauri`/`tauri-*` minors
 and majors, and patches flow on both sides, since the check compares
 major.minor only. A minor is `npm install @tauri-apps/<x>@<v>` plus `cargo
 update -p tauri-<x>`, checked by `verify:full`'s `tauri build`.
+
+## The workflows are linted, and the release files are attested
+
+Added on 2026-11-13. `.github/workflows/workflows.yml` runs on any change under
+`.github/` and holds the workflows to two linters, both pinned and run through
+`pipx`: **actionlint** (syntax, expressions, and shellcheck over every bash
+step, which the runner carries) and **zizmor** (security; with the job's token
+it also runs the online audits). `npm run verify:full` runs both where they
+are installed (`uv tool install actionlint-py zizmor`, a visible `skip`
+otherwise), zizmor offline there. `.github/zizmor.yml` names the three audits
+left alone and why: the shared caches (only `main` writes one), the
+auto-merge's `workflow_run`, and the one publish action. The first run found
+72 findings and these were fixed: every checkout sets `persist-credentials:
+false` (no job pushes with git), the two dispatch workflows read their `tag`
+input through the environment instead of `${{ }}` in the script, and
+`dtolnay/rust-toolchain` was pinned to a commit that had fallen off every
+branch, because its `stable` branch is rebuilt by force. It is pinned to
+`master` now, which takes the version from the `toolchain:` input every step
+already passes, and nothing moves that pin except a hand edit, since
+Dependabot follows tags and the action has none. A pinned action's comment
+names the exact tag (`# v3.0.3`, not `# v3`), or zizmor's
+`ref-version-mismatch` fails. Dependabot does not see the two `pipx` pins
+either; bump them by hand with the gate's local run as the check.
+
+The publish job attests every file `SHA256SUMS.txt` names (`actions/attest`,
+`id-token: write` and `attestations: write` on that job alone), so `gh
+attestation verify <file> --repo Suzora/Karasu` proves a download was built
+by `release.yml` at its commit. The step is `continue-on-error`, since a
+Sigstore outage must not hold a release back, and it had not run when this
+was written: the README, the release notes and the website say nothing about
+it until one release carries an attestation that verifies.
+
+## The reader-facing docs are linted, and the README has a shape
+
+Added on 2026-11-13. `markdownlint-cli2` (`npm run lint:md`,
+`.markdownlint-cli2.jsonc`) is the `markdown` phase of `npm run verify`, after
+`toml`: the README, CONTRIBUTING, SECURITY, ROADMAP, CODE_OF_CONDUCT, PRODUCT,
+the site's and the installer's README, the two `SUBMISSION.md` and the project
+skills. Three rules are off on purpose (line length, since prose is wrapped by
+hand and badge rows cannot be; first-line heading, since the README opens with
+its logo; spaces in a code span, since `- ` and `## ` are shown as prefixes)
+and inline HTML is held to the fifteen elements the README uses. CHANGELOG.md,
+THIRD-PARTY-NOTICES.md, CLAUDE.md, DESIGN.md and the rule files are not in the
+set; the first two have a reader and a test of their own, the rest were never
+measured.
+The first run found 23 findings beside those rules, all fixed that day.
+
+The project skill `.claude/skills/karasu-docs` holds who each file is for and
+the README's shape, which the maintainer asked for the same day ("new badges,
+a new structure, less bloated, more folds, more visual"): two badge rows, a
+hero screenshot, an overview table per section that stays visible, and the
+detail in `<details>` folds. The rebuild moved every feature bullet and every
+platform paragraph into a fold word for word; it changed three claims, each
+checked against the tree: the statistics no longer name a radar or a treemap
+(removed on 2026-10-22), the languages read 40 (38 files under
+`src/i18n/locales` beside English and German), and the platform table is new
+but says only what the old prose said. Load the skill before editing any of
+those files.
+
+No Markdown file carries an em or an en dash, decided by the maintainer the
+same day; a sentence is rewritten or takes a plain hyphen, CHANGELOG.md's
+release headings included (`## 1.2.3 - 2026-01-01`, which all three readers
+accept). Only the licence texts in THIRD-PARTY-NOTICES.md and its Android copy
+keep theirs.
