@@ -1,0 +1,15 @@
+# What zizmor is told to leave alone, each with the decision behind it; `.claude/rules/gate-and-tests.md`, "The workflows are linted", has the detail.
+rules:
+  # Only pushes to main write a cache (save-if on every pull-request job), so a pull request cannot plant one.
+  cache-poisoning:
+    ignore:
+      - release.yml
+      - pages.yml
+  # workflow_run is how the merge waits for CI without branch protection; the job checks out nothing and checks actor and head.
+  dangerous-triggers:
+    ignore:
+      - dependabot-automerge.yml
+  # One publish step for both release shapes is deliberate; gh release would be two.
+  superfluous-actions:
+    ignore:
+      - release.yml

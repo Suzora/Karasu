@@ -271,6 +271,8 @@ await Promise.all([
   run("site", node, [SITE_TSC, "--noEmit"], () => "typecheck clean", { cwd: path.join(ROOT, "site") }),
   run("npm audit", node, [NPM, "audit", "--audit-level=high", "--omit=dev"], summarizeAudit2),
   run("bundle budget", node, ["scripts/bundle-budget.mjs"], summarizeBudget),
+  run("actionlint", "actionlint", [], () => "workflows parse", { optional: "uv tool install actionlint-py" }),
+  run("zizmor", "zizmor", ["--offline", "--quiet", ".github/workflows"], () => "no workflow finding", { optional: "uv tool install zizmor" }),
 ]);
 // The three cargo tools share the target directory's lock, so they run one after another.
 await run("clippy", "cargo", ["clippy", ...MANIFEST, "--all-targets", "--", "-D", "warnings"], summarizeClippy);
