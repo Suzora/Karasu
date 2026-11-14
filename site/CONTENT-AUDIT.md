@@ -133,9 +133,9 @@ fails `npm --prefix site run check` on a missing or extra key.
 
 All twenty-two are rendered by the screens harness (`node scripts/screens.mjs
 site`, the `SITE` table there): the real app, shell included, built from
-`main` at 1.68.0.926 and drawn in Chromium over a mocked backend
+`main` at 1.81.2.982 and drawn in Chromium over a mocked backend
 (`scripts/screens/app.tsx`), desktop as a 1440×900 window at 2× and the phone
-as a 405×860 Android shell at 3×, in English, on 2026-10-29. Every title, cover,
+as a 405×860 Android shell at 3×, in English, on 2026-11-14 (the set before it on 2026-10-29). Every title, cover,
 banner, character, voice actor and studio is AniList's own, fetched by the
 harness at the time; the account, its scores and progress, the activity, the
 forum posts and the local library's files are the harness's invented
