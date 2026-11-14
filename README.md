@@ -6,6 +6,8 @@
 
 <p align="center">
   A modern anime &amp; manga tracker - built exclusively for <a href="https://anilist.co">AniList</a>.
+  <br />
+  <sub>An app by <a href="https://github.com/Suzora">Suzora</a></sub>
 </p>
 
 <p align="center">
@@ -51,7 +53,8 @@ asking once before it counts a chapter from a site it does not name.
 It is a small native app built with Tauri, React and Rust, for Windows, Linux
 and, as a sideloaded APK, Android. It lives in your system tray where your
 desktop has one, and is inspired by the wonderful
-[Taiga](https://github.com/erengy/taiga).
+[Taiga](https://github.com/erengy/taiga). Karasu is an app by
+[Suzora](https://github.com/Suzora).
 
 ## Why use it over the website?
 
