@@ -14,7 +14,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
  * Reduced motion draws one still scatter and stops. High contrast draws
  * nothing: the stylesheet hides the canvas there, so the loop stops, and
  * starts again if the preference is turned off while the page is open.
- * A hidden tab pauses the loop. Nothing here is interactive for assistive technology: `aria-hidden`,
+ * It starts once the page has loaded and the browser is idle, and a hidden tab pauses the loop. Nothing here is interactive for assistive technology: `aria-hidden`,
  * `pointer-events: none`, and the listeners sit on the window.
  */
 
@@ -173,184 +173,206 @@ export function Feathers() {
   const moreContrast = useMoreContrast();
 
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    // The live query as well, because hydration renders with the server's answer before the store catches up.
-    if (moreContrast || matchMedia(MORE_CONTRAST).matches) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    // The feathers wait until the page has loaded and the browser is idle, so they never compete with the first paint.
+    const setup = (): (() => void) | undefined => {
+      const canvas = ref.current;
+      if (!canvas) return;
+      // The live query as well, because hydration renders with the server's answer before the store catches up.
+      if (moreContrast || matchMedia(MORE_CONTRAST).matches) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const dpr = Math.min(devicePixelRatio || 1, 2);
 
-    // sprites[shape][tone]
-    const tones = featherTones();
-    const sprites = SHAPES.map((s) => tones.vanes.map((t) => makeSprite(s, t, tones.rachis, dpr)));
-    if (sprites.some((row) => row.some((s) => !s))) return;
+      // sprites[shape][tone]
+      const tones = featherTones();
+      const sprites = SHAPES.map((s) => tones.vanes.map((t) => makeSprite(s, t, tones.rachis, dpr)));
+      if (sprites.some((row) => row.some((s) => !s))) return;
 
-    let w = 0;
-    let h = 0;
-    let feathers: Feather[] = [];
-    const pointer = { x: -1e4, y: -1e4, active: false };
-    let raf = 0;
-    let last = 0;
-    let t = 0;
+      let w = 0;
+      let h = 0;
+      let feathers: Feather[] = [];
+      const pointer = { x: -1e4, y: -1e4, active: false };
+      let raf = 0;
+      let last = 0;
+      let t = 0;
 
-    const population = () => Math.round(Math.min(44, Math.max(12, (w * h) / 40000)));
+      const population = () => Math.round(Math.min(44, Math.max(12, (w * h) / 40000)));
 
-    const resize = () => {
-      w = innerWidth;
-      h = innerHeight;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      const want = population();
-      const sy = scrollY;
-      const base = feathers.filter((f) => !f.spawned);
-      while (base.length < want) base.push(makeFeather(w, sy - BAND, sy + h + BAND));
-      feathers = base.slice(0, want).concat(feathers.filter((f) => f.spawned));
-      if (reduced) draw();
-    };
+      const resize = () => {
+        w = innerWidth;
+        h = innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        const want = population();
+        const sy = scrollY;
+        const base = feathers.filter((f) => !f.spawned);
+        while (base.length < want) base.push(makeFeather(w, sy - BAND, sy + h + BAND));
+        feathers = base.slice(0, want).concat(feathers.filter((f) => f.spawned));
+        if (reduced) draw();
+      };
 
-    const draw = () => {
-      const sy = scrollY;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const f of feathers) {
-        const sprite = sprites[f.shape]![f.tone]!;
-        const dw = BASE_W * f.size;
-        const dh = (SPRITE_H / SPRITE_W) * dw;
-        ctx.globalAlpha = f.alpha;
-        ctx.setTransform(dpr, 0, 0, dpr, f.x * dpr, (f.y - sy) * dpr);
-        ctx.rotate(f.rot);
-        ctx.drawImage(sprite, -dw / 2, -dh / 2, dw, dh);
-      }
-      ctx.globalAlpha = 1;
-    };
+      const draw = () => {
+        const sy = scrollY;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const f of feathers) {
+          const sprite = sprites[f.shape]![f.tone]!;
+          const dw = BASE_W * f.size;
+          const dh = (SPRITE_H / SPRITE_W) * dw;
+          ctx.globalAlpha = f.alpha;
+          ctx.setTransform(dpr, 0, 0, dpr, f.x * dpr, (f.y - sy) * dpr);
+          ctx.rotate(f.rot);
+          ctx.drawImage(sprite, -dw / 2, -dh / 2, dw, dh);
+        }
+        ctx.globalAlpha = 1;
+      };
 
-    const step = (now: number) => {
-      raf = requestAnimationFrame(step);
-      const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
-      last = now;
-      t += dt;
-      const sy = scrollY;
-      const top = sy - BAND;
-      const bottom = sy + h + BAND;
-      // The pointer, in page coordinates like the feathers.
-      const px = pointer.x;
-      const py = pointer.y + sy;
-      const next: Feather[] = [];
-      for (const f of feathers) {
-        const swayX = Math.sin(t * f.rate + f.phase) * f.sway;
-        // The pointer pushes what it comes near, harder the nearer.
-        if (pointer.active) {
-          const dx = f.x - px;
-          const dy = f.y - py;
+      const step = (now: number) => {
+        raf = requestAnimationFrame(step);
+        const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
+        last = now;
+        t += dt;
+        const sy = scrollY;
+        const top = sy - BAND;
+        const bottom = sy + h + BAND;
+        // The pointer, in page coordinates like the feathers.
+        const px = pointer.x;
+        const py = pointer.y + sy;
+        const next: Feather[] = [];
+        for (const f of feathers) {
+          const swayX = Math.sin(t * f.rate + f.phase) * f.sway;
+          // The pointer pushes what it comes near, harder the nearer.
+          if (pointer.active) {
+            const dx = f.x - px;
+            const dy = f.y - py;
+            const d = Math.hypot(dx, dy);
+            if (d < POINTER_RADIUS && d > 0.001) {
+              const k = (1 - d / POINTER_RADIUS) * 520 * dt;
+              f.pushX += (dx / d) * k;
+              f.pushY += (dy / d) * k;
+              f.rotV += (dx > 0 ? 1 : -1) * k * 0.01;
+            }
+          }
+          // A push fades; the drift is always there.
+          f.pushX *= 1 - Math.min(1, 2.2 * dt);
+          f.pushY *= 1 - Math.min(1, 2.2 * dt);
+          f.rotV *= 1 - Math.min(1, 0.6 * dt);
+          f.x += (f.driftX + swayX + f.pushX) * dt;
+          f.y += (f.driftY + f.pushY) * dt;
+          f.rot += (f.rotV + Math.cos(t * f.rate + f.phase) * 0.35) * dt;
+          if (f.spawned && f.alpha < 0.42) f.alpha = Math.min(0.42, f.alpha + dt * 0.9);
+          // Past the band below: it fell out, or the page scrolled up past it —
+          // back in above. Past the band above, which only a scroll down does:
+          // in from below, where the page it is pinned to is arriving.
+          if (f.y > bottom) {
+            if (f.spawned) continue;
+            Object.assign(f, makeFeather(w, top, sy - 20));
+          } else if (f.y < top) {
+            if (f.spawned) continue;
+            Object.assign(f, makeFeather(w, sy + h + 20, bottom));
+          }
+          if (f.x < -90) f.x = w + 60;
+          else if (f.x > w + 90) f.x = -60;
+          next.push(f);
+        }
+        feathers = next;
+        draw();
+      };
+
+      const burst = (x: number, y: number) => {
+        for (const f of feathers) {
+          const dx = f.x - x;
+          const dy = f.y - y;
           const d = Math.hypot(dx, dy);
-          if (d < POINTER_RADIUS && d > 0.001) {
-            const k = (1 - d / POINTER_RADIUS) * 520 * dt;
+          if (d < TAP_RADIUS && d > 0.001) {
+            const k = (1 - d / TAP_RADIUS) * 380;
             f.pushX += (dx / d) * k;
-            f.pushY += (dy / d) * k;
-            f.rotV += (dx > 0 ? 1 : -1) * k * 0.01;
+            f.pushY += (dy / d) * k - 60;
+            f.rotV += rand(-3, 3);
           }
         }
-        // A push fades; the drift is always there.
-        f.pushX *= 1 - Math.min(1, 2.2 * dt);
-        f.pushY *= 1 - Math.min(1, 2.2 * dt);
-        f.rotV *= 1 - Math.min(1, 0.6 * dt);
-        f.x += (f.driftX + swayX + f.pushX) * dt;
-        f.y += (f.driftY + f.pushY) * dt;
-        f.rot += (f.rotV + Math.cos(t * f.rate + f.phase) * 0.35) * dt;
-        if (f.spawned && f.alpha < 0.42) f.alpha = Math.min(0.42, f.alpha + dt * 0.9);
-        // Past the band below: it fell out, or the page scrolled up past it —
-        // back in above. Past the band above, which only a scroll down does:
-        // in from below, where the page it is pinned to is arriving.
-        if (f.y > bottom) {
-          if (f.spawned) continue;
-          Object.assign(f, makeFeather(w, top, sy - 20));
-        } else if (f.y < top) {
-          if (f.spawned) continue;
-          Object.assign(f, makeFeather(w, sy + h + 20, bottom));
+        const spawned = feathers.filter((f) => f.spawned).length;
+        const n = Math.min(6, MAX_SPAWNED - spawned);
+        for (let i = 0; i < n; i++) {
+          const f = makeFeather(w, y, y);
+          const a = rand(0, Math.PI * 2);
+          const v = rand(160, 320);
+          f.x = x;
+          f.pushX = Math.cos(a) * v;
+          f.pushY = Math.sin(a) * v - 80;
+          f.alpha = 0.05;
+          f.spawned = true;
+          feathers.push(f);
         }
-        if (f.x < -90) f.x = w + 60;
-        else if (f.x > w + 90) f.x = -60;
-        next.push(f);
-      }
-      feathers = next;
-      draw();
-    };
+      };
 
-    const burst = (x: number, y: number) => {
-      for (const f of feathers) {
-        const dx = f.x - x;
-        const dy = f.y - y;
-        const d = Math.hypot(dx, dy);
-        if (d < TAP_RADIUS && d > 0.001) {
-          const k = (1 - d / TAP_RADIUS) * 380;
-          f.pushX += (dx / d) * k;
-          f.pushY += (dy / d) * k - 60;
-          f.rotV += rand(-3, 3);
+      const onMove = (e: PointerEvent) => {
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        pointer.active = true;
+      };
+      const onLeave = () => {
+        pointer.active = false;
+      };
+      const onDown = (e: PointerEvent) => {
+        burst(e.clientX, e.clientY + scrollY);
+      };
+      const onVisibility = () => {
+        if (reduced) return;
+        if (document.hidden) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (!raf) {
+          last = 0;
+          raf = requestAnimationFrame(step);
         }
-      }
-      const spawned = feathers.filter((f) => f.spawned).length;
-      const n = Math.min(6, MAX_SPAWNED - spawned);
-      for (let i = 0; i < n; i++) {
-        const f = makeFeather(w, y, y);
-        const a = rand(0, Math.PI * 2);
-        const v = rand(160, 320);
-        f.x = x;
-        f.pushX = Math.cos(a) * v;
-        f.pushY = Math.sin(a) * v - 80;
-        f.alpha = 0.05;
-        f.spawned = true;
-        feathers.push(f);
-      }
-    };
+      };
 
-    const onMove = (e: PointerEvent) => {
-      pointer.x = e.clientX;
-      pointer.y = e.clientY;
-      pointer.active = true;
-    };
-    const onLeave = () => {
-      pointer.active = false;
-    };
-    const onDown = (e: PointerEvent) => {
-      burst(e.clientX, e.clientY + scrollY);
-    };
-    const onVisibility = () => {
-      if (reduced) return;
-      if (document.hidden) {
-        cancelAnimationFrame(raf);
-        raf = 0;
-      } else if (!raf) {
-        last = 0;
+      resize();
+      addEventListener("resize", resize);
+      if (reduced) {
+        // The still scatter follows the page too.
+        addEventListener("scroll", draw, { passive: true });
+      } else {
+        addEventListener("pointermove", onMove, { passive: true });
+        addEventListener("pointerdown", onDown, { passive: true });
+        addEventListener("pointercancel", onLeave);
+        document.addEventListener("pointerleave", onLeave);
+        document.addEventListener("visibilitychange", onVisibility);
         raf = requestAnimationFrame(step);
       }
+      return () => {
+        cancelAnimationFrame(raf);
+        removeEventListener("resize", resize);
+        removeEventListener("scroll", draw);
+        removeEventListener("pointermove", onMove);
+        removeEventListener("pointerdown", onDown);
+        removeEventListener("pointercancel", onLeave);
+        document.removeEventListener("pointerleave", onLeave);
+        document.removeEventListener("visibilitychange", onVisibility);
+      };
     };
-
-    resize();
-    addEventListener("resize", resize);
-    if (reduced) {
-      // The still scatter follows the page too.
-      addEventListener("scroll", draw, { passive: true });
-    } else {
-      addEventListener("pointermove", onMove, { passive: true });
-      addEventListener("pointerdown", onDown, { passive: true });
-      addEventListener("pointercancel", onLeave);
-      document.addEventListener("pointerleave", onLeave);
-      document.addEventListener("visibilitychange", onVisibility);
-      raf = requestAnimationFrame(step);
-    }
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    const idle = typeof requestIdleCallback === "function";
+    let idleId = 0;
+    const begin = () => {
+      if (!cancelled) cleanup = setup();
+    };
+    const whenIdle = () => {
+      idleId = idle ? requestIdleCallback(begin, { timeout: 3000 }) : window.setTimeout(begin, 1500);
+    };
+    if (document.readyState === "complete") whenIdle();
+    else addEventListener("load", whenIdle, { once: true });
     return () => {
-      cancelAnimationFrame(raf);
-      removeEventListener("resize", resize);
-      removeEventListener("scroll", draw);
-      removeEventListener("pointermove", onMove);
-      removeEventListener("pointerdown", onDown);
-      removeEventListener("pointercancel", onLeave);
-      document.removeEventListener("pointerleave", onLeave);
-      document.removeEventListener("visibilitychange", onVisibility);
+      cancelled = true;
+      removeEventListener("load", whenIdle);
+      if (idle) cancelIdleCallback(idleId);
+      else clearTimeout(idleId);
+      cleanup?.();
     };
   }, [moreContrast]);
 

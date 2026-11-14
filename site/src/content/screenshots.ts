@@ -87,6 +87,50 @@ import s21_avif_1216 from "@/assets/screenshots/phone/phone-more-1216.avif";
 import s21_avif_608 from "@/assets/screenshots/phone/phone-more-608.avif";
 import s21_webp_608 from "@/assets/screenshots/phone/phone-more-608.webp";
 import s21_jpg_608 from "@/assets/screenshots/phone/phone-more-608.jpg";
+import s0_avif_720 from "@/assets/screenshots/desktop/overview-720.avif";
+import s0_webp_720 from "@/assets/screenshots/desktop/overview-720.webp";
+import s1_avif_720 from "@/assets/screenshots/desktop/now-playing-720.avif";
+import s1_webp_720 from "@/assets/screenshots/desktop/now-playing-720.webp";
+import s2_avif_720 from "@/assets/screenshots/desktop/anime-grid-720.avif";
+import s2_webp_720 from "@/assets/screenshots/desktop/anime-grid-720.webp";
+import s3_avif_720 from "@/assets/screenshots/desktop/anime-rows-720.avif";
+import s3_webp_720 from "@/assets/screenshots/desktop/anime-rows-720.webp";
+import s4_avif_720 from "@/assets/screenshots/desktop/manga-grid-720.avif";
+import s4_webp_720 from "@/assets/screenshots/desktop/manga-grid-720.webp";
+import s5_avif_720 from "@/assets/screenshots/desktop/library-720.avif";
+import s5_webp_720 from "@/assets/screenshots/desktop/library-720.webp";
+import s6_avif_720 from "@/assets/screenshots/desktop/stats-overview-720.avif";
+import s6_webp_720 from "@/assets/screenshots/desktop/stats-overview-720.webp";
+import s7_avif_720 from "@/assets/screenshots/desktop/stats-genres-720.avif";
+import s7_webp_720 from "@/assets/screenshots/desktop/stats-genres-720.webp";
+import s8_avif_720 from "@/assets/screenshots/desktop/wrapped-720.avif";
+import s8_webp_720 from "@/assets/screenshots/desktop/wrapped-720.webp";
+import s9_avif_720 from "@/assets/screenshots/desktop/seasonal-720.avif";
+import s9_webp_720 from "@/assets/screenshots/desktop/seasonal-720.webp";
+import s10_avif_720 from "@/assets/screenshots/desktop/calendar-720.avif";
+import s10_webp_720 from "@/assets/screenshots/desktop/calendar-720.webp";
+import s11_avif_720 from "@/assets/screenshots/desktop/franchise-720.avif";
+import s11_webp_720 from "@/assets/screenshots/desktop/franchise-720.webp";
+import s12_avif_720 from "@/assets/screenshots/desktop/bell-720.avif";
+import s12_webp_720 from "@/assets/screenshots/desktop/bell-720.webp";
+import s13_avif_720 from "@/assets/screenshots/desktop/palette-720.avif";
+import s13_webp_720 from "@/assets/screenshots/desktop/palette-720.webp";
+import s14_avif_720 from "@/assets/screenshots/desktop/settings-detection-720.avif";
+import s14_webp_720 from "@/assets/screenshots/desktop/settings-detection-720.webp";
+import s15_avif_720 from "@/assets/screenshots/desktop/light-anime-grid-720.avif";
+import s15_webp_720 from "@/assets/screenshots/desktop/light-anime-grid-720.webp";
+import s16_avif_720 from "@/assets/screenshots/desktop/about-720.avif";
+import s16_webp_720 from "@/assets/screenshots/desktop/about-720.webp";
+import s17_avif_304 from "@/assets/screenshots/phone/phone-overview-304.avif";
+import s17_webp_304 from "@/assets/screenshots/phone/phone-overview-304.webp";
+import s18_avif_304 from "@/assets/screenshots/phone/phone-list-304.avif";
+import s18_webp_304 from "@/assets/screenshots/phone/phone-list-304.webp";
+import s19_avif_304 from "@/assets/screenshots/phone/phone-detail-304.avif";
+import s19_webp_304 from "@/assets/screenshots/phone/phone-detail-304.webp";
+import s20_avif_304 from "@/assets/screenshots/phone/phone-search-304.avif";
+import s20_webp_304 from "@/assets/screenshots/phone/phone-search-304.webp";
+import s21_avif_304 from "@/assets/screenshots/phone/phone-more-304.avif";
+import s21_webp_304 from "@/assets/screenshots/phone/phone-more-304.webp";
 
 export interface Source {
   w: number;
@@ -116,8 +160,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Overview: a greeting with search and the next 48 hours over a season's banner, the lists as shelves, the airing titles to catch up on, and a column with the statistics and your own activity.",
     caption: "Overview — your lists, the week, what to catch up on",
-    avif: [{ w: 2880, src: s0_avif_2880 }, { w: 1440, src: s0_avif_1440 }],
-    webp: [{ w: 1440, src: s0_webp_1440 }],
+    avif: [{ w: 2880, src: s0_avif_2880 }, { w: 1440, src: s0_avif_1440 }, { w: 720, src: s0_avif_720 }],
+    webp: [{ w: 1440, src: s0_webp_1440 }, { w: 720, src: s0_webp_720 }],
     jpg: [{ w: 1440, src: s0_jpg_1440 }],
   },
   {
@@ -127,8 +171,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Now Playing window floating over the anime list: Mushoku Tensei's third season detected in mpv, season 3 episode 9, with the progress it will write.",
     caption: "Now Playing — an episode detected in mpv",
-    avif: [{ w: 2880, src: s1_avif_2880 }, { w: 1440, src: s1_avif_1440 }],
-    webp: [{ w: 1440, src: s1_webp_1440 }],
+    avif: [{ w: 2880, src: s1_avif_2880 }, { w: 1440, src: s1_avif_1440 }, { w: 720, src: s1_avif_720 }],
+    webp: [{ w: 1440, src: s1_webp_1440 }, { w: 720, src: s1_webp_720 }],
     jpg: [{ w: 1440, src: s1_jpg_1440 }],
   },
   {
@@ -138,8 +182,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The anime list as a cover grid, with the statuses and custom lists in a column beside it and search, sort, filters and presets above it.",
     caption: "Anime list, grid view",
-    avif: [{ w: 2880, src: s2_avif_2880 }, { w: 1440, src: s2_avif_1440 }],
-    webp: [{ w: 1440, src: s2_webp_1440 }],
+    avif: [{ w: 2880, src: s2_avif_2880 }, { w: 1440, src: s2_avif_1440 }, { w: 720, src: s2_avif_720 }],
+    webp: [{ w: 1440, src: s2_webp_1440 }, { w: 720, src: s2_webp_720 }],
     jpg: [{ w: 1440, src: s2_jpg_1440 }],
   },
   {
@@ -149,8 +193,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The anime list as rows: title, format, season and airing state, with score, episode count and the +1 button editable in place.",
     caption: "Anime list, rows — score and progress edited in place",
-    avif: [{ w: 2880, src: s3_avif_2880 }, { w: 1440, src: s3_avif_1440 }],
-    webp: [{ w: 1440, src: s3_webp_1440 }],
+    avif: [{ w: 2880, src: s3_avif_2880 }, { w: 1440, src: s3_avif_1440 }, { w: 720, src: s3_avif_720 }],
+    webp: [{ w: 1440, src: s3_webp_1440 }, { w: 720, src: s3_webp_720 }],
     jpg: [{ w: 1440, src: s3_jpg_1440 }],
   },
   {
@@ -160,8 +204,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The manga list as a cover grid, with chapter and volume progress under each cover.",
     caption: "Manga list, grid view",
-    avif: [{ w: 2880, src: s4_avif_2880 }, { w: 1440, src: s4_avif_1440 }],
-    webp: [{ w: 1440, src: s4_webp_1440 }],
+    avif: [{ w: 2880, src: s4_avif_2880 }, { w: 1440, src: s4_avif_1440 }, { w: 720, src: s4_avif_720 }],
+    webp: [{ w: 1440, src: s4_webp_1440 }, { w: 720, src: s4_webp_720 }],
     jpg: [{ w: 1440, src: s4_jpg_1440 }],
   },
   {
@@ -171,8 +215,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The local library lists the matched titles with their next unwatched file, the match confidence and a Play button each.",
     caption: "Local library — files matched to your list, next episode first",
-    avif: [{ w: 2880, src: s5_avif_2880 }, { w: 1440, src: s5_avif_1440 }],
-    webp: [{ w: 1440, src: s5_webp_1440 }],
+    avif: [{ w: 2880, src: s5_avif_2880 }, { w: 1440, src: s5_avif_1440 }, { w: 720, src: s5_avif_720 }],
+    webp: [{ w: 1440, src: s5_webp_1440 }, { w: 720, src: s5_webp_720 }],
     jpg: [{ w: 1440, src: s5_jpg_1440 }],
   },
   {
@@ -182,8 +226,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Statistics page's overview: the list's totals, a ring of statuses and formats, the countries of origin, where the watch time went and the series lengths.",
     caption: "Statistics — overview",
-    avif: [{ w: 2880, src: s6_avif_2880 }, { w: 1440, src: s6_avif_1440 }],
-    webp: [{ w: 1440, src: s6_webp_1440 }],
+    avif: [{ w: 2880, src: s6_avif_2880 }, { w: 1440, src: s6_avif_1440 }, { w: 720, src: s6_avif_720 }],
+    webp: [{ w: 1440, src: s6_webp_1440 }, { w: 720, src: s6_webp_720 }],
     jpg: [{ w: 1440, src: s6_jpg_1440 }],
   },
   {
@@ -193,8 +237,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Statistics page's genres and tags: where you score harsher or kinder than the community per genre, what you finish per genre, and the genres ranked.",
     caption: "Statistics — genres and tags",
-    avif: [{ w: 2880, src: s7_avif_2880 }, { w: 1440, src: s7_avif_1440 }],
-    webp: [{ w: 1440, src: s7_webp_1440 }],
+    avif: [{ w: 2880, src: s7_avif_2880 }, { w: 1440, src: s7_avif_1440 }, { w: 720, src: s7_avif_720 }],
+    webp: [{ w: 1440, src: s7_webp_1440 }, { w: 720, src: s7_webp_720 }],
     jpg: [{ w: 1440, src: s7_jpg_1440 }],
   },
   {
@@ -204,8 +248,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The year-in-review page: the period, template, format and size choices beside the 2026 poster with the year's numbers, top genres and top-rated titles.",
     caption: "Year in review",
-    avif: [{ w: 2880, src: s8_avif_2880 }, { w: 1440, src: s8_avif_1440 }],
-    webp: [{ w: 1440, src: s8_webp_1440 }],
+    avif: [{ w: 2880, src: s8_avif_2880 }, { w: 1440, src: s8_avif_1440 }, { w: 720, src: s8_avif_720 }],
+    webp: [{ w: 1440, src: s8_webp_1440 }, { w: 720, src: s8_webp_720 }],
     jpg: [{ w: 1440, src: s8_jpg_1440 }],
   },
   {
@@ -215,8 +259,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Seasonal page: Fall 2026's titles as cards with their genres and a countdown, the year, season and formats in a column beside them.",
     caption: "Seasonal",
-    avif: [{ w: 2880, src: s9_avif_2880 }, { w: 1440, src: s9_avif_1440 }],
-    webp: [{ w: 1440, src: s9_webp_1440 }],
+    avif: [{ w: 2880, src: s9_avif_2880 }, { w: 1440, src: s9_avif_1440 }, { w: 720, src: s9_avif_720 }],
+    webp: [{ w: 1440, src: s9_webp_1440 }, { w: 720, src: s9_webp_720 }],
     jpg: [{ w: 1440, src: s9_jpg_1440 }],
   },
   {
@@ -226,8 +270,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Calendar's agenda: the week's airing episodes from today, each on a card with its cover, time and episode number.",
     caption: "Calendar",
-    avif: [{ w: 2880, src: s10_avif_2880 }, { w: 1440, src: s10_avif_1440 }],
-    webp: [{ w: 1440, src: s10_webp_1440 }],
+    avif: [{ w: 2880, src: s10_avif_2880 }, { w: 1440, src: s10_avif_1440 }, { w: 720, src: s10_avif_720 }],
+    webp: [{ w: 1440, src: s10_webp_1440 }, { w: 720, src: s10_webp_720 }],
     jpg: [{ w: 1440, src: s10_jpg_1440 }],
   },
   {
@@ -237,8 +281,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The franchise graph of Mushoku Tensei: the third season linked to its earlier seasons, the light novel and a spin-off manga, with the selected title's card at the side.",
     caption: "Franchise graph",
-    avif: [{ w: 2880, src: s11_avif_2880 }, { w: 1440, src: s11_avif_1440 }],
-    webp: [{ w: 1440, src: s11_webp_1440 }],
+    avif: [{ w: 2880, src: s11_avif_2880 }, { w: 1440, src: s11_avif_1440 }, { w: 720, src: s11_avif_720 }],
+    webp: [{ w: 1440, src: s11_webp_1440 }, { w: 720, src: s11_webp_720 }],
     jpg: [{ w: 1440, src: s11_jpg_1440 }],
   },
   {
@@ -248,8 +292,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The notification bell open over the Overview: likes grouped by person, a reply on a followed activity and a new episode.",
     caption: "The bell — Karasu's and AniList's notifications in one stream",
-    avif: [{ w: 2880, src: s12_avif_2880 }, { w: 1440, src: s12_avif_1440 }],
-    webp: [{ w: 1440, src: s12_webp_1440 }],
+    avif: [{ w: 2880, src: s12_avif_2880 }, { w: 1440, src: s12_avif_1440 }, { w: 720, src: s12_avif_720 }],
+    webp: [{ w: 1440, src: s12_webp_1440 }, { w: 720, src: s12_webp_720 }],
     jpg: [{ w: 1440, src: s12_jpg_1440 }],
   },
   {
@@ -259,8 +303,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The command palette open over the Overview, listing the titles on the list that match “frieren”.",
     caption: "Command palette (Ctrl+K)",
-    avif: [{ w: 2880, src: s13_avif_2880 }, { w: 1440, src: s13_avif_1440 }],
-    webp: [{ w: 1440, src: s13_webp_1440 }],
+    avif: [{ w: 2880, src: s13_avif_2880 }, { w: 1440, src: s13_avif_1440 }, { w: 720, src: s13_avif_720 }],
+    webp: [{ w: 1440, src: s13_webp_1440 }, { w: 720, src: s13_webp_720 }],
     jpg: [{ w: 1440, src: s13_jpg_1440 }],
   },
   {
@@ -270,8 +314,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The Detection settings pane: automatic tracking, the confirmation toggle, the episode gap, media sessions, the threshold and new-episode notifications.",
     caption: "Settings — detection",
-    avif: [{ w: 2880, src: s14_avif_2880 }, { w: 1440, src: s14_avif_1440 }],
-    webp: [{ w: 1440, src: s14_webp_1440 }],
+    avif: [{ w: 2880, src: s14_avif_2880 }, { w: 1440, src: s14_avif_1440 }, { w: 720, src: s14_avif_720 }],
+    webp: [{ w: 1440, src: s14_webp_1440 }, { w: 720, src: s14_webp_720 }],
     jpg: [{ w: 1440, src: s14_jpg_1440 }],
   },
   {
@@ -281,8 +325,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The anime list in the light theme.",
     caption: "Light theme",
-    avif: [{ w: 2880, src: s15_avif_2880 }, { w: 1440, src: s15_avif_1440 }],
-    webp: [{ w: 1440, src: s15_webp_1440 }],
+    avif: [{ w: 2880, src: s15_avif_2880 }, { w: 1440, src: s15_avif_1440 }, { w: 720, src: s15_avif_720 }],
+    webp: [{ w: 1440, src: s15_webp_1440 }, { w: 720, src: s15_webp_720 }],
     jpg: [{ w: 1440, src: s15_jpg_1440 }],
   },
   {
@@ -292,8 +336,8 @@ export const SHOTS: Shot[] = [
     height: 1800,
     alt: "The About page with the mark, the update check, the changelog and the diagnostics report.",
     caption: "About",
-    avif: [{ w: 2880, src: s16_avif_2880 }, { w: 1440, src: s16_avif_1440 }],
-    webp: [{ w: 1440, src: s16_webp_1440 }],
+    avif: [{ w: 2880, src: s16_avif_2880 }, { w: 1440, src: s16_avif_1440 }, { w: 720, src: s16_avif_720 }],
+    webp: [{ w: 1440, src: s16_webp_1440 }, { w: 720, src: s16_webp_720 }],
     jpg: [{ w: 1440, src: s16_jpg_1440 }],
   },
   {
@@ -303,8 +347,8 @@ export const SHOTS: Shot[] = [
     height: 2582,
     alt: "The phone's Overview: a greeting with search over a season's banner and the lists as shelves, above the bottom bar.",
     caption: "Android — overview",
-    avif: [{ w: 1216, src: s17_avif_1216 }, { w: 608, src: s17_avif_608 }],
-    webp: [{ w: 608, src: s17_webp_608 }],
+    avif: [{ w: 1216, src: s17_avif_1216 }, { w: 608, src: s17_avif_608 }, { w: 304, src: s17_avif_304 }],
+    webp: [{ w: 608, src: s17_webp_608 }, { w: 304, src: s17_webp_304 }],
     jpg: [{ w: 608, src: s17_jpg_608 }],
   },
   {
@@ -314,8 +358,8 @@ export const SHOTS: Shot[] = [
     height: 2582,
     alt: "The anime list on the phone as a three-column cover grid, with the status picker and the list's search above it.",
     caption: "Android — anime list",
-    avif: [{ w: 1216, src: s18_avif_1216 }, { w: 608, src: s18_avif_608 }],
-    webp: [{ w: 608, src: s18_webp_608 }],
+    avif: [{ w: 1216, src: s18_avif_1216 }, { w: 608, src: s18_avif_608 }, { w: 304, src: s18_avif_304 }],
+    webp: [{ w: 608, src: s18_webp_608 }, { w: 304, src: s18_webp_304 }],
     jpg: [{ w: 608, src: s18_jpg_608 }],
   },
   {
@@ -325,8 +369,8 @@ export const SHOTS: Shot[] = [
     height: 2582,
     alt: "Mushoku Tensei's detail page on the phone with the status sheet open: the status, the progress and the score over the community's own spread of scores.",
     caption: "Android — a title, with its entry open",
-    avif: [{ w: 1216, src: s19_avif_1216 }, { w: 608, src: s19_avif_608 }],
-    webp: [{ w: 608, src: s19_webp_608 }],
+    avif: [{ w: 1216, src: s19_avif_1216 }, { w: 608, src: s19_avif_608 }, { w: 304, src: s19_avif_304 }],
+    webp: [{ w: 608, src: s19_webp_608 }, { w: 304, src: s19_webp_304 }],
     jpg: [{ w: 608, src: s19_jpg_608 }],
   },
   {
@@ -336,8 +380,8 @@ export const SHOTS: Shot[] = [
     height: 2582,
     alt: "The search page on the phone with the results for “season 2” as a cover grid.",
     caption: "Android — search",
-    avif: [{ w: 1216, src: s20_avif_1216 }, { w: 608, src: s20_avif_608 }],
-    webp: [{ w: 608, src: s20_webp_608 }],
+    avif: [{ w: 1216, src: s20_avif_1216 }, { w: 608, src: s20_avif_608 }, { w: 304, src: s20_avif_304 }],
+    webp: [{ w: 608, src: s20_webp_608 }, { w: 304, src: s20_webp_304 }],
     jpg: [{ w: 608, src: s20_jpg_608 }],
   },
   {
@@ -347,8 +391,8 @@ export const SHOTS: Shot[] = [
     height: 2582,
     alt: "The More sheet on the phone: your profile, the command palette and the remaining screens.",
     caption: "Android — the More sheet",
-    avif: [{ w: 1216, src: s21_avif_1216 }, { w: 608, src: s21_avif_608 }],
-    webp: [{ w: 608, src: s21_webp_608 }],
+    avif: [{ w: 1216, src: s21_avif_1216 }, { w: 608, src: s21_avif_608 }, { w: 304, src: s21_avif_304 }],
+    webp: [{ w: 608, src: s21_webp_608 }, { w: 304, src: s21_webp_304 }],
     jpg: [{ w: 608, src: s21_jpg_608 }],
   },
 ];

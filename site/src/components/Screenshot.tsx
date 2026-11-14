@@ -39,6 +39,7 @@ export function Screenshot({
         height={shot.height}
         alt={text.alt}
         loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         decoding="async"
         className="block h-auto w-full"
       />

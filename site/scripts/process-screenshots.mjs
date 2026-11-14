@@ -4,8 +4,8 @@
  * `captures/phone/*.png` from adb) into what the page ships, and writes the
  * manifest the components read.
  *
- * Desktop: 2880 and 1440 wide (2x and 1x of the 1440x900 window). Phone:
- * 1216 and 608. AVIF at both widths; WebP and JPEG at the 1x width only, as
+ * Desktop: 2880, 1440 and 720 wide (2x, 1x and the gallery tile). Phone:
+ * 1216, 608 and 304. AVIF at every width, WebP at 1x and the tile; JPEG at the 1x width only, as
  * the fallbacks for browsers without AVIF (the `<img>` itself names the JPEG). Derivatives land under
  * `src/assets/screenshots/` so Vite hashes them; the raw PNGs stay ignored.
  *
@@ -25,8 +25,8 @@ const MANIFEST = path.join(SITE, "src", "content", "screenshots.ts");
 const only = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : null;
 
 const SETS = [
-  { kind: "desktop", dir: path.join(SITE, "captures", "desktop"), shots: DESKTOP, widths: [2880, 1440], fallback: 1440 },
-  { kind: "phone", dir: path.join(SITE, "captures", "phone"), shots: PHONE, widths: [1216, 608], fallback: 608 },
+  { kind: "desktop", dir: path.join(SITE, "captures", "desktop"), shots: DESKTOP, widths: [2880, 1440, 720], fallback: 1440, tile: 720 },
+  { kind: "phone", dir: path.join(SITE, "captures", "phone"), shots: PHONE, widths: [1216, 608, 304], fallback: 608, tile: 304 },
 ];
 
 mkdirSync(OUT, { recursive: true });
@@ -58,9 +58,8 @@ for (const set of SETS) {
       // The 2x file is viewed at half its pixels, so it can afford a lower quality.
       await base.clone().avif({ quality: w >= 2000 ? 45 : 52, effort: 6 }).toFile(avif);
       variants.avif.push([w, avif]);
-      // WebP only at the fallback width: every current browser takes the AVIF,
-      // and a 2x WebP of a cover grid is 400 kB nobody would download.
-      if (w === set.fallback) {
+      // WebP at the fallback and tile widths only: every current browser takes the AVIF, and a 2x WebP is 400 kB.
+      if (w === set.fallback || w === set.tile) {
         await base.clone().webp({ quality: 80, effort: 5 }).toFile(webp);
         variants.webp.push([w, webp]);
       }

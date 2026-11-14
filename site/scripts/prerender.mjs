@@ -36,6 +36,8 @@ function page(routePath, lang, dataPage) {
     .replace("<!--app-html-->", html)
     .replace("</body>", `  <script type="application/json" id="i18n">${messages}</script>\n  </body>`);
   if (dataPage) out = out.replace('<div id="root">', `<div id="root" data-page="${dataPage}">`);
+  // The one stylesheet goes inline, so the first paint waits for no second request; its font URLs are already rooted.
+  out = out.replace(/<link rel="stylesheet"[^>]*href="\/Karasu\/(assets\/[^"]+\.css)">/, (_, file) => `<style>${readFileSync(path.join(CLIENT, file), "utf8")}</style>`);
   if (out.includes("<!--app-")) throw new Error("prerender: a placeholder survived");
   if (!out.includes(`<html lang="${lang}"`)) throw new Error(`prerender: <html lang> not set for ${lang}`);
   return out;
