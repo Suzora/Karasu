@@ -25,6 +25,8 @@ export const LINKS = {
   changelog: `${REPO}/blob/main/CHANGELOG.md`,
   license: `${REPO}/blob/main/LICENSE`,
   readme: `${REPO}#readme`,
+  /** The F-Droid listing, built and signed by F-Droid from the tagged source. */
+  fdroid: "https://f-droid.org/packages/dev.kyu.karasu/",
   discord: "https://discord.gg/yeHNSGyM8F",
   anilist: "https://anilist.co",
   anilistApi: "https://docs.anilist.co",

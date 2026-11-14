@@ -28,6 +28,7 @@ export default {
     windows: "Muat turun untuk Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versi {version}. Pemasang Windows belum ditandatangani kod, jadi SmartScreen mungkin memberi amaran pada larian pertama · Linux ialah AppImage eksperimen · Android ialah APK yang dipasang sendiri · tiada macOS",
     checksums: "checksum",
     everyDownload: "semua muat turun",

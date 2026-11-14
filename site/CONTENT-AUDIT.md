@@ -127,6 +127,7 @@ fails `npm --prefix site run check` on a missing or extra key.
 | 105 | The changelog card's lines stay English on every page (`lang="en"`) | `site/src/sections/Showcase.tsx`; `CHANGELOG.md` is written in English only | confirmed |
 | 106 | "An app by Suzora", with Suzora's mark (the footer) | the maintainer's statement of 2026-11-14 that Karasu is an app by Suzora; the app's About says the same (`src/pages/About.tsx`, `about.byline`) | confirmed |
 | 107 | `llms.txt` for AI search engines: the English meta description, the hero's title and lede, "An app by Suzora", the page's links and the FAQ word for word | `site/scripts/prerender.mjs` writes it from the English catalog at build time, so it holds no sentence the page does not; rows 1-4, 106 and the FAQ's rows | confirmed |
+| 108 | "F-Droid" beside the Android download, linking the F-Droid listing | `site/src/site.config.ts` `LINKS.fdroid`; F-Droid's API answered `dev.kyu.karasu` with version 1.68.0.926 on 2026-11-14, from the recipe in `packaging/fdroid/`; `README.md` "Installation" | confirmed |
 
 ## Screenshots
 

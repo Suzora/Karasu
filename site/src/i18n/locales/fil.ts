@@ -28,6 +28,7 @@ export default {
     windows: "I-download para sa Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Bersyon {version}. Hindi naka-code-sign ang Windows installer, kaya maaaring magbabala ang SmartScreen sa unang pagbukas · Ang Linux ay isang experimental na AppImage · Ang Android ay isang APK na sine-sideload · walang macOS",
     checksums: "mga checksum",
     everyDownload: "lahat ng download",

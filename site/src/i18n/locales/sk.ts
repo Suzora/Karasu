@@ -28,6 +28,7 @@ export default {
     windows: "Stiahnuť pre Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Verzia {version}. Inštalátor pre Windows nie je podpísaný, takže SmartScreen môže pri prvom spustení varovať · Linux je experimentálny AppImage · Android je APK na ručnú inštaláciu · žiadny macOS",
     checksums: "kontrolné súčty",
     everyDownload: "všetky stiahnutia",

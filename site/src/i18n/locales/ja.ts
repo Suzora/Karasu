@@ -28,6 +28,7 @@ export default {
     windows: "Windows 版をダウンロード",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "バージョン {version}。Windows のインストーラーはコード署名されていないため、初回起動時に SmartScreen が警告を表示することがあります · Linux は実験的な AppImage です · Android はサイドロード用の APK です · macOS には対応していません",
     checksums: "チェックサム",
     everyDownload: "すべてのダウンロード",

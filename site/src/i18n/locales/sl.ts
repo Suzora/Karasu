@@ -28,6 +28,7 @@ export default {
     windows: "Prenesi za Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Različica {version}. Namestitveni program za Windows ni podpisan, zato lahko SmartScreen ob prvem zagonu opozori · Linux je eksperimentalni AppImage · Android je APK za ročno namestitev · brez macOS",
     checksums: "kontrolne vsote",
     everyDownload: "vsak prenos",

@@ -28,6 +28,7 @@ export default {
     windows: "Tải cho Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Phiên bản {version}. Trình cài đặt Windows chưa được ký mã nên SmartScreen có thể cảnh báo ở lần chạy đầu · Linux là AppImage thử nghiệm · Android là APK cài thủ công · không có macOS",
     checksums: "mã kiểm tra",
     everyDownload: "mọi bản tải",

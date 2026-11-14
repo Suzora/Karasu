@@ -28,6 +28,7 @@ export default {
     windows: "Lejupielādēt Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versija {version}. Windows instalētājs nav parakstīts, tāpēc SmartScreen pirmajā palaišanas reizē var brīdināt · Linux ir eksperimentāls AppImage · Android ir manuāli instalējams APK · macOS nav",
     checksums: "kontrolsummas",
     everyDownload: "visas lejupielādes",

@@ -28,6 +28,7 @@ export default {
     windows: "Windows के लिए डाउनलोड करें",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "वर्शन {version}। Windows इंस्टॉलर पर कोड-साइनिंग नहीं है, इसलिए पहली बार चलाने पर SmartScreen चेतावनी दे सकता है · Linux एक प्रायोगिक AppImage है · Android एक साइडलोड किया जाने वाला APK है · macOS नहीं है",
     checksums: "चेकसम",
     everyDownload: "सभी डाउनलोड",

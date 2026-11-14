@@ -28,6 +28,7 @@ export default {
     windows: "Λήψη για Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Έκδοση {version}. Το πρόγραμμα εγκατάστασης για Windows δεν είναι υπογεγραμμένο, οπότε το SmartScreen μπορεί να προειδοποιήσει στην πρώτη εκτέλεση · το Linux είναι ένα πειραματικό AppImage · το Android είναι APK για χειροκίνητη εγκατάσταση · όχι macOS",
     checksums: "αθροίσματα ελέγχου",
     everyDownload: "κάθε λήψη",

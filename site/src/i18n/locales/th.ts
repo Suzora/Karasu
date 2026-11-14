@@ -28,6 +28,7 @@ export default {
     windows: "ดาวน์โหลดสำหรับ Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "เวอร์ชัน {version} ตัวติดตั้ง Windows ยังไม่ได้ลงนามโค้ด จึงอาจมีคำเตือนจาก SmartScreen ตอนเปิดครั้งแรก · Linux เป็น AppImage แบบทดลอง · Android เป็น APK ที่ต้องติดตั้งเอง · ไม่มี macOS",
     checksums: "ค่าตรวจสอบ",
     everyDownload: "ดาวน์โหลดทั้งหมด",

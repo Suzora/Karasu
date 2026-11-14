@@ -28,6 +28,7 @@ export default {
     windows: "Downloaden voor Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versie {version}. Het Windows-installatieprogramma is niet ondertekend, dus SmartScreen kan bij de eerste keer starten waarschuwen · Linux is een experimentele AppImage · Android is een APK om zelf te installeren · geen macOS",
     checksums: "controlesommen",
     everyDownload: "alle downloads",

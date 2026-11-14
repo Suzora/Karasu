@@ -28,6 +28,7 @@ export default {
     windows: "Laadi alla Windowsile",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versioon {version}. Windowsi installijat pole koodiga allkirjastatud, nii et SmartScreen võib esimesel käivitamisel hoiatada · Linux on katseline AppImage · Android on käsitsi paigaldatav APK · macOS-i pole",
     checksums: "kontrollsummad",
     everyDownload: "kõik allalaadimised",

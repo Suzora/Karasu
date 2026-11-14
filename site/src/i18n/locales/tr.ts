@@ -28,6 +28,7 @@ export default {
     windows: "Windows için indir",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Sürüm {version}. Windows yükleyicisi kod imzalı değildir, bu yüzden SmartScreen ilk çalıştırmada uyarabilir · Linux deneysel bir AppImage'dır · Android elle yüklenen bir APK'dır · macOS yok",
     checksums: "sağlama toplamları",
     everyDownload: "tüm indirmeler",

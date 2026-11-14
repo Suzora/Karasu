@@ -28,6 +28,7 @@ export default {
     windows: "Letöltés Windowsra",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "{version} verzió. A Windows-telepítő nincs kódaláírva, ezért a SmartScreen figyelmeztethet az első indításkor · a Linux egy kísérleti AppImage · az Android egy kézzel telepíthető APK · macOS nincs",
     checksums: "ellenőrző összegek",
     everyDownload: "minden letöltés",

@@ -1328,3 +1328,6 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   by Suzora" under it, centred in a block of its own between the language list
   and the closing line of the footer (C of three: a small line under the
   Karasu block as in the app's About, and the mark inside the closing line).
+- **2026-11-14:** The website's download row pairs Android with F-Droid as two
+  joined buttons, so both read as the one platform (B of three: a fourth
+  button of its own, and a link in the note line under the buttons).

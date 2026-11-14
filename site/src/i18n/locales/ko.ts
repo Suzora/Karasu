@@ -28,6 +28,7 @@ export default {
     windows: "Windows용 다운로드",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "버전 {version}. Windows 설치 프로그램은 코드 서명이 되어 있지 않아 처음 실행할 때 SmartScreen이 경고할 수 있습니다 · Linux는 실험적인 AppImage입니다 · Android는 직접 설치하는 APK입니다 · macOS는 지원하지 않습니다",
     checksums: "체크섬",
     everyDownload: "모든 다운로드",

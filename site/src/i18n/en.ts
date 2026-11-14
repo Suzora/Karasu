@@ -55,6 +55,7 @@ export const en = {
     windows: "Download for Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Version {version}. The Windows installer is not code-signed, so SmartScreen may warn on first run · Linux is an experimental AppImage · Android is a sideloaded APK · no macOS",
     checksums: "checksums",
     everyDownload: "every download",

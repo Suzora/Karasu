@@ -28,6 +28,7 @@ export default {
     windows: "Descarcă pentru Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versiunea {version}. Programul de instalare pentru Windows nu este semnat, așa că SmartScreen poate afișa un avertisment la prima rulare · Linux este un AppImage experimental · Android este un APK instalat manual · fără macOS",
     checksums: "sume de control",
     everyDownload: "toate descărcările",

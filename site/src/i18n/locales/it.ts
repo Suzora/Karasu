@@ -28,6 +28,7 @@ export default {
     windows: "Scarica per Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versione {version}. L'installer di Windows non è firmato, quindi SmartScreen può mostrare un avviso al primo avvio · Linux è un AppImage sperimentale · Android è un APK da installare manualmente · nessun macOS",
     checksums: "checksum",
     everyDownload: "tutti i download",

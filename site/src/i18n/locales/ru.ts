@@ -28,6 +28,7 @@ export default {
     windows: "Скачать для Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Версия {version}. Установщик для Windows не подписан, поэтому при первом запуске SmartScreen может предупредить · Linux — экспериментальный AppImage · Android — APK для ручной установки · macOS нет",
     checksums: "контрольные суммы",
     everyDownload: "все загрузки",

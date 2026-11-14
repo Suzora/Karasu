@@ -28,6 +28,7 @@ export default {
     windows: "Atsisiųsti, skirta Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versija {version}. Windows diegimo programa nepasirašyta, todėl pirmą kartą paleidus SmartScreen gali perspėti · Linux yra eksperimentinis AppImage · Android yra rankiniu būdu diegiamas APK · macOS nėra",
     checksums: "kontrolinės sumos",
     everyDownload: "visi atsisiuntimai",

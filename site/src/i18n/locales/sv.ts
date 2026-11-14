@@ -28,6 +28,7 @@ export default {
     windows: "Ladda ned för Windows",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Version {version}. Windows-installationsprogrammet är inte kodsignerat, så SmartScreen kan varna vid första starten · Linux är en experimentell AppImage · Android är en APK för sideloading · inget macOS",
     checksums: "kontrollsummor",
     everyDownload: "alla nedladdningar",

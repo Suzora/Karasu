@@ -28,6 +28,7 @@ export default {
     windows: "Lataa Windowsille",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "Versio {version}. Windowsin asennusohjelmaa ei ole allekirjoitettu, joten SmartScreen saattaa varoittaa ensimmäisellä käynnistyskerralla · Linux on kokeellinen AppImage · Android on sivulatattava APK · ei macOS:ää",
     checksums: "tarkistussummat",
     everyDownload: "kaikki lataukset",

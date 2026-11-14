@@ -24,9 +24,14 @@ export function Hero() {
           <ButtonLink href={release.assets.linux} variant="outline" size="lg">
             {t.hero.linux}
           </ButtonLink>
-          <ButtonLink href={release.assets.androidArm64} variant="outline" size="lg">
-            {t.hero.android}
-          </ButtonLink>
+          <span className="inline-flex items-stretch">
+            <ButtonLink href={release.assets.androidArm64} variant="outline" size="lg" className="rounded-r-none">
+              {t.hero.android}
+            </ButtonLink>
+            <ButtonLink href={LINKS.fdroid} variant="outline" size="lg" className="-ml-px rounded-l-none">
+              {t.hero.fdroid}
+            </ButtonLink>
+          </span>
         </div>
         <p className="mt-4 max-w-2xl text-xs leading-relaxed text-ink-500">
           {fmt(t.hero.note, { version: release.version })} ·{" "}

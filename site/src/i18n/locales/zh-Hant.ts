@@ -28,6 +28,7 @@ export default {
     windows: "下載 Windows 版",
     linux: "Linux",
     android: "Android",
+    fdroid: "F-Droid",
     note: "版本 {version}。Windows 安裝程式未經程式碼簽署，首次執行時 SmartScreen 可能會顯示警告 · Linux 版是實驗性的 AppImage · Android 版是需要自行側載的 APK · 不支援 macOS",
     checksums: "檢查碼",
     everyDownload: "所有下載",
