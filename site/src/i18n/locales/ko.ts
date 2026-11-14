@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — AniList를 위한 현대적인 애니·만화 트래커",
     description:
-      "Karasu는 AniList 전용으로 만든 무료 오픈 소스 애니·만화 트래커입니다. 재생 중인 작품을 감지하고, Windows에서는 읽고 있는 작품까지 감지해 AniList 진행 상황을 항상 최신으로 유지합니다. Windows, Linux, Android를 지원합니다.",
+      "Windows, Linux, Android용 무료 오픈 소스 AniList 애니메이션·만화 트래커. 시청 중인 작품을 인식해 AniList 진행 상황을 자동으로 맞춰 줍니다.",
     notFoundTitle: "페이지를 찾을 수 없습니다 — Karasu",
   },
   skip: "본문으로 건너뛰기",

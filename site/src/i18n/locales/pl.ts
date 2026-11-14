@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Nowoczesny tracker anime i mangi dla AniList",
     description:
-      "Karasu to darmowy tracker anime i mangi o otwartym kodzie, stworzony wyłącznie dla AniList. Zauważa, co odtwarzasz — a w Windows także co czytasz — i na bieżąco aktualizuje Twój postęp na AniList. Windows, Linux i Android.",
+      "Darmowy tracker anime i mangi o otwartym kodzie dla AniList na Windows, Linux i Android. Wykrywa, co oglądasz, i aktualizuje postęp na AniList.",
     notFoundTitle: "Nie znaleziono strony — Karasu",
   },
   skip: "Przejdź do treści",

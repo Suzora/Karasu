@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — modernus anime ir mangos sekiklis, skirtas AniList",
     description:
-      "Karasu yra nemokamas atvirojo kodo anime ir mangos sekiklis, sukurtas tik AniList. Jis pastebi, ką leidi, o Windows sistemoje ir ką skaitai, ir palaiko tavo pažangą AniList atnaujintą. Windows, Linux ir Android.",
+      "Nemokamas atvirojo kodo anime ir mangos sekiklis AniList skirtas Windows, Linux ir Android. Atpažįsta, ką žiūri, ir atnaujina AniList.",
     notFoundTitle: "Puslapis nerastas — Karasu",
   },
   skip: "Pereiti prie turinio",

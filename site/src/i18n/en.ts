@@ -31,7 +31,7 @@ export const en = {
   meta: {
     title: "Karasu — A modern anime & manga tracker for AniList",
     description:
-      "Karasu is a free, open-source anime and manga tracker built exclusively for AniList. It notices what you play — and, on Windows, what you read — and keeps your AniList progress in sync. Windows, Linux and Android.",
+      "Free, open-source anime and manga tracker for AniList on Windows, Linux and Android. It notices what you watch and keeps your AniList progress in sync.",
     notFoundTitle: "Page not found — Karasu",
   },
   skip: "Skip to content",

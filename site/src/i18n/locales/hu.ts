@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Modern anime- és mangakövető az AniListhez",
     description:
-      "A Karasu egy ingyenes, nyílt forráskódú anime- és mangakövető, amelyet kizárólag az AniListhez készítettek. Észreveszi, mit játszol le — Windowson azt is, mit olvasol —, és naprakészen tartja az AniList-haladásodat. Windows, Linux és Android.",
+      "Ingyenes, nyílt forráskódú anime- és mangakövető az AniListhez Windowsra, Linuxra és Androidra. Felismeri, mit nézel, és frissíti az AniListet.",
     notFoundTitle: "Az oldal nem található — Karasu",
   },
   skip: "Ugrás a tartalomra",

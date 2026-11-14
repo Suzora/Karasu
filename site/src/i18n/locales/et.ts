@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Kaasaegne anime ja manga jälgija AniListile",
     description:
-      "Karasu on tasuta avatud lähtekoodiga anime ja manga jälgija, mis on tehtud ainult AniListile. See märkab, mida sa esitad — ja Windowsis ka seda, mida sa loed — ning hoiab su AniListi edenemise ajakohasena. Windows, Linux ja Android.",
+      "Tasuta avatud lähtekoodiga anime- ja mangajälgija AniListile Windowsis, Linuxis ja Androidis. Tunneb ära, mida vaatad, ja uuendab AniListi.",
     notFoundTitle: "Lehte ei leitud — Karasu",
   },
   skip: "Mine sisu juurde",

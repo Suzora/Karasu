@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — En modern anime- och mangaspårare för AniList",
     description:
-      "Karasu är en gratis spårare med öppen källkod för anime och manga, byggd uteslutande för AniList. Den märker vad du spelar upp — och i Windows vad du läser — och håller dina framsteg på AniList uppdaterade. Windows, Linux och Android.",
+      "Gratis anime- och mangatracker med öppen källkod för AniList på Windows, Linux och Android. Känner igen vad du tittar på och uppdaterar AniList.",
     notFoundTitle: "Sidan hittades inte — Karasu",
   },
   skip: "Hoppa till innehållet",

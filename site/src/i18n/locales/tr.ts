@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — AniList için modern bir anime ve manga takipçisi",
     description:
-      "Karasu, yalnızca AniList için geliştirilmiş, ücretsiz ve açık kaynaklı bir anime ve manga takipçisidir. Ne oynattığını — ve Windows'ta ne okuduğunu — fark eder ve AniList ilerlemeni güncel tutar. Windows, Linux ve Android.",
+      "AniList için Windows, Linux ve Android'de ücretsiz, açık kaynaklı anime ve manga takipçisi. Ne izlediğini algılar ve AniList'i güncel tutar.",
     notFoundTitle: "Sayfa bulunamadı — Karasu",
   },
   skip: "İçeriğe geç",

@@ -1,7 +1,7 @@
 import { LINKS, META, SITE_URL, SUZORA_URL } from "./site.config";
 import release from "./generated/release.json";
 import type { Messages } from "./i18n/en";
-import { LANGUAGES, langPath, type Lang } from "./i18n/languages";
+import { LANGUAGES, OG_LOCALE, langPath, type Lang } from "./i18n/languages";
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -27,6 +27,7 @@ export function headFor(page: "home" | "404", lang: Lang, t: Messages): string {
     `<link rel="apple-touch-icon" href="${SITE_URL}apple-touch-icon.png">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:site_name" content="Karasu">`,
+    `<meta property="og:locale" content="${OG_LOCALE[lang]}">`,
     `<meta property="og:title" content="${esc(title)}">`,
     `<meta property="og:description" content="${esc(description)}">`,
     `<meta property="og:url" content="${url}">`,
@@ -43,6 +44,9 @@ export function headFor(page: "home" | "404", lang: Lang, t: Messages): string {
       lines.push(`<link rel="alternate" hreflang="${l.code}" href="${SITE_URL}${langPath(l.code)}">`);
     }
     lines.push(`<link rel="alternate" hreflang="x-default" href="${SITE_URL}">`);
+    for (const l of LANGUAGES) {
+      if (l.code !== lang) lines.push(`<meta property="og:locale:alternate" content="${OG_LOCALE[l.code]}">`);
+    }
   }
   if (page === "404") {
     lines.push(`<meta name="robots" content="noindex">`);

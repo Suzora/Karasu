@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — mūsdienīgs anime un mangas izsekotājs AniList lietotājiem",
     description:
-      "Karasu ir bezmaksas atvērtā koda anime un mangas izsekotājs, kas izveidots tikai AniList. Tas pamana, ko tu atskaņo, bet Windows sistēmā arī to, ko lasi, un uztur tavu progresu AniList atjauninātu. Windows, Linux un Android.",
+      "Bezmaksas atvērtā koda anime un mangas izsekotājs AniList operētājsistēmām Windows, Linux un Android. Atpazīst, ko skaties, un atjaunina AniList.",
     notFoundTitle: "Lapa nav atrasta — Karasu",
   },
   skip: "Pāriet uz saturu",

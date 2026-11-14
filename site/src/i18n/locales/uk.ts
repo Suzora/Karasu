@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — сучасний трекер аніме та манґи для AniList",
     description:
-      "Karasu — безкоштовний трекер аніме та манґи з відкритим кодом, створений виключно для AniList. Він помічає, що ти дивишся, а у Windows ще й що читаєш, і тримає твій прогрес на AniList в актуальному стані. Windows, Linux та Android.",
+      "Безкоштовний трекер аніме й манґи з відкритим кодом для AniList на Windows, Linux і Android. Розпізнає, що ти дивишся, й оновлює AniList.",
     notFoundTitle: "Сторінку не знайдено — Karasu",
   },
   skip: "Перейти до вмісту",

@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Um gestor moderno de anime e manga para o AniList",
     description:
-      "O Karasu é um gestor gratuito e de código aberto de anime e manga, criado exclusivamente para o AniList. Repara no que reproduzes — e, no Windows, no que lês — e mantém o teu progresso no AniList atualizado. Windows, Linux e Android.",
+      "Tracker de anime e manga gratuito e de código aberto para o AniList, no Windows, Linux e Android. Deteta o que vês e mantém o AniList em dia.",
     notFoundTitle: "Página não encontrada — Karasu",
   },
   skip: "Saltar para o conteúdo",

@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — 面向 AniList 的现代动漫追番工具",
     description:
-      "Karasu 是专为 AniList 打造的免费开源动画与漫画追踪工具。它能察觉你正在播放的内容，在 Windows 上还能察觉你正在阅读的内容，并让你的 AniList 进度保持同步。支持 Windows、Linux 和 Android。",
+      "适用于 Windows、Linux 和 Android 的免费开源 AniList 动画与漫画追踪工具。自动识别你正在观看的内容，并同步 AniList 进度。",
     notFoundTitle: "页面未找到 — Karasu",
   },
   skip: "跳到正文",

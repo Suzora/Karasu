@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Ứng dụng theo dõi anime và manga hiện đại cho AniList",
     description:
-      "Karasu là ứng dụng theo dõi anime và manga miễn phí, mã nguồn mở, được xây dựng riêng cho AniList. Ứng dụng nhận biết bạn đang xem gì — và trên Windows, cả bạn đang đọc gì — rồi giữ tiến độ AniList của bạn luôn đồng bộ. Hỗ trợ Windows, Linux và Android.",
+      "Trình theo dõi anime và manga miễn phí, mã nguồn mở cho AniList trên Windows, Linux và Android. Nhận biết bạn đang xem gì và cập nhật AniList.",
     notFoundTitle: "Không tìm thấy trang — Karasu",
   },
   skip: "Chuyển đến nội dung",

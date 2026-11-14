@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Penjejak anime & manga moden untuk AniList",
     description:
-      "Karasu ialah penjejak anime dan manga percuma dan sumber terbuka yang dibina khas untuk AniList. Ia mengesan apa yang anda mainkan — dan di Windows, apa yang anda baca — serta memastikan kemajuan AniList anda sentiasa disegerakkan. Windows, Linux dan Android.",
+      "Penjejak anime dan manga percuma dan sumber terbuka untuk AniList pada Windows, Linux dan Android. Mengenal pasti tontonan anda dan mengemas kini AniList.",
     notFoundTitle: "Halaman tidak ditemui — Karasu",
   },
   skip: "Langkau ke kandungan",

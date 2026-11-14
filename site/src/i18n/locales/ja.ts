@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — AniList のための現代的なアニメ・マンガトラッカー",
     description:
-      "Karasu は AniList 専用に作られた、無料でオープンソースのアニメ・マンガトラッカーです。再生中の作品を検知し、Windows では読んでいる作品も検知して、AniList の進捗を最新に保ちます。Windows、Linux、Android に対応。",
+      "AniList 専用の無料・オープンソースのアニメ・マンガトラッカー。Windows、Linux、Android に対応。視聴中の作品を検知し、AniList の進捗を最新に保ちます。",
     notFoundTitle: "ページが見つかりません — Karasu",
   },
   skip: "本文へスキップ",

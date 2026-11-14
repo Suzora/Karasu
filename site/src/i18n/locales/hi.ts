@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — AniList के लिए एक आधुनिक एनीमे और मंगा ट्रैकर",
     description:
-      "Karasu एक मुफ़्त, ओपन-सोर्स एनीमे और मंगा ट्रैकर है, जो सिर्फ़ AniList के लिए बनाया गया है। यह पहचान लेता है कि आप क्या चला रहे हैं — और Windows पर, क्या पढ़ रहे हैं — और आपकी AniList प्रगति को सिंक में रखता है। Windows, Linux और Android।",
+      "Windows, Linux और Android के लिए AniList का मुफ़्त, ओपन-सोर्स एनिमे और मंगा ट्रैकर। यह पहचानता है कि आप क्या देख रहे हैं और AniList को अपडेट रखता है।",
     notFoundTitle: "पेज नहीं मिला — Karasu",
   },
   skip: "सामग्री पर जाएँ",

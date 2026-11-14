@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Pelacak anime & manga modern untuk AniList",
     description:
-      "Karasu adalah pelacak anime dan manga gratis dan open source yang dibuat khusus untuk AniList. Ia mengenali apa yang kamu putar — dan di Windows, apa yang kamu baca — lalu menjaga progres AniList-mu tetap sinkron. Windows, Linux, dan Android.",
+      "Pelacak anime dan manga gratis dan sumber terbuka untuk AniList di Windows, Linux, dan Android. Mengenali tontonan Anda dan memperbarui AniList.",
     notFoundTitle: "Halaman tidak ditemukan — Karasu",
   },
   skip: "Lewati ke konten",

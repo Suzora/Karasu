@@ -4,7 +4,7 @@ export default {
   meta: {
     title: "Karasu — Moderni anime- ja mangaseuranta AniListille",
     description:
-      "Karasu on ilmainen avoimen lähdekoodin anime- ja mangaseuranta, joka on tehty pelkästään AniListille. Se huomaa, mitä toistat — ja Windowsissa myös mitä luet — ja pitää AniList-edistymisesi ajan tasalla. Windows, Linux ja Android.",
+      "Ilmainen avoimen lähdekoodin anime- ja mangaseuranta AniListiin Windowsille, Linuxille ja Androidille. Tunnistaa, mitä katsot, ja päivittää AniListin.",
     notFoundTitle: "Sivua ei löytynyt — Karasu",
   },
   skip: "Siirry sisältöön",

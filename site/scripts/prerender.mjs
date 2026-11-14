@@ -10,6 +10,7 @@
 // The SSR bundle resolves react-dom/server by NODE_ENV at import time; the
 // production build is the one to render with.
 process.env.NODE_ENV = "production";
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -47,7 +48,18 @@ for (const { code } of LANGUAGES) {
 }
 writeFileSync(path.join(CLIENT, "404.html"), page("/404", "en", "404"));
 
-const today = new Date().toISOString().slice(0, 10);
+// When the page's words last changed, from the commits that feed it, so a crawler can trust the date; the build day if git is absent.
+function contentDate() {
+  try {
+    const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", "site/src", "site/public", "CHANGELOG.md", "src/app/index.css"], {
+      cwd: path.resolve(SITE, ".."),
+      encoding: "utf8",
+    }).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(out)) return out;
+  } catch {}
+  return new Date().toISOString().slice(0, 10);
+}
+const today = contentDate();
 const alternates = LANGUAGES.map(
   (l) => `    <xhtml:link rel="alternate" hreflang="${l.code}" href="${SITE_URL}${langPath(l.code)}"/>`,
 ).join("\n");

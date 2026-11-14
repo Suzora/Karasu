@@ -48,4 +48,48 @@ export type Lang = (typeof LANGUAGES)[number]["code"];
 export const HUMAN_LANGUAGES: readonly Lang[] = ["en", "de"];
 
 /** The page's path below the site's base: English at the root, every other language in a folder of its code. */
+/** Open Graph's locale for each language, in the language_TERRITORY form link previews read. */
+export const OG_LOCALE: Record<Lang, string> = {
+  en: "en_US",
+  de: "de_DE",
+  fr: "fr_FR",
+  "fr-CA": "fr_CA",
+  es: "es_ES",
+  "es-419": "es_LA",
+  it: "it_IT",
+  pt: "pt_PT",
+  "pt-BR": "pt_BR",
+  nl: "nl_NL",
+  pl: "pl_PL",
+  cs: "cs_CZ",
+  sk: "sk_SK",
+  hu: "hu_HU",
+  ro: "ro_RO",
+  sv: "sv_SE",
+  da: "da_DK",
+  nb: "nb_NO",
+  fi: "fi_FI",
+  el: "el_GR",
+  ru: "ru_RU",
+  uk: "uk_UA",
+  bg: "bg_BG",
+  hr: "hr_HR",
+  "sr-Latn": "sr_RS",
+  sl: "sl_SI",
+  tr: "tr_TR",
+  lt: "lt_LT",
+  lv: "lv_LV",
+  et: "et_EE",
+  ja: "ja_JP",
+  ko: "ko_KR",
+  "zh-Hans": "zh_CN",
+  "zh-Hant": "zh_TW",
+  vi: "vi_VN",
+  th: "th_TH",
+  id: "id_ID",
+  ms: "ms_MY",
+  fil: "tl_PH",
+  hi: "hi_IN",
+};
+
 export const langPath = (lang: Lang) => (lang === "en" ? "" : `${lang}/`);
