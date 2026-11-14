@@ -659,6 +659,7 @@ export const en = {
     reportBug: "Report a bug",
     reportHint: "Bugs and feature requests go to GitHub — that is where they get tracked.",
     tagline: "Anime & manga tracker for AniList",
+    byline: "An app by Suzora",
     version: "Version {{version}}",
     description:
       "Karasu is a desktop tracker for your AniList anime and manga. It detects what you watch in your player or browser and what you read in your browser, updates your progress automatically (asking first for a chapter from a site it does not name), plays the next episode from your local library, and shows your activity on Discord — all from your PC.",

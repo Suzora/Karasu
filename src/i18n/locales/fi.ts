@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Ilmoita virheestä",
     reportHint: "Virheilmoitukset ja ominaisuustoiveet menevät GitHubiin — siellä niitä seurataan.",
     tagline: "Anime- ja mangaseuranta AniListille",
+    byline: "Suzoran sovellus",
     version: "Versio {{version}}",
     description: "Karasu on työpöytäseuranta AniList-animellesi ja -mangallesi. Se tunnistaa, mitä katsot soittimessasi tai selaimessasi ja mitä luet selaimessasi, päivittää etenemisesi automaattisesti (kysyen ensin luvusta sivustolla, jota se ei nimeä), toistaa seuraavan jakson paikallisesta kirjastostasi ja näyttää aktiviteettisi Discordissa — kaikki omalta koneeltasi.",
     descriptionAndroid: "Karasu Androidille pitää AniList-animesi ja -mangasi ajan tasalla. Katso Jellyfinin kautta, niin se päivittää etenemisesi itse, pitää listasi synkronoituna ja näyttää seuraavat kotinäytön widgeteissä.",

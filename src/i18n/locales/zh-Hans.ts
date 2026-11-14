@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "报告 bug",
     reportHint: "Bug 和功能建议请提交到 GitHub——那里会统一跟进。",
     tagline: "AniList 动画与漫画追踪器",
+    byline: "Suzora 出品的应用",
     version: "版本 {{version}}",
     description: "Karasu 是用于管理 AniList 动画和漫画的桌面追踪器。它会检测你在播放器或浏览器中观看的内容，以及在浏览器中阅读的漫画，自动更新进度（对于它未指明的网站上的章节会先询问），从本地媒体库播放下一集，并在 Discord 上显示你的动态——全部在你的电脑上完成。",
     descriptionAndroid: "Karasu for Android 帮你管理 AniList 动画和漫画。通过 Jellyfin 观看时它会自动更新进度，保持列表同步，并通过小组件在主屏幕上显示接下来要看的内容。",

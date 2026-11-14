@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "버그 신고",
     reportHint: "버그와 기능 요청은 GitHub에서 관리하므로 그곳으로 보내 주세요.",
     tagline: "AniList용 애니 및 만화 트래커",
+    byline: "Suzora의 앱",
     version: "버전 {{version}}",
     description: "Karasu는 AniList의 애니와 만화를 위한 데스크톱 트래커입니다. 플레이어나 브라우저에서 보는 것과 브라우저에서 읽는 것을 감지해 진행도를 자동으로 업데이트하고(이름을 아는 사이트가 아닌 곳의 챕터는 먼저 묻습니다), 로컬 라이브러리에서 다음 에피소드를 재생하며, Discord에 활동을 표시합니다. 모두 내 PC에서 이루어집니다.",
     descriptionAndroid: "Android용 Karasu는 AniList의 애니와 만화를 관리합니다. Jellyfin으로 시청하면 진행도를 알아서 업데이트하고, 목록을 동기화하며, 위젯으로 홈 화면에 다음 작품을 보여 줍니다.",

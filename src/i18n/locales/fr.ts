@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Signaler un bug",
     reportHint: "Les bugs et demandes de fonctionnalités vont sur GitHub — c'est là qu'ils sont suivis.",
     tagline: "Suivi d'anime et de manga pour AniList",
+    byline: "Une app de Suzora",
     version: "Version {{version}}",
     description: "Karasu est un suivi de bureau pour tes anime et manga AniList. Il détecte ce que tu regardes dans ton lecteur ou ton navigateur et ce que tu lis dans ton navigateur, met ta progression à jour automatiquement (en demandant d'abord pour un chapitre venant d'un site qu'il ne nomme pas), lance l'épisode suivant depuis ta bibliothèque locale et affiche ton activité sur Discord — le tout depuis ton PC.",
     descriptionAndroid: "Karasu pour Android garde tes anime et manga AniList. Regarde via Jellyfin et il met ta progression à jour tout seul, garde ta liste synchronisée et montre la suite sur ton écran d'accueil avec ses widgets.",

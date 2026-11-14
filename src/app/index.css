@@ -152,6 +152,9 @@
   --color-tag-pink: #e889cf;
   --color-tag-slate: #9aa3b5;
 
+  /* The nest around Suzora's sun, cream as the logo draws it; the light theme darkens it so it shows on paper. */
+  --color-brand-nest: #f7e3d1;
+
   /* List-status defaults, overwritten at runtime by `stores/theme`; here so a cover ring paints on the first frame. */
   --color-status-current: #2f9e47;
   --color-status-repeating: #0e8f86;
@@ -518,6 +521,7 @@
   --color-tag-violet: #6a4fd0;
   --color-tag-pink: #ad3d90;
   --color-tag-slate: #5b6475;
+  --color-brand-nest: #a8805c;
 }
 
 :root[data-theme="dark"] {

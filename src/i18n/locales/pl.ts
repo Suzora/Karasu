@@ -653,6 +653,7 @@ const locale: PartialLocale = {
     reportBug: "Zgłoś błąd",
     reportHint: "Błędy i propozycje funkcji trafiają na GitHub — tam są śledzone.",
     tagline: "Tracker anime i mangi dla AniList",
+    byline: "Aplikacja od Suzora",
     version: "Wersja {{version}}",
     description: "Karasu to komputerowy tracker twoich anime i mang z AniList. Wykrywa, co oglądasz w odtwarzaczu lub przeglądarce i co czytasz w przeglądarce, automatycznie aktualizuje postęp (przy rozdziale ze strony, której nie nazywa, najpierw pytając), odtwarza następny odcinek z twojej biblioteki lokalnej i pokazuje twoją aktywność na Discordzie — wszystko z twojego komputera.",
     descriptionAndroid: "Karasu na Androida pilnuje twoich anime i mang z AniList. Oglądaj przez Jellyfin, a sam zaktualizuje postęp, utrzyma listę zsynchronizowaną i pokaże na ekranie głównym, co dalej, dzięki widżetom.",

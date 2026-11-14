@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Báo lỗi",
     reportHint: "Lỗi và yêu cầu tính năng được gửi lên GitHub — nơi chúng được theo dõi.",
     tagline: "Trình theo dõi anime và manga cho AniList",
+    byline: "Một ứng dụng của Suzora",
     version: "Phiên bản {{version}}",
     description: "Karasu là trình theo dõi trên máy tính cho anime và manga AniList của bạn. Nó nhận diện những gì bạn xem trong trình phát hay trình duyệt và những gì bạn đọc trong trình duyệt, tự động cập nhật tiến độ (hỏi trước với chương từ một trang nó không nêu tên), phát tập tiếp theo từ thư viện cục bộ và hiển thị hoạt động của bạn trên Discord — tất cả từ máy tính của bạn.",
     descriptionAndroid: "Karasu cho Android giữ anime và manga AniList của bạn. Xem qua Jellyfin và nó tự cập nhật tiến độ, giữ danh sách đồng bộ, và cho thấy mục tiếp theo trên màn hình chính bằng các widget.",

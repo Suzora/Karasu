@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Teata veast",
     reportHint: "Vead ja soovid lähevad GitHubi – seal neid jälgitakse.",
     tagline: "Anime ja manga jälgija AniListile",
+    byline: "Suzora rakendus",
     version: "Versioon {{version}}",
     description: "Karasu on töölauarakendus sinu AniListi anime ja manga jälgimiseks. See tuvastab, mida vaatad oma mängijas või brauseris ja mida loed brauseris, uuendab edenemist automaatselt (küsides enne peatüki kohta saidilt, mida ta nimeliselt ei tunne), esitab järgmise episoodi sinu kohalikust kogust ning näitab sinu tegevust Discordis – kõik sinu arvutist.",
     descriptionAndroid: "Karasu Androidile hoiab sinu AniListi anime ja manga korras. Vaata Jellyfini kaudu ja see uuendab edenemist ise, hoiab nimekirja sünkroonis ning näitab vidinatega avaekraanil, mis on järgmisena.",

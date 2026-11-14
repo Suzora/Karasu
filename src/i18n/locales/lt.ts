@@ -649,6 +649,7 @@ const locale: PartialLocale = {
     reportBug: "Pranešti apie klaidą",
     reportHint: "Klaidos ir pasiūlymai keliauja į GitHub — ten jie sekami.",
     tagline: "Anime ir manga sekimo programa AniList naudotojams",
+    byline: "Suzora programėlė",
     version: "Versija {{version}}",
     description: "Karasu yra kompiuterio programa tavo AniList anime ir manga sekti. Ji aptinka, ką žiūri grotuve ar naršyklėje ir ką skaitai naršyklėje, automatiškai atnaujina eigą (skyrių iš jos nevadinamos svetainės pirma paklausia), paleidžia kitą seriją iš vietinės bibliotekos ir rodo tavo veiklą Discord — viskas iš tavo kompiuterio.",
     descriptionAndroid: "Karasu, skirta Android, prižiūri tavo AniList anime ir manga. Žiūrėk per Jellyfin, ir ji pati atnaujins eigą, sinchronizuos sąrašą ir valdikliais pagrindiniame ekrane parodys, kas toliau.",

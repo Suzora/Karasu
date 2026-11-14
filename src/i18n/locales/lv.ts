@@ -649,6 +649,7 @@ const locale: PartialLocale = {
     reportBug: "Ziņot par kļūdu",
     reportHint: "Kļūdas un funkciju pieprasījumi nonāk GitHub — tur tie tiek izsekoti.",
     tagline: "Anime un mangas izsekotājs AniList",
+    byline: "Suzora lietotne",
     version: "Versija {{version}}",
     description: "Karasu ir galddatora izsekotājs tavam AniList anime un manga sarakstam. Tas atpazīst, ko skaties atskaņotājā vai pārlūkā un ko lasi pārlūkā, automātiski atjaunina progresu (par nodaļu vietnē, kuru tas nenosauc, vispirms pajautā), atskaņo nākamo epizodi no vietējās bibliotēkas un rāda tavu aktivitāti Discord — viss no tava datora.",
     descriptionAndroid: "Karasu Android ierīcei glabā tavu AniList anime un mangu. Skaties caur Jellyfin, un progress atjaunosies pats, saraksts paliks sinhronizēts, bet logrīki sākuma ekrānā rādīs, kas gaida tālāk.",

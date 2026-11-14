@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Hata bildir",
     reportHint: "Hatalar ve özellik istekleri GitHub'a gider; takip orada yapılır.",
     tagline: "AniList için anime ve manga takipçisi",
+    byline: "Bir Suzora uygulaması",
     version: "Sürüm {{version}}",
     description: "Karasu, AniList anime ve mangaların için bir masaüstü takipçisidir. Oynatıcında veya tarayıcında izlediğini ve tarayıcında okuduğunu algılar, ilerlemeni otomatik günceller (adını vermediği bir siteden bölüm için önce sorar), sonraki bölümü yerel kütüphanenden oynatır ve etkinliğini Discord'da gösterir; hepsi bilgisayarından.",
     descriptionAndroid: "Android için Karasu, AniList anime ve mangalarını güncel tutar. Jellyfin üzerinden izle, ilerlemeni kendisi günceller, listeni eşitler ve widget'larıyla ana ekranında sıradakini gösterir.",

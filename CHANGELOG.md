@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: fcb38a1 -->
+<!-- generated-through: 648f071 -->
 
 ### Fixed
 
@@ -105,6 +105,7 @@ tag time is then optional rather than load-bearing.
 - The diagnostics report reads as plain headings and lists instead of tables, in the app as well as in an issue.
 - The Overview's "Playing now" card shows the cover as a band behind its heading, is no longer cut off, and its progress matches the list.
 - Grouping has its own button and a "Group by" entry in the list's right-click menu; stacks can be dragged into order and renamed, and a narrow list toolbar keeps room for the search ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- About names Suzora, who makes Karasu.
 
 ### Added
 

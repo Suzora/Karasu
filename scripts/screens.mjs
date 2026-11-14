@@ -216,6 +216,7 @@ export const SCREENS = [
   { id: "d104-studio", w: 1232, h: 1400, route: "/studio/31" },
   { id: "p75-studio", w: 405, h: 1600, phone: true, route: "/studio/31" },
   { id: "d55-ueber", w: 1232, h: 1000, route: "/about" },
+  { id: "d55-ueber-lang", w: 1232, h: 2000, route: "/about" },
   { id: "d94-neu-stable", w: 1232, h: 800, route: "/", mock: "neu-stable", act: (p) => p.getByRole("dialog").waitFor() },
   { id: "d95-neu-nightly", w: 1232, h: 800, route: "/", mock: "neu-nightly", act: (p) => p.getByRole("dialog").waitFor() },
   { id: "d96-aenderungen", w: 1232, h: 800, route: "/about", act: (p) => p.getByRole("button", { name: "Changelog", exact: true }).click() },

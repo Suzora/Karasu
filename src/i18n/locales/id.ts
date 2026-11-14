@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Laporkan bug",
     reportHint: "Bug dan permintaan fitur dikirim ke GitHub — di sanalah semuanya dilacak.",
     tagline: "Pelacak anime & manga untuk AniList",
+    byline: "Aplikasi dari Suzora",
     version: "Versi {{version}}",
     description: "Karasu adalah pelacak desktop untuk anime dan manga AniList-mu. Ia mendeteksi apa yang kamu tonton di pemutar atau peramban dan apa yang kamu baca di peramban, memperbarui progresmu secara otomatis (bertanya dulu untuk chapter dari situs yang tidak ia sebut namanya), memutar episode berikutnya dari pustaka lokalmu, dan menampilkan aktivitasmu di Discord — semuanya dari PC-mu.",
     descriptionAndroid: "Karasu untuk Android menjaga anime dan manga AniList-mu. Tonton lewat Jellyfin dan progresmu diperbarui sendiri, daftarmu tetap tersinkron, dan widget menampilkan apa yang berikutnya di layar utama.",

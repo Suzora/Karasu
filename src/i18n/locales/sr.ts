@@ -649,6 +649,7 @@ const locale: PartialLocale = {
     reportBug: "Prijavi grešku",
     reportHint: "Greške i zahtevi za funkcije idu na GitHub — tamo se prate.",
     tagline: "Tracker za anime i mangu za AniList",
+    byline: "Aplikacija kompanije Suzora",
     version: "Verzija {{version}}",
     description: "Karasu je desktop tracker za tvoj AniList anime i mangu. Prepoznaje šta gledaš u plejeru ili pregledaču i šta čitaš u pregledaču, automatski ažurira napredak (uz pitanje za poglavlje sa sajta koji ne imenuje), pušta sledeću epizodu iz tvoje lokalne biblioteke i prikazuje tvoju aktivnost na Discordu — sve sa tvog računara.",
     descriptionAndroid: "Karasu za Android čuva tvoj AniList anime i mangu. Gledaj preko Jellyfina i on sam ažurira napredak, drži listu sinhronizovanom i prikazuje šta sledi na početnom ekranu pomoću vidžeta.",

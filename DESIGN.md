@@ -1319,3 +1319,8 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   launcher's reconfigure opens: content, density, accent and opacity. Below
   full opacity the muted text rises to ink-300, since ink-600 falls under
   4.5 : 1 over a light wallpaper.
+- **2026-11-14:** About names Suzora, who makes Karasu: a 20 px Suzora mark and
+  "An app by Suzora" under the version line, in the header where it is seen
+  without scrolling (A of three: a card of its own under Contact, and a footer
+  at the page's end). The mark is drawn inline so its cream nest takes a theme
+  colour, `brand-nest`, which the light theme darkens to show on paper.

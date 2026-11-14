@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Hiba jelentése",
     reportHint: "A hibákat és funkciókéréseket a GitHubra küldd — ott követjük őket.",
     tagline: "Anime- és mangakövető az AniListhez",
+    byline: "A Suzora alkalmazása",
     version: "{{version}} verzió",
     description: "A Karasu asztali követő az AniList-animéidhez és -mangáidhoz. Felismeri, mit nézel a lejátszódban vagy a böngésződben, és mit olvasol a böngészőben, automatikusan frissíti a haladásodat (egy általa meg nem nevezett oldalról érkező fejezetnél előbb rákérdez), lejátssza a következő epizódot a helyi könyvtáradból, és megmutatja az aktivitásodat a Discordon — mindez a te gépedről.",
     descriptionAndroid: "A Karasu Androidra az AniList-animéidet és -mangáidat kezeli. Nézz Jellyfinen, és magától frissíti a haladásodat, szinkronban tartja a listádat, és widgetekkel megmutatja a kezdőképernyődön, mi következik.",

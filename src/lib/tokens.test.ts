@@ -36,7 +36,7 @@ const colour = (theme: "dark" | "light", name: string): string =>
   (theme === "light" ? light.get(`--color-${name}`) : undefined) ?? base.get(`--color-${name}`)!;
 
 /** The colours a theme swaps; status and accent are set at runtime and never live in a theme block. */
-const THEMED = /^--color-(surface|ink|gold|danger|success|graph|tag)-?/;
+const THEMED = /^--color-(surface|ink|gold|danger|success|graph|tag|brand)-?/;
 /** Root values `stores/theme` writes inline per accent, so no theme block carries them. */
 const RUNTIME = new Set(["--accent-rgb", "--w1", "--w2", "--hair"]);
 /** Accents past the presets: the corners of the colour cube and a mid grey, where a derivation is most likely to break. */

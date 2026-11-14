@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Laporkan pepijat",
     reportHint: "Pepijat dan permintaan ciri dihantar ke GitHub — di situlah ia dijejak.",
     tagline: "Penjejak anime & manga untuk AniList",
+    byline: "Aplikasi daripada Suzora",
     version: "Versi {{version}}",
     description: "Karasu ialah penjejak desktop untuk anime dan manga AniList anda. Ia mengesan apa yang anda tonton dalam pemain atau pelayar dan apa yang anda baca dalam pelayar, mengemas kini kemajuan anda secara automatik (bertanya dahulu untuk bab daripada laman yang tidak dinamakannya), memainkan episod seterusnya daripada pustaka setempat anda, dan menunjukkan aktiviti anda di Discord — semuanya daripada PC anda.",
     descriptionAndroid: "Karasu untuk Android menjaga anime dan manga AniList anda. Tonton melalui Jellyfin dan ia mengemas kini kemajuan anda dengan sendirinya, memastikan senarai anda tersegerak, dan menunjukkan apa yang seterusnya pada skrin utama anda dengan widgetnya.",

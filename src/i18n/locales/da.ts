@@ -645,6 +645,7 @@ const locale: PartialLocale = {
     reportBug: "Meld en fejl",
     reportHint: "Fejl og ønsker om funktioner går til GitHub — det er dér, de bliver fulgt.",
     tagline: "Anime- og mangatracker til AniList",
+    byline: "En app fra Suzora",
     version: "Version {{version}}",
     description: "Karasu er en desktop-tracker til din AniList-anime og -manga. Den registrerer, hvad du ser i din afspiller eller browser, og hvad du læser i din browser, opdaterer din fremgang automatisk (og spørger først om et kapitel fra et sted, den ikke navngiver), afspiller det næste afsnit fra dit lokale bibliotek og viser din aktivitet på Discord — alt sammen fra din pc.",
     descriptionAndroid: "Karasu til Android holder styr på din AniList-anime og -manga. Se via Jellyfin, så opdaterer den din fremgang af sig selv, holder din liste synkroniseret og viser, hvad der kommer næste gang, på din startskærm med sine widgets.",

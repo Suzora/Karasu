@@ -40,6 +40,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import KarasuMark from "@/components/KarasuMark";
+import SuzoraMark from "@/components/SuzoraMark";
 import { isAndroid, isLinux, usePlatform } from "@/stores/platform";
 import { Spinner } from "@/components/ui/spinner";
 import { backendErrorText } from "@/lib/backendError";
@@ -94,6 +95,10 @@ export default function About() {
               {t("about.version", { version })}
             </p>
           )}
+          <p className="mt-5 flex items-center gap-2 text-xs text-ink-500">
+            <SuzoraMark className="size-5" />
+            {t("about.byline")}
+          </p>
         </header>
 
       <div className="mt-8 space-y-6">

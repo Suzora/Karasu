@@ -649,6 +649,7 @@ const locale: PartialLocale = {
     reportBug: "Comunicar um erro",
     reportHint: "Erros e pedidos de funcionalidades vão para o GitHub — é lá que são acompanhados.",
     tagline: "Gestor de anime e manga para o AniList",
+    byline: "Uma app da Suzora",
     version: "Versão {{version}}",
     description: "O Karasu é um gestor de ambiente de trabalho para o teu anime e manga do AniList. Deteta o que vês no leitor ou no navegador e o que lês no navegador, atualiza o teu progresso automaticamente (perguntando primeiro por um capítulo de um site que não nomeia), reproduz o próximo episódio da tua biblioteca local e mostra a tua atividade no Discord — tudo a partir do teu PC.",
     descriptionAndroid: "O Karasu para Android mantém o teu anime e manga do AniList. Vê através do Jellyfin e ele atualiza o teu progresso sozinho, mantém a lista sincronizada e mostra o que vem a seguir no ecrã inicial com os seus widgets.",

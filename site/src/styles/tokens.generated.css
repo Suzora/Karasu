@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 124a5fe5f325) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 b9814dc3d9c9) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -123,6 +123,9 @@
   --color-tag-violet: #a48cf0;
   --color-tag-pink: #e889cf;
   --color-tag-slate: #9aa3b5;
+
+  /* The nest around Suzora's sun, cream as the logo draws it; the light theme darkens it so it shows on paper. */
+  --color-brand-nest: #f7e3d1;
 
   /* List-status defaults, overwritten at runtime by `stores/theme`; here so a cover ring paints on the first frame. */
   --color-status-current: #2f9e47;
@@ -492,6 +495,7 @@
   --color-tag-violet: #6a4fd0;
   --color-tag-pink: #ad3d90;
   --color-tag-slate: #5b6475;
+  --color-brand-nest: #a8805c;
 }
 
 :root[data-theme="dark"] {
