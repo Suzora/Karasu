@@ -8,6 +8,7 @@ import { I18nProvider } from "./i18n/context";
 import { LANGUAGES, langPath, type Lang } from "./i18n/languages";
 
 export { LANGUAGES, langPath };
+export { LINKS, SUZORA_URL } from "./site.config";
 
 /**
  * What `scripts/prerender.mjs` calls, once per page and language. Nothing here

@@ -23,7 +23,7 @@ const SITE_URL = "https://suzora.github.io/Karasu/";
 const template = readFileSync(path.join(CLIENT, "index.html"), "utf8");
 const entry = readdirSync(SERVER).find((f) => /^entry-server\.(m?js)$/.test(f));
 if (!entry) throw new Error("prerender: no entry-server bundle under dist/server");
-const { render, LANGUAGES, langPath } = await import(pathToFileURL(path.join(SERVER, entry)).href);
+const { render, LANGUAGES, langPath, LINKS, SUZORA_URL } = await import(pathToFileURL(path.join(SERVER, entry)).href);
 
 function page(routePath, lang, dataPage) {
   const { html, head, messages } = render(routePath, lang);
@@ -58,4 +58,28 @@ writeFileSync(
   path.join(CLIENT, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`,
 );
-console.log(`prerender: ${LANGUAGES.length} language pages, 404.html, sitemap.xml written`);
+// What an AI search engine reads first: the page's own English words, so it can say nothing the page does not.
+const en = JSON.parse(render("/", "en").messages);
+const faq = Object.values(en.faq.items)
+  .map((f) => `### ${f.q}\n\n${f.a}`)
+  .join("\n\n");
+writeFileSync(
+  path.join(CLIENT, "llms.txt"),
+  [
+    "# Karasu",
+    `> ${en.meta.description}`,
+    `${en.hero.title}. ${en.hero.lede} ${en.footer.byline} (${SUZORA_URL}).`,
+    "## Links",
+    [
+      `- [Website](${SITE_URL}): the page in English, with every other language under its code (${SITE_URL}de/ and so on)`,
+      `- [Download the latest Stable](${LINKS.latest})`,
+      `- [Source code](${LINKS.repo}) and [README](${LINKS.readme})`,
+      `- [Changelog](${LINKS.changelog})`,
+      `- [Security policy](${LINKS.security})`,
+      `- [Licence](${LINKS.license})`,
+    ].join("\n"),
+    "## Questions and answers",
+    faq,
+  ].join("\n\n") + "\n",
+);
+console.log(`prerender: ${LANGUAGES.length} language pages, 404.html, sitemap.xml, llms.txt written`);

@@ -1,4 +1,4 @@
-import { LINKS, META, SITE_URL } from "./site.config";
+import { LINKS, META, SITE_URL, SUZORA_URL } from "./site.config";
 import release from "./generated/release.json";
 import type { Messages } from "./i18n/en";
 import { LANGUAGES, langPath, type Lang } from "./i18n/languages";
@@ -47,21 +47,60 @@ export function headFor(page: "home" | "404", lang: Lang, t: Messages): string {
   if (page === "404") {
     lines.push(`<meta name="robots" content="noindex">`);
   } else {
+    const pageUrl = `${SITE_URL}${langPath(lang)}`;
+    const suzora = {
+      "@type": "Organization",
+      "@id": `${SITE_URL}#suzora`,
+      name: "Suzora",
+      url: SUZORA_URL,
+      logo: `${SITE_URL}suzora.png`,
+      sameAs: [SUZORA_URL],
+    };
     const ld = {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: "Karasu",
-      description,
-      inLanguage: lang,
-      url: SITE_URL,
-      applicationCategory: "UtilitiesApplication",
-      operatingSystem: "Windows, Linux, Android",
-      softwareVersion: release.version,
-      downloadUrl: LINKS.latest,
-      license: LINKS.license,
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-      author: { "@type": "Person", name: "Kyusetzu" },
-      image,
+      "@graph": [
+        suzora,
+        {
+          "@type": "WebSite",
+          "@id": `${SITE_URL}#website`,
+          name: "Karasu",
+          url: SITE_URL,
+          inLanguage: LANGUAGES.map((l) => l.code),
+          publisher: { "@id": suzora["@id"] },
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": `${SITE_URL}#app`,
+          name: "Karasu",
+          alternateName: "カラス",
+          description,
+          inLanguage: lang,
+          url: pageUrl,
+          applicationCategory: "EntertainmentApplication",
+          applicationSubCategory: "Anime and manga tracker for AniList",
+          operatingSystem: "Windows, Linux, Android",
+          softwareVersion: release.version,
+          downloadUrl: LINKS.latest,
+          license: LINKS.license,
+          isAccessibleForFree: true,
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          author: { "@type": "Person", name: "Kyusetzu" },
+          publisher: { "@id": suzora["@id"] },
+          codeRepository: LINKS.repo,
+          sameAs: [LINKS.repo],
+          image,
+        },
+        {
+          "@type": "FAQPage",
+          "@id": `${pageUrl}#faq`,
+          inLanguage: lang,
+          mainEntity: Object.values(t.faq.items).map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        },
+      ],
     };
     lines.push(
       `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`,

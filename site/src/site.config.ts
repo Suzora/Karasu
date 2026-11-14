@@ -7,6 +7,9 @@ export const SITE_URL = "https://suzora.github.io/Karasu/";
 
 export const REPO = "https://github.com/Suzora/Karasu";
 
+/** Suzora, who publishes Karasu; its GitHub organisation is the one address it has. */
+export const SUZORA_URL = "https://github.com/Suzora";
+
 export const LINKS = {
   repo: REPO,
   releases: `${REPO}/releases`,

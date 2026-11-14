@@ -124,7 +124,7 @@ for (const [name, size, gz] of rows.sort((a, b) => b[1] - a[1]).slice(0, 25)) {
 console.log(`JavaScript, gzipped: ${(jsGz / 1024).toFixed(1)} kB initial (budget ${JS_BUDGET_GZ / 1024} kB) + ${(lazyGz / 1024).toFixed(1)} kB on demand`);
 if (jsGz > JS_BUDGET_GZ) fail(`JavaScript over budget: ${(jsGz / 1024).toFixed(1)} kB gzipped`);
 
-for (const required of ["robots.txt", "sitemap.xml", ".nojekyll", "404.html"]) {
+for (const required of ["robots.txt", "sitemap.xml", "llms.txt", ".nojekyll", "404.html", "suzora.png"]) {
   if (!existsSync(path.join(CLIENT, required))) fail(`${required} is missing from dist`);
 }
 
