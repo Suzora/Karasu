@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Modernus anime ir mangos sekiklis — sukurtas tik AniList.",
     badge: "Atviras kodas · nemokama",
+    byline: "Suzora programėlė",
     project: "Projektas",
     github: "GitHub",
     download: "Atsisiųsti",

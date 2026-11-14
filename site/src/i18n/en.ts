@@ -145,6 +145,7 @@ export const en = {
   footer: {
     tagline: "A modern anime & manga tracker — built exclusively for AniList.",
     badge: "Open source · free of cost",
+    byline: "An app by Suzora",
     project: "Project",
     github: "GitHub",
     download: "Download",

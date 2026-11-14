@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "현대적인 애니·만화 트래커 — AniList 전용으로 만들었습니다.",
     badge: "오픈 소스 · 무료",
+    byline: "Suzora의 앱",
     project: "프로젝트",
     github: "GitHub",
     download: "다운로드",

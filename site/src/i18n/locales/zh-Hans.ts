@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "现代动漫追番工具 — 专为 AniList 打造。",
     badge: "开源 · 免费",
+    byline: "Suzora 出品的应用",
     project: "项目",
     github: "GitHub",
     download: "下载",

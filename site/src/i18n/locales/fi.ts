@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Moderni anime- ja mangaseuranta — tehty pelkästään AniListille.",
     badge: "Avoin lähdekoodi · ilmainen",
+    byline: "Suzoran sovellus",
     project: "Projekti",
     github: "GitHub",
     download: "Lataa",

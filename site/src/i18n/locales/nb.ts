@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "En moderne anime- og mangatracker — bygget utelukkende for AniList.",
     badge: "Åpen kildekode · gratis",
+    byline: "En app fra Suzora",
     project: "Prosjekt",
     github: "GitHub",
     download: "Last ned",

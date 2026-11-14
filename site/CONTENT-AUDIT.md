@@ -125,6 +125,7 @@ fails `npm --prefix site run check` on a missing or extra key.
 | 103 | Every language makes exactly the English claims, no more and no fewer: each sentence in a catalog is a translation of the sentence under the same key in `en.ts`, whose rows are the ones above. A claim changes in English first and in every catalog in the same commit. The screenshots are the English captures in every language; only their captions and alt texts are translated | `site/src/i18n/en.ts` `Messages`; `site/src/i18n/catalogs.ts` (a language without a catalog is a type error); `site/src/i18n/context.tsx` `shotText` | confirmed for English; German was drafted in an agent session for the maintainer to read before the deploy, the other thirty-eight are unreviewed AI translations, and the page says so |
 | 104 | "Every language other than English and German is an AI translation that no person has reviewed" (the language switch in the footer) | `site/src/i18n/languages.ts` `HUMAN_LANGUAGES`; the catalogs were written by AI agents on 2026-11-09 and have not been read by a speaker | confirmed |
 | 105 | The changelog card's lines stay English on every page (`lang="en"`) | `site/src/sections/Showcase.tsx`; `CHANGELOG.md` is written in English only | confirmed |
+| 106 | "An app by Suzora", with Suzora's mark (the footer) | the maintainer's statement of 2026-11-14 that Karasu is an app by Suzora; the app's About says the same (`src/pages/About.tsx`, `about.byline`) | confirmed |
 
 ## Screenshots
 

@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Kaasaegne anime ja manga jälgija — ehitatud ainult AniListile.",
     badge: "Avatud lähtekood · tasuta",
+    byline: "Suzora rakendus",
     project: "Projekt",
     github: "GitHub",
     download: "Laadi alla",

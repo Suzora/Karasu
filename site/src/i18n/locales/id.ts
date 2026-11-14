@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Pelacak anime & manga modern — dibuat khusus untuk AniList.",
     badge: "Open source · gratis",
+    byline: "Aplikasi dari Suzora",
     project: "Proyek",
     github: "GitHub",
     download: "Unduh",

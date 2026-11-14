@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Modern anime- és mangakövető — kizárólag az AniListhez építve.",
     badge: "Nyílt forráskódú · ingyenes",
+    byline: "A Suzora alkalmazása",
     project: "Projekt",
     github: "GitHub",
     download: "Letöltés",

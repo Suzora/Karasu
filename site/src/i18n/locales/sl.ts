@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Sodoben sledilnik animejev in mange — narejen izključno za AniList.",
     badge: "Odprta koda · brezplačno",
+    byline: "Aplikacija podjetja Suzora",
     project: "Projekt",
     github: "GitHub",
     download: "Prenesi",

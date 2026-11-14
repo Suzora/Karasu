@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Ứng dụng theo dõi anime và manga hiện đại — xây dựng riêng cho AniList.",
     badge: "Mã nguồn mở · miễn phí",
+    byline: "Một ứng dụng của Suzora",
     project: "Dự án",
     github: "GitHub",
     download: "Tải xuống",

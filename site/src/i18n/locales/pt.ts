@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Um gestor moderno de anime e manga — criado exclusivamente para o AniList.",
     badge: "Código aberto · gratuito",
+    byline: "Uma app da Suzora",
     project: "Projeto",
     github: "GitHub",
     download: "Transferir",

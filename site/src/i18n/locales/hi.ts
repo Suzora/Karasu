@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "एक आधुनिक एनीमे और मंगा ट्रैकर — सिर्फ़ AniList के लिए बनाया गया।",
     badge: "ओपन सोर्स · मुफ़्त",
+    byline: "Suzora का एक ऐप",
     project: "प्रोजेक्ट",
     github: "GitHub",
     download: "डाउनलोड",

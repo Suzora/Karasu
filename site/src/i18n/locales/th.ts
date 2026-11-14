@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "แอปติดตามอนิเมะและมังงะยุคใหม่ — สร้างเพื่อ AniList โดยเฉพาะ",
     badge: "โอเพนซอร์ส · ใช้ฟรี",
+    byline: "แอปโดย Suzora",
     project: "โปรเจกต์",
     github: "GitHub",
     download: "ดาวน์โหลด",

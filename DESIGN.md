@@ -1324,3 +1324,7 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
   without scrolling (A of three: a card of its own under Contact, and a footer
   at the page's end). The mark is drawn inline so its cream nest takes a theme
   colour, `brand-nest`, which the light theme darkens to show on paper.
+- **2026-11-14:** The website names Suzora too: its mark at 40 px with "An app
+  by Suzora" under it, centred in a block of its own between the language list
+  and the closing line of the footer (C of three: a small line under the
+  Karasu block as in the app's About, and the mark inside the closing line).

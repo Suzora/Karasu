@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Un outil moderne de suivi d’anime et de manga — conçu exclusivement pour AniList.",
     badge: "Open source · gratuit",
+    byline: "Une app de Suzora",
     project: "Projet",
     github: "GitHub",
     download: "Télécharger",

@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Penjejak anime & manga moden — dibina khas untuk AniList.",
     badge: "Sumber terbuka · percuma",
+    byline: "Aplikasi daripada Suzora",
     project: "Projek",
     github: "GitHub",
     download: "Muat turun",

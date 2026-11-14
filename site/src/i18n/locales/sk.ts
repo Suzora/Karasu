@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Moderný tracker anime a mangy — vytvorený výhradne pre AniList.",
     badge: "Open source · zadarmo",
+    byline: "Aplikácia od Suzora",
     project: "Projekt",
     github: "GitHub",
     download: "Stiahnuť",

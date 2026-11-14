@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Mūsdienīgs anime un mangas izsekotājs — izveidots tikai AniList.",
     badge: "Atvērtais kods · bezmaksas",
+    byline: "Suzora lietotne",
     project: "Projekts",
     github: "GitHub",
     download: "Lejupielādēt",

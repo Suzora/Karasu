@@ -1,4 +1,5 @@
 import KarasuMark from "@/components/KarasuMark";
+import SuzoraMark from "@/components/SuzoraMark";
 import { LINKS } from "@/site.config";
 import { Eyebrow } from "@/components/Section";
 import { useI18n } from "@/i18n/context";
@@ -100,6 +101,10 @@ export function Footer() {
           ))}
         </div>
         <Languages />
+        <div className="mt-10 flex flex-col items-center gap-2 text-center">
+          <SuzoraMark className="size-10" />
+          <p className="text-xs text-ink-500">{t.footer.byline}</p>
+        </div>
         <div className="mt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hair pt-6 text-xs text-ink-600">
           <span>{t.footer.copyright}</span>
           <span>{t.footer.disclaimer}</span>

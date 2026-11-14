@@ -118,6 +118,7 @@ export default {
   footer: {
     tagline: "Modern bir anime ve manga takipçisi — yalnızca AniList için geliştirildi.",
     badge: "Açık kaynak · ücretsiz",
+    byline: "Bir Suzora uygulaması",
     project: "Proje",
     github: "GitHub",
     download: "İndir",
