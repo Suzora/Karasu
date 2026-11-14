@@ -22,6 +22,7 @@
   <img src="https://img.shields.io/badge/Windows-x64-0078D6?style=flat-square" alt="Windows x64" />
   <img src="https://img.shields.io/badge/Linux-AppImage_·_deb_·_rpm-FCC624?logo=linux&amp;logoColor=black&amp;style=flat-square" alt="Linux: AppImage, deb, rpm" />
   <img src="https://img.shields.io/badge/Android-APK-3DDC84?logo=android&amp;logoColor=white&amp;style=flat-square" alt="Android APK" />
+  <a href="https://f-droid.org/packages/dev.kyu.karasu/"><img src="https://img.shields.io/f-droid/v/dev.kyu.karasu?logo=fdroid&amp;logoColor=white&amp;label=F-Droid&amp;style=flat-square" alt="F-Droid" /></a>
   <img src="https://img.shields.io/badge/languages-40-8250df?style=flat-square" alt="40 languages" />
   <a href="https://discord.gg/yeHNSGyM8F"><img src="https://img.shields.io/badge/Discord-Kyu's%20Cozy%20Corner-5865F2?logo=discord&amp;logoColor=white&amp;style=flat-square" alt="Discord" /></a>
 </p>
@@ -433,6 +434,11 @@ writes with them.
 | **Windows** | `Karasu_<version>_x64-setup.exe` | Installs for the current user, no UAC prompt. Unsigned, see below. |
 | **Linux** | `.AppImage`, `.deb` or `.rpm` | The AppImage updates in-app; the packages update with your package manager. Needs glibc ≥ 2.35. |
 | **Android** | `Karasu_<version>_arm64.apk` | Sideloaded; `_universal` is the fallback if your device refuses it. Updates itself. |
+| **Android (F-Droid)** | [dev.kyu.karasu on F-Droid](https://f-droid.org/packages/dev.kyu.karasu/) | Built and signed by F-Droid, updated by the F-Droid client; follows Stable releases on F-Droid's own schedule. |
+
+<p>
+  <a href="https://f-droid.org/packages/dev.kyu.karasu/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80" /></a>
+</p>
 
 **[Download from the releases page](https://github.com/Suzora/Karasu/releases)**, or from the
 [website](https://suzora.github.io/Karasu/#platforms), which carries the same
@@ -529,7 +535,7 @@ the in-app updater cannot run in an app that does not start.
 </details>
 
 <details>
-<summary><b>Android</b> - the two APKs, updates, widgets and links</summary>
+<summary><b>Android</b> - the two APKs, F-Droid, updates, widgets and links</summary>
 
 Android ships as two APKs - take `Karasu_<version>_arm64.apk`, and fall
 back to `_universal` only if your device refuses it (releases carry it;
@@ -555,6 +561,13 @@ anilist.co, which is not ours to put there. If you want tapping a link to
 land in Karasu anyway, Android will let you say so by hand - **Settings →
 Apps → Karasu → Open by default → Add link** - and the share sheet needs
 none of that.
+
+Karasu is also [on F-Droid](https://f-droid.org/packages/dev.kyu.karasu/).
+F-Droid builds it from the tagged source and signs it with its own key, so
+an F-Droid install and a GitHub APK cannot update over each other: switching
+means uninstalling first, which removes the app's data. The F-Droid build
+leaves out the in-app updater, since the F-Droid client delivers the
+updates, and a new Stable reaches it on F-Droid's own build schedule.
 
 </details>
 
