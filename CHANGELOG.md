@@ -71,64 +71,72 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 648f071 -->
+<!-- generated-through: dc82205 -->
 
-### Fixed
+## 1.82.0 - 2026-11-14
 
-- The Wrapped poster no longer draws a dark disc hanging off its corner; the crow leads the wordmark in the footer instead.
-- An open genre or tag filter on the search page now stays inside the filter column instead of pushing it sideways, and the "Appears in" covers on a character or staff page are the same size as the covers above them.
-- On KDE Plasma under Wayland, the global shortcut now brings an open Karasu window to the front instead of doing nothing.
-- On Linux, music players whose system name starts with a domain (such as Amberol, or the Tidal clients SONE, TIDAL Hi-Fi and High Tide) are no longer mistaken for something to track.
-- On KDE Plasma, an episode playing in the browser is no longer read with the page's web address in front of the series name, so it can be matched to your list.
-- Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
-- On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
-- The cover grid no longer overlaps its rows after the window changes size.
-- Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
-- A trailer's player page loads even when its request reaches it in pieces.
-- Discord's timer no longer jumps back to zero every few seconds for a player that names no episode.
-- A stack in the list's first row shows its layers whole, and the covers behind it fade back one by one.
-- What's new and the changelog under About show the changes made since 1.68.0 again.
-- A change made without a connection no longer overwrites a newer change to the same entry made on another device or on AniList in the meantime; Karasu tells you when it left one unsent.
-- A Jellyfin server that reports an unusual time zone in its session data no longer stops tracking.
-- A library rescan that fails now says so, the back gesture closes the season picker instead of leaving the page, and the Overview's page dots respect Reduce motion.
-- The entry editor opened from a right-click or a long press fades out like every other dialog, and an update download that stalls now gives up instead of waiting forever.
-- Changing the Jellyfin address to one that answers as a different server is refused while you are signed in, since your sign-in would otherwise be sent there.
-- The local library, the search filters and a sync of waiting edits now say when something could not be loaded or sent, where they used to look empty or stay silent.
+The fourth Stable release since 1.0.0 brings everything the Nightly gained in
+the three weeks after 1.68.0. Karasu speaks 38 more languages, and your lists
+gain new ways to stay in order: tags have colours and filter several at once,
+a status tab can be grouped into folding sections, and entries can be stacked
+by hand under one cover.
 
-### Changed
-
-- The Wrapped poster's name, figure labels and section headings are written in normal case instead of spaced capitals, like the rest of the app.
-- The Overview no longer draws its own week timetable beside the calendar's; "Coming up" now lists the next episodes from today on and links to the full calendar.
-- A trailer shows its preview image before it plays.
-- A click anywhere on the Overview's banner opens the title it shows; the search and the timeline keep their own.
-- The Overview's banner shows a different one of the season's ten most popular titles on every visit.
-- The diagnostics report reads as plain headings and lists instead of tables, in the app as well as in an issue.
-- The Overview's "Playing now" card shows the cover as a band behind its heading, is no longer cut off, and its progress matches the list.
-- Grouping has its own button and a "Group by" entry in the list's right-click menu; stacks can be dragged into order and renamed, and a narrow list toolbar keeps room for the search ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- About names Suzora, who makes Karasu.
+Beyond that: a title's trailer plays right in its page, the Overview greets
+you with a new line and a new banner on every visit, and Discord names what
+you watch and follows pauses and seeks. The Android widgets are rebuilt with
+covers, statistics and settings of their own. On Linux there is a hardware
+acceleration switch, and KDE Plasma under Wayland got several fixes. Karasu
+is now published by Suzora, and About says so.
 
 ### Added
 
-- A title's trailer plays right in its detail page, with a link to open it on YouTube beside it.
+- Karasu speaks 38 more languages besides English and German, machine-translated, from French and Polish to Japanese, Chinese and Hindi; pick one in Settings → Appearance → Language.
+- The tag filter takes several tags at once and shows entries that carry any of them ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- Tags can have a colour, one of eight or any you pick, chosen in Settings → Appearance under Tags, and show it wherever they appear ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- A status tab can be grouped by tag or by custom list into sections you can fold, with a bar that jumps between them; grouping has its own button and a "Group by" entry in the list's right-click menu ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- Entries of one list can be stacked by hand (Select → Stack); a stack shows as one cover in the grid, opens as a sheet with its members, and can be dragged into order and renamed ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- A title's trailer plays right in its detail page, behind its preview image, with a link to open it on YouTube beside it.
 - The Overview greets you with a different line on every visit, from a catalogue of six hundred that knows the time, the day and your lists.
 - Discord names the title you watch, links its cover and title to AniList and the crow to your profile, and can stay empty while nothing plays ([#100](https://github.com/Suzora/Karasu/issues/100)).
-- Spoilers show their label, such as "Ending Spoiler", and spoilers inside spoilers open as on AniList.
-- The composer can add a spoiler with a label.
+- Spoilers show their label, such as "Ending Spoiler", spoilers inside spoilers open as on AniList, and the composer can add a spoiler with a label.
 - Activity feeds show who supports AniList, as the website does.
-- The tag filter takes several tags at once and shows entries that carry any of them ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- Tags can have a colour, chosen in Settings → Appearance under Tags, and show it wherever they appear ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- A tag can take any colour you pick, not just one of the eight ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- A status tab can be grouped by tag or by custom list into sections you can fold, with a bar that jumps between them (Sort → Group by) ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- Entries of one list can be stacked by hand (Select → Stack); a stack shows as one cover in the grid and opens as a sheet with its members ([#110](https://github.com/Suzora/Karasu/issues/110)).
-- Karasu speaks 38 more languages besides English and German, machine-translated, from French and Polish to Japanese, Chinese and Hindi; pick one in Settings → Appearance → Language.
 - On Windows, a video player Karasu does not know can be added in Settings by picking its open window, so its episodes are tracked like those of mpv or VLC.
 - The Android home-screen widgets show covers and progress, three new widgets show your statistics, and every widget has its own settings for what it shows, its accent and its opacity.
 - On Linux, Settings → Desktop has a hardware acceleration switch that draws with the graphics card and brings the page transitions back; it is off by default and applies at the next start.
+
+### Changed
+
+- The Overview's banner shows a different one of the season's ten most popular titles on every visit, and a click anywhere on it opens the title it shows; the search and the timeline keep their own.
+- The Overview no longer draws its own week timetable beside the calendar's; "Coming up" now lists the next episodes from today on and links to the full calendar.
+- The Overview's "Playing now" card shows the cover as a band behind its heading, is no longer cut off, and its progress matches the list.
+- The Wrapped poster's name, figure labels and section headings are written in normal case instead of spaced capitals, like the rest of the app.
+- A narrow list toolbar keeps room for the search ([#110](https://github.com/Suzora/Karasu/issues/110)).
+- The diagnostics report reads as plain headings and lists instead of tables, in the app as well as in an issue.
+- About names Suzora, who makes Karasu.
+
+### Fixed
+
+- A change made without a connection no longer overwrites a newer change to the same entry made on another device or on AniList in the meantime; Karasu tells you when it left one unsent.
+- Discord's timer now follows mpv and Jellyfin: it stops while you pause, showing where you are, and jumps with a seek ([#101](https://github.com/Suzora/Karasu/issues/101)).
+- Discord's timer no longer jumps back to zero every few seconds for a player that names no episode.
+- On KDE Plasma under Wayland, the global shortcut now brings an open Karasu window to the front instead of doing nothing.
+- On KDE Plasma, an episode playing in the browser is no longer read with the page's web address in front of the series name, so it can be matched to your list.
+- On Linux, music players whose system name starts with a domain (such as Amberol, or the Tidal clients SONE, TIDAL Hi-Fi and High Tide) are no longer mistaken for something to track.
+- A Jellyfin server that reports an unusual time zone in its session data no longer stops tracking.
+- Looking around without an AniList account no longer sends list requests that fail and use up the request budget.
+- The cover grid no longer overlaps its rows after the window changes size.
+- On a wide window, the facts beside a title's cover (status, format, season and the rest) no longer break mid-word into narrow columns.
+- An open genre or tag filter on the search page now stays inside the filter column instead of pushing it sideways, and the "Appears in" covers on a character or staff page are the same size as the covers above them.
+- The Wrapped poster no longer draws a dark disc hanging off its corner; the crow leads the wordmark in the footer instead.
+- The local library, the search filters and a sync of waiting edits now say when something could not be loaded or sent, where they used to look empty or stay silent.
+- A library rescan that fails now says so, the back gesture closes the season picker instead of leaving the page, and the Overview's page dots respect Reduce motion.
+- The entry editor opened from a right-click or a long press fades out like every other dialog, and an update download that stalls now gives up instead of waiting forever.
 
 ### Security
 
 - The bundled SQLite is updated to 3.54.1, which fixes a flaw where a crafted database and write-ahead log could return stale memory.
 - Images in profiles, posts and comments can no longer make Karasu send a request to your own network through a host name that resolves there.
+- Changing the Jellyfin address to one that answers as a different server is refused while you are signed in, since your sign-in would otherwise be sent there.
 - Playback history that an early version of Karasu recorded is deleted from the database.
 - Signing in no longer leaves the address that carries your AniList sign-in in the browser's history, and Android's backup leaves your sign-in and the log on the device.
 
