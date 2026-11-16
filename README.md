@@ -14,7 +14,7 @@
   <a href="https://github.com/Suzora/Karasu/releases/latest"><img src="https://img.shields.io/github/v/release/Suzora/Karasu?label=stable&amp;color=2ea043&amp;style=flat-square" alt="Latest Stable release" /></a>
   <a href="https://github.com/Suzora/Karasu/releases/tag/latest"><img src="https://img.shields.io/github/actions/workflow/status/Suzora/Karasu/release.yml?branch=main&amp;label=nightly&amp;style=flat-square" alt="Nightly build" /></a>
   <a href="https://github.com/Suzora/Karasu/releases"><img src="https://img.shields.io/github/downloads/Suzora/Karasu/total?label=downloads&amp;style=flat-square" alt="Downloads" /></a>
-  <a href="https://github.com/Suzora/Karasu/stargazers"><img src="https://img.shields.io/github/stars/Suzora/Karasu?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/Suzora/Karasu"><img src="https://img.shields.io/github/stars/Suzora/Karasu?style=flat-square" alt="Stars" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue?style=flat-square" alt="License: AGPL-3.0-or-later" /></a>
 </p>
 
