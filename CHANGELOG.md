@@ -71,7 +71,11 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: dc82205 -->
+<!-- generated-through: 0208999 -->
+
+### Security
+
+- On Linux, a library the media-session connection uses is updated past a published soundness flaw.
 
 ## 1.82.0 - 2026-11-14
 

@@ -414,6 +414,26 @@ it was added; `cargo update -p h2` was the fix. Dependabot keeps the npm and
 cargo graphs moving; knip and cargo-deny say when something in them is dead
 or wrong.
 
+**One Dependabot alert stays open by decision: `glib` 0.18,
+GHSA-wrw7-89jp-8q8g (RUSTSEC-2024-0429).** Its fix is glib 0.20, and Tauri 2
+pins the gtk-rs 0.18 stack through gtk, wry and the tray, so no lockfile
+update can reach it; the unsound part is `VariantStrIter`, which Karasu never
+calls, and glib is in the Linux build only. Dismiss it as a tolerable risk
+and look again when Tauri moves to a newer gtk-rs. The rest of the alerts
+that were open on 2026-11-16 were closed the same day: the markdown linter's
+`js-yaml`, `markdown-it` and `katex` and the `zod` under knip and react-scan
+(all development tools, none in the bundle), and in `Cargo.lock` `quinn`,
+`quinn-proto`, `quinn-udp` and `event-listener`. The `quinn` crates are a
+locked but never-built optional dependency of reqwest (`cargo tree -i
+quinn-proto --target all -e all` prints nothing), so their alerts never
+reached a build. Dependabot opens no PR for a 0.x minor of a direct
+dependency, which counts as semver-major, so `markdownlint-cli2` moved by
+hand, and `katex` is held by an `overrides` entry in `package.json` because
+`micromark-extension-math` still asks for `^0.16`; drop that entry once it
+does not. The "unmaintained" RustSec notices (`paste`, `proc-macro-error`,
+`zbus_names`, `zvariant`, `zvariant_derive`) raise no Dependabot alert and
+are cargo-deny's to report.
+
 ## The dev loop has eyes
 
 Three things a dev build shows that a release never carries. **TanStack Query
