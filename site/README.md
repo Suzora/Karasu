@@ -22,7 +22,7 @@ so nobody keeps it by hand and `pages.yml` redeploys on a changelog push.
 ## Scripts
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `npm run dev` | Dev server on <http://localhost:4321/Karasu/>; `#sample` shows the token and type sample |
 | `npm run check` | The gate: typecheck, "is `tokens.generated.css` fresh", and the changelog reader's tests |
 | `npm run sync` | Regenerate `src/styles/tokens.generated.css` from `../src/app/index.css` |

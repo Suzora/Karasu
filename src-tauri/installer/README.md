@@ -6,7 +6,7 @@ bundler wants them on disk, and adding a build-time image step for two files
 that change roughly never is a toolchain nobody would remember to keep working.
 
 | File | Size | Where it appears |
-|---|---|---|
+| --- | --- | --- |
 | `header.bmp` | 150 × 57 | The strip at the top of every wizard page |
 | `sidebar.bmp` | 164 × 314 | The panel on the Welcome and Finish pages only |
 

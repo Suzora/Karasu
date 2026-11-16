@@ -628,7 +628,7 @@ running version is shown in the About window.
 <summary><b>Architecture</b></summary>
 
 | Layer | Technology |
-|---|---|
+| --- | --- |
 | Shell | Tauri 2 (Rust backend; WebView2 on Windows, WebKitGTK on Linux, the system WebView on Android) |
 | Frontend | React 19 + TypeScript + Vite + Tailwind CSS v4 |
 | State | TanStack Query (server), Zustand (client), i18next (i18n) |
