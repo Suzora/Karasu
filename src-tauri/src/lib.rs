@@ -174,7 +174,7 @@ fn hide_window_in_dev(app: &tauri::App, tray_present: bool) {
 fn hide_window_in_dev(_app: &tauri::App, _tray_present: bool) {}
 
 /// Builds the main window from its config entry, which says `create: false` so Tauri does not open it before setup.
-fn open_main_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+fn open_main_window(app: &tauri::App, hidden: bool) -> Result<(), Box<dyn std::error::Error>> {
     let config = app
         .config()
         .app
@@ -183,8 +183,21 @@ fn open_main_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> 
         .find(|w| w.label == "main")
         .ok_or("tauri.conf.json has no main window")?
         .clone();
-    tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.build()?;
+    tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.visible(!hidden).build()?;
     Ok(())
+}
+
+/// Whether this start stays in the tray: launched by the sign-in entry, with the option on and a tray to return from.
+fn start_in_tray(app: &tauri::App) -> bool {
+    use tauri::Manager as _;
+    let by_autostart = std::env::args().any(|a| a == commands::AUTOSTART_ARG);
+    let relaunched = commands::take_relaunch_mark();
+    let setting = app.state::<db::Db>().kv_get(commands::START_HIDDEN_KEY);
+    let hidden = commands::starts_hidden(setting.as_deref(), by_autostart, relaunched, app.state::<TrayPresent>().0);
+    if hidden {
+        logging::info("startup", "started by the system: staying in the tray");
+    }
+    hidden
 }
 
 /// Wraps the command handler so a panicking command rejects its call instead of ending the process.
@@ -453,13 +466,20 @@ pub fn run() {
             setup_platform(app);
 
             // Last, so the page cannot invoke a command before every piece of state above is managed.
-            open_main_window(app)?;
+            let in_tray = start_in_tray(app);
+            open_main_window(app, in_tray)?;
             // The window exists and the page has not painted, so the stored zoom lands before anything is drawn.
             commands::apply_ui_zoom(
                 app.handle(),
                 commands::read_ui_zoom(&app.state::<db::Db>()),
             );
             hide_window_in_dev(app, app.state::<TrayPresent>().0);
+            // Again after the build, since restoring a maximised window can show it on Windows.
+            if in_tray {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.hide();
+                }
+            }
 
             Ok(())
         })
@@ -585,6 +605,8 @@ pub fn specta_builder() -> tauri_specta::Builder<Wry> {
             commands::set_system_bars,
             commands::get_close_to_tray,
             commands::set_close_to_tray,
+            commands::get_start_hidden,
+            commands::set_start_hidden,
             commands::get_gpu_compositing,
             commands::set_gpu_compositing,
             commands::get_global_hotkey,
@@ -643,12 +665,16 @@ fn attach_desktop(builder: tauri::Builder<Wry>) -> tauri::Builder<Wry> {
         .plugin(single_instance())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        // Size, position and maximised state come back on the next start; `center: true` only places a first run.
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        // Size, position and maximised state come back; visibility does not, so `start_in_tray` alone decides it.
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(tauri_plugin_window_state::StateFlags::all() & !tauri_plugin_window_state::StateFlags::VISIBLE)
+                .build(),
+        )
         .plugin(prevent_browser_keys())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            None,
+            Some(vec![commands::AUTOSTART_ARG]),
         ))
         .on_window_event(|window, event| {
             // Closing hides to the tray instead of quitting, but only where there is a tray to hide into.

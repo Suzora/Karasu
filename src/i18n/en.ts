@@ -2184,6 +2184,10 @@ export const en = {
       "Skip animations and transitions. Already on if your system asks for it.",
     autostart: "Start with the system",
     autostartHint: "Launch Karasu in the background when you sign in.",
+    startHidden: "Start in the tray",
+    startHiddenHint:
+      "When Karasu starts with the system, it opens no window. The tray icon and the hotkey bring it up.",
+    startHiddenNoTray: "Your desktop has no tray icon, so Karasu always opens its window.",
     closeToTray: "Closing hides to the tray",
     closeToTrayHint:
       "Karasu keeps running and detecting. Quit from the tray menu.",

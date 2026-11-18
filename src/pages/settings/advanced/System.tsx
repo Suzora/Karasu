@@ -43,6 +43,7 @@ export function SystemSection() {
   const { t } = useTranslation();
   const platform = usePlatform((s) => s.info);
   const [autostart, setAutostart] = useState<boolean | null>(null);
+  const [startHidden, setStartHidden] = useState<boolean | null>(null);
   const [closeTray, setCloseTray] = useState<CloseToTray | null>(null);
   const [gpu, setGpu] = useState<GpuCompositing | null>(null);
   const [hotkey, setHotkey] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export function SystemSection() {
   useEffect(() => {
     if (!api.isTauri) return;
     commands.getAutostart().then(setAutostart);
+    commands.getStartHidden().then(setStartHidden);
     commands.getCloseToTray().then(setCloseTray);
     commands.getGpuCompositing().then(setGpu);
     // Listening before reading, so a status announced in between is not lost; the desktop answers after its own dialog.
@@ -74,6 +76,17 @@ export function SystemSection() {
       await unwrap(commands.setAutostart(enabled));
     } catch (e) {
       setAutostart(!enabled);
+      setError(backendErrorText(e, t));
+    }
+  };
+
+  const toggleStartHidden = async (enabled: boolean) => {
+    setStartHidden(enabled);
+    setError(null);
+    try {
+      await unwrap(commands.setStartHidden(enabled));
+    } catch (e) {
+      setStartHidden(!enabled);
       setError(backendErrorText(e, t));
     }
   };
@@ -128,6 +141,17 @@ export function SystemSection() {
             onChange={toggleAutostart}
             label={t("settings.autostart")}
             hint={t("settings.autostartHint")}
+          />
+        )}
+
+        {/* Beside autostart and locked without one or without a tray, where a hidden start has no way back. */}
+        {autostart !== null && startHidden !== null && closeTray !== null && !platform?.appImage && !platform?.flatpak && (
+          <Toggle
+            checked={startHidden && closeTray.tray}
+            onChange={toggleStartHidden}
+            disabled={!autostart || !closeTray.tray}
+            label={t("settings.startHidden")}
+            hint={closeTray.tray ? t("settings.startHiddenHint") : t("settings.startHiddenNoTray")}
           />
         )}
 

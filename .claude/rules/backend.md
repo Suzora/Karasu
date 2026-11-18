@@ -451,7 +451,25 @@ the rig.
   `tauri-plugin-window-state`**, registered in `attach_desktop`; the
   `center: true` in `tauri.conf.json` places a first run only. It saves on
   close and on exit, so hide-to-tray is not a save - the state is whatever the
-  window had when it was last closed or the app quit.
+  window had when it was last closed or the app quit. Visibility is the one
+  flag it no longer restores, since 1.83.0 (#121): the restore calls `show()`
+  on a window it remembers as visible, which would undo a start in the tray.
+- **A start in the tray is a start by the sign-in entry, and only that.** The
+  autostart plugin registers Karasu with `--autostart` (`AUTOSTART_ARG`), and
+  setup builds the main window hidden when that argument is there, kv
+  `start_hidden` is on and a tray exists (`starts_hidden`), then hides it once
+  more after the build in case a restored maximised state showed it. Tauri's
+  `restart` and the updater's Windows relaunch both pass the process's
+  arguments on, so a session started at sign-in would come back hidden after
+  an update or a portable-mode switch: `mark_relaunch` writes a mark into the
+  temp folder (outside the data folder, which a portable switch changes)
+  before each of those, and `take_relaunch_mark` consumes it at the next
+  start, honoured for ten minutes. An entry written by an older build has no
+  argument, so turning the option on rewrites it (`set_start_hidden`). The
+  Windows Run value is `auto-launch`'s unquoted `path args`, as the entry
+  without arguments already was. Not yet run on a real Windows sign-in or a
+  real update relaunch: the decision and the mark are pinned by tests, the
+  rest was read from the crates' source on 2026-11-18.
 - **The WebView's own shortcuts are taken away on desktop, and Shift+Tab is
   not one of them.** `prevent_browser_keys` in `lib.rs` registers
   `tauri-plugin-prevent-default` with an explicit flag set - find, print, view

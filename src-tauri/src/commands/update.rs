@@ -8,10 +8,10 @@ use tauri::State;
 use super::*;
 
 /// Monotonic commit counter, the fourth version segment, bumped by one on every commit.
-pub const COMMIT_NUMBER: u32 = 984;
+pub const COMMIT_NUMBER: u32 = 985;
 
 /// The four-part version spelt out once, for a reader that can match a string but cannot add two numbers.
-pub const FULL_VERSION: &str = "1.82.1.984";
+pub const FULL_VERSION: &str = "1.83.0.985";
 
 /// The full four-part display version, the crate's semver core and the commit counter.
 pub fn app_version_string() -> String {
@@ -741,6 +741,8 @@ pub fn install_pending_update(
     let Some((update, bytes)) = guard.as_ref() else {
         return Err("No update has been downloaded yet".into());
     };
+    // Before the install, because on Windows the installer relaunches Karasu with the old arguments and this process ends.
+    crate::commands::mark_relaunch();
     update.install(bytes).map_err(|e| e.to_string())?;
     drop(guard);
     app.restart();

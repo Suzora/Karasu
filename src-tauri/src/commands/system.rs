@@ -378,6 +378,63 @@ pub fn set_close_to_tray(db: State<'_, Db>, enabled: bool) -> Result<(), String>
     db.kv_set(CLOSE_TO_TRAY_KEY, if enabled { "1" } else { "0" })
 }
 
+// --- Start in the tray -------------------------------------------------------
+
+/// The argument the sign-in entry launches Karasu with, so a start by the system can be told from one by hand.
+pub const AUTOSTART_ARG: &str = "--autostart";
+
+/// A constant rather than a literal because `lib.rs`'s setup reads the same key.
+pub const START_HIDDEN_KEY: &str = "start_hidden";
+
+/// Whether this start opens no window; never without a tray, since a hidden window with no tray is unreachable.
+pub(crate) fn starts_hidden(setting: Option<&str>, launched_by_autostart: bool, relaunched: bool, tray_present: bool) -> bool {
+    setting == Some("1") && launched_by_autostart && !relaunched && tray_present
+}
+
+/// Outside the data folder, because a switch to or from portable mode restarts onto the other one.
+fn relaunch_mark_path() -> std::path::PathBuf {
+    std::env::temp_dir().join("karasu-relaunch")
+}
+
+/// How long a relaunch mark counts, so one left by a restart that never happened cannot outlive the next sign-in.
+const RELAUNCH_MARK_TTL: std::time::Duration = std::time::Duration::from_secs(600);
+
+/// Marks the next start as Karasu's own relaunch, since a restart and the updater both pass the old arguments on.
+pub(crate) fn mark_relaunch() {
+    if let Err(e) = std::fs::write(relaunch_mark_path(), b"1") {
+        crate::logging::warn("startup", format!("could not mark the relaunch: {e}"));
+    }
+}
+
+/// Whether this start is Karasu's own relaunch; the mark is removed either way, so it counts once.
+pub(crate) fn take_relaunch_mark() -> bool {
+    let path = relaunch_mark_path();
+    let fresh = std::fs::metadata(&path)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|at| at.elapsed().ok())
+        .is_some_and(|age| age < RELAUNCH_MARK_TTL);
+    let _ = std::fs::remove_file(&path);
+    fresh
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_start_hidden(db: State<'_, Db>) -> bool {
+    db.kv_get(START_HIDDEN_KEY).as_deref() == Some("1")
+}
+
+/// Turning it on rewrites an existing sign-in entry, since one written by an older build lacks the argument.
+#[tauri::command]
+#[specta::specta]
+pub fn set_start_hidden(app: tauri::AppHandle, db: State<'_, Db>, enabled: bool) -> Result<(), String> {
+    db.kv_set(START_HIDDEN_KEY, if enabled { "1" } else { "0" })?;
+    if enabled && autostart_enabled(&app) {
+        autostart_apply(&app, true)?;
+    }
+    Ok(())
+}
+
 // --- Interface size ---------------------------------------------------------
 
 /// The WebView's own zoom as a percentage; the built-in zoom hotkeys stay off so nothing drifts from the stored value.
@@ -577,6 +634,7 @@ pub fn enable_portable(
 
     // `Db` is never reopened while `is_portable()` is live, so restarting now makes the snapshot the last word.
     crate::logging::info("portable", "portable mode on — restarting onto it");
+    mark_relaunch();
     app.restart();
 }
 
@@ -588,6 +646,7 @@ pub fn disable_portable(app: AppHandle) -> Result<(), String> {
     crate::anilist::auth::copy_token_from_portable_file()?;
     crate::portable::remove_marker()?;
     crate::logging::info("portable", "portable mode off — restarting onto AppData");
+    mark_relaunch();
     app.restart();
 }
 
@@ -939,7 +998,7 @@ pub fn mark_all_notifications_read(app: AppHandle, db: State<'_, Db>) -> Result<
 #[cfg(test)]
 mod tests {
     use super::{
-        close_hides_window, describe_database, hex_from_rgb, hex_from_unit, is_hex6, normalize_ui_zoom,
+        close_hides_window, describe_database, starts_hidden, hex_from_rgb, hex_from_unit, is_hex6, normalize_ui_zoom,
         dmabuf_default, linux_data_dir, set_system_bars, webkit_composites, APP_IDENTIFIER, UI_ZOOM_DEFAULT, UI_ZOOM_MAX,
         UI_ZOOM_MIN,
     };
@@ -1075,6 +1134,22 @@ mod tests {
     fn an_unrecognised_value_reads_as_unset() {
         assert!(close_hides_window(Some(""), true));
         assert!(!close_hides_window(Some("yes"), false));
+    }
+
+    /// Only a launch by the sign-in entry stays in the tray, and only with the option on and a tray to come back from.
+    #[test]
+    fn only_an_autostart_launch_with_the_option_and_a_tray_starts_hidden() {
+        assert!(starts_hidden(Some("1"), true, false, true));
+        assert!(!starts_hidden(Some("1"), false, false, true));
+        assert!(!starts_hidden(Some("1"), true, false, false));
+        assert!(!starts_hidden(None, true, false, true));
+        assert!(!starts_hidden(Some("0"), true, false, true));
+    }
+
+    /// A restart or an update passes the sign-in argument on, so Karasu's own relaunch shows the window.
+    #[test]
+    fn a_relaunch_by_karasu_itself_shows_the_window() {
+        assert!(!starts_hidden(Some("1"), true, true, true));
     }
 
     #[test]

@@ -18,6 +18,7 @@ vi.mock("@/api/tauri", async (orig) => {
     commands: {
       ...real.commands,
       getAutostart: () => Promise.resolve(false),
+      getStartHidden: () => Promise.resolve(false),
       getCloseToTray: () => Promise.resolve(null),
       getGpuCompositing: () => Promise.resolve({ supported: true, wanted: false, active: false, forced: false }),
       getGlobalHotkey: () => Promise.resolve(null),

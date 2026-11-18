@@ -378,10 +378,10 @@ Each group in full:
   that only offers what would actually change something
 - On the phone: **pull a list down to sync**, and **swipe up from the
   bottom bar** for the command palette
-- System tray, single instance, autostart, and a global hotkey that shows or
-  hides the window - on a Wayland desktop through the desktop's own shortcut
-  portal (GNOME 48 and later, KDE Plasma, Hyprland), which may ask you to
-  confirm the key
+- System tray, single instance, autostart (optionally straight into the
+  tray), and a global hotkey that shows or hides the window - on a Wayland
+  desktop through the desktop's own shortcut portal (GNOME 48 and later, KDE
+  Plasma, Hyprland), which may ask you to confirm the key
 - On Linux, an optional **hardware acceleration** switch draws with the
   graphics card and brings the page transitions back; it is off by default,
   because WebKitGTK shows a blank window on some drivers

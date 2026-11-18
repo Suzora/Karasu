@@ -20,10 +20,45 @@ const ipc = vi.hoisted(() => {
 import { renderWithProviders } from "@/test/render";
 import { SystemSection } from "./System";
 
-function answer(gpu: { supported: boolean; wanted: boolean; active: boolean; forced: boolean }) {
+function answer(
+  gpu: { supported: boolean; wanted: boolean; active: boolean; forced: boolean },
+  start: { autostart?: boolean; hidden?: boolean; tray?: boolean } = {},
+) {
   ipc.calls = [];
-  ipc.answers = { get_autostart: false, get_close_to_tray: { enabled: true, tray: true }, get_gpu_compositing: gpu };
+  ipc.answers = {
+    get_autostart: start.autostart ?? false,
+    get_start_hidden: start.hidden ?? false,
+    get_close_to_tray: { enabled: true, tray: start.tray ?? true },
+    get_gpu_compositing: gpu,
+  };
 }
+
+const noGpu = { supported: false, wanted: false, active: true, forced: false };
+
+describe("the start-in-tray row", () => {
+  it("saves the choice while Karasu starts with the system", async () => {
+    answer(noGpu, { autostart: true });
+    renderWithProviders(<SystemSection />);
+    const label = await screen.findByText("settings.startHidden");
+    expect(screen.getByText("settings.startHiddenHint")).toBeInTheDocument();
+    fireEvent.click(label);
+    await waitFor(() => expect(ipc.calls).toContainEqual(["set_start_hidden", { enabled: true }]));
+  });
+
+  it("is locked while Karasu does not start with the system", async () => {
+    answer(noGpu, { autostart: false, hidden: true });
+    renderWithProviders(<SystemSection />);
+    await screen.findByText("settings.startHidden");
+    expect(screen.getByRole("switch", { name: /settings\.startHidden/ })).toBeDisabled();
+  });
+
+  it("is locked and says why without a tray", async () => {
+    answer(noGpu, { autostart: true, tray: false });
+    renderWithProviders(<SystemSection />);
+    expect(await screen.findByText("settings.startHiddenNoTray")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /settings\.startHidden/ })).toBeDisabled();
+  });
+});
 
 describe("the hardware acceleration row", () => {
   it("is absent where the WebView has no such switch", async () => {

@@ -2194,6 +2194,10 @@ export const de: typeof en = { // Glossar: Episode (Ep.), Kapitel, Konto, Protok
       "Animationen und Übergänge überspringen. Bereits aktiv, wenn dein System es verlangt.",
     autostart: "Mit dem System starten",
     autostartHint: "Karasu beim Anmelden automatisch im Hintergrund starten.",
+    startHidden: "Im Tray starten",
+    startHiddenHint:
+      "Startet Karasu mit dem System, öffnet es kein Fenster. Das Tray-Symbol und das Tastenkürzel holen es hervor.",
+    startHiddenNoTray: "Deine Arbeitsumgebung hat kein Tray-Symbol, deshalb öffnet Karasu immer sein Fenster.",
     closeToTray: "Schließen minimiert in den Infobereich",
     closeToTrayHint:
       "Karasu läuft weiter und erkennt weiter. Beenden über das Tray-Menü.",

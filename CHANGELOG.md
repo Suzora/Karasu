@@ -71,11 +71,15 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 0208999 -->
+<!-- generated-through: e92ba89 -->
 
 ### Security
 
 - On Linux, a library the media-session connection uses is updated past a published soundness flaw.
+
+### Added
+
+- Karasu can start with the system straight into the tray without opening its window: turn on Start in the tray in Settings → Desktop ([#121](https://github.com/Suzora/Karasu/issues/121)).
 
 ## 1.82.0 - 2026-11-14
 

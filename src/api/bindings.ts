@@ -240,6 +240,9 @@ export const commands = {
 	setSystemBars: (status: string, navigation: string, light: boolean) => typedError<null, string>(__TAURI_INVOKE("set_system_bars", { status, navigation, light })),
 	getCloseToTray: () => __TAURI_INVOKE<CloseToTray>("get_close_to_tray"),
 	setCloseToTray: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_close_to_tray", { enabled })),
+	getStartHidden: () => __TAURI_INVOKE<boolean>("get_start_hidden"),
+	/**  Turning it on rewrites an existing sign-in entry, since one written by an older build lacks the argument. */
+	setStartHidden: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_start_hidden", { enabled })),
 	getGpuCompositing: () => __TAURI_INVOKE<GpuCompositing>("get_gpu_compositing"),
 	/**  Writes or removes the marker; the renderer is chosen once per process, so the change shows at the next start. */
 	setGpuCompositing: (enabled: boolean) => typedError<null, string>(__TAURI_INVOKE("set_gpu_compositing", { enabled })),
