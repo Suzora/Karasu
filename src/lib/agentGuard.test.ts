@@ -83,7 +83,7 @@ describe("judgeCommand", () => {
 
 describe("the paths a commit must not carry", () => {
   it("knows key material by its name", () => {
-    for (const path of ["release.jks", "a/b/upload.keystore", "cert.p12", ".env", "site/.env.local", "src-tauri/gen/android/key.properties"]) {
+    for (const path of ["release.jks", "a/b/upload.keystore", "cert.p12", ".env", "site/.env.local", "src-tauri/gen/android/key.properties", "src-tauri/gen/android/app/src/main/assets/adi-registration.properties"]) {
       expect(keyMaterial(path), path).toBe(true);
     }
     for (const path of ["src/lib/env.ts", "scripts/keystore.md", "src-tauri/src/keystore.rs"]) expect(keyMaterial(path), path).toBe(false);

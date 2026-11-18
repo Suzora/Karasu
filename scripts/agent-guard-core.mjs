@@ -23,7 +23,7 @@ export function secretRules(text) {
   return [...new Set(SECRET_RULES.filter(([, re]) => re.test(text)).map(([name]) => name))];
 }
 
-const KEY_FILE = /(^|\/)(\.env(\..+)?|key\.properties|keystore\.properties|[^/]+\.(jks|keystore|p12))$/;
+const KEY_FILE = /(^|\/)(\.env(\..+)?|key\.properties|keystore\.properties|adi-registration\.properties|[^/]+\.(jks|keystore|p12))$/;
 const LOCAL_ONLY = /^(docs\/superpowers|\.impeccable|audit)\//;
 
 /** Whether a path is key material by its name alone. */
