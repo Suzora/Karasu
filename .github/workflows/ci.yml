@@ -118,7 +118,7 @@ jobs:
 
       # The same spell-check `verify` runs where typos is installed; the runner has none, so the action supplies it.
       - name: typos
-        uses: crate-ci/typos@2611abd15acb0c2e317fb9e45855aabb8b35a414 # v1.52.1
+        uses: crate-ci/typos@276087d9a4f06398b3e04825487805e2d7375888 # v1.52.2
 
       - name: Verify (typecheck + frontend tests + Rust tests)
         run: npm run verify
@@ -126,7 +126,7 @@ jobs:
       # Advisories, licences, bans and sources against deny.toml: shown on a person's PR, blocking on one that merges itself.
       - name: cargo deny
         continue-on-error: ${{ github.actor != 'dependabot[bot]' }}
-        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        uses: EmbarkStudios/cargo-deny-action@70f81531115945ba6eb6b941ec9d39d063438eb9 # v2.1.2
         with:
           manifest-path: src-tauri/Cargo.toml
           command: check
