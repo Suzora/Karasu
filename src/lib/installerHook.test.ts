@@ -7,7 +7,7 @@ const CONFIG = import.meta.glob("/src-tauri/tauri.conf.json", { query: "?raw", i
 const PACKAGE = import.meta.glob("/package.json", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 /** The CLI whose installer template the hook was read against and run under; a new one means reading it again. */
-const CHECKED_CLI = "2.12.4";
+const CHECKED_CLI = "2.12.5";
 
 describe("the Windows installer's publisher migration", () => {
   const hook = HOOK["/src-tauri/windows/hooks.nsh"] ?? "";
