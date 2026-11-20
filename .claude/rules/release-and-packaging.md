@@ -352,7 +352,13 @@ The hook leans on how the template is built (where the hook file is
 included, that the GUI-init slot is free, the two hook macros, the key's
 shape), so `@tauri-apps/cli` is pinned to the exact version it was read
 against and `installerHook.test.ts` fails when the pin moves. Moving it means
-reading the new `installer.nsi` and running the four cases again. The package
+reading the new `installer.nsi` and running the four cases again. The move
+from 2.12.4 to 2.12.5 (Dependabot, #125) was read on 2026-11-19 against
+Tauri's `tauri-cli-v2.12.4...tauri-cli-v2.12.5` compare: `installer.nsi` is
+unchanged, `utils.nsh` only asks the user to close an app it has no right to
+end, and the language files (Persian renamed Farsi, Hebrew added) do not
+reach Karasu, which sets no installer languages. The four Wine cases were not
+run again, since an identical template cannot change their result. The package
 name `dev.kyu.karasu` did not move and must not: on Android it is the app's
 identity, a new name is a second app that inherits neither data nor sign-in,
 and F-Droid keys its listing on it.
