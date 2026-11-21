@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: e92ba89 -->
+<!-- generated-through: 14d3a53 -->
 
 ### Security
 
@@ -80,6 +80,10 @@ tag time is then optional rather than load-bearing.
 ### Added
 
 - Karasu can start with the system straight into the tray without opening its window: turn on Start in the tray in Settings → Desktop ([#121](https://github.com/Suzora/Karasu/issues/121)).
+
+### Changed
+
+- Cards in the list grid line up in every row, whatever their title's length or tags, and a tag's colour now fills its chip so tags are easy to tell apart ([#126](https://github.com/Suzora/Karasu/issues/126)).
 
 ## 1.82.0 - 2026-11-14
 

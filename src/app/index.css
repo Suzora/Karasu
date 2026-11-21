@@ -865,12 +865,29 @@ nav a {
   }
 }
 
-@utility tag-custom-edge {
-  border-color: color-mix(in srgb, var(--tag-dark) 60%, transparent);
+/* A tag in its colour: `--tag` tinted into the panel and drawn strong as the rim; high contrast keeps the rim. */
+@utility tag-fill {
+  background-color: color-mix(in srgb, var(--tag) 24%, var(--color-surface-900));
+  border-color: color-mix(in srgb, var(--tag) 70%, transparent);
+
+  :root[data-contrast="more"] & {
+    background-color: var(--color-surface-900);
+    border-color: var(--tag);
+  }
+}
+
+/* A picked colour as `--tag`, in the readable variant of the theme on screen. */
+@utility tag-custom-tint {
+  --tag: var(--tag-dark);
 
   :root[data-theme="light"] & {
-    border-color: color-mix(in srgb, var(--tag-light) 60%, transparent);
+    --tag: var(--tag-light);
   }
+}
+
+/* Two lines of the element's own line height, so a one-line title takes the room of a wrapped one. */
+@utility min-h-two-lines {
+  min-height: 2lh;
 }
 
 /* No hairline in the standard looks; high contrast draws the border role the theme writes into `--hair`. */

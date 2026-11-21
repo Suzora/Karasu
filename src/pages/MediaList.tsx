@@ -352,6 +352,7 @@ function ListView({ userId, type }: { userId: number; type: MediaType }) {
       selectMode={selectMode}
       selected={selected.has(front.mediaId)}
       onToggleSelect={toggleSelect}
+      tagRow={allTags.length > 0}
     />
     );
   };

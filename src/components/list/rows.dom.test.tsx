@@ -7,6 +7,8 @@ import { checkA11y } from "@/test/a11y";
 import { PhoneRow } from "./PhoneRow";
 import { ListRow } from "./ListRow";
 import { GridCard } from "./GridCard";
+import { TagChip } from "./TagChip";
+import { useTagColours } from "@/stores/tagColours";
 
 /** The two row views the phone draws and the table's text variant, graded by axe and driven through their controls. */
 
@@ -179,6 +181,35 @@ function gridCard(over: Partial<Parameters<typeof GridCard>[0]> = {}) {
     />
   );
 }
+
+/** A row of cards lines up only when every card below its cover is the same height. */
+describe("GridCard's caption height", () => {
+  it("reserves two lines for the title, however short it is", () => {
+    renderWithProviders(gridCard());
+    expect(screen.getByText("Cowboy Bebop")).toHaveClass("min-h-two-lines");
+  });
+
+  it("keeps one tag row on every card while the list has tags, and none when it has none", () => {
+    const tagged = renderWithProviders(gridCard({ tagRow: true, entry: entry({ notes: "[[karasu:tags]]Comfort[[/karasu:tags]]" }) }));
+    expect(tagged.container.querySelector("[data-tag-row]")).toHaveTextContent("Comfort");
+    tagged.unmount();
+    const bare = renderWithProviders(gridCard({ tagRow: true }));
+    expect(bare.container.querySelector("[data-tag-row]")).toBeEmptyDOMElement();
+    bare.unmount();
+    renderWithProviders(gridCard({ tagRow: false }));
+    expect(document.querySelector("[data-tag-row]")).toBeNull();
+  });
+});
+
+describe("TagChip", () => {
+  it("fills a coloured tag with its colour rather than marking it with a dot", () => {
+    useTagColours.setState({ colours: { comfort: "rose" } });
+    renderWithProviders(<TagChip tag="Comfort" />);
+    expect(screen.getByText("Comfort").closest("span[style]")).toHaveClass("tag-fill");
+    expect(screen.getByText("Comfort").closest("span[style]")).not.toHaveClass("bg-surface-800");
+    useTagColours.setState({ colours: {} });
+  });
+});
 
 /** The cover's frame clips, so what the ring and the quick actions do at its edges is a contract of its own. */
 describe("GridCard", () => {

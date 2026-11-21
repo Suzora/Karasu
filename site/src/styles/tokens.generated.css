@@ -1,4 +1,4 @@
-/* GENERATED from src/app/index.css (sha256 b9814dc3d9c9) by site/scripts/sync-tokens.mjs
+/* GENERATED from src/app/index.css (sha256 72fc89d654ba) by site/scripts/sync-tokens.mjs
    — do not edit. Re-run `npm run sync` after changing the source; `npm run check`
    fails while this file is stale. CLAUDE.md, "The website". */
 /* `static` because Tailwind tree-shakes tokens no utility references, leaving a `var()`-only token undefined in dark. */
@@ -748,12 +748,31 @@
   }
 }
 
-@utility tag-custom-edge {
-  border-color: color-mix(in srgb, var(--tag-dark) 60%, transparent);
+/* A tag in its colour: `--tag` tinted into the panel and drawn strong as the rim; high contrast keeps the rim. */
+@utility tag-fill {
+  background-color: color-mix(in srgb, var(--tag) 24%, var(--color-surface-900));
+  border-color: color-mix(in srgb, var(--tag) 70%, transparent);
+
+  @media (prefers-contrast: more) {
+    & {
+      background-color: var(--color-surface-900);
+      border-color: var(--tag);
+    }
+  }
+}
+
+/* A picked colour as `--tag`, in the readable variant of the theme on screen. */
+@utility tag-custom-tint {
+  --tag: var(--tag-dark);
 
   :root[data-theme="light"] & {
-    border-color: color-mix(in srgb, var(--tag-light) 60%, transparent);
+    --tag: var(--tag-light);
   }
+}
+
+/* Two lines of the element's own line height, so a one-line title takes the room of a wrapped one. */
+@utility min-h-two-lines {
+  min-height: 2lh;
 }
 
 /* No hairline in the standard looks; high contrast draws the border role the theme writes into `--hair`. */

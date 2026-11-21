@@ -15,16 +15,6 @@ const DOT: Record<TagColour, string> = {
   pink: "bg-tag-pink",
   slate: "bg-tag-slate",
 };
-const EDGE: Record<TagColour, string> = {
-  rose: "border-tag-rose/60",
-  amber: "border-tag-amber/60",
-  lime: "border-tag-lime/60",
-  teal: "border-tag-teal/60",
-  sky: "border-tag-sky/60",
-  violet: "border-tag-violet/60",
-  pink: "border-tag-pink/60",
-  slate: "border-tag-slate/60",
-};
 
 /** Both themes' readable fills of a picked colour, for the `tag-custom-*` utilities to choose from. */
 function customVars(hex: string): CSSProperties {
@@ -39,24 +29,24 @@ export function TagDot({ colour, className }: { colour: TagColourValue; classNam
   return <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", DOT[colour as TagColour], className)} />;
 }
 
-/** One tag: in its colour on a neutral chip once it has one, as the accent outline it always was until then. */
-export function TagChip({ tag, size = "xs" }: { tag: string; size?: ChipSize }) {
+/** One tag: filled with its colour once it has one, as the accent outline it always was until then. */
+export function TagChip({ tag, size = "xs", className }: { tag: string; size?: ChipSize; className?: string }) {
   const colour = useTagColours((s) => colourOf(s.colours, tag));
   if (!colour) {
     return (
-      <Chip tone="accent" size={size}>
+      <Chip tone="accent" size={size} className={className}>
         {tag}
       </Chip>
     );
   }
+  const custom = isCustom(colour);
   return (
     <Chip
-      tone="neutral"
+      tone="tag"
       size={size}
-      className={cn("text-ink-100", isCustom(colour) ? "tag-custom-edge" : EDGE[colour as TagColour])}
-      style={isCustom(colour) ? customVars(colour) : undefined}
+      className={cn(custom && "tag-custom-tint", className)}
+      style={custom ? customVars(colour) : ({ "--tag": `var(--color-tag-${colour})` } as CSSProperties)}
     >
-      <TagDot colour={colour} />
       {tag}
     </Chip>
   );

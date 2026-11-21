@@ -10,7 +10,7 @@ import { ProgressMarks } from "@/components/media/ProgressMarks";
 import { cn } from "@/lib/utils";
 import { PlusOne } from "@/components/ui/plus-one";
 import { SelectBox } from "./SelectBox";
-import { TagChips } from "./TagChips";
+import { TagRow } from "./TagChips";
 import { canIncrement } from "./shared";
 /** Memoized, since hundreds of cards re-render per keystroke; handlers take the entry so the props stay stable. */
 
@@ -26,6 +26,7 @@ export const GridCard = memo(function GridCard({
   focused,
   onToggleSelect,
   stack,
+  tagRow,
 }: {
   entry: MediaListEntry;
   unit: string;
@@ -40,6 +41,8 @@ export const GridCard = memo(function GridCard({
   onToggleSelect: (mediaId: number) => void;
   /** Drawn as a stack: the members in the stack's order, this entry first among them, and how to open them. */
   stack?: { members: MediaListEntry[]; name: string | null; onOpen: (mediaId: number) => void };
+  /** Whether the list holds any tags: then every card carries a tag row, empty or not, and none does otherwise. */
+  tagRow?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const scoreFormat = useScoreFormat();
@@ -141,7 +144,7 @@ export const GridCard = memo(function GridCard({
         )
       }
     >
-      <TagChips notes={entry.notes} />
+      {tagRow && <TagRow notes={entry.notes} />}
     </CoverCell>
   );
   if (!stack) return cell;
@@ -180,7 +183,7 @@ function StackCaption({ lead, name, members }: { lead: MediaListEntry; name: str
   }).length;
   return (
     <>
-      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{name || displayTitle(lead.media.title)}</p>
+      <p className="line-clamp-2 min-h-two-lines text-ui font-medium leading-snug text-ink-100">{name || displayTitle(lead.media.title)}</p>
       <p className="mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">{t("stack.summary", { done, count: members.length })}</p>
     </>
   );
@@ -192,7 +195,7 @@ function CardCaption({ entry, max, unit }: { entry: MediaListEntry; max: number 
   const { media } = entry;
   return (
     <>
-      <p className="line-clamp-2 text-ui font-medium leading-snug text-ink-100">{displayTitle(media.title)}</p>
+      <p className="line-clamp-2 min-h-two-lines text-ui font-medium leading-snug text-ink-100">{displayTitle(media.title)}</p>
       <p className="@container mb-1.5 mt-0.5 text-xs tabular-nums text-ink-500">
         {media.type === "MANGA" ? (
           // Chapters lead, volumes trail; `?` rather than a hidden total, since an ongoing series has no end count.

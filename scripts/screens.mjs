@@ -118,6 +118,8 @@ export const SCREENS = [
     },
   },
   { id: "p1-liste", w: 405, h: 860, phone: true, route: "/list" },
+  { id: "p85-liste-tags", w: 405, h: 860, phone: true, route: "/list", mock: "tag-colours" },
+  { id: "d130-liste-tags", w: 1232, h: 800, route: "/list", mock: "tag-colours" },
   { id: "p2-detail", w: 405, h: 860, phone: true, route: "/media/178789" },
   { id: "p43-detail-ohne-banner", w: 405, h: 1600, phone: true, route: "/media/178789", mock: "no-banner" },
   { id: "p44-detail-schmal", w: 360, h: 1600, phone: true, route: "/media/178789" },

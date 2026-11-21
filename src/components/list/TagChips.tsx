@@ -2,6 +2,17 @@ import { tagsOf } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 import { TagChip } from "./TagChip";
 
+/** One line of tags under a grid card, empty but still there when the entry has none, so every card in a row ends level. */
+export function TagRow({ notes }: { notes: string | null }) {
+  return (
+    <div data-tag-row className="mt-1.5 flex h-4.5 gap-1 overflow-hidden">
+      {tagsOf(notes).map((tag) => (
+        <TagChip key={tag} tag={tag} className="min-w-0 shrink" />
+      ))}
+    </div>
+  );
+}
+
 /** Read-only tag chips derived from an entry's notes (capped for layout). */
 export function TagChips({
   notes,

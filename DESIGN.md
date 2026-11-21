@@ -1331,3 +1331,12 @@ maintainer picks. A pure restyle that moves nothing does not. The rules:
 - **2026-11-14:** The website's download row pairs Android with F-Droid as two
   joined buttons, so both read as the one platform (B of three: a fourth
   button of its own, and a link in the note line under the buttons).
+- **2026-11-21:** A grid card ends level with its row (#126): the title
+  keeps two lines whether it wraps or not, and while the list holds any tag
+  every card carries one tag row under its progress, empty or not, one line
+  high and cut rather than wrapped. A coloured tag is filled with its colour
+  (`tag-fill`, a 24 % tint and a strong rim; high contrast keeps the rim
+  alone) instead of a dot on a neutral chip, everywhere a tag chip appears
+  (B of three: the tags as filled chips on the cover's foot, which the
+  reporter asked for, and a bare colour strip on the cover with the names in
+  a tooltip).

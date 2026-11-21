@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, HTMLAttributes } from "react";
 import { X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ChipTone = "neutral" | "muted" | "accent" | "gold" | "success" | "danger";
+export type ChipTone = "neutral" | "muted" | "accent" | "gold" | "success" | "danger" | "tag";
 export type ChipSize = "xs" | "sm" | "md";
 
 // Neutral chips fill tonally; coloured ones stay outlined, keeping the contrast they were derived against.
@@ -13,6 +13,8 @@ const TONES: Record<ChipTone, string> = {
   gold: "border-gold/45 text-gold",
   success: "border-success/45 text-success",
   danger: "border-danger/45 text-danger",
+  // Fill and rim come from the `--tag` the caller sets; see `tag-fill`.
+  tag: "tag-fill text-ink-100",
 };
 
 const SIZES: Record<ChipSize, string> = {

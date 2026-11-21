@@ -1022,6 +1022,8 @@ localStorage.setItem("karasu-cover-cols", android ? "4" : "8");
 if (mock === "status-low") localStorage.setItem("karasu-status-colors", JSON.stringify({ PAUSED: "#3b3f4a" }));
 // A title language other than the default English, for the screens that show how titles are spelt.
 if (mock === "titles-romaji" || mock === "titles-native") localStorage.setItem("karasu-title-language", mock.slice(7));
+// Three coloured tags, palette and picked, for the screens that show how a tag's colour reads.
+if (mock === "tag-colours") localStorage.setItem("karasu-tag-colours", JSON.stringify({ comfort: "rose", family: "sky", rewatch: "#e5b80b" }));
 location.hash = route;
 
 await import("@/app/index.css");
