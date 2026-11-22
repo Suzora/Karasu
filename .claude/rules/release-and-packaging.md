@@ -316,26 +316,39 @@ in the publish log when it skipped. A
 red run reaches the maintainer as that workflow's own notification; the
 release itself is already out by then and is not held back by either.
 
-**F-Droid's build server has only the SDK platforms it has, and a plugin
-that asks for a newer one breaks every F-Droid build.** Dependabot took
+**A plugin that asks for a newer SDK platform than 36 broke the F-Droid
+build, and why exactly is still open.** Dependabot took
 `tauri-plugin-sharekit` and its npm half from 0.4.0-rc.7 to rc.8 on
 2026-11-12 (#117, #118), and rc.8 sets `compileSdk = 37` where rc.7 set 35.
-The GitHub release built anyway, because the runner image already carries
-platform 37 (the release log of 2026-11-21 compiles against "compile SDK
-version 37.0" with no download), while F-Droid's build of 1.82.0
-(fdroiddata merge request 57656, reported in #128) stopped at `Failed to
-find target with hash string 'android-37'`, so no version after 1.68.0
-reached F-Droid. Since 2026-11-22 both halves are pinned exactly to rc.7
-and Dependabot ignores every later version of them; lift that only once
-F-Droid's server carries the platform the new version asks for. Two guards
-keep the next such bump from passing unseen: the release and reproducibility
-jobs delete every installed platform past 36 right after `sdkmanager`, and
+F-Droid's build of 1.82.0 (fdroiddata merge request 57656, reported in
+#128) stopped at `Failed to find target with hash string 'android-37'`, so
+no version after 1.68.0 reached F-Droid, while the GitHub release built,
+its runner image carrying platform 37 (the release log of 2026-11-21
+compiles against "compile SDK version 37.0" with no download). The first
+reading, that F-Droid's server lacks platform 37, was wrong: linsui, who
+commits to fdroiddata, answered on #128 that 37 is installed there and a
+bug makes only "37.0" recognisable, curable by a newer AGP or by naming
+the minor version. Google's sdkmanager now offers the platform only as
+`platforms;android-37.0`, and with that installed in the cloud container on
+2026-11-22, AGP 8.11.0 (ours) and 8.13.2 both built rc.8, so the failure
+depends on how F-Droid's own SDK tooling lays the platform out, which could
+not be reproduced here. Which AGP version fixes it on F-Droid's server is
+asked on #128 and not yet answered.
+
+Since 2026-11-22 both halves are pinned exactly to rc.7 and Dependabot
+ignores every later version of them; lift that only once a build on
+F-Droid's server has been seen to pass with the newer version, or the AGP
+fix is known and applied. Two guards keep the next such bump from passing
+unseen: the release and reproducibility jobs delete every installed
+platform past 36 right after `sdkmanager`, and
 `src-tauri/gen/android/gradle.properties` sets
 `android.builder.sdkDownload=false` (hand-added), so Gradle cannot fetch
-one back. Measured in the cloud container the same day, with platforms 35
-and 36 installed and the F-Droid switches set: rc.7 built the arm64 APK,
-rc.8 failed with F-Droid's own `android-37` error. The deletion has not run
-on a runner yet; the first Nightly after it is its test.
+one back. They do not mirror F-Droid's SDK, which does carry 37; they hold
+the build to the newest platform F-Droid is known to build against. Measured
+the same day with platforms 35 and 36 only and the F-Droid switches set:
+rc.7 built the arm64 APK, rc.8 failed with the same `android-37` error. The
+deletion has not run on a runner yet; the first Nightly after it is its
+test.
 
 ## The Windows installer carries the old publisher name over
 
