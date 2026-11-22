@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 14d3a53 -->
+<!-- generated-through: 49a7cf8 -->
 
 ### Security
 
@@ -84,6 +84,10 @@ tag time is then optional rather than load-bearing.
 ### Changed
 
 - Cards in the list grid line up in every row, whatever their title's length or tags, and a tag's colour now fills its chip so tags are easy to tell apart ([#126](https://github.com/Suzora/Karasu/issues/126)).
+
+### Fixed
+
+- The Android build works on F-Droid's build server again, so the F-Droid version can be updated past 1.68.0.
 
 ## 1.82.0 - 2026-11-14
 
