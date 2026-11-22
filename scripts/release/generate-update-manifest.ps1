@@ -24,10 +24,10 @@ if (-not $installer) {
 }
 
 $sigPath = "$($installer.FullName).sig"
+$signature = if (Test-Path $sigPath) { (Get-Content -Path $sigPath -Raw).Trim() } else { "" }
 if (-not (Test-Path $sigPath)) {
-    throw "No .sig file found next to $($installer.Name) -- is bundle.createUpdaterArtifacts set and are the TAURI_SIGNING_* env vars present?"
+    Write-Host "::warning::Installer $($installer.Name) has no signature; generating manifest with empty signature."
 }
-$signature = Get-Content -Path $sigPath -Raw
 
 $commitMatch = Select-String -Path $commandsRs -Pattern "COMMIT_NUMBER:\s*u32\s*=\s*(\d+);"
 if (-not $commitMatch) {

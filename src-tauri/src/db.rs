@@ -369,6 +369,9 @@ impl Db {
             .map_err(|e| format!("Could not create app data folder: {e}"))?;
         let conn = Connection::open(data_dir.join("karasu.db"))
             .map_err(|e| format!("Could not open database: {e}"))?;
+        // WAL mode: concurrent readers and writers between the UI process and Android background services.
+        conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;")
+            .map_err(|e| format!("Could not set WAL pragma: {e}"))?;
         // Before the migrations: Android's background job can hold a second connection while the app cold-starts.
         conn.busy_timeout(std::time::Duration::from_secs(5))
             .map_err(|e| format!("Could not set the lock timeout: {e}"))?;

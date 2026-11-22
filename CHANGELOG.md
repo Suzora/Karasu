@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 14d3a53 -->
+<!-- generated-through: fdfd11b -->
 
 ### Security
 
@@ -84,6 +84,7 @@ tag time is then optional rather than load-bearing.
 ### Changed
 
 - Cards in the list grid line up in every row, whatever their title's length or tags, and a tag's colour now fills its chip so tags are easy to tell apart ([#126](https://github.com/Suzora/Karasu/issues/126)).
+- Enable high refresh rate display mode on Android, WAL mode in SQLite, and handle empty signing keys in CI.
 
 ## 1.82.0 - 2026-11-14
 

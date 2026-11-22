@@ -138,6 +138,7 @@ jobs:
         run: npm run verify
 
       - name: Build AppImage
+        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -145,7 +146,14 @@ jobs:
           # Shipped desktop builds trade minutes for a smaller binary; Cargo.toml keeps the fast profile for everything else.
           CARGO_PROFILE_RELEASE_LTO: fat
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
-        run: npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          else
+            unset TAURI_SIGNING_PRIVATE_KEY
+            unset TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          fi
 
       # Before the rename and the manifest: the script repacks the AppImage, so it re-signs it with the same key.
       - name: Leave the display libraries to the host in the AppImage
@@ -239,13 +247,21 @@ jobs:
         run: npm run verify
 
       - name: Build release (NSIS installer)
+        shell: pwsh
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # Shipped desktop builds trade minutes for a smaller binary; Cargo.toml keeps the fast profile for everything else.
           CARGO_PROFILE_RELEASE_LTO: fat
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
-        run: npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+        run: |
+          if ($env:TAURI_SIGNING_PRIVATE_KEY) {
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          } else {
+            Remove-Item Env:\TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
+            Remove-Item Env:\TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          }
 
       # Not blocking until it has run green on a few releases: nothing has started this exe on a runner before.
       - name: Smoke-test the Windows build

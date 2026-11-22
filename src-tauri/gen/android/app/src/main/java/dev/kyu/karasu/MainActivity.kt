@@ -2,6 +2,7 @@ package dev.kyu.karasu
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +26,7 @@ class MainActivity : TauriActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
 
+    enableHighRefreshRate()
     SystemBars.restore(this) // the strips in the last theme's colours, before the WebView can say which theme it is
     val root = findViewById<ViewGroup>(android.R.id.content)
     ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets -> // native insets: edge-to-edge is enforced, and the WebView cannot see the system bars
@@ -33,6 +35,29 @@ class MainActivity : TauriActivity() {
       )
       view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
       WindowInsetsCompat.CONSUMED
+    }
+  }
+
+  // Requests the display's highest refresh rate mode matching the current physical resolution on API 23+.
+  private fun enableHighRefreshRate() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      val d = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        display
+      } else {
+        @Suppress("DEPRECATION")
+        windowManager.defaultDisplay
+      }
+      d?.let {
+        val currentMode = it.mode
+        val highestMode = it.supportedModes
+          .filter { m -> m.physicalWidth == currentMode.physicalWidth && m.physicalHeight == currentMode.physicalHeight }
+          .maxByOrNull { m -> m.refreshRate } ?: it.supportedModes.maxByOrNull { m -> m.refreshRate }
+        if (highestMode != null && highestMode.refreshRate > 60f) {
+          val params = window.attributes
+          params.preferredDisplayModeId = highestMode.modeId
+          window.attributes = params
+        }
+      }
     }
   }
 
