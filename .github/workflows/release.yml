@@ -526,6 +526,8 @@ jobs:
       - name: Install NDK
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;27.1.12297006" "platforms;android-36" "build-tools;36.0.0" "build-tools;35.0.0" > /dev/null
+          # Platforms past 36 go, so a plugin that asks for one fails here as it does on F-Droid's build server.
+          for d in "$ANDROID_HOME"/platforms/android-*; do n="${d##*-}"; n="${n%%.*}"; if [[ "$n" =~ ^[0-9]+$ ]] && (( n > 36 )); then rm -rf "$d"; fi; done
           # Exported at run time, where ANDROID_HOME exists; the workflow's env context has no machine variables.
           echo "NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
 

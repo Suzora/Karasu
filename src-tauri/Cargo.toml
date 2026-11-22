@@ -1,6 +1,6 @@
 [package]
 name = "karasu"
-version = "1.83.1"
+version = "1.83.2"
 description = "A modern anime and manga tracker built exclusively for AniList"
 authors = ["Kyusetzu"]
 license = "AGPL-3.0-or-later"
@@ -149,7 +149,7 @@ rustls = "0.23"
 webpki-roots = "1"
 # The tick under a long press and an armed pull, and the system share sheet; both Android-only by design.
 tauri-plugin-haptics = "2"
-tauri-plugin-sharekit = "0.4.0-rc.7"
+tauri-plugin-sharekit = "=0.4.0-rc.7" # exact: rc.8 compiles against Android SDK 37, which F-Droid's build server lacks
 # Keystore sealing (src/keystore.rs): both pinned to the versions tauri's own
 # graph already compiles (Cargo.lock) — jni 0.22 would be a *second* copy,
 # the rustls-skew class of mistake documented above.
