@@ -71,7 +71,7 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 27ca61c -->
+<!-- generated-through: b85381a -->
 
 ### Security
 
@@ -90,6 +90,7 @@ tag time is then optional rather than load-bearing.
 ### Fixed
 
 - The Android build works on F-Droid's build server again, so the F-Droid version can be updated past 1.68.0.
+- On Android, AniList links and links from the widgets open in Karasu directly instead of asking which part of Karasu should open them.
 
 ## 1.82.0 - 2026-11-14
 

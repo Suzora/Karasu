@@ -17,6 +17,7 @@ export const RAW_READ_GLOBS = [
   "/THIRD-PARTY-NOTICES.md",
   "/CHANGELOG.md",
   "/src-tauri/gen/android/app/src/main/assets/THIRD-PARTY-NOTICES.md",
+  "/src-tauri/gen/android/app/src/main/AndroidManifest.xml",
   "/rust-toolchain.toml",
   "/.github/workflows/*.yml",
   "/packaging/fdroid/dev.kyu.karasu.yml",
