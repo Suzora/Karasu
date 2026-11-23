@@ -392,7 +392,11 @@ Tauri's `tauri-cli-v2.12.4...tauri-cli-v2.12.5` compare: `installer.nsi` is
 unchanged, `utils.nsh` only asks the user to close an app it has no right to
 end, and the language files (Persian renamed Farsi, Hebrew added) do not
 reach Karasu, which sets no installer languages. The four Wine cases were not
-run again, since an identical template cannot change their result. The package
+run again, since an identical template cannot change their result. The move
+from 2.12.5 to 2.12.6 (Dependabot, #136) was read on 2026-11-23 the same way,
+by diffing the two tags' `crates/tauri-bundler/src/bundle/windows`: the only
+change is the wording of the warning for an untranslated language, so the
+four cases were not run again either. The package
 name `dev.kyu.karasu` did not move and must not: on Android it is the app's
 identity, a new name is a second app that inherits neither data nor sign-in,
 and F-Droid keys its listing on it.
