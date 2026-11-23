@@ -71,11 +71,12 @@ tag time is then optional rather than load-bearing.
 
 ## Unreleased
 
-<!-- generated-through: 49a7cf8 -->
+<!-- generated-through: 98d93e5 -->
 
 ### Security
 
 - On Linux, a library the media-session connection uses is updated past a published soundness flaw.
+- A URL library is updated past a published flaw where a crafted address could crash a program asking for its origin (RUSTSEC-2026-0592); Karasu never asks for it.
 
 ### Added
 
