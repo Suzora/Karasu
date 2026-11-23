@@ -11,7 +11,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { addEntries, findSection, MARKER, resolveSince, UNRELEASED } from "./changelog-section.mjs";
+import { addEntries, changelogTrailer, findSection, MARKER, resolveSince, UNRELEASED } from "./changelog-section.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = path.join(ROOT, "CHANGELOG.md");
@@ -67,7 +67,7 @@ function collect(since) {
     const [sha, subject, body = ""] = block.replace(/^\n/, "").split(FS);
     if (!sha || !subject) continue;
 
-    const trailer = body.match(/^Changelog:\s*(.+)$/im)?.[1]?.trim();
+    const trailer = changelogTrailer(body);
     if (trailer && /^skip$/i.test(trailer)) continue;
 
     let group;

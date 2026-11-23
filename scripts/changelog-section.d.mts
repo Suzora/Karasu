@@ -14,3 +14,4 @@ export function resolveSince(
   marker: string,
   history: { isAncestor: (sha: string) => boolean; introducedBy: (sha: string) => string | null },
 ): string | null;
+export function changelogTrailer(body: string): string | undefined;
