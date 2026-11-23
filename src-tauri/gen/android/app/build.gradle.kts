@@ -36,7 +36,7 @@ val commitNumber = run { // read from the Rust const, never a copy: scripts/bump
 }
 
 android {
-    compileSdk = 36
+    compileSdk = 37
     namespace = "dev.kyu.karasu"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"

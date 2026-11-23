@@ -317,7 +317,7 @@ red run reaches the maintainer as that workflow's own notification; the
 release itself is already out by then and is not held back by either.
 
 **A plugin that asks for a newer SDK platform than 36 broke the F-Droid
-build, and why exactly is still open.** Dependabot took
+build; the cure is an AGP that knows `android-37.0`.** Dependabot took
 `tauri-plugin-sharekit` and its npm half from 0.4.0-rc.7 to rc.8 on
 2026-11-12 (#117, #118), and rc.8 sets `compileSdk = 37` where rc.7 set 35.
 F-Droid's build of 1.82.0 (fdroiddata merge request 57656, reported in
@@ -336,21 +336,29 @@ not be reproduced here. linsui answered on 2026-11-23 that AGP 9.1.x
 fixes it, as far as they remember, and Google's compatibility table agrees:
 9.1.1 is the first AGP that supports API 37.0, 8.13 stops at 36.1.
 
-Since 2026-11-22 both halves are pinned exactly to rc.7 and Dependabot
-ignores every later version of them; lift that only once a build on
-F-Droid's server has been seen to pass with the newer version, or with the
-AGP fix applied (the project is on AGP 9.3.1 since 2026-11-23, below) and
-compile SDK 37 installed in both jobs. Two guards keep the next such bump from passing
-unseen: the release and reproducibility jobs delete every installed
-platform past 36 right after `sdkmanager`, and
+From 2026-11-22 to 2026-11-23 both halves were pinned exactly to rc.7 and
+Dependabot ignored every later version of them. The pin went once the AGP
+fix was in (the project is on AGP 9.3.1 since 2026-11-23, below): both are
+on rc.8 again, the app compiles against SDK 37 (`compileSdk = 37`; the
+target SDK stays 36, since that one opts into Android 17's behaviour
+changes), and Dependabot moves them as before. Whether F-Droid's server
+finds `android-37.0` with AGP 9.3.1 is still unseen: the next Stable tag's
+F-Droid build is the test, and if it fails the same way, rc.7 and compile
+SDK 36 come back together, since AGP 9 refuses an app compiled below a
+library it uses. Two guards keep the next such bump from passing unseen:
+the release and reproducibility jobs install `platforms;android-37.0`
+beside 36 and delete every installed platform past 37 right after
+`sdkmanager` (the loop reads `37.0` as 37), and
 `src-tauri/gen/android/gradle.properties` sets
 `android.builder.sdkDownload=false` (hand-added), so Gradle cannot fetch
-one back. They do not mirror F-Droid's SDK, which does carry 37; they hold
-the build to the newest platform F-Droid is known to build against. Measured
-the same day with platforms 35 and 36 only and the F-Droid switches set:
-rc.7 built the arm64 APK, rc.8 failed with the same `android-37` error. The
-deletion has not run on a runner yet; the first Nightly after it is its
-test.
+one back. They hold the build to the newest platform the project means to
+build against. Measured on 2026-11-22 with platforms 35 and 36 only and the
+F-Droid switches set, still on AGP 8.11.0: rc.7 built the arm64 APK, rc.8
+failed with the same `android-37` error. Measured on 2026-11-23 with AGP
+9.3.1 and platforms 35, 36 and 37.0 in the cloud container, the F-Droid
+switches set: rc.8 built the unsigned arm64 release APK, which reads
+`compileSdkVersion='37'` and `targetSdkVersion:'36'`. The deletion has not
+run on a runner yet; the first Nightly after it is its test.
 
 **The Android project is on AGP 9.3.1, Gradle 9.6.1 and Kotlin plugin
 2.2.10 since 2026-11-23, the versions the template of our own CLI (2.12.6)
@@ -387,9 +395,9 @@ changed is R8's: 65 fewer classes, all obfuscated helpers or lambda
 classes, since Kotlin 2 compiles lambdas through `invokedynamic`, and the
 service-loader files under `META-INF/services` renamed with the
 interfaces R8 now repackages into the default package, each still
-pointing at a class the dex holds. The compile SDK stays 36 and the rc.7
-pin stays; raising both is the next step, and only F-Droid's own build of
-it can say whether AGP 9.3.1 finds `android-37.0` there.
+pointing at a class the dex holds. The same day the rc.7 pin went and the
+compile SDK moved to 37 (above); the raise in the root build stays for the
+next plugin that compiles below 36.
 
 ## The Windows installer carries the old publisher name over
 
