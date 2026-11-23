@@ -332,13 +332,15 @@ the minor version. Google's sdkmanager now offers the platform only as
 `platforms;android-37.0`, and with that installed in the cloud container on
 2026-11-22, AGP 8.11.0 (ours) and 8.13.2 both built rc.8, so the failure
 depends on how F-Droid's own SDK tooling lays the platform out, which could
-not be reproduced here. Which AGP version fixes it on F-Droid's server is
-asked on #128 and not yet answered.
+not be reproduced here. linsui answered on 2026-11-23 that AGP 9.1.x
+fixes it, as far as they remember, and Google's compatibility table agrees:
+9.1.1 is the first AGP that supports API 37.0, 8.13 stops at 36.1.
 
 Since 2026-11-22 both halves are pinned exactly to rc.7 and Dependabot
 ignores every later version of them; lift that only once a build on
-F-Droid's server has been seen to pass with the newer version, or the AGP
-fix is known and applied. Two guards keep the next such bump from passing
+F-Droid's server has been seen to pass with the newer version, or with the
+AGP fix applied (the project is on AGP 9.3.1 since 2026-11-23, below) and
+compile SDK 37 installed in both jobs. Two guards keep the next such bump from passing
 unseen: the release and reproducibility jobs delete every installed
 platform past 36 right after `sdkmanager`, and
 `src-tauri/gen/android/gradle.properties` sets
@@ -349,6 +351,45 @@ the same day with platforms 35 and 36 only and the F-Droid switches set:
 rc.7 built the arm64 APK, rc.8 failed with the same `android-37` error. The
 deletion has not run on a runner yet; the first Nightly after it is its
 test.
+
+**The Android project is on AGP 9.3.1, Gradle 9.6.1 and Kotlin plugin
+2.2.10 since 2026-11-23, the versions the template of our own CLI (2.12.6)
+generates.** Tauri moved its template there in tauri-cli 2.12.0
+(tauri#15828); `src-tauri/gen/android` had stayed on AGP 8.11.0, Gradle
+8.14.3 and Kotlin 1.9.25 only because `tauri android init` had not run since.
+The move was carried over by hand, keeping every hand edit, and took four
+things beyond the version numbers. First, `gradle.properties` sets the three
+switches Tauri's template sets, `android.builtInKotlin=false`,
+`android.newDsl=false` and `android.proguard.failOnMissingFiles=false`:
+the tauri-android library and every plugin apply `org.jetbrains.kotlin.android`,
+which AGP 9's built-in Kotlin refuses, and the notification plugin ships no
+`consumer-rules.pro`. AGP warns that all three, and our
+`android.nonFinalResIds=false`, go away in AGP 10, so the step after this
+one is Tauri's to make first (its template marks them "Remove this in v3").
+Second, `app/build.gradle.kts` sets Java 1.8 in `compileOptions` and the
+Kotlin target in a top-level `kotlin { compilerOptions }`, since Kotlin 2.2
+refuses `kotlinOptions` and AGP 9 would otherwise compile Java for 11
+against Kotlin's 1.8. Third, AGP 9 checks that a library compiles against
+at least the SDK of each library it uses, and sharekit rc.7 compiles
+against 35 while tauri-android needs 36, so the root `build.gradle.kts`
+raises any plugin below 36 to 36 (hand-added; a compile SDK changes what a
+library may call, not what it does). Fourth, release lint crashed inside
+its Kotlin analysis on `apply(from = "tauri.build.gradle.kts")` and passes
+on `apply(from = file("tauri.build.gradle.kts"))`, the template's spelling;
+found by bisecting the file against the template, one block at a time.
+Measured the same day in the cloud container (platforms 35 and 36 only,
+the F-Droid switches set, NDK 27.1, JDK 21): the debug and the unsigned
+arm64 release APK built, the native library was byte-identical to the
+AGP 8 build of the same commit, the merged manifest identical, and every
+class and method reached over JNI or by name (the `-keep`s in
+`proguard-rules.pro`, the named `app.tauri` classes) present in both. What
+changed is R8's: 65 fewer classes, all obfuscated helpers or lambda
+classes, since Kotlin 2 compiles lambdas through `invokedynamic`, and the
+service-loader files under `META-INF/services` renamed with the
+interfaces R8 now repackages into the default package, each still
+pointing at a class the dex holds. The compile SDK stays 36 and the rc.7
+pin stays; raising both is the next step, and only F-Droid's own build of
+it can say whether AGP 9.3.1 finds `android-37.0` there.
 
 ## The Windows installer carries the old publisher name over
 

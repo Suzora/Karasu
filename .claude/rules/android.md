@@ -62,7 +62,12 @@ Moved out of CLAUDE.md word for word; CLAUDE.md still decides wherever the two c
   device test of 2026-09-19 ran on. Its WebView is debuggable - `adb forward
   tcp:9223 localabstract:webview_devtools_remote_<pid>` plus Playwright's
   `connectOverCDP` reads the DOM, and `adb shell run-as dev.kyu.karasu.debug`
-  reads its `karasu.log`. Neither works on the release package.
+  reads its `karasu.log`. Neither works on the release package. Not seen
+  with tauri-cli 2.12.6 on 2026-11-23: four builds in the cloud container,
+  debug and release, left the committed `app/build.gradle.kts` and its hand
+  edits as they were, so whether a build rewrites it depends on the CLI
+  version or the platform; check `git status` after a build before relying
+  on either.
 - **Debug-signed and release-signed APKs do not install over each other.**
   Android refuses the signature change; the other one must be uninstalled
   first, which wipes app-local data. This is why CI publishes only
