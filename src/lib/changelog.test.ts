@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addEntries, findSection, resolveSince } from "../../scripts/changelog-section.mjs";
+import { addEntries, changelogTrailer, findSection, resolveSince } from "../../scripts/changelog-section.mjs";
 
 /** `scripts/changelog.mjs`'s edit to the Unreleased section, without git: the entries are what `collect` would hand it. */
 
@@ -76,5 +76,26 @@ describe("resolving the marker to a commit to read from", () => {
 
   it("gives up when nothing in the history wrote that marker", () => {
     expect(resolveSince("aaa1111", history([], {}))).toBeNull();
+  });
+});
+
+describe("reading a commit's Changelog trailer", () => {
+  const trailers = "Co-Authored-By: A <a@example.com>\nClaude-Session: https://example.com/s";
+
+  it("reads it from a paragraph of its own above the attribution", () => {
+    expect(changelogTrailer(`Body text.\n\nChangelog: Fixed: A thing works.\n\n${trailers}`)).toBe("Fixed: A thing works.");
+  });
+
+  it("reads it from the trailer block it shares with the attribution", () => {
+    expect(changelogTrailer(`Body text.\n\nChangelog: skip\n${trailers}`)).toBe("skip");
+  });
+
+  it("ignores a line that only starts with the word inside quoted release notes", () => {
+    const quoted = '<li><a\nhref="https://example.com/c"><code>a029133</code></a\nChangelog: Add v2.6.1 to the v2 changelog</li>';
+    expect(changelogTrailer(`Bumps the group.\n\n${quoted}\n\n${trailers}`)).toBeUndefined();
+  });
+
+  it("finds none in a body without one", () => {
+    expect(changelogTrailer(`Body text.\n\n${trailers}`)).toBeUndefined();
   });
 });

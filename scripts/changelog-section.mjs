@@ -46,3 +46,14 @@ export function addEntries(file, entries, through) {
 export function resolveSince(marker, { isAncestor, introducedBy }) {
   return isAncestor(marker) ? marker : introducedBy(marker);
 }
+
+/** A commit's `Changelog:` trailer, read only from a paragraph of trailers, so quoted release notes cannot supply one. */
+export function changelogTrailer(body) {
+  for (const paragraph of body.split(/\n[ \t]*\n/)) {
+    const lines = paragraph.split("\n").filter((line) => line.trim());
+    if (!lines.length || !lines.every((line) => /^[A-Za-z][\w-]*:\s/.test(line) || /^\s+\S/.test(line))) continue;
+    const trailer = paragraph.match(/^Changelog:\s*(.+)$/im)?.[1]?.trim();
+    if (trailer) return trailer;
+  }
+  return undefined;
+}
