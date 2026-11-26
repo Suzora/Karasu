@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTheme } from "@/stores/theme";
 import { type MediaListEntry } from "@/api/types";
@@ -33,10 +33,12 @@ export function VirtualGrid({
   const columns = useColumnCount(probeRef, coverCols);
   const rowCount = Math.ceil(items.length / columns);
 
+  // Every card in a list is one height, so the first row drawn stands in for the rows not drawn yet, as on Back.
+  const typical = useRef<number | null>(null);
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => estimateRowHeight,
+    estimateSize: () => typical.current ?? estimateRowHeight,
     overscan: 4,
   });
 
@@ -58,11 +60,24 @@ export function VirtualGrid({
   );
   useScrollMemory(scrollRef, "list", place);
 
-  // Titles wrap differently at a different column count, so the cache is dropped and the mounted rows are read again.
+  const measureRow = useCallback(
+    (el: HTMLDivElement | null) => {
+      virtualizer.measureElement(el);
+      if (!el || typical.current !== null) return;
+      const height = el.getBoundingClientRect().height;
+      if (height <= 0) return;
+      typical.current = height;
+      virtualizer.measure();
+    },
+    [virtualizer],
+  );
+
+  // A different column count changes the card's size, so the cache and the stand-in are dropped and the rows read again.
   useLayoutEffect(() => {
+    typical.current = null;
     virtualizer.measure();
-    virtualizer.elementsCache.forEach((el) => virtualizer.measureElement(el));
-  }, [columns, virtualizer]);
+    virtualizer.elementsCache.forEach((el) => measureRow(el as HTMLDivElement));
+  }, [columns, virtualizer, measureRow]);
 
   // Arrow keys need the measured count to know what down means, so it is reported up rather than recomputed.
   useEffect(() => onColumns?.(columns), [columns, onColumns]);
@@ -88,7 +103,7 @@ export function VirtualGrid({
           <div
             key={row.key}
             data-index={row.index}
-            ref={virtualizer.measureElement}
+            ref={measureRow}
             className={cn(gridClassName, "absolute left-0 top-0 w-full")}
             style={{
               transform: `translateY(${row.start}px)`,

@@ -2581,7 +2581,7 @@ dependencies = [
 
 [[package]]
 name = "karasu"
-version = "1.83.7"
+version = "1.83.8"
 dependencies = [
  "ashpd",
  "base64 0.22.1",
